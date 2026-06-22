@@ -258,12 +258,6 @@ function AdminPanel({ onExit }) {
   const allEmails = users.map((u) => u.email).join(', ');
   const marketingEmails = users.filter((u) => u.marketing_optin).map((u) => u.email).join(', ');
 
-  function buildMailto(emails) {
-    const subject = encodeURIComponent('New arrivals & exclusive offers — REWIND');
-    const body = encodeURIComponent(emailText || `Hi,\n\nWe just got new pieces in. Check them out:\nhttps://rewind-store.vercel.app\n\nBest,\nREWIND`);
-    return `mailto:${emails}?subject=${subject}&body=${body}`;
-  }
-
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
@@ -370,17 +364,47 @@ function AdminPanel({ onExit }) {
             <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)}
               placeholder="Write your email message here... (or leave blank for default)"
               rows={5}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', resize: 'vertical', marginBottom: '12px' }} />
+              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', resize: 'vertical', marginBottom: '8px' }} />
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>
+              Emails are sent via Resend. Leave message blank for a default template.
+            </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <a href={buildMailto(allEmails)}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+              <button onClick={async () => {
+                const btn = document.activeElement;
+                const orig = btn.textContent;
+                btn.textContent = 'Sending...';
+                btn.disabled = true;
+                const r = await fetch('/api/send-campaign', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ emails: users.map((u) => u.email), subject: '', message: emailText || '' }),
+                });
+                const d = await r.json();
+                btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : '❌ Failed';
+                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+              }}
+                style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
                 📩 Email all users ({users.length})
-              </a>
-              <a href={buildMailto(marketingEmails)}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: '#FF4D14', color: '#fff', textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>
+              </button>
+              <button onClick={async () => {
+                const btn = document.activeElement;
+                const orig = btn.textContent;
+                btn.textContent = 'Sending...';
+                btn.disabled = true;
+                const marketingUsers = users.filter((u) => u.marketing_optin);
+                const r = await fetch('/api/send-campaign', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ emails: marketingUsers.map((u) => u.email), subject: '', message: emailText || '' }),
+                });
+                const d = await r.json();
+                btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : '❌ Failed';
+                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+              }}
+                style={{ padding: '10px 20px', borderRadius: '999px', background: '#FF4D14', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
                 📩 Email opted-in only ({users.filter((u) => u.marketing_optin).length})
-              </a>
-              <button onClick={() => { navigator.clipboard?.writeText(allEmails); }}
+              </button>
+              <button onClick={() => { navigator.clipboard?.writeText(users.map((u) => u.email).join(', ')); }}
                 style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '14px' }}>
                 Copy all emails
               </button>
