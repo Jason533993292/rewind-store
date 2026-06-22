@@ -1,0 +1,10 @@
+# REWIND Edit Request
+# Write your desired changes below as plain English.
+# The bot will read this, make the edits, clear the file, and deploy.
+# One request at a time, please.
+
+# Example:
+# - Change the hero title to "Back in style"
+# - Add a size badge that shows "One size" for products without sizes
+# - Change the accent color to #0E9F6E
+
