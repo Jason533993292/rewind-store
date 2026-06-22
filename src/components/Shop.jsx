@@ -214,10 +214,10 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [orderNum, setOrderNum] = useState('');
 
   if (!open) return null;
   if (placed) {
-    const orderNum = 'RW-' + String(Date.now()).slice(-8);
     return (
       <div className="rw-checkout">
         <div className="rw-checkout-bar">
@@ -243,7 +243,32 @@ export function Checkout({ open, items, onClose, onPlaced }) {
     setProcessing(true);
     // Mock API delay — replace with real payment gateway call
     await new Promise((r) => setTimeout(r, 1800));
+
+    // Send order confirmation email
+    const orderNum = 'RW-' + String(Date.now()).slice(-8);
+    try {
+      await fetch('/api/send-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.querySelector('.rw-input[type="email"]')?.value || '',
+          name: document.querySelector('.rw-input[placeholder="Full name"]')?.value || '',
+          items: items.map((it) => ({ name: it.name, size: it.size, price: it.price })),
+          total: subtotal + shipping,
+          address: [
+            document.querySelector('.rw-input[placeholder="Address"]')?.value,
+            document.querySelector('.rw-input[placeholder="Postal code"]')?.value,
+            document.querySelector('.rw-input[placeholder="City"]')?.value,
+          ].filter(Boolean).join(', '),
+          orderNum,
+        }),
+      });
+    } catch (e) {
+      console.warn('Order email not sent:', e);
+    }
+
     setProcessing(false);
+    setOrderNum(orderNum);
     setPlaced(true);
   }
 
