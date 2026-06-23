@@ -405,103 +405,7 @@ function AdminPanel({ onExit }) {
           </div>
 
           {/* ── Product Manager ── */}
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📦 Add new product</h3>
-            {(() => {
-              const [form, setForm] = React.useState({
-                name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null
-              });
-              const [saving, setSaving] = React.useState(false);
-              const [msg, setMsg] = React.useState('');
-              const catOptions = [...REWIND_CATS.filter(c => c !== 'All'), 'Other'];
-              const [showCustomCat, setShowCustomCat] = React.useState(false);
-              const fileRef = React.useRef(null);
-
-              const handleSubmit = async (e) => {
-                e.preventDefault();
-                setSaving(true);
-                setMsg('');
-                const cat = form.cat === 'Other' ? form.catCustom : form.cat;
-                if (!form.name || !cat || !form.price) {
-                  setMsg('❌ Name, category, and price are required'); setSaving(false); return;
-                }
-                const productId = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                const product = {
-                  product_id: productId,
-                  name: form.name,
-                  brand: form.brand || '',
-                  cat,
-                  price: parseFloat(form.price),
-                  was: form.was ? parseFloat(form.was) : null,
-                  stock: 5,
-                  hue: Math.floor(Math.random() * 360),
-                  img: '',
-                  note: form.note || '',
-                  sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
-                };
-
-                // Upload image if selected
-                if (form.file) {
-                  const url = await uploadProductImage(form.file, productId);
-                  if (url) product.img = url;
-                }
-
-                const result = await addCustomProduct(product);
-                if (result) {
-                  setMsg(`✅ "${form.name}" added!`);
-                  setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null });
-                  if (fileRef.current) fileRef.current.value = '';
-                } else {
-                  setMsg('❌ Failed to save. Supabase not connected?');
-                }
-                setSaving(false);
-              };
-
-              return (
-                <form onSubmit={handleSubmit}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-                    <input className="rw-input" placeholder="Product name *" value={form.name}
-                      onChange={e => setForm({...form, name: e.target.value})} required />
-                    <input className="rw-input" placeholder="Brand (e.g. Nike)" value={form.brand}
-                      onChange={e => setForm({...form, brand: e.target.value})} />
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-                    <select className="rw-input" style={{ flex: 1, width: 'auto' }}
-                      value={showCustomCat ? 'Other' : form.cat}
-                      onChange={e => { setForm({...form, cat: e.target.value}); setShowCustomCat(e.target.value === 'Other'); }}>
-                      <option value="">Select category *</option>
-                      {catOptions.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    {showCustomCat && (
-                      <input className="rw-input" placeholder="New category name" value={form.catCustom}
-                        onChange={e => setForm({...form, catCustom: e.target.value})} style={{ flex: 1 }} />
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-                    <input className="rw-input" type="number" step="0.01" placeholder="Price * (€)" value={form.price}
-                      onChange={e => setForm({...form, price: e.target.value})} required style={{ flex: 1 }} />
-                    <input className="rw-input" type="number" step="0.01" placeholder="Original price (€)" value={form.was}
-                      onChange={e => setForm({...form, was: e.target.value})} style={{ flex: 1 }} />
-                  </div>
-                  <input className="rw-input" placeholder="Sizes (comma separated, e.g. S,M,L,XL)" value={form.sizes}
-                    onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
-                  <textarea className="rw-input" placeholder="Description / note" value={form.note}
-                    onChange={e => setForm({...form, note: e.target.value})} rows={2}
-                    style={{ marginBottom: '12px', resize: 'vertical' }} />
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-                    <input ref={fileRef} type="file" accept="image/*"
-                      onChange={e => setForm({...form, file: e.target.files[0]})} />
-                    {form.file && <span style={{ fontSize: '13px', color: '#888' }}>{form.file.name}</span>}
-                  </div>
-                  {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
-                  <button type="submit" disabled={saving}
-                    style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-                    {saving ? 'Saving...' : '➕ Add product'}
-                  </button>
-                </form>
-              );
-            })()}
-          </div>
+          <ProductForm />
 
           {/* ── Email tool ── */}
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
@@ -557,6 +461,93 @@ function AdminPanel({ onExit }) {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ── Product Form (separate component) ── */
+function ProductForm() {
+  const [form, setForm] = React.useState({
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null
+  });
+  const [saving, setSaving] = React.useState(false);
+  const [msg, setMsg] = React.useState('');
+  const [showCustomCat, setShowCustomCat] = React.useState(false);
+  const fileRef = React.useRef(null);
+  const catOptions = [...REWIND_CATS.filter(c => c !== 'All'), 'Other'];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true); setMsg('');
+    const cat = form.cat === 'Other' ? form.catCustom : form.cat;
+    if (!form.name || !cat || !form.price) {
+      setMsg('❌ Name, category, and price are required'); setSaving(false); return;
+    }
+    const productId = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const product = {
+      product_id: productId, name: form.name, brand: form.brand || '', cat,
+      price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
+      stock: 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
+    };
+    if (form.file) {
+      const url = await uploadProductImage(form.file, productId);
+      if (url) product.img = url;
+    }
+    const result = await addCustomProduct(product);
+    if (result) {
+      setMsg(`✅ "${form.name}" added!`);
+      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null });
+      if (fileRef.current) fileRef.current.value = '';
+    } else {
+      setMsg('❌ Failed to save.');
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+      <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📦 Add new product</h3>
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+          <input className="rw-input" placeholder="Product name *" value={form.name}
+            onChange={e => setForm({...form, name: e.target.value})} required />
+          <input className="rw-input" placeholder="Brand (e.g. Nike)" value={form.brand}
+            onChange={e => setForm({...form, brand: e.target.value})} />
+        </div>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+          <select className="rw-input"
+            value={showCustomCat ? 'Other' : form.cat}
+            onChange={e => { setForm({...form, cat: e.target.value}); setShowCustomCat(e.target.value === 'Other'); }}>
+            <option value="">Select category *</option>
+            {catOptions.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          {showCustomCat && (
+            <input className="rw-input" placeholder="New category name" value={form.catCustom}
+              onChange={e => setForm({...form, catCustom: e.target.value})} />
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+          <input className="rw-input" type="number" step="0.01" placeholder="Price * (€)" value={form.price}
+            onChange={e => setForm({...form, price: e.target.value})} required />
+          <input className="rw-input" type="number" step="0.01" placeholder="Original price (€)" value={form.was}
+            onChange={e => setForm({...form, was: e.target.value})} />
+        </div>
+        <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes}
+          onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
+        <textarea className="rw-input" placeholder="Description" value={form.note}
+          onChange={e => setForm({...form, note: e.target.value})} rows={2}
+          style={{ marginBottom: '12px', resize: 'vertical' }} />
+        <div style={{ marginBottom: '12px' }}>
+          <input ref={fileRef} type="file" accept="image/*"
+            onChange={e => setForm({...form, file: e.target.files[0]})} />
+        </div>
+        {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
+        <button type="submit" disabled={saving}
+          style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+          {saving ? 'Saving...' : '➕ Add product'}
+        </button>
+      </form>
     </div>
   );
 }
