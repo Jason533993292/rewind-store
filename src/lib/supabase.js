@@ -70,3 +70,48 @@ export async function signupUser(email, marketingOptin) {
       { onConflict: 'email' });
   if (error) console.warn('Supabase signup:', error.message);
 }
+
+/* ── Custom Products API ── */
+
+export async function getCustomProducts() {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('custom_products')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) { console.warn('getCustomProducts:', error.message); return []; }
+  return data || [];
+}
+
+export async function addCustomProduct(product) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('custom_products')
+    .insert(product)
+    .select()
+    .single();
+  if (error) { console.warn('addCustomProduct:', error.message); return null; }
+  return data;
+}
+
+export async function deleteCustomProduct(id) {
+  if (!supabase) return false;
+  const { error } = await supabase
+    .from('custom_products')
+    .delete()
+    .eq('id', id);
+  if (error) { console.warn('deleteCustomProduct:', error.message); return false; }
+  return true;
+}
+
+export async function uploadProductImage(file, productId) {
+  if (!supabase) return null;
+  const ext = file.name.split('.').pop() || 'webp';
+  const path = `${productId}.${ext}`;
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(path, file, { upsert: true });
+  if (error) { console.warn('uploadProductImage:', error.message); return null; }
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return data?.publicUrl || null;
+}
