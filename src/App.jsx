@@ -663,7 +663,8 @@ function ProductForm() {
             )}
             {form.enhancedImage && (
             <div style={{ marginTop: '12px' }}>
-            <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Enhanced image ready! Click "Add product" to save.</p>
+            <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>✅ Enhanced preview:</p>
+            <img src={`data:image/jpeg;base64,${form.enhancedImage}`} style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', border: '1px solid #ddd' }} />
             </div>
             )}
             {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
