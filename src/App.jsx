@@ -606,7 +606,6 @@ function ProductForm() {
               cursor: 'pointer',
               fontSize: '13px',
               fontWeight: 600,
-              marginBottom: '12px',
               transition: 'transform 0.15s, box-shadow 0.15s',
             }}
             onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
@@ -615,10 +614,12 @@ function ProductForm() {
           </button>
         )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
-        <button type="submit" disabled={saving}
-          style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-          {saving ? 'Saving...' : '➕ Add product'}
-        </button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button type="submit" disabled={saving}
+            style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+            {saving ? 'Saving...' : '➕ Add product'}
+          </button>
+        </div>
       </form>
     </div>
   );
