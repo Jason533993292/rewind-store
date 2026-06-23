@@ -74,7 +74,7 @@ export default function ImageEditor({ file, onEnhancedImage }) {
     }
   }, [bgPreset, shadowIntensity, edgeFeather, loaded]);
 
-  // Remove background via Gemini (server)
+  // Remove background via server endpoint
   async function removeBackground() {
     setMsg('🔄 Processing...');
     const canvas = canvasRef.current;
@@ -82,16 +82,23 @@ export default function ImageEditor({ file, onEnhancedImage }) {
     try {
       const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       const base64 = dataUrl.split(',')[1];
-      const r = await fetch('/api/generate-description', {
+      const r = await fetch('/api/remove-bg', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' }),
+        body: JSON.stringify({ imageBase64: base64 }),
       });
       const d = await r.json();
-      if (d.description) {
-        setMsg(`✅ Gemini analyzed: "${d.description.slice(0, 60)}..."`);
+      if (d.maskBase64) {
+        // Apply mask as product image — load it back onto the canvas
+        const img = new Image();
+        img.onload = () => {
+          cachedImg.current = img;
+          setLoaded(true);
+          setMsg('✅ Background removed! Choose a preset below.');
+        };
+        img.src = `data:image/png;base64,${d.maskBase64}`;
       } else {
-        setMsg(d.error ? `⚠️ ${d.error}` : '⚠️ Could not analyze image');
+        setMsg(d.error ? `⚠️ ${d.error}` : '⚠️ Could not remove background');
       }
     } catch (e) {
       setMsg('❌ ' + e.message);
