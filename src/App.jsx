@@ -542,6 +542,35 @@ function ProductForm() {
           <input ref={fileRef} type="file" accept="image/*"
             onChange={e => setForm({...form, file: e.target.files[0]})} />
         </div>
+        {form.file && (
+          <button type="button" onClick={async () => {
+            setMsg('🔄 Generating description...');
+            const reader = new FileReader();
+            reader.onload = async () => {
+              const base64 = reader.result.split(',')[1];
+              try {
+                const r = await fetch('/api/generate-description', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ imageBase64: base64, mimeType: form.file.type }),
+                });
+                const d = await r.json();
+                if (d.description) {
+                  setForm({...form, note: d.description});
+                  setMsg('✅ Description generated!');
+                } else {
+                  setMsg('❌ ' + (d.error || 'Failed'));
+                }
+              } catch (e) {
+                setMsg('❌ Error: ' + e.message);
+              }
+            };
+            reader.readAsDataURL(form.file);
+          }}
+            style={{ padding: '8px 16px', borderRadius: '999px', background: '#4285F4', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
+            ✨ Generate description from image
+          </button>
+        )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
         <button type="submit" disabled={saving}
           style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>

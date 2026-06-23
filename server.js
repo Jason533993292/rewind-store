@@ -106,6 +106,43 @@ app.post('/api/send-campaign', async (req, res) => {
   res.json({ ok: true, sent, total: emails.length });
 });
 
+// ── Generate product description from image via Gemini ──
+app.post('/api/generate-description', async (req, res) => {
+  const { imageBase64, mimeType } = req.body;
+  const GEMINI_KEY = process.env.GEMINI_API_KEY;
+
+  if (!GEMINI_KEY) {
+    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  }
+  if (!imageBase64) {
+    return res.status(400).json({ error: 'No image provided' });
+  }
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: 'Describe this product for a vintage streetwear store. Include: item type, material guess, colors, era/style vibes, and who would wear it. Keep it to 2-3 sentences, professional but warm tone.' },
+              { inline_data: { mime_type: mimeType || 'image/jpeg', data: imageBase64 } }
+            ]
+          }]
+        })
+      }
+    );
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    res.json({ description: text });
+  } catch (err) {
+    console.error('Gemini error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 
