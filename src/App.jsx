@@ -404,11 +404,8 @@ function AdminPanel({ onExit }) {
             <div id="test-results" style={{ marginTop: '16px', maxHeight: '300px', overflow: 'auto' }} />
           </div>
 
-          {/* ── Product Manager ── */}
-          <ProductForm />
-
           {/* ── Email tool ── */}
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📧 Email users about discounts / sales</h3>
             <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)}
               placeholder="Write your email message here... (or leave blank for default)"
@@ -459,6 +456,9 @@ function AdminPanel({ onExit }) {
               </button>
             </div>
           </div>
+
+          {/* ── Product Manager ── */}
+          <ProductForm />
         </>
       )}
     </div>
@@ -574,9 +574,28 @@ function ProductForm() {
           )}
         </div>
         {form.file && (
-          <div style={{ marginTop: '12px' }}>
-            <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Preview:</p>
-            <img src={URL.createObjectURL(form.file)} style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', border: '1px solid #ddd' }} />
+          <div style={{ marginTop: '16px', border: '1px solid #eee', borderRadius: '12px', padding: '20px', background: '#FAF6EF' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#16130F', marginBottom: '12px' }}>📱 Storefront preview</p>
+            <div style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
+              <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : '#f5f0eb', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <img src={URL.createObjectURL(form.file)} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
+              </div>
+              <div style={{ padding: '14px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#FF4D14', letterSpacing: '1px' }}>{form.cat?.toUpperCase() || 'CATEGORY'}</span>
+                {form.brand && <span style={{ fontSize: '11px', color: '#888', marginLeft: '6px' }}>— {form.brand}</span>}
+                <h3 style={{ fontSize: '15px', fontWeight: 600, margin: '4px 0 2px', color: '#16130F' }}>{form.name || 'Product name'}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#16130F' }}>{form.price ? `€${form.price}` : '€--'}</span>
+                  {form.was && <span style={{ fontSize: '14px', color: '#aaa', textDecoration: 'line-through' }}>€{form.was}</span>}
+                </div>
+                <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
+                  {form.sizes.split(',').map(s => s.trim()).filter(Boolean).map(s => (
+                    <span key={s} style={{ padding: '3px 8px', borderRadius: '4px', border: '1px solid #eee', fontSize: '11px', color: '#888' }}>{s}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {form.note && <p style={{ fontSize: '12px', color: '#888', marginTop: '8px', fontStyle: 'italic' }}>{form.note}</p>}
           </div>
         )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
