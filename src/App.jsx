@@ -4,6 +4,7 @@ import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDraw
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage } from './lib/supabase';
+import SizeGuide from './components/SizeGuide';
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -152,6 +153,7 @@ export default function App() {
   // ── Admin mode ──
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
   const [blocked, setBlocked] = useState(false);
+  const [showSizes, setShowSizes] = useState(false);
   useEffect(() => {
     const onHash = () => setAdminMode(window.location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
@@ -234,7 +236,8 @@ export default function App() {
         </div>
       </main>
 
-      <Footer />
+      <Footer onSizes={() => setShowSizes(true)} />
+      {showSizes && <SizeGuide onClose={() => setShowSizes(false)} />}
 
       <QuickView p={quick} showCompare={t.showCompare} showStock={t.showStock}
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
@@ -577,24 +580,6 @@ function AdminPanel({ onExit }) {
           </div>
 
           {/* ── Product Manager ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 700 }}>{users.length}</div>
-              <div style={{ fontSize: '12px', color: '#888' }}>Users</div>
-            </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 700 }}>{totalFavs}</div>
-              <div style={{ fontSize: '12px', color: '#888' }}>Favorites</div>
-            </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 700 }}>{users.filter(u => u.blocked).length}</div>
-              <div style={{ fontSize: '12px', color: '#888' }}>Blocked</div>
-            </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '24px', fontWeight: 700 }}>{users.filter(u => u.marketing_optin).length}</div>
-              <div style={{ fontSize: '12px', color: '#888' }}>Opt-in</div>
-            </div>
-          </div>
           <ProductForm />
         </>
       )}

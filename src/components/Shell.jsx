@@ -187,7 +187,7 @@ export function Toast({ toast, onAction }) {
 }
 
 /* ---------- Footer ---------- */
-export function Footer() {
+export function Footer({ onSizes }) {
   return (
     <footer className="rw-footer">
       <div className="rw-footer-top">
@@ -197,7 +197,7 @@ export function Footer() {
       </div>
       <div className="rw-footer-cols">
         <div><h4>Shop</h4><a>New in</a><a>Tracksuits</a><a>Jerseys</a><a>Sets</a><a>Kicks</a></div>
-        <div><h4>Help</h4><a>Sizing</a><a>Shipping</a><a>Returns</a><a>Track order</a></div>
+        <div><h4>Help</h4><a onClick={onSizes} style={{ cursor: 'pointer' }}>Sizing</a><a>Shipping</a><a>Returns</a><a>Track order</a></div>
         <div><h4>Pay with</h4><a>PayPal</a><a>Payconiq</a><a>Apple Pay</a><a>Bancontact</a><a>Klarna</a></div>
       </div>
       <div className="rw-footer-base">© 2026 REWIND. A prototype. Prices & stock illustrative.</div>
