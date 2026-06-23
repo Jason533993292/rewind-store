@@ -576,7 +576,8 @@ function AdminPanel({ onExit }) {
           )}
 
           {/* ── Product stats ── */}
-          {adminTab === 'products' && ( style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          {adminTab === 'products' && (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Product stats</h3>
             <input placeholder="Search products..." value={productSearch} onChange={e => setProductSearch(e.target.value)}
               style={{ width: '100%', padding: '10px 14px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', marginBottom: '12px' }} />
@@ -630,9 +631,11 @@ function AdminPanel({ onExit }) {
               );
             })()}
           </div>
+          )}
 
-          {/* ── Product Manager ── */}
+          {adminTab === 'products' && (
           <ProductForm />
+          )}
         </>
       )}
     </div>
