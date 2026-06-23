@@ -468,7 +468,7 @@ function AdminPanel({ onExit }) {
 /* ── Product Form (separate component) ── */
 function ProductForm() {
   const [form, setForm] = React.useState({
-    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: []
   });
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
@@ -497,7 +497,7 @@ function ProductForm() {
     const result = await addCustomProduct(product);
     if (result) {
       setMsg(`✅ "${form.name}" added!`);
-      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null });
+      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: [] });
       if (fileRef.current) fileRef.current.value = '';
     } else {
       setMsg('❌ Failed to save.');
@@ -539,8 +539,38 @@ function ProductForm() {
           onChange={e => setForm({...form, note: e.target.value})} rows={2}
           style={{ marginBottom: '12px', resize: 'vertical' }} />
         <div style={{ marginBottom: '12px' }}>
-          <input ref={fileRef} type="file" accept="image/*"
-            onChange={e => setForm({...form, file: e.target.files[0]})} />
+          <label style={{
+            display: 'inline-block',
+            padding: '10px 20px',
+            borderRadius: '999px',
+            background: '#FF4D14',
+            color: '#fff',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '14px',
+            transition: 'transform 0.15s, box-shadow 0.15s',
+          }}
+            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
+            onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
+            📁 Choose files
+            <input ref={fileRef} type="file" accept="image/*,.png,.jpg,.jpeg,.webp,.pdf,.svg"
+              multiple
+              onChange={e => {
+                const files = Array.from(e.target.files);
+                setForm({...form, file: files[0] || null, files});
+              }}
+              style={{ display: 'none' }} />
+          </label>
+          {form.files?.length > 0 && (
+            <div style={{ fontSize: '13px', color: '#888', marginTop: '6px' }}>
+              {form.files.length} file{form.files.length > 1 ? 's' : ''} selected
+              {form.files.map((f, i) => (
+                <span key={i} style={{ display: 'block', fontSize: '12px', color: '#aaa', marginTop: '2px' }}>
+                  {f.name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         {form.file && (
           <button type="button" onClick={async () => {
@@ -559,7 +589,7 @@ function ProductForm() {
                   setForm({...form, note: d.description});
                   setMsg('✅ Description generated!');
                 } else {
-                  setMsg('❌ ' + (d.error || 'Failed'));
+                  setMsg('⚠️ No description returned. Make sure GEMINI_API_KEY is set in Railway.');
                 }
               } catch (e) {
                 setMsg('❌ Error: ' + e.message);
@@ -567,7 +597,20 @@ function ProductForm() {
             };
             reader.readAsDataURL(form.file);
           }}
-            style={{ padding: '8px 16px', borderRadius: '999px', background: '#4285F4', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
+            style={{
+              padding: '8px 18px',
+              borderRadius: '999px',
+              background: '#FF4D14',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              marginBottom: '12px',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
+            onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
             ✨ Generate description from image
           </button>
         )}
