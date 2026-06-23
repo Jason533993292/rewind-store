@@ -82,10 +82,28 @@ export function ProductGrid({ products, wishlist, onWishlist, ...rest }) {
   if (products.length === 0) {
     return <div className="rw-empty">Nothing matched your search — try a different term?</div>;
   }
+  // Group products by brand → category
+  const grouped = {};
+  products.forEach(p => {
+    const brand = p.brand || 'Unbranded';
+    const cat = p.cat || 'Other';
+    if (!grouped[brand]) grouped[brand] = {};
+    if (!grouped[brand][cat]) grouped[brand][cat] = [];
+    grouped[brand][cat].push(p);
+  });
+
   return (
     <div className="rw-grid">
-      {products.map((p) => (
-        <ProductCard key={p.id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist} {...rest} />
+      {Object.entries(grouped).map(([brand, cats]) => (
+        <div key={brand} style={{ gridColumn: '1 / -1', marginBottom: '8px' }}>
+          {Object.entries(cats).map(([cat, items]) => (
+            <div key={brand + cat}>
+              {items.map((p) => (
+                <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist} {...rest} />
+              ))}
+            </div>
+          ))}
+        </div>
       ))}
     </div>
   );
