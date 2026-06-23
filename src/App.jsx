@@ -151,13 +151,36 @@ export default function App() {
 
   // ── Admin mode ──
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
+  const [blocked, setBlocked] = useState(false);
   useEffect(() => {
     const onHash = () => setAdminMode(window.location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  // Check if current user is blocked
+  useEffect(() => {
+    if (!supabase || adminMode) return;
+    const email = localStorage.getItem('rw_email');
+    if (!email) return;
+    supabase.from('wishlists').select('blocked').eq('email', email).single()
+      .then(({ data }) => {
+        if (data?.blocked) setBlocked(true);
+      });
+  }, [adminMode]);
+
   if (adminMode) return <AdminPanel onExit={() => { window.location.hash = ''; }} />;
+
+  // Blocked screen
+  if (blocked) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FAF6EF', padding: '40px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</h1>
+        <h2 style={{ fontSize: '24px', color: '#16130F', marginBottom: '8px' }}>Access restricted</h2>
+        <p style={{ fontSize: '16px', color: '#6E665A', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please contact us.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rw-app">
@@ -339,10 +362,23 @@ function AdminPanel({ onExit }) {
                       {new Date(u.created_at).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <a href={`mailto:${u.email}`} style={{ color: '#666', textDecoration: 'none', fontSize: '13px' }}>✉️</a>
+                      <a href={`mailto:${u.email}`} style={{ color: '#666', textDecoration: 'none', fontSize: '16px' }}>✉️</a>
                       <button onClick={() => toggleBlockUser(u.email, !u.blocked)}
-                        style={{ marginLeft: '6px', padding: '2px 8px', borderRadius: '4px', border: 'none', background: u.blocked ? '#4caf50' : '#e53935', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
-                        {u.blocked ? 'Unblock' : 'Block'}
+                        style={{
+                          marginLeft: '8px',
+                          padding: '8px 16px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: u.blocked ? '#4caf50' : '#e53935',
+                          color: '#fff',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          transition: 'transform 0.15s, box-shadow 0.15s',
+                        }}
+                        onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 3px 10px rgba(0,0,0,0.2)'; }}
+                        onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
+                        {u.blocked ? '✅ Unblock' : '🚫 Block'}
                       </button>
                     </td>
                   </tr>
