@@ -82,27 +82,38 @@ export function ProductGrid({ products, wishlist, onWishlist, ...rest }) {
   if (products.length === 0) {
     return <div className="rw-empty">Nothing matched your search — try a different term?</div>;
   }
-  // Group products by brand → category
+  // Group products by brand → category, then flatten with headers
   const grouped = {};
   products.forEach(p => {
-    const brand = p.brand || 'Unbranded';
+    const brand = p.brand || '';
     const cat = p.cat || 'Other';
     if (!grouped[brand]) grouped[brand] = {};
     if (!grouped[brand][cat]) grouped[brand][cat] = [];
     grouped[brand][cat].push(p);
   });
 
+  const sections = [];
+  Object.entries(grouped).forEach(([brand, cats]) => {
+    Object.entries(cats).forEach(([cat, items]) => {
+      const label = [brand, cat].filter(Boolean).join(' — ');
+      sections.push({ label, items });
+    });
+  });
+
   return (
-    <div className="rw-grid">
-      {Object.entries(grouped).map(([brand, cats]) => (
-        <div key={brand} style={{ gridColumn: '1 / -1', marginBottom: '8px' }}>
-          {Object.entries(cats).map(([cat, items]) => (
-            <div key={brand + cat}>
-              {items.map((p) => (
-                <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist} {...rest} />
-              ))}
-            </div>
-          ))}
+    <div>
+      {sections.map((s, i) => (
+        <div key={i}>
+          {s.label && (
+            <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#888', margin: '24px 0 12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              {s.label}
+            </h3>
+          )}
+          <div className="rw-grid" style={{ marginBottom: '8px' }}>
+            {s.items.map((p) => (
+              <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist} {...rest} />
+            ))}
+          </div>
         </div>
       ))}
     </div>
