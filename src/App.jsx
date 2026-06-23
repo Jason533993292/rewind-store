@@ -5,6 +5,7 @@ import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRad
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage } from './lib/supabase';
 import SizeGuide from './components/SizeGuide';
+import InfoModal from './components/InfoModal';
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -154,6 +155,7 @@ export default function App() {
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
   const [blocked, setBlocked] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
+  const [infoPage, setInfoPage] = useState(null);
   useEffect(() => {
     const onHash = () => setAdminMode(window.location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
@@ -263,8 +265,9 @@ export default function App() {
         </div>
       </main>
 
-      <Footer onSizes={() => setShowSizes(true)} />
+      <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} />
       {showSizes && <SizeGuide onClose={() => setShowSizes(false)} />}
+      {infoPage && <InfoModal page={infoPage} onClose={() => setInfoPage(null)} />}
 
       <QuickView p={quick} showCompare={t.showCompare} showStock={t.showStock}
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
