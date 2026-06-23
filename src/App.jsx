@@ -582,14 +582,26 @@ function ProductForm() {
         {form.file && (
           <button type="button" onClick={async () => {
             setMsg('🔄 Generating description...');
-            const reader = new FileReader();
-            reader.onload = async () => {
-              const base64 = reader.result.split(',')[1];
+            const img = new Image();
+            const url = URL.createObjectURL(form.file);
+            img.onload = async () => {
+              const canvas = document.createElement('canvas');
+              const maxDim = 1200;
+              let w = img.width, h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) { h = h * maxDim / w; w = maxDim; }
+                else { w = w * maxDim / h; h = maxDim; }
+              }
+              canvas.width = w; canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+              URL.revokeObjectURL(url);
               try {
                 const r = await fetch('/api/generate-description', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ imageBase64: base64, mimeType: form.file.type }),
+                  body: JSON.stringify({ imageBase64: compressedBase64, mimeType: 'image/jpeg' }),
                 });
                 const d = await r.json();
                 if (d.description) {
@@ -623,14 +635,27 @@ function ProductForm() {
         {form.file && (
           <button type="button" onClick={async () => {
             setMsg('🔄 Enhancing image...');
-            const reader = new FileReader();
-            reader.onload = async () => {
-              const base64 = reader.result.split(',')[1];
+            // Compress image to reduce size before sending
+            const img = new Image();
+            const url = URL.createObjectURL(form.file);
+            img.onload = async () => {
+              const canvas = document.createElement('canvas');
+              const maxDim = 1200;
+              let w = img.width, h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) { h = h * maxDim / w; w = maxDim; }
+                else { w = w * maxDim / h; h = maxDim; }
+              }
+              canvas.width = w; canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, w, h);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+              URL.revokeObjectURL(url);
               try {
                 const r = await fetch('/api/enhance-image', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ imageBase64: base64 }),
+                  body: JSON.stringify({ imageBase64: compressedBase64 }),
                 });
                 const d = await r.json();
                 if (d.imageBase64) {
@@ -643,7 +668,7 @@ function ProductForm() {
                 setMsg('❌ Error: ' + e.message);
               }
             };
-            reader.readAsDataURL(form.file);
+            img.src = url;
           }}
             style={{
               padding: '8px 18px',
