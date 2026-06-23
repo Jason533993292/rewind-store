@@ -315,6 +315,43 @@ function AdminPanel({ onExit }) {
         </button>
       </div>
 
+      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+
+        {/* ── Left sidebar ── */}
+        <div style={{ width: '200px', flexShrink: 0, background: '#f0ece6', borderRadius: '12px', padding: '16px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#16130F', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
+          {REWIND_CATS.filter(c => c !== 'All').map(c => {
+            const count = users.reduce((s, u) => s + (u.product_ids?.length || 0), 0);
+            return (
+              <div key={c} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#16130F' }}>{c}</span>
+                <span style={{ fontSize: '13px', color: '#888' }}>{count}</span>
+              </div>
+            );
+          })}
+          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '2px solid #ccc' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+              <span style={{ color: '#888' }}>Users</span>
+              <span style={{ fontWeight: 700 }}>{users.length}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+              <span style={{ color: '#888' }}>Opt-in</span>
+              <span style={{ fontWeight: 700 }}>{users.filter(u => u.marketing_optin).length}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
+              <span style={{ color: '#888' }}>Blocked</span>
+              <span style={{ fontWeight: 700 }}>{users.filter(u => u.blocked).length}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+              <span style={{ color: '#888' }}>Favorites</span>
+              <span style={{ fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Right content ── */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+
       {!supabase && (
         <div style={{ padding: '40px', textAlign: 'center', color: '#666', background: '#f9f9f9', borderRadius: '12px' }}>
           <p style={{ fontSize: '18px', marginBottom: '8px' }}>Supabase not connected</p>
@@ -583,7 +620,9 @@ function AdminPanel({ onExit }) {
           <ProductForm />
         </>
       )}
+      </div>
     </div>
+  </div>
   );
 }
 
