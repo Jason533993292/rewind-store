@@ -1,4 +1,5 @@
-const BASE = process.env.TEST_URL || 'http://localhost:3000';
+const PORT = process.env.PORT || 3000;
+const BASE = process.env.TEST_URL || `https://${process.env.RAILWAY_PUBLIC_DOMAIN || `localhost:${PORT}`}`;
 const results = [];
 
 async function check(path, name, checkFn) {
