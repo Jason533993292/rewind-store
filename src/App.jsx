@@ -4,6 +4,7 @@ import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDraw
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage } from './lib/supabase';
+import ImageEditor from './components/ImageEditor';
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -579,6 +580,7 @@ function ProductForm() {
             </div>
           )}
         </div>
+        {form.file && <ImageEditor file={form.file} onEnhancedImage={(base64) => setForm({...form, enhancedImage: base64, enhanced: true})} />}
         {form.file && (
           <button type="button" onClick={async () => {
             setMsg('🔄 Generating description...');
@@ -683,16 +685,15 @@ function ProductForm() {
             }}
             onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
             onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
-            🎨 Enhance photo
+            ✨ Generate description from image
           </button>
-        )}
-        {form.enhancedImage && (
+          )}
+          {form.enhancedImage && (
           <div style={{ marginTop: '12px' }}>
-            <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Enhanced preview (resized 1200px, sharpened, contrast adjusted):</p>
-            <img src={`data:image/jpeg;base64,${form.enhancedImage}`} style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', border: '1px solid #eee' }} />
+          <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Enhanced preview applied! Click "Add product" to save.</p>
           </div>
-        )}
-        {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
+          )}
+          {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button type="submit" disabled={saving}
             style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
