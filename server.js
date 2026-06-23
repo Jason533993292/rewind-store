@@ -108,3 +108,14 @@ app.post('/api/send-campaign', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
+
+// ── Run automated tests ──
+app.get('/api/run-tests', async (_req, res) => {
+  try {
+    const { runTests } = await import('./tests/button-test.js');
+    const result = await runTests();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message, passed: 0, failed: 1, total: 1, results: [{ name: 'Test runner', status: '❌', detail: err.message }] });
+  }
+});

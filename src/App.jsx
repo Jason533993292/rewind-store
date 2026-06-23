@@ -343,7 +343,7 @@ function AdminPanel({ onExit }) {
           )}
 
           {/* ── Stats ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', marginBottom: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', marginBottom: '16px' }}>
             <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
               <div style={{ fontSize: '32px', fontWeight: 700 }}>{users.length}</div>
               <div style={{ fontSize: '13px', color: '#888' }}>Total users</div>
@@ -356,6 +356,43 @@ function AdminPanel({ onExit }) {
               <div style={{ fontSize: '32px', fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</div>
               <div style={{ fontSize: '13px', color: '#888' }}>Total saved items</div>
             </div>
+          </div>
+
+          {/* ── Run Tests ── */}
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🧪 Automated tests</h3>
+            <p style={{ fontSize: '13px', color: '#888', marginBottom: '12px' }}>
+              Tests every button and page on the site using Playwright browser automation.
+            </p>
+            <button onClick={async () => {
+              const btn = document.activeElement;
+              btn.textContent = '🔄 Running tests...';
+              btn.disabled = true;
+              try {
+                const r = await fetch('/api/run-tests');
+                const d = await r.json();
+                if (d.error) throw new Error(d.error);
+                btn.textContent = `✅ ${d.passed}/${d.total} passed`;
+                // Show results inline
+                const resultsDiv = document.getElementById('test-results');
+                if (resultsDiv) {
+                  resultsDiv.innerHTML = d.results.map(r =>
+                    `<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px">
+                      <span>${r.status}</span>
+                      <span style="font-weight:600;margin:0 8px">${r.name}</span>
+                      <span style="color:#888;font-size:12px">${r.detail}</span>
+                    </div>`
+                  ).join('');
+                }
+              } catch (e) {
+                btn.textContent = '❌ Tests failed';
+              }
+              setTimeout(() => { btn.textContent = '🧪 Run tests'; btn.disabled = false; }, 5000);
+            }}
+              style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              🧪 Run tests
+            </button>
+            <div id="test-results" style={{ marginTop: '16px', maxHeight: '300px', overflow: 'auto' }} />
           </div>
 
           {/* ── Email tool ── */}
