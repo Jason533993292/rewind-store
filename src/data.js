@@ -26,15 +26,18 @@ export const REWIND_PRODUCTS = [
   { id: "hitop",      name: "Hi-Top Retro",           cat: "Shoes",       price: 78, was: 105, stock: 6,  hue: 300, img: "", note: "Canvas hi-top, vulcanised sole.",                    sizes: ["40","41","42","43","44"] },
 ];
 
-export const REWIND_CATS = ["All", "Jerseys", "Polos", "Jumpers", "Tracksuits", "Shoes"];
+export const REWIND_CATS = ["All", "Jerseys", "Polos", "Jumpers", "Zip-up Jumpers", "Tracksuits", "Pants", "Sets", "Shoes"];
 
-// Brands per category (5 unnamed options each)
+// Brands per category
 export const BRANDS = {
   Jerseys:    ["Brand 1", "Brand 2", "Brand 3", "Brand 4", "Brand 5"],
-  Polos:      ["Brand 1", "Brand 2", "Brand 3", "Brand 4", "Brand 5"],
-  Jumpers:    ["Brand 1", "Brand 2", "Brand 3", "Brand 4", "Brand 5"],
+  Polos:      ["Ralph Lauren", "Lacoste", "Moncler"],
+  Jumpers:    ["Stone Island", "Ralph Lauren", "Nike"],
+  "Zip-up Jumpers": ["Stone Island", "Ralph Lauren", "Nike Tech"],
   Tracksuits: ["Brand 1", "Brand 2", "Brand 3", "Brand 4", "Brand 5"],
-  Shoes:      ["Brand 1", "Brand 2", "Brand 3", "Brand 4", "Brand 5"],
+  Pants:      ["Ralph Lauren", "Nike Tech", "Lacoste"],
+  Sets:       ["Ralph Lauren", "Nike Tech"],
+  Shoes:      ["Asics", "Air Force", "Nike", "New Balance"],
 };
 
 
