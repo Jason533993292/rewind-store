@@ -398,11 +398,16 @@ function AdminPanel({ onExit }) {
               </h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {selectedUser.product_ids?.map((pid) => {
-                  const product = REWIND_PRODUCTS.find((p) => p.id === pid);
+                  const product = [...REWIND_PRODUCTS, ...customProducts].find((p) => p.id === pid || p.product_id === pid);
                   return (
-                    <span key={pid} style={{ padding: '6px 12px', background: '#f0f0f0', borderRadius: '6px', fontSize: '13px' }}>
+                    <a key={pid} href={`https://rewind-stores.com`}
+                      onClick={(e) => e.preventDefault()}
+                      style={{ padding: '6px 12px', background: '#f0f0f0', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', color: '#16130F', display: 'inline-block', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseOver={e => e.target.style.background = '#e0e0e0'}
+                      onMouseOut={e => e.target.style.background = '#f0f0f0'}
+                      title={`${product?.name || pid} — ${product?.brand || 'no brand'} — ${product?.cat || ''}`}>
                       {product?.name || pid} {product ? `— ${product.cat}` : ''}
-                    </span>
+                    </a>
                   );
                 })}
               </div>
