@@ -468,7 +468,7 @@ function AdminPanel({ onExit }) {
 /* ── Product Form (separate component) ── */
 function ProductForm() {
   const [form, setForm] = React.useState({
-    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: [], enhancedImage: null
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: []
   });
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
@@ -491,13 +491,7 @@ function ProductForm() {
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
     };
     // Upload image if selected
-    if (form.enhancedImage) {
-      // Upload the enhanced version instead
-      const blob = await fetch(`data:image/jpeg;base64,${form.enhancedImage}`).then(r => r.blob());
-      const enhancedFile = new File([blob], `${productId}-enhanced.jpg`, { type: 'image/jpeg' });
-      const url = await uploadProductImage(enhancedFile, productId);
-      if (url) product.img = url;
-    } else if (form.file) {
+    if (form.file) {
       const url = await uploadProductImage(form.file, productId);
       if (url) product.img = url;
     }
