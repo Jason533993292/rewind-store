@@ -182,6 +182,28 @@ app.post('/api/enhance-image', async (req, res) => {
   }
 });
 
+// ── AI Enhance: remove creases, clean, white background ──
+app.post('/api/enhance-product', async (req, res) => {
+  const { imageBase64 } = req.body;
+  if (!imageBase64) return res.status(400).json({ error: 'No image' });
+  try {
+    const buf = Buffer.from(imageBase64, 'base64');
+    const enhanced = await sharp(buf)
+      .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
+      .flatten({ background: { r: 255, g: 255, b: 255 } }) // white background
+      .blur(1)            // smooth creases
+      .sharpen({ sigma: 1.2 }) // restore detail
+      .normalize()         // auto contrast
+      .modulate({ brightness: 1.05, saturation: 1.1 })
+      .jpeg({ quality: 92 })
+      .toBuffer();
+    res.json({ imageBase64: enhanced.toString('base64') });
+  } catch (err) {
+    console.error('Enhance error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Run automated tests ──
 app.get('/api/run-tests', async (_req, res) => {
   try {

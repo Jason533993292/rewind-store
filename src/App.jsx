@@ -4,7 +4,6 @@ import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDraw
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage } from './lib/supabase';
-import ImageEditor from './components/ImageEditor';
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -580,127 +579,102 @@ function ProductForm() {
             </div>
           )}
         </div>
-        {form.file && <ImageEditor file={form.file} onEnhancedImage={(base64) => setForm({...form, enhancedImage: base64, enhanced: true})} />}
         {form.file && (
-          <button type="button" onClick={async () => {
+          <div style={{ marginTop: '12px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button type="button" onClick={async () => {
+              setMsg('🔄 Enhancing...');
+              try {
+                const img = new Image();
+                const url = URL.createObjectURL(form.file);
+                img.onload = async () => {
+                  const c = document.createElement('canvas');
+                  let w = img.width, h = img.height;
+                  const m = 1200;
+                  if (w > m || h > m) { if (w > h) { h = Math.round(h*m/w); w = m; } else { w = Math.round(w*m/h); h = m; } }
+                  c.width = w; c.height = h;
+                  c.getContext('2d').drawImage(img, 0, 0, w, h);
+                  const compressed = c.toDataURL('image/jpeg', 0.85).split(',')[1];
+                  URL.revokeObjectURL(url);
+                  const r = await fetch('/api/enhance-product', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: compressed }) });
+                  const d = await r.json();
+                  if (d.imageBase64) {
+                    setForm({...form, enhancedImage: d.imageBase64});
+                    setMsg('✅ Image enhanced! White background, creases reduced.');
+                  } else setMsg('⚠️ ' + (d.error || 'Failed'));
+                };
+                img.src = url;
+              } catch(e) { setMsg('❌ ' + e.message); }
+            }}
+              style={{ padding: '10px 20px', borderRadius: '999px', background: '#FF4D14', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              ✨ AI Enhance Product Photo
+            ✨ AI Enhance Product Photo
+            </button>
+            <button type="button" onClick={async () => {
             setMsg('🔄 Generating description...');
             const img = new Image();
             const url = URL.createObjectURL(form.file);
             img.onload = async () => {
-              const canvas = document.createElement('canvas');
-              const maxDim = 1200;
-              let w = img.width, h = img.height;
-              if (w > maxDim || h > maxDim) {
-                if (w > h) { h = h * maxDim / w; w = maxDim; }
-                else { w = w * maxDim / h; h = maxDim; }
+            const canvas = document.createElement('canvas');
+            const maxDim = 1200;
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) { h = h * maxDim / w; w = maxDim; }
+              else { w = w * maxDim / h; h = maxDim; }
+            }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            URL.revokeObjectURL(url);
+            try {
+              const r = await fetch('/api/generate-description', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageBase64: compressedBase64, mimeType: 'image/jpeg' }),
+              });
+              const d = await r.json();
+              if (d.description) {
+                setForm({...form, note: d.description});
+                setMsg('✅ Description generated!');
+              } else {
+                setMsg('⚠️ No description returned. Make sure GEMINI_API_KEY is set in Railway.');
               }
-              canvas.width = w; canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, w, h);
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-              URL.revokeObjectURL(url);
-              try {
-                const r = await fetch('/api/generate-description', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ imageBase64: compressedBase64, mimeType: 'image/jpeg' }),
-                });
-                const d = await r.json();
-                if (d.description) {
-                  setForm({...form, note: d.description});
-                  setMsg('✅ Description generated!');
-                } else {
-                  setMsg('⚠️ No description returned. Make sure GEMINI_API_KEY is set in Railway.');
-                }
-              } catch (e) {
-                setMsg('❌ Error: ' + e.message);
-              }
+            } catch (e) {
+              setMsg('❌ Error: ' + e.message);
+            }
             };
             img.src = url;
-          }}
+            }}
             style={{
-              padding: '8px 18px',
-              borderRadius: '999px',
-              background: '#FF4D14',
-              color: '#fff',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 600,
-              transition: 'transform 0.15s, box-shadow 0.15s',
+            padding: '8px 18px',
+            borderRadius: '999px',
+            background: '#FF4D14',
+            color: '#fff',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 600,
+            transition: 'transform 0.15s, box-shadow 0.15s',
             }}
             onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
             onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
             ✨ Generate description from image
-          </button>
-        )}
-        {form.file && (
-          <button type="button" onClick={async () => {
-            setMsg('🔄 Enhancing image...');
-            // Compress image to reduce size before sending
-            const img = new Image();
-            const url = URL.createObjectURL(form.file);
-            img.onload = async () => {
-              const canvas = document.createElement('canvas');
-              const maxDim = 1200;
-              let w = img.width, h = img.height;
-              if (w > maxDim || h > maxDim) {
-                if (w > h) { h = h * maxDim / w; w = maxDim; }
-                else { w = w * maxDim / h; h = maxDim; }
-              }
-              canvas.width = w; canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, w, h);
-              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-              URL.revokeObjectURL(url);
-              try {
-                const r = await fetch('/api/enhance-image', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ imageBase64: compressedBase64 }),
-                });
-                const d = await r.json();
-                if (d.imageBase64) {
-                  setForm({ ...form, enhancedImage: d.imageBase64 });
-                  setMsg('✅ Image enhanced!');
-                } else {
-                  setMsg('⚠️ ' + (d.error || 'No enhancement returned'));
-                }
-              } catch (e) {
-                setMsg('❌ Error: ' + e.message);
-              }
-            };
-            img.src = url;
-          }}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '999px',
-              background: '#FF4D14',
-              color: '#fff',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 600,
-              transition: 'transform 0.15s, box-shadow 0.15s',
-            }}
-            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
-            onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
-            ✨ Enhance image
-          </button>
-          )}
-          {form.enhancedImage && (
-          <div style={{ marginTop: '12px' }}>
-          <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Enhanced preview applied! Click "Add product" to save.</p>
-          </div>
-          )}
-          {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <button type="submit" disabled={saving}
+            </button>
+            </div>
+            )}
+            {form.enhancedImage && (
+            <div style={{ marginTop: '12px' }}>
+            <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Enhanced image ready! Click "Add product" to save.</p>
+            </div>
+            )}
+            {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button type="submit" disabled={saving}
             style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
             {saving ? 'Saving...' : '➕ Add product'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
+            </button>
+            </div>
+            </form>
+            </div>
+            );
+            }
