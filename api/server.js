@@ -107,39 +107,42 @@ app.post('/api/send-campaign', async (req, res) => {
   res.json({ ok: true, sent, total: emails.length });
 });
 
-// ── Generate product description from image via Gemini ──
+// ── Generate product description from image via OpenAI Vision ──
 app.post('/api/generate-description', async (req, res) => {
-  const { imageBase64, mimeType } = req.body;
-  const GEMINI_KEY = process.env.GEMINI_API_KEY;
+  const { imageBase64 } = req.body;
+  const OPENAI_KEY = process.env.OPENAI_API_KEY;
 
-  if (!GEMINI_KEY) {
-    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!OPENAI_KEY) {
+    return res.status(400).json({ error: 'OPENAI_API_KEY not configured' });
   }
   if (!imageBase64) {
     return res.status(400).json({ error: 'No image provided' });
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: 'Describe this product for a vintage streetwear store. Include: item type, material guess, colors, era/style vibes, and who would wear it. Keep it to 2-3 sentences, professional but warm tone.' },
-              { inline_data: { mime_type: mimeType || 'image/jpeg', data: imageBase64 } }
-            ]
-          }]
-        })
-      }
-    );
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Describe this product for a vintage streetwear store. Include: item type, material guess, colors, era/style vibes, and who would wear it. Keep it to 2-3 sentences, professional but warm tone.' },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+          ]
+        }],
+        max_tokens: 200,
+      }),
+    });
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = data?.choices?.[0]?.message?.content || '';
     res.json({ description: text });
   } catch (err) {
-    console.error('Gemini error:', err);
+    console.error('OpenAI error:', err);
     res.status(500).json({ error: err.message });
   }
 });
