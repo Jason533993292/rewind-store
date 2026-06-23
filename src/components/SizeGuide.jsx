@@ -52,77 +52,17 @@ const MEASUREMENTS = {
 };
 
 function SizeDiagram({ cat }) {
-  if (cat === 'Shoes') {
-    return (
-      <svg viewBox="0 0 240 200" style={{ width: '100%', maxWidth: '240px' }}>
-        {/* Shoe outline */}
-        <path d="M30,160 L20,130 Q15,110 25,90 L45,55 Q55,35 80,25 L150,20 Q175,18 195,30 L220,50 Q230,60 235,80 L230,110 Q228,130 220,145 L210,160 Z"
-          fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-        {/* Sole */}
-        <path d="M210,160 L30,160 Q25,160 25,155 L27,150" fill="none" stroke="#16130F" strokeWidth="2.5" />
-        {/* Lace area */}
-        <path d="M80,25 L75,55 Q72,70 65,85" fill="none" stroke="#888" strokeWidth="1.5" strokeDasharray="3,2" />
-        {/* A - Length */}
-        <line x1="20" y1="175" x2="230" y2="175" stroke="#FF4D14" strokeWidth="2" />
-        <text x="100" y="195" fill="#FF4D14" fontSize="11" fontWeight="600">A. Length</text>
-        {/* B - Width */}
-        <line x1="25" y1="140" x2="20" y2="30" stroke="#4caf50" strokeWidth="2" strokeDasharray="4" />
-        <text x="0" y="85" fill="#4caf50" fontSize="11" fontWeight="600" transform="rotate(-90,5,85)">B. Width</text>
-      </svg>
-    );
-  }
-  if (cat === 'Bottoms') {
-    return (
-      <svg viewBox="0 0 220 280" style={{ width: '100%', maxWidth: '220px' }}>
-        {/* Waistband */}
-        <path d="M50,20 Q110,35 170,20 L175,35 Q110,50 45,35 Z"
-          fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-        {/* Left leg */}
-        <path d="M50,20 Q40,40 38,80 L35,180 Q33,220 40,260 L60,265 Q65,220 68,180 L70,80 Q72,50 70,35"
-          fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-        {/* Right leg */}
-        <path d="M170,20 Q180,40 182,80 L185,180 Q187,220 180,260 L160,265 Q155,220 152,180 L150,80 Q148,50 150,35"
-          fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-        {/* Crotch */}
-        <path d="M70,35 Q110,55 150,35" fill="none" stroke="#16130F" strokeWidth="3" />
-        {/* A - Waist */}
-        <line x1="45" y1="15" x2="175" y2="15" stroke="#FF4D14" strokeWidth="2" />
-        <text x="85" y="10" fill="#FF4D14" fontSize="11" fontWeight="600">A. Waist</text>
-        {/* B - Hips */}
-        <line x1="38" y1="45" x2="182" y2="45" stroke="#4caf50" strokeWidth="2" strokeDasharray="4" />
-        <text x="75" y="58" fill="#4caf50" fontSize="11" fontWeight="600">B. Hips</text>
-        {/* C - Inseam */}
-        <line x1="55" y1="80" x2="55" y2="260" stroke="#888" strokeWidth="2" strokeDasharray="4" />
-        <text x="32" y="170" fill="#888" fontSize="11" transform="rotate(-90,38,170)">C. Inseam</text>
-      </svg>
-    );
-  }
-  // Tops / Jumpers — improved shirt with proper sleeves
-  const isJumper = cat === 'Jumpers';
-  const neck = isJumper ? 'M68,28 Q100,45 132,28' : 'M70,25 Q100,45 130,25';
+  const images = {
+    'Tops / Shirts': '/images/size-shirt.png',
+    Jumpers: '/images/size-jumper.png',
+    Bottoms: '/images/size-pants.png',
+    Shoes: '/images/size-shoe.png',
+  };
+  const img = images[cat];
+  if (!img) return null;
   return (
-    <svg viewBox="0 0 260 280" style={{ width: '100%', maxWidth: '240px' }}>
-      {/* Left sleeve */}
-      <path d="M52,45 Q30,55 18,80 Q10,100 15,120 L25,125 Q30,105 38,90 Q45,75 55,65"
-        fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-      {/* Right sleeve */}
-      <path d="M208,45 Q230,55 242,80 Q250,100 245,120 L235,125 Q230,105 222,90 Q215,75 205,65"
-        fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-      {/* Body */}
-      <path d="M52,45 Q55,35 70,30 L130,20 L190,30 Q205,35 208,45 L210,80 Q212,120 210,170 Q208,210 205,240 L200,255 L60,255 L55,240 Q52,210 50,170 Q48,120 50,80 Z"
-        fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-      {/* Collar / Neckline */}
-      <path d={neck} fill="none" stroke="#16130F" strokeWidth="3" strokeLinejoin="round" />
-      {/* A - Shoulder */}
-      <line x1="52" y1="22" x2="208" y2="22" stroke="#FF4D14" strokeWidth="2" />
-      <text x="110" y="16" fill="#FF4D14" fontSize="11" fontWeight="600">A. Shoulder</text>
-      {/* B - Length */}
-      <line x1="48" y1="30" x2="48" y2="255" stroke="#4caf50" strokeWidth="2" strokeDasharray="4" />
-      <text x="20" y="140" fill="#4caf50" fontSize="11" fontWeight="600" transform="rotate(-90,28,140)">B. Length</text>
-      {/* C - Sleeve */}
-      <line x1="14" y1="115" x2="246" y2="115" stroke="#888" strokeWidth="2" strokeDasharray="4" />
-      <text x="80" y="108" fill="#888" fontSize="11">C. Sleeve</text>
-    </svg>
+    <img src={img} alt={`${cat} size guide`}
+      style={{ width: '100%', maxWidth: '240px', borderRadius: '8px' }} />
   );
 }
 
