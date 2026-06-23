@@ -607,7 +607,6 @@ function ProductForm() {
             }}
               style={{ padding: '10px 20px', borderRadius: '999px', background: '#FF4D14', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
               ✨ AI Enhance Product Photo
-            ✨ AI Enhance Product Photo
             </button>
             <button type="button" onClick={async () => {
             setMsg('🔄 Generating description...');
