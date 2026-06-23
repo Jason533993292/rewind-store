@@ -1,5 +1,6 @@
 import express from 'express';
 import { Resend } from 'resend';
+import sharp from 'sharp';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -145,6 +146,25 @@ app.post('/api/generate-description', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
+
+// ── Enhance product image ──
+app.post('/api/enhance-image', async (req, res) => {
+  const { imageBase64 } = req.body;
+  if (!imageBase64) return res.status(400).json({ error: 'No image' });
+  try {
+    const buf = Buffer.from(imageBase64, 'base64');
+    const enhanced = await sharp(buf)
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .sharpen()
+      .normalize()
+      .jpeg({ quality: 92 })
+      .toBuffer();
+    const resultBase64 = enhanced.toString('base64');
+    res.json({ imageBase64: resultBase64 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ── Run automated tests ──
 app.get('/api/run-tests', async (_req, res) => {

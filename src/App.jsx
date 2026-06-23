@@ -468,7 +468,7 @@ function AdminPanel({ onExit }) {
 /* ── Product Form (separate component) ── */
 function ProductForm() {
   const [form, setForm] = React.useState({
-    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: []
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: [], enhancedImage: null
   });
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
@@ -490,7 +490,14 @@ function ProductForm() {
       stock: 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
     };
-    if (form.file) {
+    // Upload image if selected
+    if (form.enhancedImage) {
+      // Upload the enhanced version instead
+      const blob = await fetch(`data:image/jpeg;base64,${form.enhancedImage}`).then(r => r.blob());
+      const enhancedFile = new File([blob], `${productId}-enhanced.jpg`, { type: 'image/jpeg' });
+      const url = await uploadProductImage(enhancedFile, productId);
+      if (url) product.img = url;
+    } else if (form.file) {
       const url = await uploadProductImage(form.file, productId);
       if (url) product.img = url;
     }
@@ -612,6 +619,53 @@ function ProductForm() {
             onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
             ✨ Generate description from image
           </button>
+        )}
+        {form.file && (
+          <button type="button" onClick={async () => {
+            setMsg('🔄 Enhancing image...');
+            const reader = new FileReader();
+            reader.onload = async () => {
+              const base64 = reader.result.split(',')[1];
+              try {
+                const r = await fetch('/api/enhance-image', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ imageBase64: base64 }),
+                });
+                const d = await r.json();
+                if (d.imageBase64) {
+                  setForm({ ...form, enhancedImage: d.imageBase64 });
+                  setMsg('✅ Image enhanced!');
+                } else {
+                  setMsg('⚠️ ' + (d.error || 'No enhancement returned'));
+                }
+              } catch (e) {
+                setMsg('❌ Error: ' + e.message);
+              }
+            };
+            reader.readAsDataURL(form.file);
+          }}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '999px',
+              background: '#FF4D14',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
+            onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
+            🎨 Enhance photo
+          </button>
+        )}
+        {form.enhancedImage && (
+          <div style={{ marginTop: '12px' }}>
+            <p style={{ fontSize: '13px', color: '#888', marginBottom: '6px' }}>Enhanced preview (resized 1200px, sharpened, contrast adjusted):</p>
+            <img src={`data:image/jpeg;base64,${form.enhancedImage}`} style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '8px', border: '1px solid #eee' }} />
+          </div>
         )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
