@@ -536,9 +536,46 @@ function ProductForm() {
         </div>
         <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes}
           onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
-        <textarea className="rw-input" placeholder="Description" value={form.note}
-          onChange={e => setForm({...form, note: e.target.value})} rows={2}
-          style={{ marginBottom: '12px', resize: 'vertical' }} />
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
+          <textarea className="rw-input" placeholder="Description" value={form.note}
+            onChange={e => setForm({...form, note: e.target.value})} rows={2}
+            style={{ resize: 'vertical', flex: 1 }} />
+          {form.file && (
+            <button type="button"
+              onClick={async () => {
+                const btn = document.activeElement;
+                const orig = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = '⏳ Generating...';
+                try {
+                  const reader = new FileReader();
+                  const base64 = await new Promise((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(form.file);
+                  });
+                  const r = await fetch('/api/generate-description', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageBase64: base64 }),
+                  });
+                  const d = await r.json();
+                  if (d.description) setForm(prev => ({ ...prev, note: d.description }));
+                  btn.textContent = d.description ? '✅ Generated' : '❌ Failed';
+                } catch (e) {
+                  btn.textContent = '❌ Error';
+                }
+                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+              }}
+              style={{
+                padding: '10px 16px', borderRadius: '999px', border: 'none',
+                background: '#16130F', color: '#fff', cursor: 'pointer',
+                fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
+              }}>
+              ✨ Generate from photo
+            </button>
+          )}
+        </div>
         <div style={{ marginBottom: '12px' }}>
           <label style={{
             display: 'inline-block',
