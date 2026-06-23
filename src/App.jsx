@@ -614,7 +614,7 @@ function ProductForm() {
                 setMsg('❌ Error: ' + e.message);
               }
             };
-            reader.readAsDataURL(form.file);
+            img.src = url;
           }}
             style={{
               padding: '8px 18px',
