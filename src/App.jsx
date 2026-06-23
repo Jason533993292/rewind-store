@@ -685,7 +685,7 @@ function ProductForm() {
             }}
             onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
             onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
-            ✨ Generate description from image
+            ✨ Enhance image
           </button>
           )}
           {form.enhancedImage && (
