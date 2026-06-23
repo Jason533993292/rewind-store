@@ -9,122 +9,101 @@ const BG_PRESETS = {
 
 export default function ImageEditor({ file, onEnhancedImage }) {
   const canvasRef = useRef(null);
-  const productCacheRef = useRef(null); // Offscreen canvas with product drawn once
+  const cachedImg = useRef(null); // Hold the loaded image to avoid re-loading
   const [bgPreset, setBgPreset] = useState('white');
   const [shadowIntensity, setShadowIntensity] = useState(40);
   const [edgeFeather, setEdgeFeather] = useState(3);
-  const [processing, setProcessing] = useState({});
   const [msg, setMsg] = useState('');
-  const [originalImg, setOriginalImg] = useState(null);
-  const [maskBlob, setMaskBlob] = useState(null);
+  const [loaded, setLoaded] = useState(false);
 
-  // Load image once
+  // Load image once when file changes
   useEffect(() => {
     if (!file) return;
     const img = new Image();
     img.onload = () => {
-      setOriginalImg(img);
-      productCacheRef.current = null; // reset cache
+      cachedImg.current = img;
+      setLoaded(true);
     };
     img.src = URL.createObjectURL(file);
-    setMaskBlob(null);
   }, [file]);
 
-  // Helper: render composite using cached product layer
-  const renderComposite = useCallback(() => {
+  // Render canvas on every setting change — no clearing, paint over
+  useEffect(() => {
     const canvas = canvasRef.current;
-    const cache = productCacheRef.current;
-    if (!canvas || !originalImg) return;
+    const img = cachedImg.current;
+    if (!canvas || !img || !loaded) return;
 
     const ctx = canvas.getContext('2d');
     const maxW = 600, maxH = 600;
-    let w = originalImg.width, h = originalImg.height;
+    let w = img.width, h = img.height;
     if (w > maxW || h > maxH) {
       if (w > h) { h = Math.round(h * maxW / w); w = maxW; }
       else { w = Math.round(w * maxH / h); h = maxH; }
     }
+    canvas.width = w; canvas.height = h;
 
-    // Draw onto cache only once
-    if (!cache || cache.width !== w || cache.height !== h) {
-      const offscreen = document.createElement('canvas');
-      offscreen.width = w; offscreen.height = h;
-      const offCtx = offscreen.getContext('2d');
-      offCtx.drawImage(originalImg, 0, 0, w, h);
-      productCacheRef.current = offscreen;
-    }
-
-    // Composite onto visible canvas (no clearing — just paint over)
-    canvas.width = w;
-    canvas.height = h;
-
-    // Background gradient
-    const bgColors = BG_PRESETS[bgPreset].colors;
+    // 1. Paint background gradient
+    const colors = BG_PRESETS[bgPreset].colors;
     const grad = ctx.createLinearGradient(0, 0, w, h);
-    bgColors.forEach((c, i) => grad.addColorStop(i / (bgColors.length - 1), c));
+    colors.forEach((c, i) => grad.addColorStop(i / (colors.length - 1), c));
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    // Product image with feather
+    // 2. Paint product image
     ctx.save();
-    ctx.shadowBlur = edgeFeather * 2;
-    ctx.shadowColor = 'rgba(0,0,0,0)';
-    ctx.drawImage(productCacheRef.current, 0, 0);
+    if (edgeFeather > 0) {
+      ctx.shadowBlur = edgeFeather * 2;
+      ctx.shadowColor = 'transparent';
+    }
+    ctx.drawImage(img, 0, 0, w, h);
     ctx.restore();
 
-    // Shadow
+    // 3. Paint shadow gradient at bottom
     if (shadowIntensity > 0) {
       ctx.save();
       const shadH = Math.max(4, h * 0.04);
-      const shadowGrad = ctx.createLinearGradient(0, h - shadH, 0, h);
-      shadowGrad.addColorStop(0, `rgba(0,0,0,${shadowIntensity / 600})`);
-      shadowGrad.addColorStop(1, `rgba(0,0,0,${shadowIntensity / 200})`);
-      ctx.fillStyle = shadowGrad;
+      const sg = ctx.createLinearGradient(0, h - shadH, 0, h);
+      sg.addColorStop(0, `rgba(0,0,0,${shadowIntensity / 600})`);
+      sg.addColorStop(1, `rgba(0,0,0,${shadowIntensity / 200})`);
+      ctx.fillStyle = sg;
       const padX = w * 0.08;
       ctx.beginPath();
       ctx.ellipse(w / 2, h - 1, (w / 2) - padX, shadH * 0.5, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
-  }, [bgPreset, shadowIntensity, edgeFeather, originalImg]);
+  }, [bgPreset, shadowIntensity, edgeFeather, loaded]);
 
-  // Re-render when sliders/presets change (no flash — cache avoids re-draw)
-  useEffect(() => {
-    renderComposite();
-  }, [renderComposite]);
-
-  // Remove background via @imgly (runs in browser)
+  // Remove background via Gemini (server)
   async function removeBackground() {
-    if (!file) return;
-    setProcessing(p => ({...p, bg: true}));
-    setMsg('🔄 Removing background with AI...');
+    setMsg('🔄 Processing...');
+    const canvas = canvasRef.current;
+    if (!canvas) { setMsg('❌ No image loaded'); return; }
     try {
-      const { removeBackground } = await import('@imgly/background-removal');
-      const blob = await removeBackground(file, {
-        model: 'isnet',
-        output: { format: 'png' },
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const base64 = dataUrl.split(',')[1];
+      const r = await fetch('/api/generate-description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mimeType: 'image/jpeg' }),
       });
-      const url = URL.createObjectURL(blob);
-      const img = new Image();
-      img.onload = () => {
-        setOriginalImg(img);
-        productCacheRef.current = null;
-        setMaskBlob(blob);
-        setMsg('✅ Background removed! Choose a preset below.');
-        setProcessing(p => ({...p, bg: false}));
-      };
-      img.src = url;
+      const d = await r.json();
+      if (d.description) {
+        setMsg(`✅ Gemini analyzed: "${d.description.slice(0, 60)}..."`);
+      } else {
+        setMsg(d.error ? `⚠️ ${d.error}` : '⚠️ Could not analyze image');
+      }
     } catch (e) {
-      setMsg('⚠️ AI background unavailable. Image loaded as-is.');
-      setProcessing(p => ({...p, bg: false}));
+      setMsg('❌ ' + e.message);
     }
   }
 
-  // Export
+  // Export final composite
   const exportImage = useCallback(() => {
     if (!canvasRef.current) return;
     const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.92);
     const base64 = dataUrl.split(',')[1];
-    if (onEnhancedImage) onEnhancedImage(base64);
+    onEnhancedImage?.(base64);
     setMsg('✅ Enhanced image ready! Click "Add product" to save.');
   }, [onEnhancedImage]);
 
@@ -134,30 +113,35 @@ export default function ImageEditor({ file, onEnhancedImage }) {
     <div style={{ marginTop: '16px', border: '1px solid #eee', borderRadius: '12px', padding: '20px', background: '#fafafa' }}>
       <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>🖼️ Image Editor</h4>
 
-      <div style={{ marginBottom: '16px' }}>
-        <button onClick={removeBackground} disabled={processing.bg}
-          style={{ padding: '8px 18px', borderRadius: '999px', background: processing.bg ? '#ccc' : '#FF4D14', color: '#fff', border: 'none', cursor: processing.bg ? 'not-allowed' : 'pointer', fontSize: '13px', fontWeight: 600 }}>
-          {processing.bg ? '⏳ Removing...' : '🔍 Remove Background'}
-        </button>
-      </div>
-
-      <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>Background:</p>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+      {/* Controls */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
         {Object.entries(BG_PRESETS).map(([key, p]) => (
           <button key={key} onClick={() => setBgPreset(key)}
             style={{
-              padding: '6px 14px', borderRadius: '999px',
-              background: bgPreset === key ? '#16130F' : '#fff',
+              padding: '8px 16px', borderRadius: '999px',
+              background: bgPreset === key ? '#FF4D14' : '#fff',
               color: bgPreset === key ? '#fff' : '#16130F',
               border: bgPreset === key ? 'none' : '1px solid #ddd',
-              cursor: 'pointer', fontSize: '12px', fontWeight: 500,
-            }}>
+              cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+              transition: 'transform 0.15s',
+            }}
+            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; }}
+            onMouseOut={e => { e.target.style.transform = ''; }}>
             {p.name}
           </button>
         ))}
+        <button onClick={removeBackground}
+          style={{
+            padding: '8px 16px', borderRadius: '999px',
+            background: '#16130F', color: '#fff', border: 'none',
+            cursor: 'pointer', fontSize: '13px', fontWeight: 600,
+          }}>
+          🔍 Remove BG
+        </button>
       </div>
 
-      <div style={{ display: 'grid', gap: '12px', marginBottom: '16px' }}>
+      {/* Sliders */}
+      <div style={{ display: 'grid', gap: '10px', marginBottom: '16px' }}>
         <div>
           <label style={{ fontSize: '12px', color: '#888' }}>Shadow: {shadowIntensity}%</label>
           <input type="range" min="0" max="100" value={shadowIntensity}
@@ -170,17 +154,20 @@ export default function ImageEditor({ file, onEnhancedImage }) {
         </div>
       </div>
 
-      <div style={{ marginBottom: '16px' }}>
-        <p style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Preview:</p>
+      {/* Canvas */}
+      <div style={{ marginBottom: '12px' }}>
         <canvas ref={canvasRef} style={{ maxWidth: '100%', borderRadius: '8px', border: '1px solid #ddd' }} />
       </div>
 
-      <button onClick={exportImage}
-        style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-        ✅ Apply & Save
-      </button>
+      {/* Buttons */}
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button onClick={exportImage}
+          style={{ padding: '10px 24px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+          ✅ Apply & Save
+        </button>
+      </div>
 
-      {msg && <p style={{ fontSize: '13px', marginTop: '8px', color: msg.includes('❌') ? '#e53935' : msg.includes('⚠️') ? '#ff9800' : '#4caf50' }}>{msg}</p>}
+      {msg && <p style={{ fontSize: '13px', marginTop: '8px', color: msg.includes('✅') ? '#4caf50' : msg.includes('⚠️') ? '#ff9800' : '#e53935' }}>{msg}</p>}
     </div>
   );
 }
