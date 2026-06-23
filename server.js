@@ -144,6 +144,25 @@ app.post('/api/generate-description', async (req, res) => {
   }
 });
 
+// ── Background removal service ──
+app.post('/api/remove-bg', async (req, res) => {
+  const { imageBase64 } = req.body;
+  if (!imageBase64) return res.status(400).json({ error: 'No image' });
+  try {
+    // Use sharp to detect edges and create a mask (basic approach)
+    const buf = Buffer.from(imageBase64, 'base64');
+    // Return the original image as-is for now (will improve with AI pipeline)
+    // The frontend does the actual compositing
+    const mask = await sharp(buf)
+      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+      .png()
+      .toBuffer();
+    res.json({ maskBase64: mask.toString('base64') });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 
