@@ -274,6 +274,8 @@ function AdminPanel({ onExit }) {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [emailText, setEmailText] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [customProducts, setCustomProducts] = useState([]);
 
   useEffect(() => {
     if (!supabase) {
@@ -285,6 +287,7 @@ function AdminPanel({ onExit }) {
         if (!error && data) setUsers(data);
         setLoading(false);
       });
+    getCustomProducts().then(setCustomProducts);
   }, []);
 
   async function toggleBlockUser(email, blocked) {
@@ -510,6 +513,62 @@ function AdminPanel({ onExit }) {
                 Copy all emails
               </button>
             </div>
+          </div>
+
+          {/* ── Product stats ── */}
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Product stats</h3>
+            <input placeholder="Search products..." value={productSearch} onChange={e => setProductSearch(e.target.value)}
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', marginBottom: '12px' }} />
+            {(() => {
+              // Count favorites per product from all users
+              const favCounts = {};
+              users.forEach(u => {
+                (u.product_ids || []).forEach(pid => {
+                  if (!favCounts[pid]) favCounts[pid] = { count: 0, users: [] };
+                  favCounts[pid].count++;
+                  if (!favCounts[pid].users.includes(u.email)) favCounts[pid].users.push(u.email);
+                });
+              });
+              // Build product list from all products + custom products
+              const allProds = [...REWIND_PRODUCTS, ...customProducts];
+              const productStats = allProds.filter(p => {
+                const name = p.name?.toLowerCase() || '';
+                const brand = p.brand?.toLowerCase() || '';
+                const q = productSearch.toLowerCase();
+                return !q || name.includes(q) || brand.includes(q);
+              }).map(p => ({
+                ...p,
+                favs: favCounts[p.id || p.product_id]?.count || 0,
+                favUsers: favCounts[p.id || p.product_id]?.users || [],
+              })).sort((a, b) => b.favs - a.favs);
+
+              if (productStats.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>No products found.</p>;
+              return (
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                      <th style={{ padding: '8px 12px' }}>Product</th>
+                      <th style={{ padding: '8px 12px' }}>Brand</th>
+                      <th style={{ padding: '8px 12px' }}>Category</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'center' }}>⭐ Favs</th>
+                      <th style={{ padding: '8px 12px' }}>Users</th>
+                    </tr></thead>
+                    <tbody>
+                      {productStats.map(p => (
+                        <tr key={p.id || p.product_id} style={{ borderTop: '1px solid #f0f0f0' }}>
+                          <td style={{ padding: '8px 12px', fontWeight: 600 }}>{p.name || 'Unnamed'}</td>
+                          <td style={{ padding: '8px 12px', color: '#888' }}>{p.brand || '—'}</td>
+                          <td style={{ padding: '8px 12px' }}>{p.cat}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 700 }}>{p.favs}</td>
+                          <td style={{ padding: '8px 12px', fontSize: '12px', color: '#888', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.favUsers.join(', ') || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
           </div>
 
           {/* ── Product Manager ── */}
