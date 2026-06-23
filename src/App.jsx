@@ -200,34 +200,61 @@ export default function App() {
             <h2 className="rw-shop-title">{cat === 'All' ? 'The drop' : cat}</h2>
             <p className="rw-shop-sub">{products.length} pieces · one of each</p>
           </div>
-          <div className="rw-chips">
-            {REWIND_CATS.map((c) => (
-              <button key={c} className={'rw-chip' + (cat === c ? ' is-on' : '')} onClick={() => setCat(c)}>
-                {c === 'All' ? 'All' : c}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="rw-shop-layout">
-          {cat !== 'All' && currentBrands.length > 0 && (
-            <aside className="rw-brand-panel">
-              <h3 className="rw-brand-title">Brands</h3>
-              <div className="rw-brand-list">
-                <button
-                  className={'rw-brand-item' + (!brand ? ' is-on' : '')}
-                  onClick={() => setBrand(null)}
-                >All</button>
+          <aside style={{
+            width: '200px',
+            flexShrink: 0,
+            background: '#f0ece6',
+            borderRadius: '12px',
+            padding: '20px 16px',
+            position: 'sticky',
+            top: '20px',
+          }}>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
+            {REWIND_CATS.map((c) => (
+              <button key={c} onClick={() => setCat(c)}
+                style={{
+                  display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px',
+                  borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: cat === c ? 700 : 400,
+                  background: cat === c ? '#16130F' : 'transparent',
+                  color: cat === c ? '#fff' : '#16130F',
+                  marginBottom: '4px',
+                  transition: 'background 0.15s',
+                }}
+                onMouseOver={e => { if (cat !== c) e.target.style.background = '#ddd'; }}
+                onMouseOut={e => { if (cat !== c) e.target.style.background = 'transparent'; }}>
+                {c === 'All' ? 'All' : c}
+              </button>
+            ))}
+
+            {cat !== 'All' && currentBrands.length > 0 && (
+              <>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
+                <button onClick={() => setBrand(null)}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                    borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px',
+                    background: !brand ? '#16130F' : 'transparent',
+                    color: !brand ? '#fff' : '#16130F',
+                    fontWeight: !brand ? 700 : 400,
+                    marginBottom: '2px',
+                  }}>All</button>
                 {currentBrands.map((b) => (
-                  <button
-                    key={b}
-                    className={'rw-brand-item' + (brand === b ? ' is-on' : '')}
-                    onClick={() => setBrand(b)}
-                  >{b}</button>
+                  <button key={b} onClick={() => setBrand(b)}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
+                      borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px',
+                      background: brand === b ? '#16130F' : 'transparent',
+                      color: brand === b ? '#fff' : '#16130F',
+                      fontWeight: brand === b ? 700 : 400,
+                      marginBottom: '2px',
+                    }}>{b}</button>
                 ))}
-              </div>
-            </aside>
-          )}
+              </>
+            )}
+          </aside>
           <div className="rw-shop-content">
             <ProductGrid products={products} showCompare={t.showCompare} showStock={t.showStock}
               onQuick={setQuick} onAdd={quickAdd}
@@ -314,43 +341,6 @@ function AdminPanel({ onExit }) {
           ← Back to store
         </button>
       </div>
-
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
-
-        {/* ── Left sidebar ── */}
-        <div style={{ width: '200px', flexShrink: 0, background: '#f0ece6', borderRadius: '12px', padding: '16px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#16130F', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
-          {REWIND_CATS.filter(c => c !== 'All').map(c => {
-            const count = users.reduce((s, u) => s + (u.product_ids?.length || 0), 0);
-            return (
-              <div key={c} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#16130F' }}>{c}</span>
-                <span style={{ fontSize: '13px', color: '#888' }}>{count}</span>
-              </div>
-            );
-          })}
-          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '2px solid #ccc' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-              <span style={{ color: '#888' }}>Users</span>
-              <span style={{ fontWeight: 700 }}>{users.length}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-              <span style={{ color: '#888' }}>Opt-in</span>
-              <span style={{ fontWeight: 700 }}>{users.filter(u => u.marketing_optin).length}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-              <span style={{ color: '#888' }}>Blocked</span>
-              <span style={{ fontWeight: 700 }}>{users.filter(u => u.blocked).length}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-              <span style={{ color: '#888' }}>Favorites</span>
-              <span style={{ fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Right content ── */}
-        <div style={{ flex: 1, minWidth: 0 }}>
 
       {!supabase && (
         <div style={{ padding: '40px', textAlign: 'center', color: '#666', background: '#f9f9f9', borderRadius: '12px' }}>
@@ -620,9 +610,7 @@ function AdminPanel({ onExit }) {
           <ProductForm />
         </>
       )}
-      </div>
     </div>
-  </div>
   );
 }
 
