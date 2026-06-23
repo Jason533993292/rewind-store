@@ -10,22 +10,20 @@ app.use(express.json());
 // Serve static files
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Resend email setup
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// Resend setup
+const RESEND_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'orders@rewind-stores.com';
+const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 
 // ── Send order confirmation ──
 app.post('/api/send-order', async (req, res) => {
   const { email, name, items, total, address, orderNum } = req.body;
-
-  if (!resend) {
-    return res.json({ ok: true, note: 'email not configured (no RESEND_API_KEY)' });
-  }
+  if (!resend) return res.json({ ok: true, note: 'Resend not configured' });
 
   const itemsList = items.map((it) => `  • ${it.name} (${it.size}) — €${it.price}`).join('\n');
-
   try {
     await resend.emails.send({
-      from: 'REWIND <orders@rewind-store.com>',
+      from: FROM_EMAIL,
       to: email,
       subject: `Order confirmed — ${orderNum}`,
       text: `Hi ${name || 'there'},
@@ -35,53 +33,42 @@ Your order has been placed!
 Order: ${orderNum}
 ${itemsList}
 
-Subtotal: €${total}
-Shipping to:
-${address || '(address provided at checkout)'}
+Total: €${total}
+Shipping to: ${address || '(address provided)'}
 
-We'll send you a shipping confirmation once your items are on their way.
+We'll email you when it ships.
 
-Thanks for shopping with REWIND.
-https://rewind-store.com`,
+Thanks,
+REWIND`,
     });
     res.json({ ok: true });
   } catch (err) {
-    console.error('Email send failed:', err);
+    console.error('Email failed:', err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// ── Send campaign email (admin panel) ──
+// ── Send campaign (admin panel) ──
 app.post('/api/send-campaign', async (req, res) => {
   const { emails, subject, message } = req.body;
+  if (!resend) return res.json({ ok: true, sent: 0, note: 'Resend not configured' });
 
-  if (!resend) {
-    return res.json({ ok: true, sent: 0, note: 'Resend not configured' });
-  }
-  if (!Array.isArray(emails) || emails.length === 0) {
-    return res.status(400).json({ ok: false, error: 'No recipients' });
-  }
-
-  const defaultSubject = 'New arrivals & exclusive offers — REWIND';
-  const defaultMessage = `Hi,\n\nWe just got new pieces in. Check them out:\nhttps://rewind-store-production-2299.up.railway.app\n\nBest,\nREWIND`;
-
+  const defaultMsg = `Hi,\n\nWe just got new pieces in. Check them out:\nhttps://rewind-stores.com\n\nBest,\nREWIND`;
   let sent = 0;
   for (const email of emails) {
     try {
       await resend.emails.send({
-        from: 'REWIND <orders@rewind-store.com>',
+        from: FROM_EMAIL,
         to: email,
-        subject: subject || defaultSubject,
-        text: message || defaultMessage,
+        subject: subject || 'New arrivals & exclusive offers — REWIND',
+        text: message || defaultMsg,
       });
       sent++;
-      // Small delay to avoid rate limits
       await new Promise((r) => setTimeout(r, 200));
     } catch (err) {
-      console.error(`Failed to send to ${email}:`, err.message);
+      console.error(`Failed: ${email}:`, err.message);
     }
   }
-
   res.json({ ok: true, sent, total: emails.length });
 });
 
