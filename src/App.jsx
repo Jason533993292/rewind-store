@@ -264,6 +264,15 @@ function AdminPanel({ onExit }) {
       });
   }, []);
 
+  async function toggleBlockUser(email, blocked) {
+    if (!supabase) return;
+    await supabase.from('wishlists').upsert({ email, blocked }, { onConflict: 'email' });
+    setUsers(prev => prev.map(u => u.email === email ? { ...u, blocked } : u));
+  }
+
+  // Stats
+  const totalFavs = users.reduce((s, u) => s + (u.product_ids?.length || 0), 0);
+
   const allEmails = users.map((u) => u.email).join(', ');
   const marketingEmails = users.filter((u) => u.marketing_optin).map((u) => u.email).join(', ');
 
@@ -308,8 +317,14 @@ function AdminPanel({ onExit }) {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.email} style={{ borderTop: '1px solid #eee' }}>
-                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{u.email}</td>
+                  <tr key={u.email} style={{ borderTop: '1px solid #eee', background: u.blocked ? '#fff0f0' : 'transparent' }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setSelectedUser(selectedUser?.email === u.email ? null : u);
+                    }}>
+                    <td style={{ padding: '12px 16px', fontWeight: 600, cursor: 'context-menu' }}>
+                      {u.email} {u.blocked && <span style={{ fontSize: '11px', color: '#e53935' }}>🚫</span>}
+                    </td>
                     <td style={{ padding: '12px 16px' }}>
                       {u.product_ids?.length || 0} items
                       {u.product_ids?.length > 0 && (
@@ -325,6 +340,10 @@ function AdminPanel({ onExit }) {
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <a href={`mailto:${u.email}`} style={{ color: '#666', textDecoration: 'none', fontSize: '13px' }}>✉️</a>
+                      <button onClick={() => toggleBlockUser(u.email, !u.blocked)}
+                        style={{ marginLeft: '6px', padding: '2px 8px', borderRadius: '4px', border: 'none', background: u.blocked ? '#4caf50' : '#e53935', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                        {u.blocked ? 'Unblock' : 'Block'}
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -458,6 +477,24 @@ function AdminPanel({ onExit }) {
           </div>
 
           {/* ── Product Manager ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700 }}>{users.length}</div>
+              <div style={{ fontSize: '12px', color: '#888' }}>Users</div>
+            </div>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700 }}>{totalFavs}</div>
+              <div style={{ fontSize: '12px', color: '#888' }}>Favorites</div>
+            </div>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700 }}>{users.filter(u => u.blocked).length}</div>
+              <div style={{ fontSize: '12px', color: '#888' }}>Blocked</div>
+            </div>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '24px', fontWeight: 700 }}>{users.filter(u => u.marketing_optin).length}</div>
+              <div style={{ fontSize: '12px', color: '#888' }}>Opt-in</div>
+            </div>
+          </div>
           <ProductForm />
         </>
       )}

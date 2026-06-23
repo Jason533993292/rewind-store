@@ -1,0 +1,2 @@
+-- Add blocked column to wishlists
+alter table wishlists add column if not exists blocked boolean default false;
