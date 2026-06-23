@@ -418,18 +418,18 @@ function AdminPanel({ onExit }) {
           )}
 
           {/* ── Stats ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', fontWeight: 700 }}>{users.length}</div>
-              <div style={{ fontSize: '13px', color: '#888' }}>Total users</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '16px' }}>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.length}</div>
+              <div style={{ fontSize: '11px', color: '#888' }}>Total users</div>
             </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', fontWeight: 700 }}>{users.filter((u) => u.marketing_optin).length}</div>
-              <div style={{ fontSize: '13px', color: '#888' }}>Marketing opt-in</div>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.filter((u) => u.marketing_optin).length}</div>
+              <div style={{ fontSize: '11px', color: '#888' }}>Marketing opt-in</div>
             </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-              <div style={{ fontSize: '32px', fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</div>
-              <div style={{ fontSize: '13px', color: '#888' }}>Total saved items</div>
+            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</div>
+              <div style={{ fontSize: '11px', color: '#888' }}>Total saved items</div>
             </div>
           </div>
 
