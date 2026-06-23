@@ -309,6 +309,7 @@ function AdminPanel({ onExit }) {
   const [emailText, setEmailText] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [customProducts, setCustomProducts] = useState([]);
+  const [adminTab, setAdminTab] = useState('users');
 
   useEffect(() => {
     if (!supabase) {
@@ -345,6 +346,25 @@ function AdminPanel({ onExit }) {
         </button>
       </div>
 
+      {/* ── Tab navigation ── */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+        {[
+          { id: 'users', label: '📊 Users' },
+          { id: 'email', label: '📧 Email' },
+          { id: 'products', label: '📦 Products' },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setAdminTab(tab.id)}
+            style={{
+              padding: '10px 20px', borderRadius: '999px', border: 'none',
+              background: adminTab === tab.id ? '#16130F' : '#f0f0f0',
+              color: adminTab === tab.id ? '#fff' : '#16130F',
+              cursor: 'pointer', fontWeight: 600, fontSize: '14px',
+            }}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {!supabase && (
         <div style={{ padding: '40px', textAlign: 'center', color: '#666', background: '#f9f9f9', borderRadius: '12px' }}>
           <p style={{ fontSize: '18px', marginBottom: '8px' }}>Supabase not connected</p>
@@ -360,7 +380,7 @@ function AdminPanel({ onExit }) {
         </div>
       )}
 
-      {supabase && !loading && users.length > 0 && (
+      {supabase && !loading && users.length > 0 && adminTab === 'users' && (
         <>
           {/* ── User table ── */}
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden', marginBottom: '32px' }}>
@@ -501,6 +521,7 @@ function AdminPanel({ onExit }) {
           </div>
 
           {/* ── Email tool ── */}
+          {adminTab === 'email' && (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📧 Email users about discounts / sales</h3>
             <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)}
@@ -552,9 +573,10 @@ function AdminPanel({ onExit }) {
               </button>
             </div>
           </div>
+          )}
 
           {/* ── Product stats ── */}
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          {adminTab === 'products' && ( style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Product stats</h3>
             <input placeholder="Search products..." value={productSearch} onChange={e => setProductSearch(e.target.value)}
               style={{ width: '100%', padding: '10px 14px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', marginBottom: '12px' }} />
@@ -620,7 +642,7 @@ function AdminPanel({ onExit }) {
 /* ── Product Form (separate component) ── */
 function ProductForm() {
   const [form, setForm] = React.useState({
-    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: []
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', note: '', file: null, files: []
   });
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
@@ -639,7 +661,7 @@ function ProductForm() {
     const product = {
       product_id: productId, name: form.name, brand: form.brand || '', cat,
       price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
-      stock: 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
+      stock: form.stock || 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
     };
     // Upload image if selected
@@ -686,6 +708,8 @@ function ProductForm() {
           <input className="rw-input" type="number" step="0.01" placeholder="Original price (€)" value={form.was}
             onChange={e => setForm({...form, was: e.target.value})} />
         </div>
+        <input className="rw-input" type="number" min="0" placeholder="Stock (e.g. 3)" value={form.stock}
+          onChange={e => setForm({...form, stock: e.target.value})} style={{ marginBottom: '12px' }} />
         <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes}
           onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
