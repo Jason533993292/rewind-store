@@ -44,7 +44,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
   const low = p.stock <= 5;
   return (
     <article className="rw-card">
-      <div className="rw-card-media">
+      <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
         <Photo id={p.id} hue={p.hue} label={p.name.toUpperCase()} h={340} />
         <div className="rw-card-tags">
           {showCompare && discountPct(p) > 0 && <span className="rw-tag rw-tag-sale">-{discountPct(p)}%</span>}
