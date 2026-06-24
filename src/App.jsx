@@ -1039,11 +1039,21 @@ function ProductForm() {
                 btn.disabled = true;
                 btn.textContent = '⏳ Generating...';
                 try {
-                  const reader = new FileReader();
-                  const base64 = await new Promise((resolve, reject) => {
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(form.file);
+                  // Compress image before sending
+                  const img = new Image();
+                  const url = URL.createObjectURL(form.file);
+                  const base64 = await new Promise((resolve) => {
+                    img.onload = () => {
+                      const c = document.createElement('canvas');
+                      let w = img.width, h = img.height;
+                      const m = 1200;
+                      if (w > m || h > m) { if (w > h) { h = Math.round(h*m/w); w = m; } else { w = Math.round(w*m/h); h = m; } }
+                      c.width = w; c.height = h;
+                      c.getContext('2d').drawImage(img, 0, 0, w, h);
+                      resolve(c.toDataURL('image/jpeg', 0.8).split(',')[1]);
+                      URL.revokeObjectURL(url);
+                    };
+                    img.src = url;
                   });
                   const r = await fetch('/api/generate-description', {
                     method: 'POST',
@@ -1051,8 +1061,12 @@ function ProductForm() {
                     body: JSON.stringify({ imageBase64: base64 }),
                   });
                   const d = await r.json();
-                  if (d.description) setForm(prev => ({ ...prev, note: d.description }));
-                  btn.textContent = d.description ? '✅ Generated' : '❌ Failed';
+                  if (d.description || d.title) {
+                    setForm(prev => ({ ...prev, name: d.title || prev.name, note: d.description || '' }));
+                    btn.textContent = '✅ Generated';
+                  } else {
+                    btn.textContent = '❌ ' + (d.error || 'Failed');
+                  }
                 } catch (e) {
                   btn.textContent = '❌ Error';
                 }

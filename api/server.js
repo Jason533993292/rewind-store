@@ -128,7 +128,7 @@ async function describeViaGemini(imageBase64) {
   return result.response.text();
 }
 
-// Helper: generate description via OpenAI Vision
+// Helper: generate description via OpenAI Vision (returns title + description)
 async function describeViaOpenAI(imageBase64) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -141,17 +141,22 @@ async function describeViaOpenAI(imageBase64) {
       messages: [{
         role: 'user',
         content: [
-          { type: 'text', text: PRODUCT_DESCRIPTION_PROMPT },
+          { type: 'text', text: 'You are helping a vintage streetwear store. Look at this product photo and respond in JSON format with exactly two fields: "title" (a short product name, max 6 words, e.g. "Vintage Nike Windbreaker") and "description" (2-3 sentences describing the item: material guess, era/style, colors, who would wear it). Only return valid JSON, nothing else.' },
           { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-        ]
+        ],
       }],
-      max_tokens: 200,
+      max_tokens: 300,
     }),
   });
   const data = await response.json();
-  return data?.choices?.[0]?.message?.content || '';
+  if (!response.ok) throw new Error(data.error?.message || 'OpenAI API error');
+  const content = data?.choices?.[0]?.message?.content || '';
+  try {
+    return JSON.parse(content);
+  } catch {
+    return { title: '', description: content };
+  }
 }
-
 app.post('/api/generate-description', async (req, res) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) {
@@ -159,15 +164,16 @@ app.post('/api/generate-description', async (req, res) => {
   }
 
   try {
-    let text;
+    let result;
     if (process.env.OPENAI_API_KEY) {
-      text = await describeViaOpenAI(imageBase64);
+      result = await describeViaOpenAI(imageBase64);
     } else if (process.env.GEMINI_API_KEY) {
-      text = await describeViaGemini(imageBase64);
+      const text = await describeViaGemini(imageBase64);
+      result = { title: '', description: text };
     } else {
-      return res.status(400).json({ error: 'No AI provider configured — set GEMINI_API_KEY or OPENAI_API_KEY' });
+      return res.status(400).json({ error: 'No AI provider configured — set OPENAI_API_KEY on Railway' });
     }
-    res.json({ description: text });
+    res.json({ title: result.title || '', description: result.description || '' });
   } catch (err) {
     console.error('Generate description error:', err);
     res.status(500).json({ error: err.message });
