@@ -26,6 +26,10 @@ export default function App() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('rw_cart', JSON.stringify(cart));
+  }, [cart]);
   const [drawer, setDrawer] = useState(false);
   const [quick, setQuick] = useState(null);
   const [checkout, setCheckout] = useState(false);
