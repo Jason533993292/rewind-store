@@ -200,12 +200,12 @@ export default function App() {
         <div className="rw-shop-head" id={headingId}>
           <div className="rw-shop-headl">
             <h2 className="rw-shop-title">{cat === 'All' ? 'The drop' : cat}</h2>
-            <p className="rw-shop-sub">{products.length} pieces · one of each</p>
+            <p className="rw-shop-sub">{products.length} piece{products.length !== 1 ? 's' : ''} · one of each</p>
           </div>
         </div>
 
         <div className="rw-shop-layout">
-          <aside style={{
+          <aside id="rw-sidebar" style={{
             width: '200px',
             flexShrink: 0,
             background: '#f0ece6',
@@ -213,6 +213,7 @@ export default function App() {
             padding: '20px 16px',
             position: 'sticky',
             top: '20px',
+            alignSelf: 'flex-start',
           }}>
             <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {REWIND_CATS.map((c) => (
@@ -281,7 +282,7 @@ export default function App() {
         onRemove={(id) => setWishlist((prev) => prev.filter((i) => i !== id))}
         onAddToCart={(p) => { addToCart(p); setDrawer(true); }} />
 
-      <TweaksPanel>
+      {window.location.search.includes('tweaks') && <TweaksPanel>
         <TweakSection label="Urgency & social proof" />
         <TweakToggle label="Announcement bar" value={t.showBanner} onChange={(v) => setTweak('showBanner', v)} />
         <TweakToggle label="Live sale countdown" value={t.showCountdown} onChange={(v) => setTweak('showCountdown', v)} />
@@ -294,7 +295,7 @@ export default function App() {
         <TweakRadio label="Headline font" value={t.headingFont}
           options={['Bricolage Grotesque', 'Space Grotesk']}
           onChange={(v) => setTweak('headingFont', v)} />
-      </TweaksPanel>
+      </TweaksPanel>}
     </div>
   );
 }

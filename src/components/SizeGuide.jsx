@@ -58,11 +58,30 @@ function SizeDiagram({ cat }) {
     Bottoms: '/images/size-pants.png',
     Shoes: '/images/size-shoe.png',
   };
+  const labels = {
+    'Tops / Shirts': ['A. Shoulder', 'B. Length', 'C. Sleeve'],
+    Jumpers: ['A. Shoulder', 'B. Length', 'C. Sleeve'],
+    Bottoms: ['A. Waist', 'B. Hips', 'C. Inseam'],
+    Shoes: ['A. Foot length', 'B. Width'],
+  };
   const img = images[cat];
+  const lbl = labels[cat] || [];
   if (!img) return null;
   return (
-    <img src={img} alt={`${cat} size guide`}
-      style={{ width: '100%', maxWidth: '240px', borderRadius: '8px' }} />
+    <div style={{ position: 'relative', width: '100%', maxWidth: '240px' }}>
+      <img src={img} alt={`${cat} size guide`}
+        style={{ width: '100%', borderRadius: '8px', display: 'block' }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
+        {lbl.map((l, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            background: i === 0 ? 'rgba(255,77,20,0.9)' : i === 1 ? 'rgba(76,175,80,0.9)' : 'rgba(136,136,136,0.9)',
+            color: '#fff', fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px',
+            top: `${10 + i * 25}%`, left: '8px',
+          }}>{l}</div>
+        ))}
+      </div>
+    </div>
   );
 }
 
