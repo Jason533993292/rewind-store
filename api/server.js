@@ -163,14 +163,17 @@ async function describeViaOpenAI(imageBase64) {
   }
 }
 async function describeViaHF(imageBase64) {
+  // Decode base64 to raw bytes and send to free HuggingFace Inference API
+  const buffer = Buffer.from(imageBase64, 'base64');
   const response = await fetch('https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ inputs: `data:image/jpeg;base64,${imageBase64}` }),
+    headers: { 'Content-Type': 'application/octet-stream' },
+    body: buffer,
   });
-  if (!response.ok) throw new Error(`HuggingFace API: ${response.status} ${response.statusText}`);
+  if (!response.ok) throw new Error(`HuggingFace: ${response.status} ${response.statusText}`);
   const data = await response.json();
-  const caption = data?.[0]?.generated_text || JSON.stringify(data);
+  const caption = data?.[0]?.generated_text || '';
+  if (!caption) throw new Error('HuggingFace: empty response');
   return { title: caption.split(',')[0].trim(), description: caption };
 }
 
