@@ -173,6 +173,25 @@ export default function App() {
   const [promoCode, setPromoCode] = useState('');
   const [promoMsg, setPromoMsg] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Handle back/forward navigation for product page
+  useEffect(() => {
+    const onPop = () => {
+      if (!window.location.hash.startsWith('#/product/')) {
+        setSelectedProduct(null);
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // When selectedProduct changes, update the URL hash
+  useEffect(() => {
+    if (selectedProduct) {
+      const id = selectedProduct.id || selectedProduct.product_id;
+      window.history.pushState({ product: id }, '', '#/product/' + id);
+    }
+  }, [selectedProduct]);
   useEffect(() => {
     const onHash = () => setAdminMode(window.location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
@@ -817,6 +836,36 @@ function AdminPanel({ onExit, onSelect }) {
                 </div>
               </>
             )}
+          </div>
+          )}
+
+          {/* ── Stock bar chart ── */}
+          {adminTab === 'orders' && (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Stock levels</h3>
+            {(() => {
+              const allProds = [...REWIND_PRODUCTS, ...customProducts];
+              const maxStock = Math.max(...allProds.map(p => p.stock || 0), 1);
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {allProds.map(p => (
+                    <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ width: '160px', fontSize: '12px', fontWeight: 600, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                      <div style={{ flex: 1, height: '22px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
+                        <div style={{
+                          width: `${Math.round(((p.stock || 0) / maxStock) * 100)}%`,
+                          height: '100%',
+                          background: (p.stock || 0) <= 5 ? '#e53935' : (p.stock || 0) <= 15 ? '#FF4D14' : '#4caf50',
+                          borderRadius: '4px',
+                          transition: 'width 0.3s',
+                        }} />
+                      </div>
+                      <span style={{ width: '30px', fontSize: '12px', fontWeight: 700, color: (p.stock || 0) <= 5 ? '#e53935' : '#888' }}>{p.stock || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
           )}
 
