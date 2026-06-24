@@ -80,9 +80,6 @@ export default function App() {
   // Persist email
   useEffect(() => { if (userEmail) localStorage.setItem('rw_email', userEmail); }, [userEmail]);
 
-  // Persist cart to localStorage (survives refresh)
-  useEffect(() => { localStorage.setItem('rw_cart', JSON.stringify(cart)); }, [cart]);
-
   // Reset brand when category changes
   useEffect(() => { setBrand(null); }, [cat]);
 

@@ -13,7 +13,7 @@ const PAGES = {
   returns: {
     title: 'Returns & Exchanges',
     sections: [
-      { heading: 'Return Policy', text: 'You have 2 days from delivery to return any unused item in its original condition. All items are inspected upon return.' },
+      { heading: 'Return Policy', text: 'You have 14 days from delivery to return any unused item in its original condition. All items are inspected upon return.' },
       { heading: 'How to Return', text: 'Email us at orders@rewind-stores.com with your order number and the items you wish to return. We will provide you with a return label. Pack the items securely and drop them off at your nearest post office.' },
       { heading: 'Refunds', text: 'Refunds are processed within 5 business days after we receive the returned items. The refund will be issued to your original payment method.' },
       { heading: 'Exchanges', text: 'We do not offer direct exchanges. If you need a different size, please return your item and place a new order for the fastest delivery.' },
