@@ -1031,7 +1031,22 @@ function ProductForm() {
           <textarea className="rw-input" placeholder="Description" value={form.note}
             onChange={e => setForm({...form, note: e.target.value})} rows={2}
             style={{ resize: 'vertical', flex: 1 }} />
-          {form.file && (
+          {form.file && (<div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+            <button type="button"
+              onClick={async () => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const prompt = "I'm listing a vintage streetwear item. Look at this photo and give me:\n\nTITLE: (short product name, max 6 words)\nDESCRIPTION: (2-3 sentences describing material, era, colors, style)\n\nOnly respond with the title and description, nothing else.";
+                  navigator.clipboard.writeText(prompt);
+                  window.open('https://gemini.google.com/app', '_blank');
+                  setMsg('✅ Prompt copied! Paste it into Gemini (tab opened). Then copy the response back here.');
+                };
+                reader.readAsDataURL(form.file);
+              }}
+              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid #FF4D14', background: '#fff', color: '#FF4D14', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              📋 Copy to Gemini
+            </button>
             <button type="button"
               onClick={async () => {
                 const btn = document.activeElement;
@@ -1039,7 +1054,6 @@ function ProductForm() {
                 btn.disabled = true;
                 btn.textContent = '⏳ Generating...';
                 try {
-                  // Compress image before sending
                   const img = new Image();
                   const url = URL.createObjectURL(form.file);
                   const base64 = await new Promise((resolve) => {
@@ -1055,34 +1069,26 @@ function ProductForm() {
                     };
                     img.src = url;
                   });
-                  const r = await fetch('/api/generate-description', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ imageBase64: base64 }),
-                  });
+                  const r = await fetch('/api/generate-description', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: base64 }) });
                   const d = await r.json();
                   if (d.description || d.title) {
                     setForm(prev => ({ ...prev, name: d.title || prev.name, note: d.description || '' }));
                     btn.textContent = '✅ Generated';
                   } else {
-                    const errMsg = d.error || JSON.stringify(d).slice(0, 200);
-                    btn.textContent = '❌ ' + errMsg.slice(0, 30);
-                    setMsg('❌ AI Error: ' + errMsg);
+                    btn.textContent = '❌ ' + ((d.error || '').slice(0, 30) || 'Failed');
+                    setMsg('❌ AI Error: ' + (d.error || 'Failed'));
                   }
                 } catch (e) {
                   btn.textContent = '❌ Error';
-                  setMsg('❌ Network Error: ' + (e.message || e));
+                  setMsg('❌ Network Error: ' + e.message);
                 }
                 setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
               }}
-              style={{
-                padding: '10px 16px', borderRadius: '999px', border: 'none',
-                background: '#16130F', color: '#fff', cursor: 'pointer',
-                fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
-              }}>
+              style={{ padding: '8px 16px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
               ✨ Generate from photo
             </button>
-          )}
+            </div>
+          </div>)}
         </div>
         <div style={{ marginBottom: '12px' }}>
           <label style={{
