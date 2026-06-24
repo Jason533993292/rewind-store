@@ -38,9 +38,12 @@ export default function ProductPage({ p, onBack, onAdd }) {
             <button onClick={() => {
               const id = p.id || p.product_id;
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
-              if (savedIds.includes(id)) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
-              else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
-            }} style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              if (savedIds.includes(id)) { localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id))); alert('Removed from saved'); }
+              else { localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id])); alert('Saved!'); }
+            }}
+              onMouseOver={e => e.target.style.background = '#f5f5f5'}
+              onMouseOut={e => e.target.style.background = 'none'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ⭐ Save
             </button>
             <button onClick={() => {
@@ -48,11 +51,19 @@ export default function ProductPage({ p, onBack, onAdd }) {
                 deleteCustomProduct(p.id || p.product_id);
                 onBack();
               }
-            }} style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+            }}
+              onMouseOver={e => e.target.style.background = '#f5f5f5'}
+              onMouseOut={e => e.target.style.background = 'none'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               🗑 Delete
             </button>
-            <button onClick={() => { window.location.hash = '/admin'; }}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+            <button onClick={() => {
+              localStorage.setItem('rw_edit_product', p.id || p.product_id);
+              window.location.hash = '/admin';
+            }}
+              onMouseOver={e => e.target.style.background = '#f5f5f5'}
+              onMouseOut={e => e.target.style.background = 'none'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ✏️ Edit
             </button>
           </div>

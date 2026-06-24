@@ -904,24 +904,42 @@ function AdminPanel({ onExit, onSelect }) {
               const allProds = [...REWIND_PRODUCTS, ...customProducts];
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
               const saved = allProds.filter(p => savedIds.includes(p.id || p.product_id));
-              if (saved.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>No saved products yet. Click the dots on a product to save it.</p>;
+              if (saved.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>No saved products yet. Click ⋮ on any product and select Save.</p>;
               return (
-                <div className="rw-grid" style={{ marginBottom: '0' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {saved.map(p => (
-                    <div key={p.id || p.product_id} style={{ position: 'relative' }}>
-                      <ProductCard p={p} wishlisted={false} onWishlist={() => {}} showCompare={false} showStock={true}
-                        onQuick={() => {}} onAdd={() => {}} onSelect={() => {}} />
-                      <button onClick={() => {
-                        const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
-                        const newIds = savedIds.filter(id => id !== (p.id || p.product_id));
-                        localStorage.setItem('rw_admin_saved', JSON.stringify(newIds));
-                        // Force re-render
-                        setAdminTab('saved');
-                        setTimeout(() => setAdminTab('saved'), 0);
-                      }}
-                        style={{ position: 'absolute', top: '8px', right: '8px', width: '28px', height: '28px', borderRadius: '50%', background: '#e53935', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>
-                        ✕
-                      </button>
+                    <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: '#f5f5f5', borderRadius: '8px' }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: p.hue ? `hsl(${p.hue},60%,80%)` : '#eee', overflow: 'hidden', flexShrink: 0 }}>
+                        {p.img && <img src={p.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 600 }}>{p.name}</div>
+                        <div style={{ fontSize: '12px', color: '#888' }}>{p.brand}{p.brand && p.cat ? ' · ' : ''}{p.cat}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#FF4D14' }}>€{p.price}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button onClick={() => {
+                          localStorage.setItem('rw_edit_product', p.id || p.product_id);
+                          window.location.hash = '/admin';
+                        }}
+                          onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
+                          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
+                          style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', border: '1px solid #ddd', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
+                          ✏️ Edit
+                        </button>
+                        <button onClick={() => {
+                          const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+                          const newIds = savedIds.filter(id => id !== (p.id || p.product_id));
+                          localStorage.setItem('rw_admin_saved', JSON.stringify(newIds));
+                          setAdminTab('users');
+                          setTimeout(() => setAdminTab('saved'), 0);
+                        }}
+                          onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
+                          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
+                          style={{ padding: '6px 12px', borderRadius: '6px', background: '#e53935', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
+                          ✕ Remove
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
