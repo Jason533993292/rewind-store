@@ -289,6 +289,12 @@ a { color: inherit; cursor: pointer; }
 }
 .rw-add:hover { background: var(--accent); transform: scale(1.12) rotate(90deg); }
 
+.rw-card-ship {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--muted); margin-top: 6px;
+}
+.rw-card-ship .rw-price-was { font-size: 12px; }
+
 /* ---- quick view ---- */
 .rw-modal-wrap {
   position: fixed; inset: 0; z-index: 100;

@@ -1,0 +1,9 @@
+-- Run this in Supabase SQL Editor
+create table if not exists admins (
+  email text primary key,
+  added_by text default '',
+  created_at timestamp with time zone default now()
+);
+alter table admins enable row level security;
+create policy "anon can read admins" on admins for select to anon using (true);
+create policy "anon can insert admins" on admins for insert to anon with check (true);

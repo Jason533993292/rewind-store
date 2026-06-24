@@ -265,7 +265,7 @@ export default function App() {
         </div>
       </main>
 
-      <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} />
+      <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={setCat} />
       {showSizes && <SizeGuide onClose={() => setShowSizes(false)} />}
       {infoPage && <InfoModal page={infoPage} onClose={() => setInfoPage(null)} />}
 
@@ -310,16 +310,31 @@ function AdminPanel({ onExit }) {
   const [productSearch, setProductSearch] = useState('');
   const [customProducts, setCustomProducts] = useState([]);
   const [adminTab, setAdminTab] = useState('users');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminAuthed, setAdminAuthed] = useState(false);
+  const [adminChecking, setAdminChecking] = useState(true);
 
   useEffect(() => {
     if (!supabase) {
       setLoading(false);
+      setAdminChecking(false);
       return;
+    }
+    // Check if user's email is an admin
+    const saved = localStorage.getItem('rw_admin_email');
+    if (saved) {
+      setAdminEmail(saved);
+      supabase.from('admins').select('email').eq('email', saved).single()
+        .then(({ data }) => {
+          if (data) setAdminAuthed(true);
+          setAdminChecking(false);
+        });
+    } else {
+      setAdminChecking(false);
     }
     supabase.from('wishlists').select('*').order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!error && data) setUsers(data);
-        setLoading(false);
       });
     getCustomProducts().then(setCustomProducts);
   }, []);
@@ -346,6 +361,35 @@ function AdminPanel({ onExit }) {
         </button>
       </div>
 
+      {/* ── Admin login ── */}
+      {adminChecking && <p style={{ textAlign: 'center', color: '#888' }}>Checking access...</p>}
+
+      {!adminChecking && !adminAuthed && (
+        <div style={{ maxWidth: '400px', margin: '60px auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>🔐 Admin Access</h2>
+          <p style={{ fontSize: '14px', color: '#888', marginBottom: '16px' }}>Enter your email to access the admin panel.</p>
+          <input className="rw-input" placeholder="your@email.com" value={adminEmail}
+            onChange={e => setAdminEmail(e.target.value)}
+            style={{ width: '100%', marginBottom: '12px' }} />
+          <button onClick={async () => {
+            if (!adminEmail) return;
+            localStorage.setItem('rw_admin_email', adminEmail);
+            const { data } = await supabase.from('admins').select('email').eq('email', adminEmail).single();
+            if (data) {
+              setAdminAuthed(true);
+            } else {
+              // Auto-register first admin
+              await supabase.from('admins').insert({ email: adminEmail, added_by: 'self' });
+              setAdminAuthed(true);
+            }
+          }}
+            style={{ padding: '10px 24px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+            Enter admin panel
+          </button>
+        </div>
+      )}
+
+      {adminAuthed && (<>
       {/* ── Tab navigation ── */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
         {[
@@ -519,6 +563,8 @@ function AdminPanel({ onExit }) {
             </button>
             <div id="test-results" style={{ marginTop: '16px', maxHeight: '300px', overflow: 'auto' }} />
           </div>
+          </>)
+}
 
           {/* ── Email tool ── */}
           {adminTab === 'email' && (

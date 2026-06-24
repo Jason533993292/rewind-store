@@ -1,0 +1,981 @@
+{
+  "config": {
+    "argv": [
+      "/Users/phil/.hermes/node/bin/node",
+      "/Users/phil/REWIND/node_modules/.bin/playwright",
+      "test",
+      "tests/comprehensive.spec.js"
+    ],
+    "configFile": "/Users/phil/REWIND/playwright.config.js",
+    "rootDir": "/Users/phil/REWIND/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 3
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/phil/REWIND/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/phil/REWIND/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.0",
+    "workers": 3,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "comprehensive.spec.js",
+      "file": "comprehensive.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Page loads",
+          "file": "comprehensive.spec.js",
+          "line": 31,
+          "column": 6,
+          "specs": [
+            {
+              "title": "homepage loads with title",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5542,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:09.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-eaa6d67c7a2fd94f7285",
+              "file": "comprehensive.spec.js",
+              "line": 32,
+              "column": 3
+            },
+            {
+              "title": "serves built assets (JS + CSS)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5293,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:09.261Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-e715684624cb730caece",
+              "file": "comprehensive.spec.js",
+              "line": 38,
+              "column": 3
+            },
+            {
+              "title": "responsive — no console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5300,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:09.267Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-733239f9aee016363b1b",
+              "file": "comprehensive.spec.js",
+              "line": 50,
+              "column": 3
+            },
+            {
+              "title": "admin panel loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6134,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:15.387Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-5a2483a5434438897761",
+              "file": "comprehensive.spec.js",
+              "line": 66,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Navigation buttons work",
+          "file": "comprehensive.spec.js",
+          "line": 73,
+          "column": 6,
+          "specs": [
+            {
+              "title": "header nav buttons switch categories",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 18026,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:15.362Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-3d15ac47b03bcd8c03cb",
+              "file": "comprehensive.spec.js",
+              "line": 78,
+              "column": 3
+            },
+            {
+              "title": "sidebar category buttons filter products",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16696,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:15.579Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-39d7c9ff55d41979014e",
+              "file": "comprehensive.spec.js",
+              "line": 96,
+              "column": 3
+            },
+            {
+              "title": "hero buttons scroll to shop",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15216,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:23.262Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-b52ad1ef3e94f36bb2ce",
+              "file": "comprehensive.spec.js",
+              "line": 116,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Footer links have purpose",
+          "file": "comprehensive.spec.js",
+          "line": 136,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Shop footer links filter products",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 7621,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40",
+                        "location": {
+                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                          "column": 40,
+                          "line": 166
+                        },
+                        "snippet": "  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                            "column": 40,
+                            "line": 166
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n\n  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:32.711Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                        "column": 40,
+                        "line": 166
+                      }
+                    },
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 8094,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40",
+                        "location": {
+                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                          "column": 40,
+                          "line": 166
+                        },
+                        "snippet": "  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                            "column": 40,
+                            "line": 166
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n\n  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-06-24T00:04:45.645Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium-retry1/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                        "column": 40,
+                        "line": 166
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-7151faf5aa1d8eaf4556",
+              "file": "comprehensive.spec.js",
+              "line": 144,
+              "column": 3
+            },
+            {
+              "title": "Help footer links open modals",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 9025,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:33.567Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-14fe1998d53406e41c5d",
+              "file": "comprehensive.spec.js",
+              "line": 174,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Product card interactions",
+          "file": "comprehensive.spec.js",
+          "line": 200,
+          "column": 6,
+          "specs": [
+            {
+              "title": "quick view opens modal with product info",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4220,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:41.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-b23564238a290011ec9c",
+              "file": "comprehensive.spec.js",
+              "line": 205,
+              "column": 3
+            },
+            {
+              "title": "wishlist heart toggles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 19141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:42.674Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-3151c3d20ba6e919066e",
+              "file": "comprehensive.spec.js",
+              "line": 233,
+              "column": 3
+            },
+            {
+              "title": "free returns + shipping strikethrough on each card",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 23597,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:04:45.680Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-cc2972b5f7d95fcff742",
+              "file": "comprehensive.spec.js",
+              "line": 258,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Search works",
+          "file": "comprehensive.spec.js",
+          "line": 290,
+          "column": 6,
+          "specs": [
+            {
+              "title": "search filters products",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 6959,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:03.225Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-da485b13bee3bd63ac0a",
+              "file": "comprehensive.spec.js",
+              "line": 295,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Cart lifecycle",
+          "file": "comprehensive.spec.js",
+          "line": 320,
+          "column": 6,
+          "specs": [
+            {
+              "title": "add to bag — quantity, remove, checkout flow",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 30999,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                            "column": 21,
+                            "line": 373
+                          },
+                          "message": "Error: locator.hover: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.rw-card').first()\u001b[22m\n\u001b[2m    - locator resolved to <article class=\"rw-card\">…</article>\u001b[22m\n\u001b[2m  - attempting hover action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    35 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m       - element is visible and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying hover action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  371 |     // ── Checkout ──\n  372 |     // Add another item\n> 373 |     await firstCard.hover();\n      |                     ^\n  374 |     await firstCard.locator('.rw-add').click();\n  375 |     await page.waitForTimeout(300);\n  376 |     await cartIcon.click({ force: true });\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:373:21"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:09.735Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium/error-context.md"
+                        }
+                      ]
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "timedOut",
+                      "duration": 30315,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                            "column": 21,
+                            "line": 373
+                          },
+                          "message": "Error: locator.hover: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.rw-card').first()\u001b[22m\n\u001b[2m    - locator resolved to <article class=\"rw-card\">…</article>\u001b[22m\n\u001b[2m  - attempting hover action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    44 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m       - element is visible and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying hover action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  371 |     // ── Checkout ──\n  372 |     // Add another item\n> 373 |     await firstCard.hover();\n      |                     ^\n  374 |     await firstCard.locator('.rw-add').click();\n  375 |     await page.waitForTimeout(300);\n  376 |     await cartIcon.click({ force: true });\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:373:21"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-06-24T00:05:43.558Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium-retry1/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-1fb4ce5dbe24f73cc013",
+              "file": "comprehensive.spec.js",
+              "line": 325,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Backend API endpoints",
+          "file": "comprehensive.spec.js",
+          "line": 409,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/api/send-order responds",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1190,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:11.127Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-8f5a89a82cf2bf3cb824",
+              "file": "comprehensive.spec.js",
+              "line": 410,
+              "column": 3
+            },
+            {
+              "title": "/api/send-campaign responds",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6441,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:14.841Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-28fd8b0f29730de38cff",
+              "file": "comprehensive.spec.js",
+              "line": 420,
+              "column": 3
+            },
+            {
+              "title": "/api/run-tests endpoint exists",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1515,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:12.407Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-740db691c7b6ea7d3bc5",
+              "file": "comprehensive.spec.js",
+              "line": 430,
+              "column": 3
+            },
+            {
+              "title": "static files served correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3223,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:14.004Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-6703102d2c30513aed7f",
+              "file": "comprehensive.spec.js",
+              "line": 440,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Stress / concurrency",
+          "file": "comprehensive.spec.js",
+          "line": 453,
+          "column": 6,
+          "specs": [
+            {
+              "title": "multiple concurrent homepage loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 7470,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:17.305Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-9f70aa25fd24e7dc346f",
+              "file": "comprehensive.spec.js",
+              "line": 454,
+              "column": 3
+            },
+            {
+              "title": "concurrent API calls to send-order",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1837,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:05:23.560Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-71e98ed4711bcddd07dd",
+              "file": "comprehensive.spec.js",
+              "line": 469,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-06-24T00:04:07.797Z",
+    "duration": 127934.647,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

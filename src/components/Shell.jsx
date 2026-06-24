@@ -187,7 +187,7 @@ export function Toast({ toast, onAction }) {
 }
 
 /* ---------- Footer ---------- */
-export function Footer({ onSizes, onInfo }) {
+export function Footer({ onSizes, onInfo, onSetCat }) {
   return (
     <footer className="rw-footer">
       <div className="rw-footer-top">
@@ -196,7 +196,7 @@ export function Footer({ onSizes, onInfo }) {
           authenticated, and sent on within a day.</p>
       </div>
       <div className="rw-footer-cols">
-        <div><h4>Shop</h4><a>New in</a><a>Tracksuits</a><a>Jerseys</a><a>Sets</a><a>Kicks</a></div>
+        <div><h4>Shop</h4><a onClick={() => onSetCat('Tracksuits')}>Tracksuits</a><a onClick={() => onSetCat('Jerseys')}>Jerseys</a><a onClick={() => onSetCat('Sets')}>Sets</a><a onClick={() => onSetCat('Shoes')}>Kicks</a></div>
         <div><h4>Help</h4><a onClick={onSizes} style={{ cursor: 'pointer' }}>Sizing</a><a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>Shipping</a><a onClick={() => onInfo('returns')} style={{ cursor: 'pointer' }}>Returns</a><a onClick={() => onInfo('tracking')} style={{ cursor: 'pointer' }}>Track order</a></div>
         <div><h4>Pay with</h4><a>PayPal</a><a>Payconiq</a><a>Apple Pay</a><a>Bancontact</a><a>Klarna</a></div>
       </div>

@@ -72,6 +72,9 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
             <Icon name="plus" size={18} />
           </button>
         </div>
+        <div className="rw-card-ship">
+          <Icon name="retrn" size={13} /> Free returns <span className="rw-price-was">€8</span>
+        </div>
       </div>
     </article>
   );
