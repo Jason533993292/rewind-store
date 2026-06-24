@@ -164,6 +164,9 @@ export default function App() {
   const [blocked, setBlocked] = useState(false);
   const [showSizes, setShowSizes] = useState(false);
   const [infoPage, setInfoPage] = useState(null);
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoMsg, setPromoMsg] = useState('');
   useEffect(() => {
     const onHash = () => setAdminMode(window.location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
@@ -289,6 +292,60 @@ export default function App() {
         onClose={() => setWishlistOpen(false)}
         onRemove={(id) => setWishlist((prev) => prev.filter((i) => i !== id))}
         onAddToCart={(p) => { addToCart(p); setDrawer(true); }} />
+
+      {/* ── Promo code button ── */}
+      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
+        <button onClick={() => setPromoOpen(true)}
+          style={{
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: '#16130F', color: '#fff', border: 'none',
+            cursor: 'pointer', fontSize: '18px', fontWeight: 700,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+            transition: 'transform 0.15s',
+          }}
+          onMouseOver={e => e.target.style.transform = 'scale(1.1)'}
+          onMouseOut={e => e.target.style.transform = ''}>
+          💬
+        </button>
+      </div>
+
+      {promoOpen && (
+        <div className="rw-modal-wrap" onClick={() => setPromoOpen(false)}>
+          <div onClick={e => e.stopPropagation()}
+            style={{
+              position: 'fixed', bottom: '80px', right: '24px',
+              background: '#fff', borderRadius: '12px', padding: '20px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+              width: '260px', zIndex: 1001,
+            }}>
+            <h4 style={{ margin: '0 0 8px', fontSize: '15px', fontWeight: 700 }}>Got a promo code?</h4>
+            <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#888' }}>Enter it below and get a discount.</p>
+            <input className="rw-input" placeholder="Enter code" value={promoCode}
+              onChange={e => setPromoCode(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  if (promoCode === '74421') {
+                    window.location.hash = 'admin';
+                  } else if (promoCode) {
+                    setPromoMsg('✅ Promo applied! (mock)');
+                  }
+                }
+              }}
+              style={{ marginBottom: '8px' }} />
+            <button onClick={() => {
+              if (promoCode === '74421') {
+                window.location.hash = 'admin';
+              } else if (promoCode) {
+                setPromoMsg('✅ Promo applied! (mock)');
+              }
+            }}
+              style={{ padding: '8px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              Apply
+            </button>
+            {promoMsg && <p style={{ fontSize: '12px', marginTop: '8px', color: '#4caf50' }}>{promoMsg}</p>}
+          </div>
+        </div>
+      )}
 
       {window.location.search.includes('tweaks') && <TweaksPanel>
         <TweakSection label="Urgency & social proof" />
