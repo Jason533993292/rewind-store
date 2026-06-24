@@ -171,8 +171,7 @@ app.post('/api/generate-description', async (req, res) => {
   try {
     let result;
     if (process.env.GEMINI_API_KEY) {
-      const text = await describeViaGemini(imageBase64);
-      result = { title: '', description: text };
+      result = await describeViaGemini(imageBase64);
     } else if (process.env.OPENAI_API_KEY) {
       result = await describeViaOpenAI(imageBase64);
     } else {
