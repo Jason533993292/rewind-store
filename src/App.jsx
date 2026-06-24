@@ -696,6 +696,26 @@ function AdminPanel({ onExit }) {
           {/* ── Orders ── */}
           {adminTab === 'orders' && (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            {/* ── Order stats chart ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ background: '#f0ece6', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.length}</div>
+                <div style={{ fontSize: '11px', color: '#888' }}>Total</div>
+              </div>
+              <div style={{ background: '#fff3cd', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'pending').length}</div>
+                <div style={{ fontSize: '11px', color: '#888' }}>⏳ Pending</div>
+              </div>
+              <div style={{ background: '#cce5ff', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'ordered').length}</div>
+                <div style={{ fontSize: '11px', color: '#888' }}>📦 Ordered</div>
+              </div>
+              <div style={{ background: '#d4edda', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'shipped').length}</div>
+                <div style={{ fontSize: '11px', color: '#888' }}>🚚 Shipped</div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📦 Orders to fulfill</h3>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -703,7 +723,7 @@ function AdminPanel({ onExit }) {
                   <button onClick={() => {
                     const csv = ["Order,Customer,Email,Items,Total,Status,Address"];
                     orders.forEach(o => {
-                      const items = o.items?.map(it => `${it.name} (${it.size})`).join('; ') || '';
+                      const items = (Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size})`).join('; ');
                       csv.push(`"${o.order_num}","${o.customer_name}","${o.email}","${items}","€${o.total}","${o.status}","${o.address}"`);
                     });
                     navigator.clipboard.writeText(csv.join('\n'));
@@ -742,7 +762,7 @@ function AdminPanel({ onExit }) {
                             <div style={{ fontSize: '11px', color: '#aaa' }}>{o.address}</div>
                           </td>
                           <td style={{ padding: '8px 10px', fontSize: '12px' }}>
-                            {o.items?.map((it, i) => (
+                            {(Array.isArray(o.items) ? o.items : []).map((it, i) => (
                               <div key={i}>{typeof it === 'string' ? it : `${it.name} (${it.size}) × ${it.qty || 1}`}</div>
                             ))}
                           </td>
@@ -761,7 +781,8 @@ function AdminPanel({ onExit }) {
                           </td>
                           <td style={{ padding: '8px 10px' }}>
                             <button onClick={() => {
-                              const msg = `NEW ORDER\n━━━━━━━━━━━\nOrder: ${o.order_num}\nItem: ${(o.items || []).map(it => typeof it === 'string' ? it : `${it.name} (size ${it.size}) × ${it.qty || 1}`).join(', ')}\nCustomer: ${o.customer_name}\nAddress: ${o.address}\nEmail: ${o.email}\n━━━━━━━━━━━\nPlease ship to the address above.`;
+                              const items = (Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size}) × ${it.qty || 1}`).join(', ');
+                              const msg = `NEW ORDER\n━━━━━━━━━━━\nOrder: ${o.order_num}\nItem: ${items}\nCustomer: ${o.customer_name}\nAddress: ${o.address}\nEmail: ${o.email}\n━━━━━━━━━━━\nPlease ship to the address above.`;
                               navigator.clipboard.writeText(msg);
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
