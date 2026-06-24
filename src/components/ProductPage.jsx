@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Photo, Icon } from './Shell';
+import { deleteCustomProduct } from '../lib/supabase';
 
 export default function ProductPage({ p, onBack, onAdd }) {
   const [size, setSize] = useState(null);
@@ -24,19 +25,38 @@ export default function ProductPage({ p, onBack, onAdd }) {
       </button>
 
       {!!localStorage.getItem('rw_admin_email') && (
-        <button onClick={() => {
-          const id = p.id || p.product_id;
-          const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
-          const isSaved = savedIds.includes(id);
-          if (isSaved) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
-          else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
-          const btn = document.activeElement;
-          btn.textContent = isSaved ? '⭐' : '✕';
-          setTimeout(() => { btn.textContent = '⋮'; }, 1500);
-        }}
-          style={{ float: 'right', marginTop: '8px', width: '32px', height: '32px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
-          ⋮
-        </button>
+        <div style={{ float: 'right', marginTop: '8px', position: 'relative' }}>
+          <button onClick={(e) => {
+            const menu = e.target.nextElementSibling;
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+          }}
+            style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+            ⋮
+          </button>
+          <div onClick={e => e.stopPropagation()}
+            style={{ display: 'none', position: 'absolute', top: '36px', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
+            <button onClick={() => {
+              const id = p.id || p.product_id;
+              const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+              if (savedIds.includes(id)) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
+              else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
+            }} style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              ⭐ Save
+            </button>
+            <button onClick={() => {
+              if (confirm('Delete this product?')) {
+                deleteCustomProduct(p.id || p.product_id);
+                onBack();
+              }
+            }} style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              🗑 Delete
+            </button>
+            <button onClick={() => { window.location.hash = '/admin'; }}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              ✏️ Edit
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="rw-product-layout">

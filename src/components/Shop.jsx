@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
+import { deleteCustomProduct } from '../lib/supabase';
 
 /* ---------- LazyImage (for real product photos) ---------- */
 function LazyImage({ src, alt, className }) {
@@ -134,18 +135,38 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
       <div className="rw-modal" onClick={(e) => e.stopPropagation()}>
         <button className="rw-modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
         {!!localStorage.getItem('rw_admin_email') && (
-        <button onClick={(e) => { e.stopPropagation();
-          const id = p.id || p.product_id;
-          const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
-          const isSaved = savedIds.includes(id);
-          if (isSaved) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
-          else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
-          e.target.textContent = isSaved ? '⭐' : '✕';
-          setTimeout(() => { e.target.textContent = '⋮'; }, 1500);
-        }}
-          style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 20, width: '28px', height: '28px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
-          ⋮
-        </button>
+        <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 20 }}>
+          <button onClick={(e) => { e.stopPropagation();
+            const menu = e.target.nextElementSibling;
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+          }}
+            style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+            ⋮
+          </button>
+          <div onClick={e => e.stopPropagation()}
+            style={{ display: 'none', position: 'absolute', top: '32px', left: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
+            <button onClick={() => {
+              const id = p.id || p.product_id;
+              const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+              if (savedIds.includes(id)) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
+              else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
+            }} style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              ⭐ Save
+            </button>
+            <button onClick={() => {
+              if (confirm('Delete this product?')) {
+                deleteCustomProduct(p.id || p.product_id);
+                window.location.reload();
+              }
+            }} style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              🗑 Delete
+            </button>
+            <button onClick={() => { window.location.hash = '/admin'; }}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              ✏️ Edit
+            </button>
+          </div>
+        </div>
         )}
         <div className="rw-modal-media">
           <Photo id={(p.id || p.product_id) + "-qv"} hue={p.hue} label={p.name.toUpperCase()} h={500} img={p.img} />
