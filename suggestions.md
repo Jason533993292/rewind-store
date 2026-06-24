@@ -37,4 +37,9 @@ _Last updated: June 24, 2026_
 
 ---
 
+## [🟢] Photo upload + AI description generation
+- Priority: Green (already done)
+- What: User requested a button to add photos so the description generator can analyze them.
+- Status: [DONE] — Already implemented. The "Add new product" form has a "📁 Choose files" input (supports image/*), a storefront preview that shows the selected photo, a "📋 Copy to Gemini" button for manual AI use, and an "✨ Generate from photo" button that sends the image to the backend API (HuggingFace → OpenAI → Gemini → fallback cascade). The image is also uploaded to Supabase storage (`product-images` bucket) on submit.
+
 _New suggestions appear at the top._
