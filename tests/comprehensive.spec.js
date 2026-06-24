@@ -331,6 +331,10 @@ test.describe('Cart lifecycle', () => {
     await firstCard.locator('.rw-add').click({ force: true });
     await page.waitForTimeout(500);
 
+    // Dismiss scrim
+    await page.locator('.rw-scrim, .rw-modal-wrap').first().click({ force: true }).catch(() => {});
+    await page.waitForTimeout(300);
+
     // Toast should appear
     await expect(page.locator('.rw-toast')).toBeVisible({ timeout: 3000 });
 
@@ -372,6 +376,10 @@ test.describe('Cart lifecycle', () => {
     await firstCard.hover({ force: true });
     await firstCard.locator('.rw-add').click({ force: true });
     await page.waitForTimeout(500);
+
+    // Dismiss scrim
+    await page.locator('.rw-scrim, .rw-modal-wrap').first().click({ force: true }).catch(() => {});
+    await page.waitForTimeout(300);
 
     // Open cart
     await page.waitForTimeout(300);
