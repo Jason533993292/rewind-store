@@ -992,7 +992,7 @@ function AdminPanel({ onExit, onSelect }) {
 /* ── Product Form (separate component) ── */
 function ProductForm() {
   const [form, setForm] = React.useState({
-    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', note: '', file: null, files: []
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: []
   });
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
@@ -1012,7 +1012,7 @@ function ProductForm() {
       product_id: productId, name: form.name, brand: form.brand || '', cat,
       price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
       stock: form.stock || 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
-      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '',
     };
     // Upload images if selected
     if (form.files?.length) {
@@ -1026,7 +1026,7 @@ function ProductForm() {
     const result = await addCustomProduct(product);
     if (result) {
       setMsg(`✅ "${form.name}" added!`);
-      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', note: '', file: null, files: [] });
+      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
       if (fileRef.current) fileRef.current.value = '';
     } else {
       setMsg('❌ Failed to save.');
@@ -1067,9 +1067,8 @@ function ProductForm() {
         <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes}
           onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
-          <textarea className="rw-input" placeholder="Description" value={form.note}
-            onChange={e => setForm({...form, note: e.target.value})} rows={2}
-            style={{ resize: 'vertical', flex: 1 }} />
+          <input className="rw-input" placeholder="Material (e.g. 100% cotton, fleece)" value={form.material}
+            onChange={e => setForm({...form, material: e.target.value})} />
           {form.file && (<div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
             <button type="button"
