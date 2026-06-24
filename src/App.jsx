@@ -661,8 +661,8 @@ function AdminPanel({ onExit }) {
                   body: JSON.stringify({ emails: users.map((u) => u.email), subject: '', message: emailText || '' }),
                 });
                 const d = await r.json();
-                btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : '❌ Failed';
-                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+                btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : `❌ ${d.error || 'Failed'}`;
+                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000);
               }}
                 style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
                 📩 Email all users ({users.length})
@@ -679,8 +679,8 @@ function AdminPanel({ onExit }) {
                   body: JSON.stringify({ emails: marketingUsers.map((u) => u.email), subject: '', message: emailText || '' }),
                 });
                 const d = await r.json();
-                btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : '❌ Failed';
-                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
+                btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : `❌ ${d.error || 'Failed'}`;
+                setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000);
               }}
                 style={{ padding: '10px 20px', borderRadius: '999px', background: '#FF4D14', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
                 📩 Email opted-in only ({users.filter((u) => u.marketing_optin).length})

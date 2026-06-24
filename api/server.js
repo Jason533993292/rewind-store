@@ -88,10 +88,11 @@ app.post('/api/send-order', async (req, res) => {
 // ── Campaign (admin panel) ──
 app.post('/api/send-campaign', async (req, res) => {
   const { emails, subject, message } = req.body;
-  if (!resend) return res.json({ ok: true, sent: 0, note: 'Resend not configured' });
+  if (!resend) return res.json({ ok: false, sent: 0, total: emails?.length || 0, error: 'RESEND_API_KEY not configured on Railway' });
   const defaultMsg = "Hey,\n\nWe just got new pieces in.\n\nCheck them out:\nhttps://rewind-stores.com\n\nBest,\nREWIND";
   let sent = 0;
-  for (const email of emails) {
+  const errors = [];
+  for (const email of (emails || [])) {
     try {
       await resend.emails.send({
         from: FROM_EMAIL,
@@ -101,12 +102,15 @@ app.post('/api/send-campaign', async (req, res) => {
         html: campaignHtml({ message: message || defaultMsg }),
       });
       sent++;
-      await new Promise((r) => setTimeout(r, 200));
     } catch (err) {
-      console.error(`Failed: ${email}:`, err.message);
+      errors.push(`${email}: ${err.message}`);
     }
   }
-  res.json({ ok: true, sent, total: emails.length });
+  if (errors.length > 0 && sent === 0) {
+    res.json({ ok: false, sent: 0, total: emails.length, error: errors[0] });
+  } else {
+    res.json({ ok: true, sent, total: emails.length, errors: errors.length });
+  }
 });
 
 // ── Generate product description from image (Gemini or OpenAI) ──
