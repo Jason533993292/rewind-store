@@ -23,6 +23,19 @@ export default function ProductPage({ p, onBack, onAdd }) {
         ← Back to shop
       </button>
 
+      {!!localStorage.getItem('rw_admin_email') && (
+        <button onClick={() => {
+          const id = p.id || p.product_id;
+          const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+          if (savedIds.includes(id)) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
+          else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
+          window.location.reload();
+        }}
+          style={{ float: 'right', marginTop: '8px', width: '32px', height: '32px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+          ⋮
+        </button>
+      )}
+
       <div className="rw-product-layout">
         {/* ── Images ── */}
         <div className="rw-product-images">

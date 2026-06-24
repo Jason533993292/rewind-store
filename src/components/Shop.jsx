@@ -58,7 +58,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           <Icon name={wishlisted ? 'heartFilled' : 'heart'} size={17} />
         </button>
         {isAdmin && (
-          <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
+          <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 10 }}>
             <button onClick={(e) => {
               e.stopPropagation();
               const id = p.id || p.product_id;
@@ -152,6 +152,17 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
     <div className="rw-modal-wrap" onClick={onClose}>
       <div className="rw-modal" onClick={(e) => e.stopPropagation()}>
         <button className="rw-modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
+        {!!localStorage.getItem('rw_admin_email') && (
+        <button onClick={(e) => { e.stopPropagation();
+          const id = p.id || p.product_id;
+          const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+          if (savedIds.includes(id)) localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
+          else localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
+        }}
+          style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 20, width: '28px', height: '28px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+          ⋮
+        </button>
+        )}
         <div className="rw-modal-media">
           <Photo id={(p.id || p.product_id) + "-qv"} hue={p.hue} label={p.name.toUpperCase()} h={500} img={p.img} />
         </div>
