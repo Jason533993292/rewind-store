@@ -94,12 +94,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4180,
+                      "duration": 1732,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:24.813Z",
+                      "startTime": "2026-06-24T06:50:26.805Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -128,12 +128,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4175,
+                      "duration": 1704,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:24.796Z",
+                      "startTime": "2026-06-24T06:50:26.807Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -162,12 +162,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4018,
+                      "duration": 1689,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:24.799Z",
+                      "startTime": "2026-06-24T06:50:26.821Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -196,12 +196,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1960,
+                      "duration": 1243,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:29.221Z",
+                      "startTime": "2026-06-24T06:50:29.072Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -238,12 +238,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 17792,
+                      "duration": 3020,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:29.309Z",
+                      "startTime": "2026-06-24T06:50:29.082Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -272,12 +272,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12926,
+                      "duration": 2958,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:29.337Z",
+                      "startTime": "2026-06-24T06:50:29.111Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -306,12 +306,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 15605,
+                      "duration": 3136,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:31.292Z",
+                      "startTime": "2026-06-24T06:50:30.332Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -348,12 +348,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12693,
+                      "duration": 4529,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:42.925Z",
+                      "startTime": "2026-06-24T06:50:32.096Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -379,15 +379,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 7820,
+                      "duration": 3482,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:47.222Z",
+                      "startTime": "2026-06-24T06:50:32.124Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -421,15 +421,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 7819,
+                      "duration": 2874,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:47.347Z",
+                      "startTime": "2026-06-24T06:50:33.487Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -458,12 +458,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 5711,
+                      "duration": 2610,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:55.288Z",
+                      "startTime": "2026-06-24T06:50:35.621Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -492,12 +492,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 7230,
+                      "duration": 2999,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:55.292Z",
+                      "startTime": "2026-06-24T06:50:36.376Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -534,12 +534,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4693,
+                      "duration": 2015,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:56.190Z",
+                      "startTime": "2026-06-24T06:50:36.639Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -573,15 +573,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 7114,
+                      "duration": 4595,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:01.014Z",
+                      "startTime": "2026-06-24T06:50:38.245Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -596,7 +596,7 @@
             },
             {
               "title": "full checkout flow places order",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -607,108 +607,25 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 9181,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79",
-                        "location": {
-                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                          "column": 79,
-                          "line": 403
-                        },
-                        "snippet": "  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 79,
-                            "line": 403
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n\n  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79"
-                        }
-                      ],
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6669,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:01.284Z",
+                      "startTime": "2026-06-24T06:50:38.664Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                        "column": 79,
-                        "line": 403
-                      }
-                    },
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 1,
-                      "status": "failed",
-                      "duration": 7517,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79",
-                        "location": {
-                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                          "column": 79,
-                          "line": 403
-                        },
-                        "snippet": "  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 79,
-                            "line": 403
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n\n  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 1,
-                      "startTime": "2026-06-24T00:11:11.754Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium-retry1/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium-retry1/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                        "column": 79,
-                        "line": 403
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "22db194ba5a9c5d8ddb2-7a4d29afa1334fb57ae2",
               "file": "comprehensive.spec.js",
-              "line": 367,
+              "line": 371,
               "column": 3
             }
           ]
@@ -716,7 +633,7 @@
         {
           "title": "Backend API endpoints",
           "file": "comprehensive.spec.js",
-          "line": 408,
+          "line": 416,
           "column": 6,
           "specs": [
             {
@@ -735,12 +652,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2032,
+                      "duration": 567,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:02.609Z",
+                      "startTime": "2026-06-24T06:50:39.388Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -750,7 +667,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-8f5a89a82cf2bf3cb824",
               "file": "comprehensive.spec.js",
-              "line": 409,
+              "line": 417,
               "column": 3
             },
             {
@@ -769,12 +686,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 737,
+                      "duration": 601,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:04.818Z",
+                      "startTime": "2026-06-24T06:50:39.966Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -784,7 +701,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-28fd8b0f29730de38cff",
               "file": "comprehensive.spec.js",
-              "line": 419,
+              "line": 427,
               "column": 3
             },
             {
@@ -803,12 +720,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 539,
+                      "duration": 422,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:05.632Z",
+                      "startTime": "2026-06-24T06:50:40.576Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -818,7 +735,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-740db691c7b6ea7d3bc5",
               "file": "comprehensive.spec.js",
-              "line": 429,
+              "line": 437,
               "column": 3
             },
             {
@@ -837,12 +754,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2796,
+                      "duration": 1432,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:06.232Z",
+                      "startTime": "2026-06-24T06:50:41.008Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -852,7 +769,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-6703102d2c30513aed7f",
               "file": "comprehensive.spec.js",
-              "line": 439,
+              "line": 447,
               "column": 3
             }
           ]
@@ -860,7 +777,7 @@
         {
           "title": "Stress / concurrency",
           "file": "comprehensive.spec.js",
-          "line": 452,
+          "line": 460,
           "column": 6,
           "specs": [
             {
@@ -876,15 +793,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2832,
+                      "duration": 1709,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:08.277Z",
+                      "startTime": "2026-06-24T06:50:42.452Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -894,7 +811,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-9f70aa25fd24e7dc346f",
               "file": "comprehensive.spec.js",
-              "line": 453,
+              "line": 461,
               "column": 3
             },
             {
@@ -910,15 +827,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1768,
+                      "duration": 828,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:11:09.099Z",
+                      "startTime": "2026-06-24T06:50:42.857Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -928,7 +845,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-71e98ed4711bcddd07dd",
               "file": "comprehensive.spec.js",
-              "line": 468,
+              "line": 476,
               "column": 3
             }
           ]
@@ -938,11 +855,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-06-24T00:10:24.224Z",
-    "duration": 55405.837,
-    "expected": 20,
+    "startTime": "2026-06-24T06:50:26.291Z",
+    "duration": 19085.460000000003,
+    "expected": 21,
     "skipped": 0,
-    "unexpected": 1,
+    "unexpected": 0,
     "flaky": 0
   }
 }
