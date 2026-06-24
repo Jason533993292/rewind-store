@@ -1037,7 +1037,7 @@ function ProductForm() {
               onClick={async () => {
                 const reader = new FileReader();
                 reader.onload = () => {
-                  const prompt = "I'm listing a vintage streetwear item. Look at this photo and give me:\n\nTITLE: (short product name, max 6 words)\nDESCRIPTION: (2-3 sentences describing material, era, colors, style)\n\nOnly respond with the title and description, nothing else.";
+                  const prompt = "I'm listing a vintage streetwear item. Look at this photo and describe only the product. Do NOT mention the filename, 'WhatsApp', 'image', or any file metadata. Respond with:\n\nTITLE: (short product name, max 6 words)\nDESCRIPTION: (2-3 sentences describing the item — material, era, colors, style, brand clues)\n\nOnly respond with the title and description, nothing else.";
                   navigator.clipboard.writeText(prompt);
                   window.open('https://gemini.google.com/app', '_blank');
                   setMsg('✅ Prompt copied! Paste it into Gemini (tab opened). Then copy the response back here.');
