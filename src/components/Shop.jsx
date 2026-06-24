@@ -45,7 +45,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
   return (
     <article className="rw-card">
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
-        <Photo id={p.id} hue={p.hue} label={p.name.toUpperCase()} h={340} />
+        <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={p.img} />
         <div className="rw-card-tags">
           {showCompare && discountPct(p) > 0 && <span className="rw-tag rw-tag-sale">-{discountPct(p)}%</span>}
           {showStock && low && <span className="rw-tag rw-tag-low">Only {p.stock} left</span>}
@@ -134,7 +134,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
       <div className="rw-modal" onClick={(e) => e.stopPropagation()}>
         <button className="rw-modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
         <div className="rw-modal-media">
-          <Photo id={p.id + "-qv"} hue={p.hue} label={p.name.toUpperCase()} h={500} />
+          <Photo id={(p.id || p.product_id) + "-qv"} hue={p.hue} label={p.name.toUpperCase()} h={500} img={p.img} />
         </div>
         <div className="rw-modal-info">
           <span className="rw-card-cat">{p.cat}</span>

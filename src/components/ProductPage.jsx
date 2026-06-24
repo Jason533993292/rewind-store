@@ -32,7 +32,7 @@ export default function ProductPage({ p, onBack, onAdd }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             minHeight: '400px',
           }}>
-            <Photo id={p.id || p.product_id + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} />
+            <Photo id={p.id || p.product_id + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={p.img} />
           </div>
           {/* Thumbnail strip — placeholder for multiple photos */}
           <div style={{ display: 'flex', gap: '8px' }}>
