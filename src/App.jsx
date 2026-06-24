@@ -338,16 +338,19 @@ function AdminPanel({ onExit }) {
         .then(({ data }) => {
           if (data) setAdminAuthed(true);
           setAdminChecking(false);
-        });
+        })
+        .catch(() => setAdminChecking(false));
     } else {
       setAdminChecking(false);
     }
     supabase.from('wishlists').select('*').order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!error && data) setUsers(data);
-      });
-    getCustomProducts().then(setCustomProducts);
-    getOrders().then(setOrders);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+    getCustomProducts().then(setCustomProducts).catch(() => {});
+    getOrders().then(setOrders).catch(() => {});
   }, []);
 
   async function toggleBlockUser(email, blocked) {
@@ -683,7 +686,7 @@ function AdminPanel({ onExit }) {
                           </td>
                           <td style={{ padding: '8px 10px', fontSize: '12px' }}>
                             {o.items?.map((it, i) => (
-                              <div key={i}>{it.name} ({it.size}) × {it.qty || 1}</div>
+                              <div key={i}>{typeof it === 'string' ? it : `${it.name} (${it.size}) × ${it.qty || 1}`}</div>
                             ))}
                           </td>
                           <td style={{ padding: '8px 10px', fontWeight: 700 }}>€{o.total}</td>
@@ -701,7 +704,7 @@ function AdminPanel({ onExit }) {
                           </td>
                           <td style={{ padding: '8px 10px' }}>
                             <button onClick={() => {
-                              const msg = `NEW ORDER\n━━━━━━━━━━━\nOrder: ${o.order_num}\nItem: ${o.items?.map(it => `${it.name} (size ${it.size}) × ${it.qty || 1}`).join(', ')}\nCustomer: ${o.customer_name}\nAddress: ${o.address}\nEmail: ${o.email}\n━━━━━━━━━━━\nPlease ship to the address above.`;
+                              const msg = `NEW ORDER\n━━━━━━━━━━━\nOrder: ${o.order_num}\nItem: ${(o.items || []).map(it => typeof it === 'string' ? it : `${it.name} (size ${it.size}) × ${it.qty || 1}`).join(', ')}\nCustomer: ${o.customer_name}\nAddress: ${o.address}\nEmail: ${o.email}\n━━━━━━━━━━━\nPlease ship to the address above.`;
                               navigator.clipboard.writeText(msg);
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
