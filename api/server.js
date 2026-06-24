@@ -163,18 +163,28 @@ async function describeViaOpenAI(imageBase64) {
   }
 }
 async function describeViaHF(imageBase64) {
-  // Decode base64 to raw bytes and send to free HuggingFace Inference API
   const buffer = Buffer.from(imageBase64, 'base64');
-  const response = await fetch('https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: buffer,
-  });
-  if (!response.ok) throw new Error(`HuggingFace: ${response.status} ${response.statusText}`);
-  const data = await response.json();
-  const caption = data?.[0]?.generated_text || '';
-  if (!caption) throw new Error('HuggingFace: empty response');
-  return { title: caption.split(',')[0].trim(), description: caption };
+  // Try multiple free HuggingFace models
+  const models = [
+    'Salesforce/blip-image-captioning-base',
+    'nlpconnect/vit-gpt2-image-captioning',
+    'microsoft/git-base-coco',
+  ];
+  for (const model of models) {
+    try {
+      const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: buffer,
+        signal: AbortSignal.timeout(30000),
+      });
+      if (!response.ok) continue;
+      const data = await response.json();
+      const caption = data?.[0]?.generated_text || '';
+      if (caption) return { title: caption.split(',')[0].trim(), description: caption };
+    } catch {}
+  }
+  throw new Error('HuggingFace: all models failed');
 }
 
 app.post('/api/generate-description', async (req, res) => {
