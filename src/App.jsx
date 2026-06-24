@@ -20,7 +20,12 @@ export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cat, setCat] = useState('All');
   const [query, setQuery] = useState('');
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rw_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [drawer, setDrawer] = useState(false);
   const [quick, setQuick] = useState(null);
   const [checkout, setCheckout] = useState(false);
@@ -69,6 +74,9 @@ export default function App() {
 
   // Persist email
   useEffect(() => { if (userEmail) localStorage.setItem('rw_email', userEmail); }, [userEmail]);
+
+  // Persist cart to localStorage (survives refresh)
+  useEffect(() => { localStorage.setItem('rw_cart', JSON.stringify(cart)); }, [cart]);
 
   // Reset brand when category changes
   useEffect(() => { setBrand(null); }, [cat]);
