@@ -1065,10 +1065,13 @@ function ProductForm() {
                     setForm(prev => ({ ...prev, name: d.title || prev.name, note: d.description || '' }));
                     btn.textContent = '✅ Generated';
                   } else {
-                    btn.textContent = '❌ ' + (d.error || 'Failed');
+                    const errMsg = d.error || JSON.stringify(d).slice(0, 200);
+                    btn.textContent = '❌ ' + errMsg.slice(0, 30);
+                    setMsg('❌ AI Error: ' + errMsg);
                   }
                 } catch (e) {
                   btn.textContent = '❌ Error';
+                  setMsg('❌ Network Error: ' + (e.message || e));
                 }
                 setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
               }}
