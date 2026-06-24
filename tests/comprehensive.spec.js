@@ -395,12 +395,12 @@ test.describe('Cart lifecycle', () => {
     await expect(checkoutPage.locator('h3:has-text("Order summary")')).toBeVisible();
     await expect(checkoutPage.locator('text=Shipping')).toBeVisible();
 
-    // Place order
-    await checkoutPage.locator('button:has-text("Pay")').click();
+    // Place order — target the main action button (not payment method toggles)
+    await checkoutPage.locator('.rw-btn-pri:has-text("Pay")').click();
     await page.waitForTimeout(3000);
 
     // Should see confirmation
-    await expect(page.locator('.rw-confirm, h2:has-text("Order confirmed")')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.rw-confirm')).toBeVisible({ timeout: 5000 });
   });
 });
 

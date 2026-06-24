@@ -94,12 +94,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4534,
+                      "duration": 4180,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:37.564Z",
+                      "startTime": "2026-06-24T00:10:24.813Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -128,12 +128,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4499,
+                      "duration": 4175,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:37.568Z",
+                      "startTime": "2026-06-24T00:10:24.796Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -162,12 +162,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4375,
+                      "duration": 4018,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:37.572Z",
+                      "startTime": "2026-06-24T00:10:24.799Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -193,15 +193,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2353,
+                      "duration": 1960,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:43.017Z",
+                      "startTime": "2026-06-24T00:10:29.221Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -235,15 +235,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 7193,
+                      "duration": 17792,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:43.016Z",
+                      "startTime": "2026-06-24T00:10:29.309Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -272,12 +272,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6777,
+                      "duration": 12926,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:43.025Z",
+                      "startTime": "2026-06-24T00:10:29.337Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -303,15 +303,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 6635,
+                      "duration": 15605,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:45.559Z",
+                      "startTime": "2026-06-24T00:10:31.292Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -348,12 +348,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7017,
+                      "duration": 12693,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:49.935Z",
+                      "startTime": "2026-06-24T00:10:42.925Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -382,12 +382,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4968,
+                      "duration": 7820,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:50.307Z",
+                      "startTime": "2026-06-24T00:10:47.222Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -424,12 +424,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 3011,
+                      "duration": 7819,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:52.348Z",
+                      "startTime": "2026-06-24T00:10:47.347Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -455,15 +455,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 3751,
+                      "duration": 5711,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:55.332Z",
+                      "startTime": "2026-06-24T00:10:55.288Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -489,15 +489,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 5696,
+                      "duration": 7230,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:55.392Z",
+                      "startTime": "2026-06-24T00:10:55.292Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -534,12 +534,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4030,
+                      "duration": 4693,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:57.066Z",
+                      "startTime": "2026-06-24T00:10:56.190Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -573,15 +573,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 7034,
+                      "duration": 7114,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:09:59.125Z",
+                      "startTime": "2026-06-24T00:11:01.014Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -610,31 +610,31 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 5436,
+                      "duration": 9181,
                       "error": {
-                        "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n",
-                        "stack": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79",
                         "location": {
                           "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                          "column": 58,
-                          "line": 399
+                          "column": 79,
+                          "line": 403
                         },
-                        "snippet": "  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation"
+                        "snippet": "  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 58,
-                            "line": 399
+                            "column": 79,
+                            "line": 403
                           },
-                          "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n\n  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n\n  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:01.158Z",
+                      "startTime": "2026-06-24T00:11:01.284Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -650,39 +650,39 @@
                       ],
                       "errorLocation": {
                         "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                        "column": 58,
-                        "line": 399
+                        "column": 79,
+                        "line": 403
                       }
                     },
                     {
                       "workerIndex": 3,
                       "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 6678,
+                      "duration": 7517,
                       "error": {
-                        "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n",
-                        "stack": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79",
                         "location": {
                           "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                          "column": 58,
-                          "line": 399
+                          "column": 79,
+                          "line": 403
                         },
-                        "snippet": "  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation"
+                        "snippet": "  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 58,
-                            "line": 399
+                            "column": 79,
+                            "line": 403
                           },
-                          "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n\n  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\nExpected: visible\nError: strict mode violation: locator('.rw-confirm, h2:has-text(\"Order confirmed\")') resolved to 2 elements:\n    1) <div class=\"rw-confirm\">…</div> aka getByText('Order confirmedThanks for')\n    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.rw-confirm, h2:has-text(\"Order confirmed\")')\u001b[22m\n\n\n  401 |\n  402 |     // Should see confirmation\n> 403 |     await expect(page.locator('.rw-confirm, h2:has-text(\"Order confirmed\")')).toBeVisible({ timeout: 5000 });\n      |                                                                               ^\n  404 |   });\n  405 | });\n  406 |\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:403:79"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 1,
-                      "startTime": "2026-06-24T00:10:09.427Z",
+                      "startTime": "2026-06-24T00:11:11.754Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -698,8 +698,8 @@
                       ],
                       "errorLocation": {
                         "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                        "column": 58,
-                        "line": 399
+                        "column": 79,
+                        "line": 403
                       }
                     }
                   ],
@@ -732,15 +732,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1563,
+                      "duration": 2032,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:01.198Z",
+                      "startTime": "2026-06-24T00:11:02.609Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -766,15 +766,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 891,
+                      "duration": 737,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:02.811Z",
+                      "startTime": "2026-06-24T00:11:04.818Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -800,15 +800,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 806,
+                      "duration": 539,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:03.770Z",
+                      "startTime": "2026-06-24T00:11:05.632Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -834,15 +834,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2552,
+                      "duration": 2796,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:04.607Z",
+                      "startTime": "2026-06-24T00:11:06.232Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -876,15 +876,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 2647,
+                      "duration": 2832,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:06.301Z",
+                      "startTime": "2026-06-24T00:11:08.277Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -910,15 +910,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1668,
+                      "duration": 1768,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:10:07.192Z",
+                      "startTime": "2026-06-24T00:11:09.099Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -938,8 +938,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-06-24T00:09:36.998Z",
-    "duration": 39662.386,
+    "startTime": "2026-06-24T00:10:24.224Z",
+    "duration": 55405.837,
     "expected": 20,
     "skipped": 0,
     "unexpected": 1,

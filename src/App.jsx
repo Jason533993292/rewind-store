@@ -627,50 +627,107 @@ function AdminPanel({ onExit }) {
           {/* ── Orders ── */}
           {adminTab === 'orders' && (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📦 Orders to fulfill</h3>
-            {orders.length === 0 ? (
-              <p style={{ color: '#888', fontSize: '14px' }}>No orders yet.</p>
-            ) : (
-              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                  <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
-                    <th style={{ padding: '8px 10px' }}>Order</th>
-                    <th style={{ padding: '8px 10px' }}>Customer</th>
-                    <th style={{ padding: '8px 10px' }}>Items</th>
-                    <th style={{ padding: '8px 10px' }}>Total</th>
-                    <th style={{ padding: '8px 10px' }}>Status</th>
-                    <th style={{ padding: '8px 10px' }}>Address</th>
-                  </tr></thead>
-                  <tbody>
-                    {orders.map(o => (
-                      <tr key={o.id} style={{ borderTop: '1px solid #f0f0f0' }}>
-                        <td style={{ padding: '8px 10px', fontWeight: 600, fontSize: '12px' }}>{o.order_num}</td>
-                        <td style={{ padding: '8px 10px' }}>{o.customer_name}<br /><span style={{ fontSize: '11px', color: '#888' }}>{o.email}</span></td>
-                        <td style={{ padding: '8px 10px', fontSize: '12px' }}>
-                          {o.items?.map((it, i) => (
-                            <div key={i}>{it.name} ({it.size}) x{it.qty || 1}</div>
-                          ))}
-                        </td>
-                        <td style={{ padding: '8px 10px', fontWeight: 700 }}>€{o.total}</td>
-                        <td style={{ padding: '8px 10px' }}>
-                          <select value={o.status} onChange={async (e) => {
-                            await updateOrderStatus(o.id, e.target.value);
-                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
-                          }}
-                            style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px', fontWeight: 600,
-                              background: o.status === 'pending' ? '#fff3cd' : o.status === 'ordered' ? '#cce5ff' : '#d4edda' }}>
-                            <option value="pending">⏳ Pending</option>
-                            <option value="ordered">📦 Ordered</option>
-                            <option value="shipped">🚚 Shipped</option>
-                          </select>
-                        </td>
-                        <td style={{ padding: '8px 10px', fontSize: '11px', color: '#888', maxWidth: '150px' }}>{o.address}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📦 Orders to fulfill</h3>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {orders.length > 0 && (
+                  <button onClick={() => {
+                    const csv = ["Order,Customer,Email,Items,Total,Status,Address"];
+                    orders.forEach(o => {
+                      const items = o.items?.map(it => `${it.name} (${it.size})`).join('; ') || '';
+                      csv.push(`"${o.order_num}","${o.customer_name}","${o.email}","${items}","€${o.total}","${o.status}","${o.address}"`);
+                    });
+                    navigator.clipboard.writeText(csv.join('\n'));
+                    alert('📋 Orders CSV copied! Paste into Shopify or Excel.');
+                  }}
+                    style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                    📋 Export CSV
+                  </button>
+                )}
               </div>
+            </div>
+            {orders.length === 0 ? (
+              <p style={{ color: '#888', fontSize: '14px' }}>No orders yet. When a customer checks out, orders appear here.</p>
+            ) : (
+              <>
+                <p style={{ fontSize: '13px', color: '#888', marginBottom: '12px' }}>
+                  {orders.filter(o => o.status === 'pending').length} pending · {orders.filter(o => o.status === 'ordered').length} ordered · {orders.filter(o => o.status === 'shipped').length} shipped
+                </p>
+                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                      <th style={{ padding: '8px 10px' }}>Order</th>
+                      <th style={{ padding: '8px 10px' }}>Customer</th>
+                      <th style={{ padding: '8px 10px' }}>Items</th>
+                      <th style={{ padding: '8px 10px' }}>Total</th>
+                      <th style={{ padding: '8px 10px' }}>Status</th>
+                      <th style={{ padding: '8px 10px' }}>Supplier</th>
+                    </tr></thead>
+                    <tbody>
+                      {orders.map(o => (
+                        <tr key={o.id} style={{ borderTop: '1px solid #f0f0f0', background: o.status === 'pending' ? '#fffef5' : 'transparent' }}>
+                          <td style={{ padding: '8px 10px', fontWeight: 600, fontSize: '12px' }}>{o.order_num}</td>
+                          <td style={{ padding: '8px 10px' }}>
+                            <div>{o.customer_name}</div>
+                            <div style={{ fontSize: '11px', color: '#888' }}>{o.email}</div>
+                            <div style={{ fontSize: '11px', color: '#aaa' }}>{o.address}</div>
+                          </td>
+                          <td style={{ padding: '8px 10px', fontSize: '12px' }}>
+                            {o.items?.map((it, i) => (
+                              <div key={i}>{it.name} ({it.size}) × {it.qty || 1}</div>
+                            ))}
+                          </td>
+                          <td style={{ padding: '8px 10px', fontWeight: 700 }}>€{o.total}</td>
+                          <td style={{ padding: '8px 10px' }}>
+                            <select value={o.status} onChange={async (e) => {
+                              await updateOrderStatus(o.id, e.target.value);
+                              setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
+                            }}
+                              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px', fontWeight: 600,
+                                background: o.status === 'pending' ? '#fff3cd' : o.status === 'ordered' ? '#cce5ff' : '#d4edda' }}>
+                              <option value="pending">⏳ Pending</option>
+                              <option value="ordered">📦 Ordered</option>
+                              <option value="shipped">🚚 Shipped</option>
+                            </select>
+                          </td>
+                          <td style={{ padding: '8px 10px' }}>
+                            <button onClick={() => {
+                              const msg = `NEW ORDER\n━━━━━━━━━━━\nOrder: ${o.order_num}\nItem: ${o.items?.map(it => `${it.name} (size ${it.size}) × ${it.qty || 1}`).join(', ')}\nCustomer: ${o.customer_name}\nAddress: ${o.address}\nEmail: ${o.email}\n━━━━━━━━━━━\nPlease ship to the address above.`;
+                              navigator.clipboard.writeText(msg);
+                              alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
+                            }}
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #FF4D14', background: '#fff', color: '#FF4D14', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              📋 Copy for supplier
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
+          </div>
+          )}
+
+          {/* ── Stock alerts ── */}
+          {adminTab === 'orders' && (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📉 Stock alerts</h3>
+            {(() => {
+              const allProds = [...REWIND_PRODUCTS, ...customProducts];
+              const low = allProds.filter(p => p.stock !== undefined && p.stock <= 5);
+              if (low.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>All products have sufficient stock.</p>;
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {low.map(p => (
+                    <span key={p.id || p.product_id} style={{ padding: '6px 12px', background: '#fff3cd', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
+                      {p.name} — only {p.stock} left
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
           )}
 

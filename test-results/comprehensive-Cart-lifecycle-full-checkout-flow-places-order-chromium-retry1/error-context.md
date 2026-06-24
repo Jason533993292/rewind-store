@@ -12,15 +12,17 @@
 # Error details
 
 ```
-Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text("Pay")') resolved to 5 elements:
-    1) <button class="rw-pay">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })
-    2) <button class="rw-pay">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })
-    3) <button class="rw-pay">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })
-    4) <button class="rw-pay">…</button> aka getByRole('button', { name: 'Klarna Pay in' })
-    5) <button class="rw-btn rw-btn-pri rw-btn-full">Pay €50</button> aka getByRole('button', { name: 'Pay €' })
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('.rw-confirm, h2:has-text("Order confirmed")')
+Expected: visible
+Error: strict mode violation: locator('.rw-confirm, h2:has-text("Order confirmed")') resolved to 2 elements:
+    1) <div class="rw-confirm">…</div> aka getByText('Order confirmedThanks for')
+    2) <h2>Order confirmed</h2> aka getByRole('heading', { name: 'Order confirmed' })
 
 Call log:
-  - waiting for locator('.rw-checkout').locator('button:has-text("Pay")')
+  - Expect "toBeVisible" with timeout 5000ms
+  - waiting for locator('.rw-confirm, h2:has-text("Order confirmed")')
 
 ```
 
@@ -34,7 +36,7 @@ Call log:
       - generic [ref=e8]: Free returns within 14 days · Ships from EU in 24h
     - generic "Sale ends Sunday 23:59" [ref=e9]:
       - text: Sale ends in
-      - generic [ref=e10]: 4d 21h 49m
+      - generic [ref=e10]: 4d 21h 48m
   - banner [ref=e11]:
     - generic [ref=e12]:
       - generic [ref=e13]: REWIND.
@@ -564,7 +566,7 @@ Call log:
       - generic [ref=e600]:
         - generic [ref=e601]: Subtotal
         - generic [ref=e602]: €42
-      - button "Checkout" [active] [ref=e603] [cursor=pointer]:
+      - button "Checkout" [ref=e603] [cursor=pointer]:
         - text: Checkout
         - img [ref=e604]
       - generic [ref=e606]:
@@ -577,94 +579,28 @@ Call log:
   - generic [ref=e613]:
     - generic [ref=e614]:
       - generic [ref=e615]: REWIND.
-      - button "Back" [ref=e616] [cursor=pointer]
+      - button "Close" [ref=e616] [cursor=pointer]
     - generic [ref=e617]:
-      - generic [ref=e618]:
-        - generic [ref=e619]:
-          - heading "Contact" [level=3] [ref=e620]
-          - textbox "Email" [ref=e621]: hi@example.com
-        - generic [ref=e622]:
-          - heading "Delivery" [level=3] [ref=e623]
-          - textbox "Full name" [ref=e624]: Alex R.
-          - textbox "Address" [ref=e625]: Kerkstraat 42
-          - generic [ref=e626]:
-            - textbox "Postal code" [ref=e627]: "1000"
-            - textbox "City" [ref=e628]: Brussels
-          - textbox "Country" [ref=e629]: Belgium
-        - generic [ref=e630]:
-          - heading "Payment" [level=3] [ref=e631]
-          - generic [ref=e632]:
-            - button "Card Visa · Mastercard" [ref=e633] [cursor=pointer]:
-              - img [ref=e635]
-              - generic [ref=e637]:
-                - text: Card
-                - generic [ref=e638]: Visa · Mastercard
-            - button "PayPal Pay in your account" [ref=e639] [cursor=pointer]:
-              - generic [ref=e641]:
-                - text: PayPal
-                - generic [ref=e642]: Pay in your account
-            - button "Payconiq Scan to pay (BE)" [ref=e643] [cursor=pointer]:
-              - generic [ref=e645]:
-                - text: Payconiq
-                - generic [ref=e646]: Scan to pay (BE)
-            - button "Apple Pay One-tap on Apple" [ref=e647] [cursor=pointer]:
-              - generic [ref=e649]:
-                - text: Apple Pay
-                - generic [ref=e650]: One-tap on Apple
-            - button "Bancontact Belgian debit" [ref=e651] [cursor=pointer]:
-              - generic [ref=e653]:
-                - text: Bancontact
-                - generic [ref=e654]: Belgian debit
-            - button "Klarna Pay in 3" [ref=e655] [cursor=pointer]:
-              - generic [ref=e657]:
-                - text: Klarna
-                - generic [ref=e658]: Pay in 3
-          - generic [ref=e659]:
-            - textbox "Card number" [ref=e660]: 4242 4242 4242 4242
-            - generic [ref=e661]:
-              - textbox "MM / YY" [ref=e662]: 12 / 27
-              - textbox "CVC" [ref=e663]: "123"
-          - generic [ref=e664]:
-            - checkbox "Save my info for next time" [checked] [ref=e665]
-            - text: Save my info for next time
-      - generic [ref=e666]:
-        - heading "Order summary" [level=3] [ref=e667]
-        - generic [ref=e669]:
-          - generic [ref=e673]:
-            - heading "Brasil '02 Jersey" [level=4] [ref=e674]
-            - text: S
-          - generic [ref=e675]: €42
-        - generic [ref=e676]:
-          - generic [ref=e677]:
-            - generic [ref=e678]: Subtotal
-            - generic [ref=e679]: €42
-          - generic [ref=e680]:
-            - generic [ref=e681]: Shipping
-            - generic [ref=e682]: €8
-        - generic [ref=e684]: Total€50
-        - button "Pay €50" [ref=e685] [cursor=pointer]
-        - generic [ref=e686]:
-          - img [ref=e687]
-          - text: Secured with 256-bit SSL
-  - generic [ref=e689]:
-    - generic [ref=e690]:
-      - heading "Wishlist (0)" [level=3] [ref=e691]:
+      - img [ref=e619]
+      - heading "Order confirmed" [level=2] [ref=e621]
+      - paragraph [ref=e622]: Thanks for your order! We'll send you a shipping confirmation once your items are on their way.
+      - generic [ref=e623]: RW-59878249
+      - button "Continue shopping" [ref=e624] [cursor=pointer]
+  - generic [ref=e625]:
+    - generic [ref=e626]:
+      - heading "Wishlist (0)" [level=3] [ref=e627]:
         - text: Wishlist
-        - generic [ref=e692]: (0)
-      - button "Close" [ref=e693] [cursor=pointer]:
-        - img [ref=e694]
-    - generic [ref=e696]:
-      - img [ref=e697]
-      - paragraph [ref=e699]: Your wishlist is empty
+        - generic [ref=e628]: (0)
+      - button "Close" [ref=e629] [cursor=pointer]:
+        - img [ref=e630]
+    - generic [ref=e632]:
+      - img [ref=e633]
+      - paragraph [ref=e635]: Your wishlist is empty
 ```
 
 # Test source
 
 ```ts
-  299 |     // Type a query
-  300 |     await search.fill('Jersey');
-  301 |     await page.waitForTimeout(500);
-  302 |     // Products should be visible
   303 |     const visibleCards = page.locator('.rw-card:visible');
   304 |     const count = await visibleCards.count().catch(() => 0);
   305 |     if (count > 0) {
@@ -760,13 +696,13 @@ Call log:
   395 |     await expect(checkoutPage.locator('h3:has-text("Order summary")')).toBeVisible();
   396 |     await expect(checkoutPage.locator('text=Shipping')).toBeVisible();
   397 | 
-  398 |     // Place order
-> 399 |     await checkoutPage.locator('button:has-text("Pay")').click();
-      |                                                          ^ Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text("Pay")') resolved to 5 elements:
+  398 |     // Place order — target the main action button (not payment method toggles)
+  399 |     await checkoutPage.locator('.rw-btn-pri:has-text("Pay")').click();
   400 |     await page.waitForTimeout(3000);
   401 | 
   402 |     // Should see confirmation
-  403 |     await expect(page.locator('.rw-confirm, h2:has-text("Order confirmed")')).toBeVisible({ timeout: 5000 });
+> 403 |     await expect(page.locator('.rw-confirm, h2:has-text("Order confirmed")')).toBeVisible({ timeout: 5000 });
+      |                                                                               ^ Error: expect(locator).toBeVisible() failed
   404 |   });
   405 | });
   406 | 
@@ -863,4 +799,8 @@ Call log:
   497 |       results.push({ name, status: '❌', detail: e.message?.slice(0, 100) || 'Unknown error' });
   498 |       failed++;
   499 |     } finally {
+  500 |       await context.close();
+  501 |     }
+  502 |   }
+  503 | 
 ```
