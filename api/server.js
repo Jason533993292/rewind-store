@@ -170,12 +170,23 @@ app.post('/api/generate-description', async (req, res) => {
 
   try {
     let result;
-    if (process.env.GEMINI_API_KEY) {
-      result = await describeViaGemini(imageBase64);
-    } else if (process.env.OPENAI_API_KEY) {
+    if (process.env.OPENAI_API_KEY) {
+      // OpenAI first (no quota issues)
       result = await describeViaOpenAI(imageBase64);
+    } else if (process.env.GEMINI_API_KEY) {
+      try {
+        const text = await describeViaGemini(imageBase64);
+        result = { title: '', description: text };
+      } catch (geminiErr) {
+        // Gemini failed (quota / rate limit) — fallback to OpenAI if available
+        if (process.env.OPENAI_API_KEY) {
+          result = await describeViaOpenAI(imageBase64);
+        } else {
+          throw geminiErr;
+        }
+      }
     } else {
-      return res.status(400).json({ error: 'No AI provider configured — set GEMINI_API_KEY (or OPENAI_API_KEY) in your deployment environment' });
+      return res.status(400).json({ error: 'No AI provider configured — set OPENAI_API_KEY on Railway' });
     }
     res.json({ title: result.title || '', description: result.description || '' });
   } catch (err) {
