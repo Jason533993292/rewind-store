@@ -109,42 +109,63 @@ app.post('/api/send-campaign', async (req, res) => {
   res.json({ ok: true, sent, total: emails.length });
 });
 
-// ── Generate product description from image via OpenAI Vision ──
+// ── Generate product description from image (Gemini or OpenAI) ──
+const PRODUCT_DESCRIPTION_PROMPT = 'Describe this product for a vintage streetwear store. Include: item type, material guess, colors, era/style vibes, and who would wear it. Keep it to 2-3 sentences, professional but warm tone.';
+
+// Helper: generate description via Google Gemini
+async function describeViaGemini(imageBase64) {
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const result = await model.generateContent([
+    { text: PRODUCT_DESCRIPTION_PROMPT },
+    { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
+  ]);
+  return result.response.text();
+}
+
+// Helper: generate description via OpenAI Vision
+async function describeViaOpenAI(imageBase64) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: PRODUCT_DESCRIPTION_PROMPT },
+          { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+        ]
+      }],
+      max_tokens: 200,
+    }),
+  });
+  const data = await response.json();
+  return data?.choices?.[0]?.message?.content || '';
+}
+
 app.post('/api/generate-description', async (req, res) => {
   const { imageBase64 } = req.body;
-  const OPENAI_KEY = process.env.OPENAI_API_KEY;
-
-  if (!OPENAI_KEY) {
-    return res.status(400).json({ error: 'OPENAI_API_KEY not configured' });
-  }
   if (!imageBase64) {
     return res.status(400).json({ error: 'No image provided' });
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Describe this product for a vintage streetwear store. Include: item type, material guess, colors, era/style vibes, and who would wear it. Keep it to 2-3 sentences, professional but warm tone.' },
-            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-          ]
-        }],
-        max_tokens: 200,
-      }),
-    });
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content || '';
+    let text;
+    if (process.env.GEMINI_API_KEY) {
+      text = await describeViaGemini(imageBase64);
+    } else if (process.env.OPENAI_API_KEY) {
+      text = await describeViaOpenAI(imageBase64);
+    } else {
+      return res.status(400).json({ error: 'No AI provider configured — set GEMINI_API_KEY or OPENAI_API_KEY' });
+    }
     res.json({ description: text });
   } catch (err) {
-    console.error('OpenAI error:', err);
+    console.error('Generate description error:', err);
     res.status(500).json({ error: err.message });
   }
 });
