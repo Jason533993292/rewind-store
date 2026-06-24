@@ -3,7 +3,7 @@ import { Banner, Header, Hero, Marquee, Toast, Footer } from './components/Shell
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
-import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage } from './lib/supabase';
+import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage, saveOrder, getOrders, updateOrderStatus } from './lib/supabase';
 import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
 
@@ -313,6 +313,7 @@ function AdminPanel({ onExit }) {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     if (!supabase) {
@@ -337,6 +338,7 @@ function AdminPanel({ onExit }) {
         if (!error && data) setUsers(data);
       });
     getCustomProducts().then(setCustomProducts);
+    getOrders().then(setOrders);
   }, []);
 
   async function toggleBlockUser(email, blocked) {
@@ -395,7 +397,8 @@ function AdminPanel({ onExit }) {
         {[
           { id: 'users', label: '📊 Users' },
           { id: 'email', label: '📧 Email' },
-          { id: 'products', label: '📦 Products' },
+          { id: 'orders', label: '📦 Orders' },
+          { id: 'products', label: '🛍️ Products' },
         ].map(tab => (
           <button key={tab.id} onClick={() => setAdminTab(tab.id)}
             style={{
@@ -618,6 +621,56 @@ function AdminPanel({ onExit }) {
                 Copy all emails
               </button>
             </div>
+          </div>
+          )}
+
+          {/* ── Orders ── */}
+          {adminTab === 'orders' && (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📦 Orders to fulfill</h3>
+            {orders.length === 0 ? (
+              <p style={{ color: '#888', fontSize: '14px' }}>No orders yet.</p>
+            ) : (
+              <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                    <th style={{ padding: '8px 10px' }}>Order</th>
+                    <th style={{ padding: '8px 10px' }}>Customer</th>
+                    <th style={{ padding: '8px 10px' }}>Items</th>
+                    <th style={{ padding: '8px 10px' }}>Total</th>
+                    <th style={{ padding: '8px 10px' }}>Status</th>
+                    <th style={{ padding: '8px 10px' }}>Address</th>
+                  </tr></thead>
+                  <tbody>
+                    {orders.map(o => (
+                      <tr key={o.id} style={{ borderTop: '1px solid #f0f0f0' }}>
+                        <td style={{ padding: '8px 10px', fontWeight: 600, fontSize: '12px' }}>{o.order_num}</td>
+                        <td style={{ padding: '8px 10px' }}>{o.customer_name}<br /><span style={{ fontSize: '11px', color: '#888' }}>{o.email}</span></td>
+                        <td style={{ padding: '8px 10px', fontSize: '12px' }}>
+                          {o.items?.map((it, i) => (
+                            <div key={i}>{it.name} ({it.size}) x{it.qty || 1}</div>
+                          ))}
+                        </td>
+                        <td style={{ padding: '8px 10px', fontWeight: 700 }}>€{o.total}</td>
+                        <td style={{ padding: '8px 10px' }}>
+                          <select value={o.status} onChange={async (e) => {
+                            await updateOrderStatus(o.id, e.target.value);
+                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
+                          }}
+                            style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px', fontWeight: 600,
+                              background: o.status === 'pending' ? '#fff3cd' : o.status === 'ordered' ? '#cce5ff' : '#d4edda' }}>
+                            <option value="pending">⏳ Pending</option>
+                            <option value="ordered">📦 Ordered</option>
+                            <option value="shipped">🚚 Shipped</option>
+                          </select>
+                        </td>
+                        <td style={{ padding: '8px 10px', fontSize: '11px', color: '#888', maxWidth: '150px' }}>{o.address}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
           )}
 

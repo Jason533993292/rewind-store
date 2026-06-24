@@ -115,3 +115,24 @@ export async function uploadProductImage(file, productId) {
   const { data } = supabase.storage.from('product-images').getPublicUrl(path);
   return data?.publicUrl || null;
 }
+
+/* ── Orders API ── */
+
+export async function saveOrder(order) {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from('orders').insert(order).select().single();
+  if (error) { console.warn('saveOrder:', error.message); return null; }
+  return data;
+}
+
+export async function getOrders() {
+  if (!supabase) return [];
+  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+  if (error) { console.warn('getOrders:', error.message); return []; }
+  return data || [];
+}
+
+export async function updateOrderStatus(id, status) {
+  if (!supabase) return;
+  await supabase.from('orders').update({ status }).eq('id', id);
+}

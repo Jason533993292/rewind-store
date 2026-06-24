@@ -13,6 +13,8 @@ app.use(express.static(path.join(__dirname, '..', 'dist')));
 const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'REWIND <orders@rewind-stores.com>';
 const REPLY_TO = process.env.REPLY_TO || 'philippekojoanaman@gmail.com';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 
 function orderHtml({ name, items, total, address, orderNum }) {
@@ -203,6 +205,39 @@ app.post('/api/enhance-product', async (req, res) => {
     res.json({ imageBase64: enhanced.toString('base64') });
   } catch (err) {
     console.error('Enhance error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Save order to Supabase ──
+app.post('/api/save-order', async (req, res) => {
+  const { orderNum, customer_name, email, address, items, total, status } = req.body;
+  if (!orderNum) return res.status(400).json({ error: 'No order number' });
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          order_num: orderNum,
+          customer_name,
+          email,
+          address,
+          items: JSON.stringify(items),
+          total,
+          status: status || 'pending',
+        }),
+      }
+    );
+    res.json({ ok: response.ok });
+  } catch (err) {
+    console.error('Save order error:', err);
     res.status(500).json({ error: err.message });
   }
 });

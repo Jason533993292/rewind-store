@@ -94,12 +94,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5542,
+                      "duration": 4534,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:09.359Z",
+                      "startTime": "2026-06-24T00:09:37.564Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -128,12 +128,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 5293,
+                      "duration": 4499,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:09.261Z",
+                      "startTime": "2026-06-24T00:09:37.568Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -162,12 +162,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 5300,
+                      "duration": 4375,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:09.267Z",
+                      "startTime": "2026-06-24T00:09:37.572Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -196,12 +196,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6134,
+                      "duration": 2353,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:15.387Z",
+                      "startTime": "2026-06-24T00:09:43.017Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -238,12 +238,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 18026,
+                      "duration": 7193,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:15.362Z",
+                      "startTime": "2026-06-24T00:09:43.016Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -272,12 +272,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 16696,
+                      "duration": 6777,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:15.579Z",
+                      "startTime": "2026-06-24T00:09:43.025Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -306,12 +306,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 15216,
+                      "duration": 6635,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:23.262Z",
+                      "startTime": "2026-06-24T00:09:45.559Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -334,7 +334,7 @@
           "specs": [
             {
               "title": "Shop footer links filter products",
-              "ok": false,
+              "ok": true,
               "tags": [],
               "tests": [
                 {
@@ -347,101 +347,18 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 7621,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40",
-                        "location": {
-                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                          "column": 40,
-                          "line": 166
-                        },
-                        "snippet": "  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 40,
-                            "line": 166
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n\n  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40"
-                        }
-                      ],
+                      "status": "passed",
+                      "duration": 7017,
+                      "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:32.711Z",
+                      "startTime": "2026-06-24T00:09:49.935Z",
                       "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                        "column": 40,
-                        "line": 166
-                      }
-                    },
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 8094,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40",
-                        "location": {
-                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                          "column": 40,
-                          "line": 166
-                        },
-                        "snippet": "  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 40,
-                            "line": 166
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"tracksuits\"\u001b[39m\nReceived string:    \u001b[31m\"the drop\"\u001b[39m\n\n  164 |       // Kicks maps to Shoes in the system\n  165 |       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();\n> 166 |       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');\n      |                                        ^\n  167 |\n  168 |       // Re-locate footer links after page scroll, then scroll back down\n  169 |       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:166:40"
-                        }
-                      ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 1,
-                      "startTime": "2026-06-24T00:04:45.645Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium-retry1/test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Footer-links-01235-ooter-links-filter-products-chromium-retry1/error-context.md"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                        "column": 40,
-                        "line": 166
-                      }
+                      "attachments": []
                     }
                   ],
-                  "status": "unexpected"
+                  "status": "expected"
                 }
               ],
               "id": "22db194ba5a9c5d8ddb2-7151faf5aa1d8eaf4556",
@@ -465,12 +382,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 9025,
+                      "duration": 4968,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:33.567Z",
+                      "startTime": "2026-06-24T00:09:50.307Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -507,12 +424,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4220,
+                      "duration": 3011,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:41.336Z",
+                      "startTime": "2026-06-24T00:09:52.348Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -541,12 +458,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 19141,
+                      "duration": 3751,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:42.674Z",
+                      "startTime": "2026-06-24T00:09:55.332Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -575,12 +492,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 23597,
+                      "duration": 5696,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:04:45.680Z",
+                      "startTime": "2026-06-24T00:09:55.392Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -614,15 +531,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6959,
+                      "duration": 4030,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:03.225Z",
+                      "startTime": "2026-06-24T00:09:57.066Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -644,7 +561,41 @@
           "column": 6,
           "specs": [
             {
-              "title": "add to bag — quantity, remove, checkout flow",
+              "title": "add to bag and cart operations work",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 7034,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-06-24T00:09:59.125Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "22db194ba5a9c5d8ddb2-e59b066508571d82bd7a",
+              "file": "comprehensive.spec.js",
+              "line": 325,
+              "column": 3
+            },
+            {
+              "title": "full checkout flow places order",
               "ok": false,
               "tags": [],
               "tests": [
@@ -658,90 +609,106 @@
                     {
                       "workerIndex": 1,
                       "parallelIndex": 1,
-                      "status": "timedOut",
-                      "duration": 30999,
+                      "status": "failed",
+                      "duration": 5436,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n",
+                        "stack": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58",
+                        "location": {
+                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                          "column": 58,
+                          "line": 399
+                        },
+                        "snippet": "  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
                             "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 21,
-                            "line": 373
+                            "column": 58,
+                            "line": 399
                           },
-                          "message": "Error: locator.hover: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.rw-card').first()\u001b[22m\n\u001b[2m    - locator resolved to <article class=\"rw-card\">…</article>\u001b[22m\n\u001b[2m  - attempting hover action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    35 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m       - element is visible and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying hover action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  371 |     // ── Checkout ──\n  372 |     // Add another item\n> 373 |     await firstCard.hover();\n      |                     ^\n  374 |     await firstCard.locator('.rw-add').click();\n  375 |     await page.waitForTimeout(300);\n  376 |     await cartIcon.click({ force: true });\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:373:21"
+                          "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n\n  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:09.735Z",
+                      "startTime": "2026-06-24T00:10:01.158Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium/test-failed-1.png"
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium/test-failed-1.png"
                         },
                         {
                           "name": "error-context",
                           "contentType": "text/markdown",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium/error-context.md"
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium/error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                        "column": 58,
+                        "line": 399
+                      }
                     },
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 30315,
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 6678,
                       "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n",
+                        "stack": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58",
+                        "location": {
+                          "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                          "column": 58,
+                          "line": 399
+                        },
+                        "snippet": "  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation"
                       },
                       "errors": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
                           "location": {
                             "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
-                            "column": 21,
-                            "line": 373
+                            "column": 58,
+                            "line": 399
                           },
-                          "message": "Error: locator.hover: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.rw-card').first()\u001b[22m\n\u001b[2m    - locator resolved to <article class=\"rw-card\">…</article>\u001b[22m\n\u001b[2m  - attempting hover action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    44 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m       - element is visible and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"rw-scrim is-on\"></div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying hover action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n\n  371 |     // ── Checkout ──\n  372 |     // Add another item\n> 373 |     await firstCard.hover();\n      |                     ^\n  374 |     await firstCard.locator('.rw-add').click();\n  375 |     await page.waitForTimeout(300);\n  376 |     await cartIcon.click({ force: true });\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:373:21"
+                          "message": "Error: locator.click: Error: strict mode violation: locator('.rw-checkout').locator('button:has-text(\"Pay\")') resolved to 5 elements:\n    1) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'PayPal Pay in your account' })\n    2) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Payconiq Scan to pay (BE)' })\n    3) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Apple Pay One-tap on Apple' })\n    4) <button class=\"rw-pay\">…</button> aka getByRole('button', { name: 'Klarna Pay in' })\n    5) <button class=\"rw-btn rw-btn-pri rw-btn-full\">Pay €50</button> aka getByRole('button', { name: 'Pay €' })\n\nCall log:\n\u001b[2m  - waiting for locator('.rw-checkout').locator('button:has-text(\"Pay\")')\u001b[22m\n\n\n  397 |\n  398 |     // Place order\n> 399 |     await checkoutPage.locator('button:has-text(\"Pay\")').click();\n      |                                                          ^\n  400 |     await page.waitForTimeout(3000);\n  401 |\n  402 |     // Should see confirmation\n    at /Users/phil/REWIND/tests/comprehensive.spec.js:399:58"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 1,
-                      "startTime": "2026-06-24T00:05:43.558Z",
+                      "startTime": "2026-06-24T00:10:09.427Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "screenshot",
                           "contentType": "image/png",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium-retry1/test-failed-1.png"
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium-retry1/test-failed-1.png"
                         },
                         {
                           "name": "error-context",
                           "contentType": "text/markdown",
-                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecyc-79ab4-antity-remove-checkout-flow-chromium-retry1/error-context.md"
+                          "path": "/Users/phil/REWIND/test-results/comprehensive-Cart-lifecycle-full-checkout-flow-places-order-chromium-retry1/error-context.md"
                         }
-                      ]
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/phil/REWIND/tests/comprehensive.spec.js",
+                        "column": 58,
+                        "line": 399
+                      }
                     }
                   ],
                   "status": "unexpected"
                 }
               ],
-              "id": "22db194ba5a9c5d8ddb2-1fb4ce5dbe24f73cc013",
+              "id": "22db194ba5a9c5d8ddb2-7a4d29afa1334fb57ae2",
               "file": "comprehensive.spec.js",
-              "line": 325,
+              "line": 367,
               "column": 3
             }
           ]
@@ -749,7 +716,7 @@
         {
           "title": "Backend API endpoints",
           "file": "comprehensive.spec.js",
-          "line": 409,
+          "line": 408,
           "column": 6,
           "specs": [
             {
@@ -765,15 +732,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1190,
+                      "duration": 1563,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:11.127Z",
+                      "startTime": "2026-06-24T00:10:01.198Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -783,7 +750,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-8f5a89a82cf2bf3cb824",
               "file": "comprehensive.spec.js",
-              "line": 410,
+              "line": 409,
               "column": 3
             },
             {
@@ -799,15 +766,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6441,
+                      "duration": 891,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:14.841Z",
+                      "startTime": "2026-06-24T00:10:02.811Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -817,7 +784,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-28fd8b0f29730de38cff",
               "file": "comprehensive.spec.js",
-              "line": 420,
+              "line": 419,
               "column": 3
             },
             {
@@ -833,15 +800,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1515,
+                      "duration": 806,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:12.407Z",
+                      "startTime": "2026-06-24T00:10:03.770Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -851,7 +818,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-740db691c7b6ea7d3bc5",
               "file": "comprehensive.spec.js",
-              "line": 430,
+              "line": 429,
               "column": 3
             },
             {
@@ -867,15 +834,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3223,
+                      "duration": 2552,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:14.004Z",
+                      "startTime": "2026-06-24T00:10:04.607Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -885,7 +852,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-6703102d2c30513aed7f",
               "file": "comprehensive.spec.js",
-              "line": 440,
+              "line": 439,
               "column": 3
             }
           ]
@@ -893,7 +860,7 @@
         {
           "title": "Stress / concurrency",
           "file": "comprehensive.spec.js",
-          "line": 453,
+          "line": 452,
           "column": 6,
           "specs": [
             {
@@ -912,12 +879,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 7470,
+                      "duration": 2647,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:17.305Z",
+                      "startTime": "2026-06-24T00:10:06.301Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -927,7 +894,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-9f70aa25fd24e7dc346f",
               "file": "comprehensive.spec.js",
-              "line": 454,
+              "line": 453,
               "column": 3
             },
             {
@@ -943,15 +910,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
+                      "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1837,
+                      "duration": 1668,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-06-24T00:05:23.560Z",
+                      "startTime": "2026-06-24T00:10:07.192Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -961,7 +928,7 @@
               ],
               "id": "22db194ba5a9c5d8ddb2-71e98ed4711bcddd07dd",
               "file": "comprehensive.spec.js",
-              "line": 469,
+              "line": 468,
               "column": 3
             }
           ]
@@ -971,11 +938,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-06-24T00:04:07.797Z",
-    "duration": 127934.647,
-    "expected": 18,
+    "startTime": "2026-06-24T00:09:36.998Z",
+    "duration": 39662.386,
+    "expected": 20,
     "skipped": 0,
-    "unexpected": 2,
+    "unexpected": 1,
     "flaky": 0
   }
 }

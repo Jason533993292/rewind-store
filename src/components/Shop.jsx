@@ -299,6 +299,29 @@ export function Checkout({ open, items, onClose, onPlaced }) {
       console.warn('Order email not sent:', e);
     }
 
+    // Save order to Supabase
+    try {
+      await fetch('/api/save-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNum,
+          customer_name: document.querySelector('.rw-input[placeholder="Full name"]')?.value || 'Guest',
+          email: document.querySelector('.rw-input[type="email"]')?.value || '',
+          address: [
+            document.querySelector('.rw-input[placeholder="Address"]')?.value,
+            document.querySelector('.rw-input[placeholder="Postal code"]')?.value,
+            document.querySelector('.rw-input[placeholder="City"]')?.value,
+          ].filter(Boolean).join(', '),
+          items: items.map((it) => ({ name: it.name, size: it.size, price: it.price, qty: it.qty || 1 })),
+          total: subtotal + shipping,
+          status: 'pending',
+        }),
+      });
+    } catch (e) {
+      console.warn('Order save failed:', e);
+    }
+
     setProcessing(false);
     setOrderNum(orderNum);
     setPlaced(true);
