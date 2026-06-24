@@ -380,6 +380,7 @@ function AdminPanel({ onExit }) {
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
   const [orders, setOrders] = useState([]);
+  const [adminMsg, setAdminMsg] = useState('');
 
   useEffect(() => {
     if (!supabase) {
@@ -449,14 +450,13 @@ function AdminPanel({ onExit }) {
             if (data) {
               setAdminAuthed(true);
             } else {
-              // Auto-register first admin
-              await supabase.from('admins').insert({ email: adminEmail, added_by: 'self' });
-              setAdminAuthed(true);
+              setAdminMsg('❌ Access denied. This email is not on the admin list.');
             }
           }}
             style={{ padding: '10px 24px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
             Enter admin panel
           </button>
+          <p style={{ fontSize: '12px', color: '#e53935', marginTop: '8px' }}>{adminMsg}</p>
         </div>
       )}
 
