@@ -122,10 +122,15 @@ async function describeViaGemini(imageBase64) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   const result = await model.generateContent([
-    { text: PRODUCT_DESCRIPTION_PROMPT },
+    { text: 'Look at this product photo. Return ONLY valid JSON with exactly two fields: "title" (short product name, max 6 words) and "description" (2-3 sentences describing the item). No other text.' },
     { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
   ]);
-  return result.response.text();
+  const text = result.response.text();
+  try {
+    return JSON.parse(text.replace(/```json|```/g, '').trim());
+  } catch {
+    return { title: '', description: text.replace(/```json|```/g, '').trim() };
+  }
 }
 
 // Helper: generate description via OpenAI Vision (returns title + description)
@@ -165,13 +170,13 @@ app.post('/api/generate-description', async (req, res) => {
 
   try {
     let result;
-    if (process.env.OPENAI_API_KEY) {
-      result = await describeViaOpenAI(imageBase64);
-    } else if (process.env.GEMINI_API_KEY) {
+    if (process.env.GEMINI_API_KEY) {
       const text = await describeViaGemini(imageBase64);
       result = { title: '', description: text };
+    } else if (process.env.OPENAI_API_KEY) {
+      result = await describeViaOpenAI(imageBase64);
     } else {
-      return res.status(400).json({ error: 'No AI provider configured — set OPENAI_API_KEY on Railway' });
+      return res.status(400).json({ error: 'No AI provider configured — set GEMINI_API_KEY on Railway' });
     }
     res.json({ title: result.title || '', description: result.description || '' });
   } catch (err) {
