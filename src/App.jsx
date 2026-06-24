@@ -190,7 +190,15 @@ export default function App() {
     }
   }, [selectedProduct]);
   useEffect(() => {
-    const onHash = () => setAdminMode(window.location.hash === '#admin');
+    const onHash = () => {
+      setAdminMode(window.location.hash === '#admin');
+      if (window.location.hash.startsWith('#/product/')) {
+        const pid = window.location.hash.replace('#/product/', '');
+        const allProds = [...REWIND_PRODUCTS, ...customProducts];
+        const p = allProds.find(x => (x.id || x.product_id) === pid);
+        if (p) setSelectedProduct(p);
+      }
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -997,6 +1005,7 @@ function ProductForm() {
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
   const [showCustomCat, setShowCustomCat] = React.useState(false);
+  const [showProduct, setShowProduct] = React.useState(null);
   const fileRef = React.useRef(null);
   const catOptions = [...REWIND_CATS.filter(c => c !== 'All'), 'Other'];
 
@@ -1025,7 +1034,8 @@ function ProductForm() {
     }
     const result = await addCustomProduct(product);
     if (result) {
-      setMsg(`✅ "${form.name}" added!`);
+      setMsg(`✅ "${form.name}" added! `);
+      setShowProduct(productId);
       setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
       if (fileRef.current) fileRef.current.value = '';
     } else {
@@ -1201,7 +1211,12 @@ function ProductForm() {
             {form.note && <p style={{ fontSize: '12px', color: '#888', marginTop: '8px', fontStyle: 'italic' }}>{form.note}</p>}
           </div>
         )}
-        {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}</p>}
+        {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}
+          {showProduct && <button onClick={() => { window.location.hash = '/product/' + showProduct; }}
+            style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+            👁 View on store
+          </button>}
+        </p>}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <button type="submit" disabled={saving}
         style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
