@@ -235,6 +235,16 @@ a { color: inherit; cursor: pointer; }
 .rw-brand-item:hover { color: var(--ink); background: var(--bg); }
 .rw-brand-item.is-on { color: var(--ink); background: color-mix(in oklab, var(--accent) 14%, transparent); font-weight: 600; }
 .rw-shop-content { flex: 1; min-width: 0; }
+
+/* ── Product detail page ── */
+.rw-product-page { padding: 0 24px 60px; max-width: 1100px; margin: 0 auto; }
+.rw-product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+@media (max-width: 780px) { .rw-product-layout { grid-template-columns: 1fr; gap: 24px; } }
+.rw-product-images { position: sticky; top: 24px; }
+@media (max-width: 780px) { .rw-product-images { position: static; } }
+.rw-product-main-img { aspect-ratio: 4 / 5; }
+.rw-product-info { padding-top: 8px; }
+
 @media (max-width: 720px) {
   .rw-shop-layout { flex-direction: column; }
   #rw-sidebar { width: 100% !important; display: flex; flex-wrap: wrap; gap: 8px; position: static !important; padding: 12px 16px !important; align-items: center; }

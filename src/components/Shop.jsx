@@ -40,7 +40,7 @@ function LazyImage({ src, alt, className }) {
 }
 
 /* ---------- ProductCard ---------- */
-export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist }) {
+export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect }) {
   const low = p.stock <= 5;
   return (
     <article className="rw-card">
@@ -60,7 +60,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
       </div>
       <div className="rw-card-body">
         <div className="rw-card-head">
-          <h3 onClick={() => onQuick(p)}>{p.name}</h3>
+          <h3 onClick={() => onSelect ? onSelect(p) : onQuick(p)} style={{ cursor: 'pointer' }}>{p.name}</h3>
           <span className="rw-card-cat">{p.cat}</span>
         </div>
         <div className="rw-card-foot">
@@ -114,7 +114,8 @@ export function ProductGrid({ products, wishlist, onWishlist, ...rest }) {
           )}
           <div className="rw-grid" style={{ marginBottom: '8px' }}>
             {s.items.map((p) => (
-              <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist} {...rest} />
+              <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist}
+                showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
             ))}
           </div>
         </div>

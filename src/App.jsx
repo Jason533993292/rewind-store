@@ -6,6 +6,7 @@ import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage, saveOrder, getOrders, updateOrderStatus } from './lib/supabase';
 import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
+import ProductPage from './components/ProductPage';
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -171,6 +172,7 @@ export default function App() {
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoMsg, setPromoMsg] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
   useEffect(() => {
     const onHash = () => setAdminMode(window.location.hash === '#admin');
     window.addEventListener('hashchange', onHash);
@@ -188,7 +190,7 @@ export default function App() {
       });
   }, [adminMode]);
 
-  if (adminMode) return <AdminPanel onExit={() => { window.location.hash = ''; }} />;
+  if (adminMode) return <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} />;
 
   // Blocked screen
   if (blocked) {
@@ -197,6 +199,20 @@ export default function App() {
         <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</h1>
         <h2 style={{ fontSize: '24px', color: '#16130F', marginBottom: '8px' }}>Access restricted</h2>
         <p style={{ fontSize: '16px', color: '#6E665A', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please contact us.</p>
+      </div>
+    );
+  }
+
+  // Show product detail page instead of shop
+  if (selectedProduct) {
+    return (
+      <div className="rw-app">
+        <Header cat={cat} setCat={(c) => { setCat(c); }} cartCount={cartCount}
+          onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
+          onWishlistOpen={() => setWishlistOpen(true)}
+          query={query} setQuery={setQuery} cats={REWIND_CATS} />
+        <ProductPage p={selectedProduct} onBack={() => setSelectedProduct(null)}
+          onAdd={(p, size) => { addToCart(p, size); setDrawer(true); }} />
       </div>
     );
   }
@@ -276,7 +292,7 @@ export default function App() {
           <div className="rw-shop-content">
             <ProductGrid products={products} showCompare={t.showCompare} showStock={t.showStock}
               onQuick={setQuick} onAdd={quickAdd}
-              wishlist={wishlist} onWishlist={handleWishlist} />
+              wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct} />
           </div>
         </div>
       </main>
@@ -372,7 +388,7 @@ export default function App() {
 /* ══════════════════════════════════════════════
    ADMIN PANEL — accessible at /#admin
    ══════════════════════════════════════════════ */
-function AdminPanel({ onExit }) {
+function AdminPanel({ onExit, onSelect }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -573,8 +589,8 @@ function AdminPanel({ onExit }) {
                 {selectedUser.product_ids?.map((pid) => {
                   const product = [...REWIND_PRODUCTS, ...customProducts].find((p) => p.id === pid || p.product_id === pid);
                   return (
-                    <a key={pid} href={`https://rewind-stores.com`}
-                      onClick={(e) => e.preventDefault()}
+                    <a key={pid} href="#"
+                      onClick={(e) => { e.preventDefault(); window.location.hash = ''; setSelectedProduct(product); }}
                       style={{ padding: '6px 12px', background: '#f0f0f0', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', color: '#16130F', display: 'inline-block', cursor: 'pointer', transition: 'background 0.15s' }}
                       onMouseOver={e => e.target.style.background = '#e0e0e0'}
                       onMouseOut={e => e.target.style.background = '#f0f0f0'}
