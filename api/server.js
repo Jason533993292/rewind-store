@@ -175,7 +175,7 @@ app.post('/api/generate-description', async (req, res) => {
     } else if (process.env.OPENAI_API_KEY) {
       result = await describeViaOpenAI(imageBase64);
     } else {
-      return res.status(400).json({ error: 'No AI provider configured — set GEMINI_API_KEY on Railway' });
+      return res.status(400).json({ error: 'No AI provider configured — set GEMINI_API_KEY (or OPENAI_API_KEY) in your deployment environment' });
     }
     res.json({ title: result.title || '', description: result.description || '' });
   } catch (err) {
