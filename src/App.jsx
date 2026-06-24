@@ -1049,6 +1049,20 @@ function ProductForm() {
             </button>
             <button type="button"
               onClick={async () => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  const prompt = "Enhance this product photo for a streetwear store listing. Remove any creases and wrinkles from the fabric. Make the background pure white (#FAF6EF). Improve contrast and lighting so the item pops. Keep the product exactly as it is — just make it look professionally photographed.";
+                  navigator.clipboard.writeText(prompt);
+                  window.open('https://gemini.google.com/app', '_blank');
+                  setMsg('✅ Enhancement prompt copied! Paste into Gemini (tab opened) along with your photo.');
+                };
+                reader.readAsDataURL(form.file);
+              }}
+              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid #4caf50', background: '#fff', color: '#4caf50', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              🎨 Enhance photo
+            </button>
+            <button type="button"
+              onClick={async () => {
                 const btn = document.activeElement;
                 const orig = btn.textContent;
                 btn.disabled = true;
