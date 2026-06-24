@@ -503,6 +503,7 @@ function AdminPanel({ onExit, onSelect }) {
           { id: 'users', label: '📊 Users' },
           { id: 'email', label: '📧 Email' },
           { id: 'orders', label: '📦 Orders' },
+          { id: 'saved', label: '⭐ Saved' },
           { id: 'products', label: '🛍️ Products' },
         ].map(tab => (
           <button key={tab.id} onClick={() => setAdminTab(tab.id)}
@@ -887,6 +888,40 @@ function AdminPanel({ onExit, onSelect }) {
           </div>
           )}
 
+          {/* ── Saved products ── */}
+          {adminTab === 'saved' && (
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>⭐ Saved products</h3>
+            {(() => {
+              const allProds = [...REWIND_PRODUCTS, ...customProducts];
+              const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+              const saved = allProds.filter(p => savedIds.includes(p.id || p.product_id));
+              if (saved.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>No saved products yet. Click the dots on a product to save it.</p>;
+              return (
+                <div className="rw-grid" style={{ marginBottom: '0' }}>
+                  {saved.map(p => (
+                    <div key={p.id || p.product_id} style={{ position: 'relative' }}>
+                      <ProductCard p={p} wishlisted={false} onWishlist={() => {}} showCompare={false} showStock={true}
+                        onQuick={() => {}} onAdd={() => {}} onSelect={() => {}} />
+                      <button onClick={() => {
+                        const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+                        const newIds = savedIds.filter(id => id !== (p.id || p.product_id));
+                        localStorage.setItem('rw_admin_saved', JSON.stringify(newIds));
+                        // Force re-render
+                        setAdminTab('saved');
+                        setTimeout(() => setAdminTab('saved'), 0);
+                      }}
+                        style={{ position: 'absolute', top: '8px', right: '8px', width: '28px', height: '28px', borderRadius: '50%', background: '#e53935', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700 }}>
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+          )}
+
           {/* ── Product stats ── */}
           {adminTab === 'products' && (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
@@ -979,15 +1014,19 @@ function ProductForm() {
       stock: form.stock || 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
     };
-    // Upload image if selected
-    if (form.file) {
-      const url = await uploadProductImage(form.file, productId);
+    // Upload images if selected
+    if (form.files?.length) {
+      const url = await uploadProductImage(form.files[0], productId);
       if (url) product.img = url;
+      // Upload additional images if any
+      for (let i = 1; i < form.files.length; i++) {
+        await uploadProductImage(form.files[i], `${productId}-${i}`);
+      }
     }
     const result = await addCustomProduct(product);
     if (result) {
       setMsg(`✅ "${form.name}" added!`);
-      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', sizes: 'S,M,L,XL', note: '', file: null, files: [] });
+      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', note: '', file: null, files: [] });
       if (fileRef.current) fileRef.current.value = '';
     } else {
       setMsg('❌ Failed to save.');

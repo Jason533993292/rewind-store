@@ -40,7 +40,7 @@ function LazyImage({ src, alt, className }) {
 }
 
 /* ---------- ProductCard ---------- */
-export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect }) {
+export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, isAdmin, onSave, onDelete }) {
   const low = p.stock <= 5;
   return (
     <article className="rw-card">
@@ -57,6 +57,24 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           onClick={(e) => { e.stopPropagation(); onWishlist(p); }}>
           <Icon name={wishlisted ? 'heartFilled' : 'heart'} size={17} />
         </button>
+        {isAdmin && (
+          <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 10 }}>
+            <button onClick={(e) => {
+              e.stopPropagation();
+              const id = p.id || p.product_id;
+              const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
+              if (savedIds.includes(id)) {
+                localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id)));
+              } else {
+                localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id]));
+              }
+              if (onSave) onSave(id);
+            }}
+              style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+              ⋮
+            </button>
+          </div>
+        )}
       </div>
       <div className="rw-card-body">
         <div className="rw-card-head">
@@ -115,7 +133,8 @@ export function ProductGrid({ products, wishlist, onWishlist, ...rest }) {
           <div className="rw-grid" style={{ marginBottom: '8px' }}>
             {s.items.map((p) => (
               <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist}
-                showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
+                showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect}
+                isAdmin={!!localStorage.getItem('rw_admin_email')} />
             ))}
           </div>
         </div>
