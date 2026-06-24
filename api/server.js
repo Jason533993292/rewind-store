@@ -162,37 +162,37 @@ async function describeViaOpenAI(imageBase64) {
     return { title: '', description: content };
   }
 }
+async function describeViaHF(imageBase64) {
+  const response = await fetch('https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ inputs: `data:image/jpeg;base64,${imageBase64}` }),
+  });
+  if (!response.ok) throw new Error(`HuggingFace API: ${response.status} ${response.statusText}`);
+  const data = await response.json();
+  const caption = data?.[0]?.generated_text || JSON.stringify(data);
+  return { title: caption.split(',')[0].trim(), description: caption };
+}
+
 app.post('/api/generate-description', async (req, res) => {
   const { imageBase64 } = req.body;
   if (!imageBase64) {
     return res.status(400).json({ error: 'No image provided' });
   }
 
-  try {
-    let result;
-    if (process.env.OPENAI_API_KEY) {
-      // OpenAI first (no quota issues)
-      result = await describeViaOpenAI(imageBase64);
-    } else if (process.env.GEMINI_API_KEY) {
-      try {
-        const text = await describeViaGemini(imageBase64);
-        result = { title: '', description: text };
-      } catch (geminiErr) {
-        // Gemini failed (quota / rate limit) — fallback to OpenAI if available
-        if (process.env.OPENAI_API_KEY) {
-          result = await describeViaOpenAI(imageBase64);
-        } else {
-          throw geminiErr;
-        }
+  // Try providers in order: Free HuggingFace → OpenAI → Gemini
+  const errors = [];
+  for (const tryFn of [describeViaHF, describeViaOpenAI, describeViaGemini]) {
+    try {
+      const result = await tryFn(imageBase64);
+      if (result && (result.title || result.description)) {
+        return res.json({ title: result.title || '', description: result.description || '' });
       }
-    } else {
-      return res.status(400).json({ error: 'No AI provider configured — set OPENAI_API_KEY on Railway' });
+    } catch (e) {
+      errors.push(e.message);
     }
-    res.json({ title: result.title || '', description: result.description || '' });
-  } catch (err) {
-    console.error('Generate description error:', err);
-    res.status(500).json({ error: err.message });
   }
+  res.status(500).json({ error: 'All AI providers failed:\n' + errors.join('\n') });
 });
 
 // ── Background removal service ──
