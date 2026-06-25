@@ -1,5 +1,10 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Product detail page "Back to shop" button has no hover effect & uses hardcoded colors
+- Status: [DONE] — Replaced inline styles with `className="rw-btn rw-btn-ghost"` in `src/components/ProductPage.jsx`. Button now inherits the same hover animation (inset border → `var(--ink)`, `translateY(-2px) scale(1.025)`) as all other ghost buttons in the app.
+- **Where:** `src/components/ProductPage.jsx` lines 19–25 — `<button onClick={onBack} style={{...}}>`
+- **Fix:** Dropped the inline styles and used the existing `.rw-btn-ghost` class, which already provides the polished hover effect (border highlight + lift + scale).
+
 ## [🟢] Wishlist drawer can't display custom products (only searches REWIND_PRODUCTS)
 - Status: [DONE] — Added `customProducts` prop to `WishlistDrawer`; merged with `REWIND_PRODUCTS` via `useMemo`. Also passed `customProducts` from `App.jsx`.
 - **Where:** `src/components/Shop.jsx` line 551 — `WishlistDrawer` component

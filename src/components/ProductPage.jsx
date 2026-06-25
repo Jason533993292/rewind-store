@@ -16,11 +16,8 @@ export default function ProductPage({ p, onBack, onAdd }) {
 
   return (
     <div className="rw-product-page">
-      <button onClick={onBack} style={{
-        padding: '8px 16px', borderRadius: '999px', border: '1px solid #ddd',
-        background: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600,
-        marginBottom: '20px', display: 'inline-flex', alignItems: 'center', gap: '6px',
-      }}>
+      <button className="rw-btn rw-btn-ghost" onClick={onBack}
+        style={{ marginBottom: '20px', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
         ← Back to shop
       </button>
 
