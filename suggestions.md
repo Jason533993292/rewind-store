@@ -1,5 +1,30 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Promo code popup has no explicit close button — the only modal in the app without one
+- **Where:** `src/App.jsx` lines 378–414 — the promo code popup rendered when `promoOpen` is true
+- **What:** The promo code popup (triggered by the 💬 floating button at bottom-right) can only be dismissed by clicking the dark backdrop — there is no visible close/✕ button inside the popup itself. Every other modal, drawer, and overlay in the app has an explicit close button:
+  - QuickView: `.rw-modal-x` with `<Icon name="close">` (Shop.jsx line 136)
+  - CartDrawer: close button in `.rw-drawer-head` (Shop.jsx line 229)
+  - WishlistDrawer: close button in `.rw-drawer-head` (Shop.jsx line 560)
+  - SignupModal: `.rw-modal-x` with close icon (Shop.jsx line 505)
+  - Checkout: "Back" button (Shop.jsx line 381)
+  - InfoModal: `.rw-modal-x` with close icon (InfoModal.jsx line 51)
+  - SizeGuide: close button (not shown but confirmed present)
+  The promo popup is the lone exception. Users who don't think to click outside (or are on mobile where the backdrop is less obvious) may feel trapped or frustrated.
+- **Why it matters:** Consistency in dismiss behaviour is a basic UX expectation. When every other overlay has a close button and this one doesn't, it feels like an oversight or bug. On mobile especially, tapping outside a small popup can be finicky — a clear ✕ in the corner is universally expected.
+- **Fix:** Add a close button to the top-right of the popup, matching the pattern used everywhere else:
+  ```jsx
+  <button onClick={() => setPromoOpen(false)}
+    style={{
+      position: 'absolute', top: '10px', right: '10px',
+      width: '28px', height: '28px', borderRadius: '50%',
+      border: 'none', background: 'none', cursor: 'pointer',
+      display: 'grid', placeItems: 'center',
+      color: 'var(--muted)', fontSize: '16px',
+    }}>✕</button>
+  ```
+  Or better: reuse the existing `<Icon name="close" size={16} />` from Shell for visual consistency.
+
 ## [DONE] Sidebar category buttons don't scroll to the product grid after selection — inconsistent with header nav
 - **Where:** `src/App.jsx` line 291 — sidebar category buttons: `<button key={c} onClick={() => setCat(c)} ...>`
 - **What:** The sidebar category filter buttons update the product state via `setCat(c)` but never scroll the viewport to the product grid. The header navigation (line 263) wraps its `setCat` in a function that also calls `scrollToGrid()`: `setCat={(c) => { setCat(c); scrollToGrid(); }}`. When a user is scrolled down (past the hero, into the product list, maybe from a prior category) and clicks a sidebar category, the products update but the page stays wherever it is — the user may not realize anything changed, especially on mobile where the grid could be entirely off-screen.

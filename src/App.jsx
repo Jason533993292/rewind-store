@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Banner, Header, Hero, Marquee, Toast, Footer } from './components/Shell';
+import { Banner, Header, Hero, Marquee, Toast, Footer, Icon } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
@@ -384,6 +384,15 @@ export default function App() {
               boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
               width: '260px', zIndex: 1001,
             }}>
+            <button onClick={() => setPromoOpen(false)}
+              style={{
+                position: 'absolute', top: '10px', right: '10px',
+                width: '28px', height: '28px', borderRadius: '50%',
+                border: 'none', background: 'none', cursor: 'pointer',
+                display: 'grid', placeItems: 'center',
+                color: 'var(--muted)', fontSize: '16px',
+              }} aria-label="Close">
+              <Icon name="close" size={16} /></button>
             <h4 style={{ margin: '0 0 8px', fontSize: '15px', fontWeight: 700 }}>Got a promo code?</h4>
             <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#888' }}>Enter it below and get a discount.</p>
             <input className="rw-input" placeholder="Enter code" value={promoCode}
