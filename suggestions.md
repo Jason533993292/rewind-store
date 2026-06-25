@@ -1,5 +1,12 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Sidebar brand filter buttons have no hover feedback — inconsistent with category buttons
+- **Where:** `src/App.jsx` lines 307–325 — the "All" brand button and individual brand buttons inside the `#rw-sidebar` `<aside>`: `<button onClick={() => setBrand(null)} style={{...}}>All</button>` and the `{currentBrands.map((b) => ...)}` buttons.
+- **What:** The brand filter buttons use bare inline styles (`background: brand === b ? '#16130F' : 'transparent'`, etc.) with zero CSS `transition` property and no hover state at all. Mousing over them does absolutely nothing — no background highlight, no color shift, no visual feedback whatsoever.
+- **Compare:** The category filter buttons directly above them in the same sidebar (lines 289–301) have `transition: 'background 0.15s'` and `onMouseOver`/`onMouseOut` handlers that highlight inactive buttons to `#ddd` on hover. The brand buttons sit right below them, visually identical in structure, but feel completely dead in comparison.
+- **Why it matters:** Brand filtering is a primary navigation action — users click these to narrow down products within a category. When the buttons have no hover feedback, the interface feels unfinished and inconsistent right at a key decision point. The dead zone is especially jarring because the category buttons *just above them* animate smoothly, creating a "half-broken" impression.
+- **Fix:** Add `transition: 'background 0.15s'` to each brand button's inline style, plus `onMouseOver`/`onMouseOut` handlers: `onMouseOver={e => { if (brand !== b) e.target.style.background = '#ddd'; }}` / `onMouseOut={e => { if (brand !== b) e.target.style.background = 'transparent'; }}`. For the "All" brand button, the same pattern but gate on `brand !== null`. This mirrors exactly the category-button hover behaviour already implemented directly above.
+
 ## [DONE] Product detail page quantity stepper buttons have no hover feedback — inconsistent with cart drawer
 - **Where:** `src/components/ProductPage.jsx` lines 150–154 — the `+` and `−` quantity buttons: `<button onClick={() => setQty(Math.max(1, qty - 1))} style={{...}}>−</button>` and `<button onClick={() => setQty(Math.min(p.stock || 99, qty + 1))} style={{...}}>+</button>`
 - **What:** These buttons use bare inline styles (`border: '1px solid #ddd'`, `background: '#fff'`, no `transition`) with zero hover state. Mousing over them does absolutely nothing — no color shift, no background change, no border highlight. They feel completely dead.

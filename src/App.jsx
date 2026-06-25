@@ -312,7 +312,10 @@ export default function App() {
                     color: !brand ? '#fff' : '#16130F',
                     fontWeight: !brand ? 700 : 400,
                     marginBottom: '2px',
-                  }}>All</button>
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseOver={e => { if (brand !== null) e.target.style.background = '#ddd'; }}
+                  onMouseOut={e => { if (brand !== null) e.target.style.background = 'transparent'; }}>All</button>
                 {currentBrands.map((b) => (
                   <button key={b} onClick={() => setBrand(b)}
                     style={{
@@ -322,7 +325,10 @@ export default function App() {
                       color: brand === b ? '#fff' : '#16130F',
                       fontWeight: brand === b ? 700 : 400,
                       marginBottom: '2px',
-                    }}>{b}</button>
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseOver={e => { if (brand !== b) e.target.style.background = '#ddd'; }}
+                    onMouseOut={e => { if (brand !== b) e.target.style.background = 'transparent'; }}>{b}</button>
                 ))}
               </>
             )}
