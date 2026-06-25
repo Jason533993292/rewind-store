@@ -272,6 +272,57 @@ app.post('/api/enhance-product', async (req, res) => {
   }
 });
 
+// ── Payment endpoints ──
+import Stripe from 'stripe';
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
+
+app.post('/api/create-payment-intent', async (req, res) => {
+  if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured on Railway' });
+  try {
+    const { amount, currency, orderNum } = req.body;
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100), // convert euros to cents
+      currency: currency || 'eur',
+      metadata: { orderNum },
+      payment_method_types: ['card', 'bancontact'],
+    });
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PayPal order creation
+app.post('/api/create-paypal-order', async (req, res) => {
+  const { amount, orderNum } = req.body;
+  const PAYPAL_CLIENT = process.env.PAYPAL_CLIENT_ID;
+  const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
+  if (!PAYPAL_CLIENT || !PAYPAL_SECRET) return res.status(400).json({ error: 'PayPal keys not configured on Railway' });
+  try {
+    // Get PayPal access token
+    const auth = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: 'Basic ' + Buffer.from(`${PAYPAL_CLIENT}:${PAYPAL_SECRET}`).toString('base64') },
+      body: 'grant_type=client_credentials',
+    });
+    const { access_token } = await auth.json();
+    if (!access_token) throw new Error('PayPal auth failed');
+    // Create order
+    const order = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access_token}` },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [{ amount: { currency_code: 'EUR', value: amount.toFixed(2) }, reference_id: orderNum }],
+      }),
+    });
+    const data = await order.json();
+    res.json({ orderId: data.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Save order to Supabase ──
 app.post('/api/save-order', async (req, res) => {
   const { orderNum, customer_name, email, address, items, total, status } = req.body;
