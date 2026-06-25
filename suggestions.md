@@ -1,5 +1,21 @@
 # REWIND — Suggestions & Improvements
 
+## 🟢 Wishlisted product-card hearts are invisible by default — users can't scan the grid to see what they've already saved
+- **Where:** `src/components/Shop.jsx` line 55 adds `is-wishlisted` class to wishlisted cards, but `src/App.css` has no corresponding CSS rule (lines 278–286). The `.rw-card-fav` button defaults to `opacity: 0` and only becomes visible on `.rw-card:hover`.
+- **What:** When a user hearts (wishlists) several products while browsing, there is zero visual indication of which products are saved. The heart button is `opacity: 0` at rest — it only appears on card hover. A user returning to the grid after adding 5 items to their wishlist sees exactly the same grid as before: no filled hearts, no accent-colored indicators, no badges. To re-find their saved items they must hover over every single card.
+- **Compare:** Every major e-commerce site that supports wishlisting shows a persistent visual marker on saved items:
+  - ASOS: filled pink heart always visible on saved cards
+  - Zalando: filled heart icon visible at all times on wishlisted items
+  - Farfetch: "Saved" heart always visible
+  - REWIND's own **product detail page** (ProductPage.jsx line 110–123) renders the wishlist heart *always visible* with `color: var(--accent)` when wishlisted
+  The grid cards are the ONLY wishlist surface where the saved state is hidden.
+- **Why it matters:** The heart/wishlist feature exists for two use cases: (1) saving items to buy later, and (2) comparing items before purchase. Both require the user to *see* their saved items when they return. An invisible saved state defeats both use cases. The user must either (a) open the wishlist drawer and cross-reference names/prices with the grid, or (b) hover over every single card hunting for filled hearts. This is especially punishing on mobile where there is no hover state at all — wishlisted hearts are literally *never visible* on touch devices.
+- **Fix:** Add one CSS rule to `src/App.css` after the existing `.rw-card-fav:hover` rule (line 286):
+  ```css
+  .rw-card-fav.is-wishlisted { opacity: 1; transform: none; }
+  ```
+  That's it — 4 characters of CSS. The `color: var(--accent)` is already applied via inline style in Shop.jsx line 57 (`style={{ color: wishlisted ? 'var(--accent)' : undefined }}`), so the heart will render in the accent color and be always visible. On touch devices this is a dramatic improvement: wishlisted items are instantly identifiable in the grid.
+
 ## [DONE] Search input has no clear/reset button — users must manually backspace to dismiss a query
 - **Where:** `src/components/Shell.jsx` lines 113–116 — the `.rw-search` div in the `Header` component: `<div className="rw-search"><Icon name="search" size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" /></div>`
 - **What:** When a user types a search query to filter products, the only way to return to the full unfiltered view is to manually backspace through the entire query string. There is no ✕ clear button inside or next to the search field. Once the user has typed even a short term like "nike", they must delete all 4 characters one-by-one to see all products again.

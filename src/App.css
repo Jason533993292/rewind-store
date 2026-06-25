@@ -283,6 +283,7 @@ a { color: inherit; cursor: pointer; }
   transition: opacity .2s, transform .2s, color .15s;
 }
 .rw-card:hover .rw-card-fav { opacity: 1; transform: none; }
+.rw-card-fav.is-wishlisted { opacity: 1; transform: none; }
 .rw-card-fav:hover { color: var(--accent); }
 .rw-card-body { padding: 14px 2px 0; }
 .rw-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
