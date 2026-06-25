@@ -1,5 +1,20 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] InfoModal uses hardcoded colors and raw SVG — 6 locations break design-token consistency
+- **Where:** `src/components/InfoModal.jsx` lines 42, 45, 49, 50, 54, 55
+- **What:** The shipping/returns/tracking info modal (reached via footer links) has 6 spots that bypass the CSS design-token system:
+  1. **Line 42 — close button:** Raw inline `<svg>` markup instead of `<Icon name="close" size={18} />`. Every other modal (QuickView, SignupModal) uses the `<Icon>` component for consistency. The raw SVG won't pick up future icon styling changes.
+  2. **Line 45 — page title:** `color: '#16130F'` → should be `color: 'var(--ink)'`
+  3. **Line 49 — section headings:** `color: '#16130F'` → should be `color: 'var(--ink)'`
+  4. **Line 50 — body text:** `color: '#6E665A'` → should be `color: 'var(--muted)'`
+  5. **Line 54 — top border separator:** `borderTop: '1px solid #eee'` → should be `'1px solid var(--line)'`. `#eee` is much lighter than the design system's `--line` (#E8E0D2) and belongs to an entirely different palette.
+  6. **Line 55 — fine-print email text:** `color: '#aaa'` → should be `color: 'var(--muted)'`
+- **Why it matters:** The InfoModal is a direct customer-facing page for shipping, returns, and tracking inquiries. It's one of the few text-heavy pages users read carefully. The hardcoded colors make it feel disconnected from the rest of the warm, cohesive site design. The raw SVG close button is inconsistent with every other modal (they all use `<Icon name="close" size={18} />` from the shared component). The `#eee` border and `#aaa` text are noticeably cold/grey compared to the warm neutral palette everywhere else.
+- **Fix:**
+  1. Import `Icon` from `./Shell` at the top: `import { Icon } from './Shell';`
+  2. Replace the raw SVG on line 42 with `<Icon name="close" size={18} />`
+  3. Replace the 5 hardcoded color values with their CSS variable equivalents as listed above.
+
 ## [DONE] Product page quantity stepper is completely disconnected from "Add to bag" — always adds 1 regardless of selected quantity
 - **Where:** `src/components/ProductPage.jsx` line 180 + `src/App.jsx` lines 113–122, 252–253
 - **What:** The product detail page has a quantity stepper (`qty` state, lines 6–7, 164–178) that lets the user set a quantity between 1 and the product's stock level. The +/- buttons work, the display updates — but the quantity value is never passed to the "Add to bag" action. Line 180 calls `onAdd(p, size)` with no quantity argument. In `App.jsx` line 253, the `onAdd` handler calls `addToCart(p, size)` — still no quantity. The `addToCart` function (lines 113–122) always hardcodes `qty: 1` when creating a new cart entry, or increments an existing entry by 1. **Result: setting quantity to 3 and clicking "Add to bag" adds exactly 1 item.**
