@@ -219,7 +219,14 @@ test.describe('Product card interactions', () => {
     await expect(modal).toBeVisible();
     // Should have product info
     await expect(modal.locator('h2')).toBeVisible();
-    // Should have Add to bag button
+    // Select a size first (button is disabled + shows "Select a size" until size is picked)
+    const sizeButtons = modal.locator('.rw-size');
+    const sizeCount = await sizeButtons.count();
+    if (sizeCount > 0) {
+      await sizeButtons.first().click();
+      await page.waitForTimeout(200);
+    }
+    // Should have Add to bag button now that size is selected
     await expect(modal.locator('button:has-text("Add to bag")')).toBeVisible();
     // Should have Free returns
     await expect(modal.locator('text=Free returns')).toBeVisible();
