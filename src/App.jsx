@@ -1082,7 +1082,7 @@ function ProductForm() {
       }
       localStorage.removeItem('rw_edit_product');
     }
-  }, []);
+  }, [customProducts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
