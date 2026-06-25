@@ -300,16 +300,16 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
 
-  // Launch confetti burst after order confirmation screen renders
+  // Launch confetti burst
   useEffect(() => {
     if (orderNum) {
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.6 } };
         confetti({ ...defaults, particleCount: 80, colors: ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'] });
         setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } }), 150);
         setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } }), 300);
         setTimeout(() => confetti({ ...defaults, particleCount: 100, spread: 120, startVelocity: 60, origin: { y: 0.3 } }), 500);
-      }, 100);
+      });
     }
   }, [orderNum]);
 
@@ -326,6 +326,7 @@ export function Checkout({ open, items, onClose, onPlaced }) {
           <h2>Order confirmed</h2>
           <p>Thanks for your order! We'll send you a shipping confirmation once your items are on their way.</p>
           <div className="rw-confirm-num">{orderNum}</div>
+          <p style={{ fontSize: '12px', color: '#938B7E', marginTop: '12px' }}>A confirmation is also sent to <strong>orders@rewind-stores.com</strong></p>
           <button className="rw-btn rw-btn-pri" onClick={onPlaced}>Continue shopping</button>
         </div>
       </div>
