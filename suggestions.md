@@ -1,5 +1,14 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Footer "Pay with" links all incorrectly point to shipping info — 5 links, wrong target
+- **Where:** `src/components/Shell.jsx` line 202 — the "Pay with" footer column: `<div><h4>Pay with</h4><a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>PayPal</a>...<a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>Klarna</a></div>`
+- **What:** All 5 payment method links (PayPal, Payconiq, Apple Pay, Bancontact, Klarna) call `onInfo('shipping')`, which opens the shipping information modal. The section header says "Pay with" but every link shows shipping delivery times, costs, and tracking — not payment information. There's also no `payments` page defined in `InfoModal.jsx`'s `PAGES` constant (only `shipping`, `returns`, `tracking` exist), so there's literally no payment info page to link to.
+- **Why it matters:** Users clicking "PayPal" or "Apple Pay" in the footer naturally expect to see accepted payment methods, security info, or payment FAQs. Instead they get shipping details. This is confusing and undermines trust — a user wondering "does this store take Klarna?" clicks the link and sees delivery times. Every other footer section ("Shop" and "Help") links to its namesake content. The "Pay with" section is the only one that lies about its destination.
+- **Fix:**
+  1. Add a `payments` entry to the `PAGES` object in `InfoModal.jsx` (alongside `shipping`, `returns`, `tracking`) with a title like "Payment Methods" and sections covering accepted methods, security, and when you're charged.
+  2. Change all 5 `onInfo('shipping')` calls in Shell.jsx line 202 to `onInfo('payments')`.
+  3. Pass `'payments'` as a valid page key — the `InfoModal` component already handles the lookup via `PAGES[page]`, so just adding the entry is enough.
+
 ## [DONE] QuickView "Add to bag" button has no disabled state — silently picks first size when nothing selected
 - **Where:** `src/components/Shop.jsx` line 203 — QuickView modal's `<button className="rw-btn rw-btn-pri rw-btn-full" onClick={() => onAdd(p, size)}>Add to bag — {money(p.price)}</button>`
 - **What:** The QuickView modal lets the user pick a size via the `.rw-size` buttons (lines 197–200), but the "Add to bag" button at line 203 is always active — it has no `disabled` attribute and no guard. Clicking it without selecting a size calls `addFromQuick(p, size)` with `size = null`, which flows into `addToCart(p, size)` at App.jsx line 113 where line 114 silently defaults to `p.sizes[0]`. The user gets the first size in the array without ever being told which size that is.

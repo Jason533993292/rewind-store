@@ -28,6 +28,15 @@ const PAGES = {
       { heading: 'No Tracking Email?', text: 'Check your spam or junk folder. If you still cannot find it, email us at orders@rewind-stores.com with your order number and we will look it up for you.' },
       { heading: 'Delivery Issues', text: 'If your package is marked as delivered but you have not received it, check with your neighbours or local post office. If it has been more than 5 business days past the estimated delivery date, contact us and we will investigate.' },
     ]
+  },
+  payments: {
+    title: 'Payment Methods',
+    sections: [
+      { heading: 'Accepted Payments', text: 'We accept PayPal, Payconiq, Apple Pay, Bancontact, and Klarna. All payments are processed securely through our payment partners.' },
+      { heading: 'When You Are Charged', text: 'Your payment is captured at the time you place your order. For Klarna Pay Later, you will receive payment instructions from Klarna directly.' },
+      { heading: 'Payment Security', text: 'All transactions are encrypted with industry-standard SSL/TLS. We never store your full card details. Your payment data is handled by our PCI-compliant payment processors.' },
+      { heading: 'Currency', text: 'All prices are in Euros (€). If your bank account uses a different currency, your bank will apply their exchange rate at the time of purchase.' },
+    ]
   }
 };
 
