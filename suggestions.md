@@ -1,6 +1,6 @@
 # REWIND — Suggestions & Improvements
 
-## 🟢 Sidebar category buttons don't scroll to the product grid after selection — inconsistent with header nav
+## [DONE] Sidebar category buttons don't scroll to the product grid after selection — inconsistent with header nav
 - **Where:** `src/App.jsx` line 291 — sidebar category buttons: `<button key={c} onClick={() => setCat(c)} ...>`
 - **What:** The sidebar category filter buttons update the product state via `setCat(c)` but never scroll the viewport to the product grid. The header navigation (line 263) wraps its `setCat` in a function that also calls `scrollToGrid()`: `setCat={(c) => { setCat(c); scrollToGrid(); }}`. When a user is scrolled down (past the hero, into the product list, maybe from a prior category) and clicks a sidebar category, the products update but the page stays wherever it is — the user may not realize anything changed, especially on mobile where the grid could be entirely off-screen.
 - **Compare:** Header nav → `setCat()` + `scrollToGrid()`. Footer links → `setCat()` + `scrollToGrid()` (line 346: `onSetCat={(c) => { setCat(c); scrollToGrid(); }}`). Hero CTAs → `setCat()` + `scrollToGrid()` (line 267). **Every** category-change entry point scrolls to the grid except the sidebar. The sidebar is the *only* place where changing a category leaves the user stranded.
