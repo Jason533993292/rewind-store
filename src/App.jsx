@@ -1188,7 +1188,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         <div style={{ marginBottom: '20px' }}>
           <div style={labelStyle}>Sizes</div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {['XS','S','M','L','XL','XXL'].map(s => {
+            {(form.cat === 'Shoes' ? ['40','41','42','43','44','45'] : ['XS','S','M','L','XL','XXL']).map(s => {
               const active = form.sizes.split(',').map(x => x.trim()).includes(s);
               return (
                 <button key={s} type="button" onClick={() => {

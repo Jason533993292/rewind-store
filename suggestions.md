@@ -1,5 +1,16 @@
 # REWIND — Suggestions & Improvements
 
+## 🟢 Product detail page uses hardcoded colors instead of CSS design tokens — 5 locations
+- **Where:** `src/components/ProductPage.jsx` lines 105, 107, 110–111, 115, 170–174
+- **What:** Five distinct spots on the product detail page use raw hex colors instead of the CSS custom properties defined in `:root` (App.css lines 1–14). This breaks visual consistency and means the Tweaks panel accent/look controls don't fully affect the detail page:
+  1. **Line 105 — brand label:** `color: '#888'` → should be `color: 'var(--muted)'` (token = `#6E665A`)
+  2. **Line 107 — product name:** `color: '#16130F'` → should be `color: 'var(--ink)'` (token = `#16130F`, same value but won't respond to future theme changes)
+  3. **Lines 110–111 — price:** `color: '#16130F'` + `color: '#aaa'` → should be `'var(--ink)'` + `'var(--muted)'`
+  4. **Line 115 — low-stock warning:** `background: '#fff3cd'` → This is Bootstrap's `.alert-warning` yellow. The app has *no* design token for this. Cards use `.rw-tag-low { background: var(--ink); }` for low-stock badges. Use `var(--line)` (`#E8E0D2`) or `var(--line-2)` for a subtle warning, or `color-mix(in oklab, var(--accent) 12%, transparent)` for an accent-adaptive warning background.
+  5. **Lines 170–174 — details footer:** `borderTop: '1px solid #eee'` + `color: '#888'` → should be `'1px solid var(--line)'` + `'var(--muted)'`. `#eee` is much lighter than `--line` (#E8E0D2) and belongs to a completely different colour palette.
+- **Why it matters:** The product detail page has already had 5 fixes applied (size buttons, add-to-bag, back button, quantity steppers, category badge). These lingering hardcoded colors make the page feel "nearly done" — the low-stock warning in particular is jarring because it uses Bootstrap yellow which doesn't exist anywhere else on the site. The details section border (`#eee`) and text (`#888`) are noticeably pale/grey compared to the warm neutral palette of the design system.
+- **Fix:** Replace all 5 inline color values with their CSS variable equivalents as listed above. For the low-stock warning, consider `background: 'color-mix(in oklab, var(--accent) 10%, transparent)'` so it auto-adapts when the user changes the accent color via Tweaks.
+
 ## [DONE] Sidebar brand filter buttons have no hover feedback — inconsistent with category buttons
 - **Where:** `src/App.jsx` lines 307–325 — the "All" brand button and individual brand buttons inside the `#rw-sidebar` `<aside>`: `<button onClick={() => setBrand(null)} style={{...}}>All</button>` and the `{currentBrands.map((b) => ...)}` buttons.
 - **What:** The brand filter buttons use bare inline styles (`background: brand === b ? '#16130F' : 'transparent'`, etc.) with zero CSS `transition` property and no hover state at all. Mousing over them does absolutely nothing — no background highlight, no color shift, no visual feedback whatsoever.
