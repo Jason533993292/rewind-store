@@ -432,6 +432,7 @@ function AdminPanel({ onExit, onSelect }) {
   const [productSearch, setProductSearch] = useState('');
   const [customProducts, setCustomProducts] = useState([]);
   const [adminTab, setAdminTab] = useState('users');
+  const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
@@ -956,7 +957,7 @@ function AdminPanel({ onExit, onSelect }) {
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => {
-                          localStorage.setItem('rw_edit_product', p.id || p.product_id);
+                          setEditProduct(p);
                           setAdminTab('products');
                         }}
                           onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
@@ -1044,7 +1045,8 @@ function AdminPanel({ onExit, onSelect }) {
           )}
 
           {adminTab === 'products' && (
-          <ProductForm />
+          <ProductForm editProduct={editProduct} onClearEdit={() => setEditProduct(null)}
+            customProducts={customProducts} setCustomProducts={setCustomProducts} />
           )}
         </>
       )}
@@ -1053,7 +1055,7 @@ function AdminPanel({ onExit, onSelect }) {
 }
 
 /* ── Product Form (separate component) ── */
-function ProductForm() {
+function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProducts }) {
   const [form, setForm] = React.useState({
     name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: []
   });
@@ -1065,24 +1067,19 @@ function ProductForm() {
   const fileRef = React.useRef(null);
   const catOptions = [...REWIND_CATS.filter(c => c !== 'All'), 'Other'];
 
-  // Load product for editing if set
+  // Load product for editing when editProduct prop changes
   React.useEffect(() => {
-    const editId = localStorage.getItem('rw_edit_product');
-    if (editId) {
-      const prod = [...REWIND_PRODUCTS, ...customProducts].find(p => (p.id || p.product_id) === editId);
-      if (prod) {
-        setForm({
-          name: prod.name || '', brand: prod.brand || '', cat: prod.cat || '',
-          catCustom: '', price: prod.price?.toString() || '', was: prod.was?.toString() || '',
-          stock: prod.stock?.toString() || '10', sizes: (prod.sizes || ['S','M','L','XL']).join(','),
-          material: prod.material || '', note: prod.note || '', file: null, files: [],
-        });
-        setEditingId(prod.product_id || prod.id);
-        setMsg('✏️ Editing: ' + prod.name);
-        localStorage.removeItem('rw_edit_product');
-      }
+    if (editProduct) {
+      setForm({
+        name: editProduct.name || '', brand: editProduct.brand || '', cat: editProduct.cat || '',
+        catCustom: '', price: editProduct.price?.toString() || '', was: editProduct.was?.toString() || '',
+        stock: editProduct.stock?.toString() || '10', sizes: (editProduct.sizes || ['S','M','L','XL']).join(','),
+        material: editProduct.material || '', note: editProduct.note || '', file: null, files: [],
+      });
+      setEditingId(editProduct.product_id || editProduct.id);
+      setMsg('✏️ Editing: ' + editProduct.name);
     }
-  }, [customProducts]);
+  }, [editProduct]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1113,6 +1110,7 @@ function ProductForm() {
       if (result) {
         setMsg(`✅ "${form.name}" updated!`);
         setEditingId(null);
+        if (onClearEdit) onClearEdit();
         setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
         getCustomProducts().then(setCustomProducts);
       } else { setMsg('❌ Failed to update.'); }
@@ -1132,7 +1130,7 @@ function ProductForm() {
     <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
         {editingId ? '✏️ Edit product' : '📦 Add new product'}
-        {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] }); }}
+        {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] }); if (onClearEdit) onClearEdit(); }}
           style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: '#eee', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Cancel edit</button>}
       </h3>
       <form onSubmit={handleSubmit}>
