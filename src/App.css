@@ -300,13 +300,12 @@ a { color: inherit; cursor: pointer; }
 .rw-price-was { color: var(--muted); text-decoration: line-through; font-size: 14px; }
 .rw-price-lg .rw-price-now { font-size: 26px; }
 .rw-price-lg .rw-price-was { font-size: 17px; }
-.rw-add {
-  width: 40px; height: 40px; border-radius: 999px; background: var(--ink); color: #fff;
-  display: grid; place-items: center;
-  transition: transform .16s cubic-bezier(.3,1.4,.5,1), background .15s;
-}
-.rw-add:hover { background: var(--accent); animation: addSpin .5s ease-in-out; }
-@keyframes addSpin { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
+.rw-add { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line-2); background: rgba(255,255,255,.7); cursor: pointer; display: grid; place-items: center; transition: transform .16s cubic-bezier(.3,1.4,.5,1), background .15s; }
+.rw-add:hover { background: var(--accent); animation: addSpin .4s cubic-bezier(.4,.0,.2,1); }
+@keyframes addSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(180deg); } }
+
+.rw-card-fav.wiggle { animation: heartWiggle .4s ease; }
+@keyframes heartWiggle { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } 75% { transform: rotate(-3deg); } }
 .rw-card-ship {
   display: flex; align-items: center; gap: 6px;
   font-size: 12.5px; color: var(--muted); margin-top: 6px;
