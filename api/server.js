@@ -80,12 +80,18 @@ function campaignHtml({ message }) {
 app.post('/api/send-order', async (req, res) => {
   const { email, name, items, total, address, orderNum } = req.body;
   if (!resend) return res.json({ ok: true, note: 'Resend not configured' });
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ ok: false, error: 'No items provided' });
+  }
+  if (!email) {
+    return res.status(400).json({ ok: false, error: 'No recipient email provided' });
+  }
   try {
     await resend.emails.send({
       from: FROM_EMAIL,
       reply_to: REPLY_TO,
       to: email,
-      subject: `Order confirmed — ${orderNum}`,
+      subject: `Order confirmed — ${orderNum || 'N/A'}`,
       html: orderHtml({ name, items, total, address, orderNum }),
     });
     res.json({ ok: true });
@@ -99,10 +105,13 @@ app.post('/api/send-order', async (req, res) => {
 app.post('/api/send-campaign', async (req, res) => {
   const { emails, subject, message } = req.body;
   if (!resend) return res.json({ ok: false, sent: 0, total: emails?.length || 0, error: 'RESEND_API_KEY not configured on Railway' });
+  if (!emails || !Array.isArray(emails) || emails.length === 0) {
+    return res.status(400).json({ ok: false, sent: 0, total: 0, error: 'No email recipients provided' });
+  }
   const defaultMsg = "Hey,\n\nWe just got new pieces in.\n\nCheck them out:\nhttps://rewind-stores.com\n\nBest,\nREWIND";
   let sent = 0;
   const errors = [];
-  for (const email of (emails || [])) {
+  for (const email of emails) {
     try {
       await resend.emails.send({
         from: FROM_EMAIL,
