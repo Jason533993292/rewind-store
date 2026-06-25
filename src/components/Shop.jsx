@@ -56,7 +56,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
         <button className={"rw-card-fav" + (wishlisted ? ' is-wishlisted' : '')}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
           style={{ color: wishlisted ? 'var(--accent)' : undefined }}
-          onClick={(e) => { e.stopPropagation(); onWishlist(p); }}>
+          onClick={(e) => { e.stopPropagation(); onWishlist(p); const btn = e.currentTarget; btn.classList.add('wiggle'); setTimeout(() => btn.classList.remove('wiggle'), 500); }}>
           <Icon name={wishlisted ? 'heartFilled' : 'heart'} size={17} />
         </button>
       </div>
