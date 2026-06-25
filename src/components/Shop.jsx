@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
+import confetti from 'canvas-confetti';
 import { deleteCustomProduct } from '../lib/supabase';
 
 /* ---------- LazyImage (for real product photos) ---------- */
@@ -300,24 +301,14 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   const [orderNum, setOrderNum] = useState('');
   const [confetti, setConfetti] = useState([]);
 
-  // Launch confetti pieces
+  // Launch confetti burst on order placement
   useEffect(() => {
     if (orderNum) {
-      const pieces = [];
-      const colors = ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB', '#FF9100'];
-      for (let i = 0; i < 60; i++) {
-        pieces.push({
-          id: i,
-          left: Math.random() * 100,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          delay: Math.random() * 1.5,
-          size: 6 + Math.random() * 8,
-          rotation: Math.random() * 720,
-          drift: (Math.random() - 0.5) * 200,
-        });
-      }
-      setConfetti(pieces);
-      setTimeout(() => setConfetti([]), 5000);
+      const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.6 } };
+      confetti({ ...defaults, particleCount: 80, colors: ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'] });
+      setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } }), 150);
+      setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } }), 300);
+      setTimeout(() => confetti({ ...defaults, particleCount: 100, spread: 120, startVelocity: 60, origin: { y: 0.3 } }), 500);
     }
   }, [orderNum]);
 
@@ -325,18 +316,6 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   if (placed) {
     return (
       <div className="rw-checkout">
-        {/* Confetti */}
-        {confetti.map(c => (
-          <div key={c.id} style={{
-            position: 'fixed', top: '-20px', left: c.left + '%',
-            width: c.size + 'px', height: c.size * 0.6 + 'px',
-            background: c.color, borderRadius: '2px',
-            zIndex: 9999, pointerEvents: 'none',
-            animation: `confettiFall 2.5s ${c.delay}s ease-out forwards`,
-            transform: `rotate(${c.rotation}deg)`,
-            '--drift': c.drift + 'px',
-          }} />
-        ))}
         <div className="rw-checkout-bar">
           <div className="rw-logo">REWIND<span>.</span></div>
           <button className="rw-btn rw-btn-ghost" onClick={onClose}>Close</button>
