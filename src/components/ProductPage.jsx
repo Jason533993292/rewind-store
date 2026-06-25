@@ -117,11 +117,11 @@ export default function ProductPage({ p, onBack, onAdd }) {
             </div>
           )}
 
-          <p style={{ fontSize: '15px', lineHeight: '1.6', color: '#6E665A', marginBottom: '16px' }}>
+          <p style={{ fontSize: '15px', lineHeight: '1.6', color: 'var(--muted)', marginBottom: '16px' }}>
             {p.note || 'Hand-picked vintage piece. Authenticated, steam-cleaned, and ready to wear.'}
           </p>
           {p.material && (
-            <div style={{ display: 'inline-block', padding: '6px 14px', background: '#f0ece6', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: '#16130F', marginBottom: '20px' }}>
+            <div style={{ display: 'inline-block', padding: '6px 14px', background: 'var(--line)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '20px' }}>
               {p.material}
             </div>
           )}
