@@ -22,3 +22,6 @@
 
 ## [🟢] Make footer payment icons clickable
 - Status: [DONE]
+
+## [🟢] /api/run-tests endpoint crashes with Playwright test.describe error
+- Status: [DONE] — Extracted runTests() into standalone tests/run-tests.js that doesn't import @playwright/test's test.describe. The admin panel's "🧪 Run tests" button now imports safely from tests/button-test.js → tests/run-tests.js without triggering the Playwright test runner context error.
