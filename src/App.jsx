@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V2.2';
+const VERSION = 'V2.3';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -527,6 +527,7 @@ function AdminPanel({ onExit, onSelect }) {
           { id: 'orders', label: '📦 Orders' },
           { id: 'saved', label: '⭐ Saved' },
           { id: 'products', label: '🛍️ Products' },
+          ...(editProduct ? [{ id: 'edit', label: '✏️ Edit: ' + (editProduct.name || '').slice(0, 15) }] : []),
         ].map(tab => (
           <button key={tab.id} onClick={() => setAdminTab(tab.id)}
             style={{
@@ -934,6 +935,12 @@ function AdminPanel({ onExit, onSelect }) {
           </div>
           )}
 
+          {/* ── Edit product panel ── */}
+          {adminTab === 'edit' && editProduct && (
+            <EditProductPanel product={editProduct} onDone={() => { setEditProduct(null); setAdminTab('saved'); }}
+              setCustomProducts={setCustomProducts} />
+          )}
+
           {/* ── Saved products ── */}
           {adminTab === 'saved' && (
           <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
@@ -958,7 +965,7 @@ function AdminPanel({ onExit, onSelect }) {
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => {
                           setEditProduct(p);
-                          setAdminTab('products');
+                          setAdminTab('edit');
                         }}
                           onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
                           onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
@@ -1050,6 +1057,78 @@ function AdminPanel({ onExit, onSelect }) {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+/* ── Edit Product Panel ── */
+function EditProductPanel({ product, onDone, setCustomProducts }) {
+  const [form, setForm] = React.useState(() => ({
+    name: product.name || '', brand: product.brand || '', cat: product.cat || '',
+    price: product.price?.toString() || '', was: product.was?.toString() || '',
+    stock: product.stock?.toString() || '10', sizes: (product.sizes || ['S','M','L','XL']).join(','),
+    material: product.material || '', note: product.note || '',
+  }));
+  const [saving, setSaving] = React.useState(false);
+  const [msg, setMsg] = React.useState('');
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true); setMsg('');
+    const cat = form.cat === 'Other' ? '' : form.cat;
+    const result = await updateCustomProduct(product.product_id || product.id, {
+      name: form.name, brand: form.brand, cat: form.cat,
+      price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
+      stock: parseInt(form.stock) || 10,
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
+      material: form.material || '', note: form.note || '',
+    });
+    if (result) {
+      setMsg('✅ Updated!');
+      getCustomProducts().then(setCustomProducts);
+      setTimeout(onDone, 800);
+    } else { setMsg('❌ Failed to update'); }
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 600 }}>✏️ Edit: {product.name}</h3>
+        <button onClick={onDone} style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '13px' }}>⬅ Back</button>
+      </div>
+      {msg && <p style={{ fontSize: '14px', marginBottom: '10px', color: msg.includes('✅') ? '#4caf50' : '#e53935' }}>{msg}</p>}
+      <form onSubmit={handleSave}>
+        {/* Product image */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ width: '200px', height: '200px', borderRadius: '8px', background: product.hue ? `hsl(${product.hue},60%,80%)` : '#eee', overflow: 'hidden' }}>
+            {product.img && <img src={product.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+          </div>
+          <p style={{ fontSize: '11px', color: '#888', marginTop: '6px' }}>To change the photo, delete this product and re-add it.</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+          <input className="rw-input" placeholder="Product name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+          <input className="rw-input" placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+        </div>
+        <div style={{ marginBottom: '12px' }}>
+          <select className="rw-input" value={form.cat} onChange={e => setForm({...form, cat: e.target.value})}>
+            <option value="">Category</option>
+            {REWIND_CATS.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
+          <input className="rw-input" type="number" step="0.01" placeholder="Price" value={form.price} onChange={e => setForm({...form, price: e.target.value})} />
+          <input className="rw-input" type="number" step="0.01" placeholder="Original price" value={form.was} onChange={e => setForm({...form, was: e.target.value})} />
+        </div>
+        <input className="rw-input" type="number" placeholder="Stock" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} style={{ marginBottom: '12px' }} />
+        <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes} onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
+        <input className="rw-input" placeholder="Material" value={form.material} onChange={e => setForm({...form, material: e.target.value})} style={{ marginBottom: '12px' }} />
+        <button type="submit" disabled={saving}
+          style={{ padding: '12px 32px', borderRadius: '999px', background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+          {saving ? 'Saving...' : '💾 Save changes'}
+        </button>
+      </form>
     </div>
   );
 }
