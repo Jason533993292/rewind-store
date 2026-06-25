@@ -1,5 +1,11 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Product grid section headers (brand/category labels) use hardcoded #888 instead of var(--muted)
+- **Where:** `src/components/Shop.jsx` line 112 — the `ProductGrid` section header: `<h3 style={{ fontSize: '14px', fontWeight: 600, color: '#888', margin: '24px 0 12px', textTransform: 'uppercase', letterSpacing: '1px' }}>`
+- **What:** When the product grid is grouped by brand and category (e.g., "Adidas — Jerseys", "Nike — Tracksuits"), the section header labels use `color: '#888'` — a neutral/cool gray. The site's design system uses `--muted` (#6E665A), a warm muted tone that matches the cream/ink/warm-neutral palette. The `#888` gray is visibly cooler and clashes with every other muted text element on the page (the "X pieces · one of each" subtitle, card category labels, footer meta, shipping text, etc., all use `var(--muted)`).
+- **Why it matters:** These section headers appear whenever products are grouped — which is most of the time (e.g., browsing "All" shows brand+category groupings; browsing "Jerseys" shows brand subgroups). The off-color gray is a subtle but real visual papercut that makes the grouped grid feel slightly "off" compared to the rest of the site. It's especially noticeable when a section header sits right above cart cards whose muted elements use the proper warm `--muted`.
+- **Fix:** Change line 112 from `color: '#888'` to `color: 'var(--muted)'`. One character edit — no other changes needed.
+
 ## [DONE] Hero "Browse jerseys" button is misleading — says it filters to jerseys but just scrolls to full grid
 - **Where:** `src/components/Shell.jsx` lines 144–145 — both hero CTA buttons call `onShop` (which is `scrollToGrid`): `<button className="rw-btn rw-btn-pri" onClick={onShop}>Shop the drop</button>` and `<button className="rw-btn rw-btn-ghost" onClick={onShop}>Browse jerseys</button>`
 - **What:** The "Browse jerseys" button promises to show the user jerseys, but it behaves identically to "Shop the drop" — both just scroll down to the full product listing with whatever category/filter is active. There's no category filtering happening. A user who clicks "Browse jerseys" expecting to see just jerseys instead sees every product. The button label creates false expectations.
