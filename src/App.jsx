@@ -191,7 +191,17 @@ export default function App() {
   }, [selectedProduct]);
   useEffect(() => {
     const onHash = () => {
-      setAdminMode(window.location.hash === '#admin');
+      const isAdminHash = window.location.hash === '#admin';
+      if (isAdminHash) {
+        // Only show admin if already authenticated
+        const saved = localStorage.getItem('rw_admin_email');
+        if (!saved) { window.location.hash = ''; return; }
+        // Verify against Supabase
+        supabase?.from('admins').select('email').eq('email', saved).single()
+          .then(({ data }) => { if (!data) { window.location.hash = ''; } else { setAdminMode(true); } });
+      } else {
+        setAdminMode(false);
+      }
       if (window.location.hash.startsWith('#/product/')) {
         const pid = window.location.hash.replace('#/product/', '');
         const allProds = [...REWIND_PRODUCTS, ...customProducts];
