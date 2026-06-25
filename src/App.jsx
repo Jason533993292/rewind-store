@@ -287,15 +287,15 @@ export default function App() {
             top: '20px',
             alignSelf: 'flex-start',
           }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
+            <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#16130F', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {REWIND_CATS.map((c) => (
               <button key={c} onClick={() => { setCat(c); scrollToGrid(); }}
                 style={{
-                  display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px',
-                  borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: cat === c ? 700 : 400,
+                  display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
+                  borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: cat === c ? 700 : 400,
                   background: cat === c ? '#16130F' : 'transparent',
                   color: cat === c ? '#fff' : '#16130F',
-                  marginBottom: '4px',
+                  marginBottom: '2px',
                   transition: 'background 0.15s',
                 }}
                 onMouseOver={e => { if (cat !== c) e.target.style.background = '#ddd'; }}
@@ -309,8 +309,8 @@ export default function App() {
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
                 <button onClick={() => setBrand(null)}
                   style={{
-                    display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
-                    borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px',
+                    display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
+                    borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
                     background: !brand ? '#16130F' : 'transparent',
                     color: !brand ? '#fff' : '#16130F',
                     fontWeight: !brand ? 700 : 400,
@@ -322,8 +322,8 @@ export default function App() {
                 {currentBrands.map((b) => (
                   <button key={b} onClick={() => setBrand(b)}
                     style={{
-                      display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px',
-                      borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px',
+                      display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
+                      borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: brand === b ? 700 : 400,
                       background: brand === b ? '#16130F' : 'transparent',
                       color: brand === b ? '#fff' : '#16130F',
                       fontWeight: brand === b ? 700 : 400,
