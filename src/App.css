@@ -283,6 +283,7 @@ a { color: inherit; cursor: pointer; }
   transition: opacity .2s, transform .2s, color .15s;
 }
 .rw-card:hover .rw-card-fav { opacity: 1; transform: none; }
+.rw-card-fav:hover { opacity: 1; transform: translateY(-2px) scale(1.15); filter: drop-shadow(0 0 8px rgba(233, 30, 99, 0.5)); }
 .rw-card-fav.is-wishlisted { opacity: 1; transform: none; }
 .rw-card-fav:hover { color: var(--accent); }
 .rw-card-body { padding: 14px 2px 0; }
