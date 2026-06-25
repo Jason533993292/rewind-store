@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V1.9';
+const VERSION = 'V2.1';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -1079,8 +1079,8 @@ function ProductForm() {
         });
         setEditingId(prod.product_id || prod.id);
         setMsg('✏️ Editing: ' + prod.name);
+        localStorage.removeItem('rw_edit_product');
       }
-      localStorage.removeItem('rw_edit_product');
     }
   }, [customProducts]);
 
