@@ -250,7 +250,9 @@ export default function App() {
           onWishlistOpen={() => setWishlistOpen(true)}
           query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
         <ProductPage p={selectedProduct} onBack={() => setSelectedProduct(null)}
-          onAdd={(p, size) => { addToCart(p, size); setDrawer(true); }} />
+          onAdd={(p, size) => { addToCart(p, size); setDrawer(true); }}
+          onWishlist={handleWishlist}
+          wishlisted={wishlist.includes(selectedProduct?.id)} />
       </div>
     );
   }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Photo, Icon } from './Shell';
 import { deleteCustomProduct } from '../lib/supabase';
 
-export default function ProductPage({ p, onBack, onAdd }) {
+export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }) {
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -98,12 +98,30 @@ export default function ProductPage({ p, onBack, onAdd }) {
 
         {/* ── Info ── */}
         <div className="rw-product-info">
-          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>
-            {p.cat?.toUpperCase()}
-          </span>
-          {p.brand && (
-            <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '6px' }}>— {p.brand}</span>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>
+                {p.cat?.toUpperCase()}
+              </span>
+              {p.brand && (
+                <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '6px' }}>— {p.brand}</span>
+              )}
+            </div>
+            <button
+              aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+              onClick={(e) => { e.stopPropagation(); onWishlist && onWishlist(p); }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                color: wishlisted ? 'var(--accent)' : 'var(--muted)',
+                transition: 'color 0.15s, transform 0.15s',
+                marginTop: '-2px',
+              }}
+              onMouseOver={e => { if (!wishlisted) e.target.style.color = 'var(--accent)'; e.target.style.transform = 'scale(1.15)'; }}
+              onMouseOut={e => { if (!wishlisted) e.target.style.color = 'var(--muted)'; e.target.style.transform = 'scale(1)'; }}
+            >
+              <Icon name={wishlisted ? 'heartFilled' : 'heart'} size={20} />
+            </button>
+          </div>
           <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '8px 0 4px', color: 'var(--ink)' }}>{p.name}</h1>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>

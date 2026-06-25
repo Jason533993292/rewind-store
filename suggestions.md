@@ -1,5 +1,16 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Product detail page has no wishlist (save/heart) button — missing at the point of highest purchase intent
+- **Where:** `src/components/ProductPage.jsx` (entire component) + `src/App.jsx` line 252
+- **What:** The product detail page — the full-screen dedicated product view a user reaches by clicking a card — has no wishlist/favorite button whatsoever. Every `ProductCard` in the grid renders a heart button (`.rw-card-fav`, Shop.jsx lines 55–60) that calls `onWishlist(p)`, but `ProductPage` never receives an `onWishlist` prop and never renders any save-to-wishlist control.
+- **Why it matters:** The product detail page is the highest-intent browsing state — the user has clicked through to learn more, see all photos, check sizing, and consider a purchase. If they're not ready to buy (wrong size, waiting for payday, comparing options), the only way to save the item is to go back to the grid and find the card again. This is friction at exactly the wrong moment. Compare: every major e-commerce product page (ASOS, Zalando, Farfetch) places a wishlist/save button prominently — usually near the product name or add-to-bag CTA.
+- **How it looks now:** Users must navigate back to the grid, locate the same card, and click the heart there. The header wishlist icon (with count badge) is visible from the product page, but it only opens the drawer — it doesn't let you *add* the current product.
+- **Fix:** 
+  1. Pass `onWishlist={handleWishlist}` and `wishlisted={wishlist.includes(selectedProduct?.id)}` to `<ProductPage>` in App.jsx line 252.
+  2. In `ProductPage.jsx`, accept the new `onWishlist` and `wishlisted` props (destructure alongside `p, onBack, onAdd`).
+  3. Render a wishlist button — ideally an outlined heart icon button near the product name/price area (e.g., next to the brand label at line 104 or as a standalone icon button to the right of the product title). Use the same `Icon name={wishlisted ? 'heartFilled' : 'heart'}` pattern from `ProductCard`, styled inline or with a CSS class. A natural spot: between the product name (line 107) and the price block (line 109), or floated right in the `.rw-product-info` column.
+  4. The button should use `var(--accent)` when wishlisted (matching card behavior) and `var(--muted)` when not, with a hover transition to `var(--accent)`.
+
 ## [DONE] Product detail page uses hardcoded colors instead of CSS design tokens — 5 locations
 - **Where:** `src/components/ProductPage.jsx` lines 105, 107, 110–111, 115, 170–174
 - **What:** Five distinct spots on the product detail page use raw hex colors instead of the CSS custom properties defined in `:root` (App.css lines 1–14). This breaks visual consistency and means the Tweaks panel accent/look controls don't fully affect the detail page:
