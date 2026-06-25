@@ -569,15 +569,35 @@ export function SignupModal({ open, onClose, onSignup }) {
 export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect }) {
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
   const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id)).filter(Boolean);
+  const [selected, setSelected] = useState([]);
+
+  const toggleSelect = (id) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const addSelectedToCart = () => {
+    const toAdd = wishlistItems.filter(p => selected.includes(p.id));
+    toAdd.forEach(p => onAddToCart(p));
+    setSelected([]);
+  };
 
   return (
     <>
       <div className={"rw-scrim" + (open ? " is-on" : "")} onClick={onClose} />
-      <div className={"rw-drawer" + (open ? " is-on" : "")}>
+      <div className={"rw-drawer" + (open ? " is-on" : "")} style={{ width: '400px' }}>
         <div className="rw-drawer-head">
           <h3>Wishlist <span>({wishlistItems.length})</span></h3>
           <button onClick={onClose} aria-label="Close"><Icon name="close" size={20} /></button>
         </div>
+        {selected.length > 0 && (
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line)' }}>
+            <button className="rw-btn rw-btn-pri" style={{ padding: '8px 14px', fontSize: '13px' }}
+              onClick={addSelectedToCart}>
+              Add {selected.length} to bag
+            </button>
+            <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px' }}
+              onClick={() => setSelected([])}>Cancel</button>
+          </div>
+        )}
         {wishlistItems.length === 0 ? (
           <div className="rw-drawer-empty">
             <Icon name="heart" size={36} />
@@ -586,9 +606,17 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
         ) : (
           <div className="rw-drawer-items">
             {wishlistItems.map((p) => (
-              <div key={p.id} className="rw-line">
-                <div className="rw-line-media">
-                  <Photo id={p.id + "-wish"} hue={p.hue} label="" h={74} />
+              <div key={p.id} className="rw-line" style={{ alignItems: 'flex-start', paddingTop: '12px' }}>
+                <div style={{ paddingTop: '4px' }}>
+                  <input type="checkbox" checked={selected.includes(p.id)}
+                    onChange={() => toggleSelect(p.id)}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
+                </div>
+                <div className="rw-line-media" style={{ cursor: 'pointer' }}
+                  onClick={() => onAddToCart(p)}>
+                  <div style={{ width: '74px', height: '74px', borderRadius: '8px', background: p.hue ? `hsl(${p.hue},50%,88%)` : '#f0ece6', display: 'grid', placeItems: 'center', color: '#16130F', fontSize: '20px' }}>
+                    🛒
+                  </div>
                 </div>
                 <div className="rw-line-info">
                   <div className="rw-line-top">
@@ -600,11 +628,6 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                   <div className="rw-line-meta">{p.cat}</div>
                   <div className="rw-line-bot">
                     <span className="rw-line-price">{money(p.price)}</span>
-                    <button className="rw-add" style={{ width: 36, height: 36 }}
-                      onClick={() => onSelect ? onSelect(p) : onAddToCart(p)}
-                      aria-label={"View " + p.name + " details"}>
-                      <Icon name="chevron-right" size={16} />
-                    </button>
                   </div>
                 </div>
               </div>
