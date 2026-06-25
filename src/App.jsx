@@ -3,7 +3,7 @@ import { Banner, Header, Hero, Marquee, Toast, Footer } from './components/Shell
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
-import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, uploadProductImage, saveOrder, getOrders, updateOrderStatus } from './lib/supabase';
+import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, saveOrder, getOrders, updateOrderStatus } from './lib/supabase';
 import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
 import ProductPage from './components/ProductPage';
@@ -16,6 +16,8 @@ const TWEAK_DEFAULTS = {
   showCompare: true,
   showStock: true,
 };
+
+const VERSION = 'V1.9';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -244,7 +246,7 @@ export default function App() {
         <Header cat={cat} setCat={(c) => { setCat(c); }} cartCount={cartCount}
           onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
           onWishlistOpen={() => setWishlistOpen(true)}
-          query={query} setQuery={setQuery} cats={REWIND_CATS} />
+          query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
         <ProductPage p={selectedProduct} onBack={() => setSelectedProduct(null)}
           onAdd={(p, size) => { addToCart(p, size); setDrawer(true); }} />
       </div>
@@ -257,7 +259,7 @@ export default function App() {
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
-        query={query} setQuery={setQuery} cats={REWIND_CATS} />
+        query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
       <Hero onShop={scrollToGrid} />
       <Marquee />
 
@@ -486,6 +488,7 @@ function AdminPanel({ onExit, onSelect }) {
           ← Back to store
         </button>
       </div>
+      <div style={{ position: 'absolute', top: '44px', right: '24px', fontSize: '11px', color: '#aaa', fontWeight: 600 }}>{VERSION}</div>
 
       {/* ── Admin login ── */}
       {adminChecking && <p style={{ textAlign: 'center', color: '#888' }}>Checking access...</p>}
@@ -1058,8 +1061,28 @@ function ProductForm() {
   const [msg, setMsg] = React.useState('');
   const [showCustomCat, setShowCustomCat] = React.useState(false);
   const [showProduct, setShowProduct] = React.useState(null);
+  const [editingId, setEditingId] = React.useState(null);
   const fileRef = React.useRef(null);
   const catOptions = [...REWIND_CATS.filter(c => c !== 'All'), 'Other'];
+
+  // Load product for editing if set
+  React.useEffect(() => {
+    const editId = localStorage.getItem('rw_edit_product');
+    if (editId) {
+      const prod = [...REWIND_PRODUCTS, ...customProducts].find(p => (p.id || p.product_id) === editId);
+      if (prod) {
+        setForm({
+          name: prod.name || '', brand: prod.brand || '', cat: prod.cat || '',
+          catCustom: '', price: prod.price?.toString() || '', was: prod.was?.toString() || '',
+          stock: prod.stock?.toString() || '10', sizes: (prod.sizes || ['S','M','L','XL']).join(','),
+          material: prod.material || '', note: prod.note || '', file: null, files: [],
+        });
+        setEditingId(prod.product_id || prod.id);
+        setMsg('✏️ Editing: ' + prod.name);
+      }
+      localStorage.removeItem('rw_edit_product');
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1084,21 +1107,34 @@ function ProductForm() {
         await uploadProductImage(form.files[i], `${productId}-${i}`);
       }
     }
-    const result = await addCustomProduct(product);
-    if (result) {
-      setMsg(`✅ "${form.name}" added! `);
-      setShowProduct(productId);
-      setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
-      if (fileRef.current) fileRef.current.value = '';
+    // Save or update
+    if (editingId) {
+      const result = await updateCustomProduct(editingId, { name: form.name, brand: form.brand, cat, price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null, stock: parseInt(form.stock) || 10, sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '', note: form.note || '' });
+      if (result) {
+        setMsg(`✅ "${form.name}" updated!`);
+        setEditingId(null);
+        setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
+        getCustomProducts().then(setCustomProducts);
+      } else { setMsg('❌ Failed to update.'); }
     } else {
-      setMsg('❌ Failed to save.');
+      const result = await addCustomProduct(product);
+      if (result) {
+        setMsg(`✅ "${form.name}" added! `);
+        setShowProduct(productId);
+        setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
+        if (fileRef.current) fileRef.current.value = '';
+      } else { setMsg('❌ Failed to save.'); }
     }
     setSaving(false);
   };
 
   return (
     <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
-      <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📦 Add new product</h3>
+      <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
+        {editingId ? '✏️ Edit product' : '📦 Add new product'}
+        {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] }); }}
+          style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: '#eee', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Cancel edit</button>}
+      </h3>
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
           <input className="rw-input" placeholder="Product name *" value={form.name}

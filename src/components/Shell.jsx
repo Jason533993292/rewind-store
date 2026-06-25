@@ -98,7 +98,7 @@ export function Banner({ showCountdown }) {
 }
 
 /* ---------- Header ---------- */
-export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats }) {
+export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version }) {
   return (
     <header className="rw-header">
       <div className="rw-header-row">
@@ -122,6 +122,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
             <Icon name="bag" />
             {cartCount > 0 && <span className="rw-badge">{cartCount}</span>}
           </button>
+          {version && <span style={{ fontSize: '10px', color: '#aaa', marginLeft: '10px', fontWeight: 600 }}>{version}</span>}
         </div>
       </div>
     </header>

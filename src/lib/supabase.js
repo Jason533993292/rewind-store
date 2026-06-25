@@ -94,6 +94,18 @@ export async function addCustomProduct(product) {
   return data;
 }
 
+export async function updateCustomProduct(productId, updates) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('custom_products')
+    .update(updates)
+    .eq('product_id', productId)
+    .select()
+    .single();
+  if (error) { console.warn('updateCustomProduct:', error.message); return null; }
+  return data;
+}
+
 export async function deleteCustomProduct(id) {
   if (!supabase) return false;
   const { error } = await supabase
