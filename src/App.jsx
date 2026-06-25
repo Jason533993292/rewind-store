@@ -727,7 +727,7 @@ function AdminPanel({ onExit, onSelect }) {
                 btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : `❌ ${d.error || 'Failed'}`;
                 setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000);
               }}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: '#FF4D14', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+                style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
                 📩 Email opted-in only ({users.filter((u) => u.marketing_optin).length})
               </button>
               <button onClick={() => { navigator.clipboard?.writeText(users.map((u) => u.email).join(', ')); }}
@@ -831,7 +831,7 @@ function AdminPanel({ onExit, onSelect }) {
                               navigator.clipboard.writeText(msg);
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #FF4D14', background: '#fff', color: '#FF4D14', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: '#fff', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                               📋 Copy for supplier
                             </button>
                           </td>
@@ -915,7 +915,7 @@ function AdminPanel({ onExit, onSelect }) {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '14px', fontWeight: 600 }}>{p.name}</div>
                         <div style={{ fontSize: '12px', color: '#888' }}>{p.brand}{p.brand && p.cat ? ' · ' : ''}{p.cat}</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#FF4D14' }}>€{p.price}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>€{p.price}</div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => {
@@ -1110,7 +1110,7 @@ function ProductForm() {
                 };
                 reader.readAsDataURL(form.file);
               }}
-              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid #FF4D14', background: '#fff', color: '#FF4D14', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid var(--accent)', background: '#fff', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
               📋 Copy to Gemini
             </button>
             <button type="button"
@@ -1175,7 +1175,7 @@ function ProductForm() {
             display: 'inline-block',
             padding: '10px 20px',
             borderRadius: '999px',
-            background: '#FF4D14',
+            background: 'var(--accent)',
             color: '#fff',
             cursor: 'pointer',
             fontWeight: 600,
@@ -1212,7 +1212,7 @@ function ProductForm() {
                 <img src={URL.createObjectURL(form.file)} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
               </div>
               <div style={{ padding: '14px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#FF4D14', letterSpacing: '1px' }}>{form.cat?.toUpperCase() || 'CATEGORY'}</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>{form.cat?.toUpperCase() || 'CATEGORY'}</span>
                 {form.brand && <span style={{ fontSize: '11px', color: '#888', marginLeft: '6px' }}>— {form.brand}</span>}
                 <h3 style={{ fontSize: '15px', fontWeight: 600, margin: '4px 0 2px', color: '#16130F' }}>{form.name || 'Product name'}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

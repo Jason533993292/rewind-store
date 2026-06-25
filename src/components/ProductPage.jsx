@@ -101,7 +101,7 @@ export default function ProductPage({ p, onBack, onAdd }) {
 
         {/* ── Info ── */}
         <div className="rw-product-info">
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#FF4D14', letterSpacing: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>
             {p.cat?.toUpperCase()}
           </span>
           {p.brand && (
