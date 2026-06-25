@@ -477,7 +477,7 @@ test.describe('Stress / concurrency', () => {
     const responses = await Promise.allSettled(
       Array.from({ length: 5 }, (_, i) =>
         page.request.post(`${BASE}/api/send-order`, {
-          data: { email: `stress${i}@test.com`, name: 'Stress', items: [], total: 0, orderNum: `RW-STRESS-${i}` },
+          data: { email: `stress${i}@test.com`, name: 'Stress', items: [{ name: 'Stress Test Item', qty: 1, price: 10, size: 'M' }], total: 0, orderNum: `RW-STRESS-${i}` },
         })
       )
     );

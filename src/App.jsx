@@ -1094,7 +1094,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
     }
   };
 
-  const labelStyle = { fontSize: '11px', fontWeight: 700, color: '#938B7E', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' };
+  const labelStyle = { fontSize: '13px', fontWeight: 600, color: '#16130F', marginBottom: '6px' };
   const inputStyle = { display: 'block', width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#FAF6EF', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' };
   const btnStyle = { padding: '14px 28px', borderRadius: '999px', background: '#16130F', color: '#EDEBE4', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, letterSpacing: '0.5px' };
 
