@@ -1182,7 +1182,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         <div style={{ marginBottom: '20px' }}>
           <div style={labelStyle}>Category</div>
           <select value={form.cat} onChange={e => setForm({...form, cat: e.target.value})}
-            style={{...inputStyle, appearance: 'none', paddingRight: '36px', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22%3E%3Cpath d=%22M2 4l4 4 4-4%22 fill=%22none%22 stroke=%22%23938B7E%22 stroke-width=%221.5%22/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}>
+            style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#FAF6EF', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
             {REWIND_CATS.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
