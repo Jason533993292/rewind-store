@@ -177,11 +177,13 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
             </div>
           </div>
 
-          <button onClick={() => { if (onAdd) onAdd(p, size); }}
+          <button onClick={() => { if (onAdd) onAdd(p, size, qty); }}
             disabled={!size}
             className="rw-btn rw-btn-pri rw-btn-full"
             style={{ marginBottom: '12px' }}>
-            {size ? `Add to bag — €${p.price}` : 'Select a size'}
+            {size
+              ? `Add ${qty > 1 ? qty + '× ' : ''}to bag — €${(p.price * qty).toFixed(2)}`
+              : 'Select a size'}
           </button>
 
           {/* ── Details ── */}

@@ -1,5 +1,16 @@
 # REWIND — Suggestions & Improvements
 
+## 🟢 Product page quantity stepper is completely disconnected from "Add to bag" — always adds 1 regardless of selected quantity
+- **Where:** `src/components/ProductPage.jsx` line 180 + `src/App.jsx` lines 113–122, 252–253
+- **What:** The product detail page has a quantity stepper (`qty` state, lines 6–7, 164–178) that lets the user set a quantity between 1 and the product's stock level. The +/- buttons work, the display updates — but the quantity value is never passed to the "Add to bag" action. Line 180 calls `onAdd(p, size)` with no quantity argument. In `App.jsx` line 253, the `onAdd` handler calls `addToCart(p, size)` — still no quantity. The `addToCart` function (lines 113–122) always hardcodes `qty: 1` when creating a new cart entry, or increments an existing entry by 1. **Result: setting quantity to 3 and clicking "Add to bag" adds exactly 1 item.**
+- **Why it matters:** This is a functional bug, not a cosmetic one. The user interacts with a control, sees visual feedback (the number changes), and trusts that it affects the outcome. When they add to bag and see only 1 item in the cart drawer, the experience is confusing and feels broken. Compare: the cart drawer's own quantity steppers (`onQty`/`changeQty`) work correctly — only the product page's stepper is disconnected.
+- **Fix:**
+  1. In `ProductPage.jsx` line 180: change `onAdd(p, size)` → `onAdd(p, size, qty)`
+  2. In `App.jsx` line 113: change `addToCart` signature to `(p, size, qty = 1)`
+  3. In `addToCart` line 119: use `qty: qty` instead of `qty: 1` for new entries; for existing entries (line 118), use `qty: it.qty + qty` instead of `qty: it.qty + 1`
+  4. In `App.jsx` line 253: pass qty through: `onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}`
+  5. Optional polish: update the button text at line 184 to show quantity when > 1, e.g. `size ? \`Add ${qty > 1 ? qty + '× ' : ''}to bag — €${(p.price * qty).toFixed(2)}\` : 'Select a size'`, and update the toast at line 121 to mention quantity: `showToast(\`${qty > 1 ? qty + '× ' : ''}${p.name} added to bag\`)`
+
 ## [DONE] Product detail page has no wishlist (save/heart) button — missing at the point of highest purchase intent
 - **Where:** `src/components/ProductPage.jsx` (entire component) + `src/App.jsx` line 252
 - **What:** The product detail page — the full-screen dedicated product view a user reaches by clicking a card — has no wishlist/favorite button whatsoever. Every `ProductCard` in the grid renders a heart button (`.rw-card-fav`, Shop.jsx lines 55–60) that calls `onWishlist(p)`, but `ProductPage` never receives an `onWishlist` prop and never renders any save-to-wishlist control.

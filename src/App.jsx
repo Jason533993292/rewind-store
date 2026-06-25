@@ -110,15 +110,15 @@ export default function App() {
     setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= 2300 ? null : cur)), 2400);
   }, []);
 
-  const addToCart = useCallback((p, size) => {
+  const addToCart = useCallback((p, size, qty = 1) => {
     const sz = size || p.sizes[0];
     const key = p.id + '-' + sz;
     setCart((c) => {
       const found = c.find((it) => it.key === key);
-      if (found) return c.map((it) => it.key === key ? { ...it, qty: it.qty + 1 } : it);
-      return [...c, { key, id: p.id, name: p.name, price: p.price, was: p.was, hue: p.hue, size: sz, qty: 1 }];
+      if (found) return c.map((it) => it.key === key ? { ...it, qty: it.qty + qty } : it);
+      return [...c, { key, id: p.id, name: p.name, price: p.price, was: p.was, hue: p.hue, size: sz, qty: qty }];
     });
-    showToast(p.name + ' added to bag');
+    showToast((qty > 1 ? qty + '× ' : '') + p.name + ' added to bag');
   }, [showToast]);
 
   const quickAdd = useCallback((p) => { addToCart(p); setDrawer(true); }, [addToCart]);
@@ -250,7 +250,7 @@ export default function App() {
           onWishlistOpen={() => setWishlistOpen(true)}
           query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
         <ProductPage p={selectedProduct} onBack={() => setSelectedProduct(null)}
-          onAdd={(p, size) => { addToCart(p, size); setDrawer(true); }}
+          onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
           onWishlist={handleWishlist}
           wishlisted={wishlist.includes(selectedProduct?.id)} />
       </div>
