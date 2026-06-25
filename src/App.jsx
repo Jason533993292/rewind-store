@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Banner, Header, Hero, Marquee, Toast, Footer } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
@@ -45,6 +45,8 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
+  const customProductsRef = useRef(customProducts);
+  useEffect(() => { customProductsRef.current = customProducts; }, [customProducts]);
 
   // Load custom products from Supabase
   useEffect(() => {
@@ -206,7 +208,7 @@ export default function App() {
       }
       if (window.location.hash.startsWith('#/product/')) {
         const pid = window.location.hash.replace('#/product/', '');
-        const allProds = [...REWIND_PRODUCTS, ...customProducts];
+        const allProds = [...REWIND_PRODUCTS, ...customProductsRef.current];
         const p = allProds.find(x => (x.id || x.product_id) === pid);
         if (p) setSelectedProduct(p);
       }
@@ -1075,59 +1077,152 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true); setMsg('');
-    const cat = form.cat === 'Other' ? '' : form.cat;
     const result = await updateCustomProduct(product.product_id || product.id, {
       name: form.name, brand: form.brand, cat: form.cat,
-      price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
+      price: parseFloat(form.price) || 0, was: form.was ? parseFloat(form.was) : null,
       stock: parseInt(form.stock) || 10,
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
       material: form.material || '', note: form.note || '',
     });
-    if (result) {
-      setMsg('✅ Updated!');
-      getCustomProducts().then(setCustomProducts);
-      setTimeout(onDone, 800);
-    } else { setMsg('❌ Failed to update'); }
     setSaving(false);
+    if (result) {
+      setMsg('✅ Updated');
+      getCustomProducts().then(setCustomProducts);
+      setTimeout(onDone, 600);
+    } else {
+      setMsg('❌ Failed');
+    }
   };
 
+  const labelStyle = { fontSize: '11px', fontWeight: 700, color: '#938B7E', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' };
+  const inputStyle = { display: 'block', width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#FAF6EF', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' };
+  const btnStyle = { padding: '14px 28px', borderRadius: '999px', background: '#16130F', color: '#EDEBE4', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, letterSpacing: '0.5px' };
+
   return (
-    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600 }}>✏️ Edit: {product.name}</h3>
-        <button onClick={onDone} style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '13px' }}>⬅ Back</button>
+    <div style={{ maxWidth: '640px' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+        <div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: '#FF4D14', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px' }}>Edit product</div>
+          <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#16130F', margin: 0 }}>{product.name}</h3>
+          <div style={{ fontSize: '12px', color: '#938B7E', marginTop: '2px' }}>{product.brand}{product.brand && product.cat ? ' · ' : ''}{product.cat}</div>
+        </div>
+        <button onClick={onDone}
+          style={{ padding: '10px 18px', borderRadius: '999px', border: '1px solid #e0dcd5', background: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#6E665A' }}>
+          ← Back to saved
+        </button>
       </div>
-      {msg && <p style={{ fontSize: '14px', marginBottom: '10px', color: msg.includes('✅') ? '#4caf50' : '#e53935' }}>{msg}</p>}
+
+      {msg && (
+        <div style={{ padding: '10px 14px', borderRadius: '8px', marginBottom: '20px', fontSize: '13px', fontWeight: 600,
+          background: msg.includes('✅') ? '#e8f5e9' : '#ffebee', color: msg.includes('✅') ? '#2e7d32' : '#c62828' }}>
+          {msg}
+        </div>
+      )}
+
       <form onSubmit={handleSave}>
-        {/* Product image */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ width: '200px', height: '200px', borderRadius: '8px', background: product.hue ? `hsl(${product.hue},60%,80%)` : '#eee', overflow: 'hidden' }}>
-            {product.img && <img src={product.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+        {/* Image */}
+        <div style={{ marginBottom: '28px' }}>
+          <div style={labelStyle}>Product photo</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px' }}>
+            <div style={{ width: '160px', height: '200px', borderRadius: '12px', overflow: 'hidden', background: product.hue ? `hsl(${product.hue},50%,88%)` : '#f0ece6', flexShrink: 0 }}>
+              {product.img
+                ? <img src={product.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: '#aaa' }}>No photo</div>
+              }
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: '0 0 6px', fontSize: '12px', color: '#6E665A', lineHeight: '1.5' }}>
+                To change the photo, you'll need to delete this product and re-add it with the new image. All other fields can be edited here.
+              </p>
+            </div>
           </div>
-          <p style={{ fontSize: '11px', color: '#888', marginTop: '6px' }}>To change the photo, delete this product and re-add it.</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
-          <input className="rw-input" placeholder="Product name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-          <input className="rw-input" placeholder="Brand" value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} />
+        {/* Name + Brand row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <div style={labelStyle}>Product name</div>
+            <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} style={inputStyle} placeholder="e.g. Vintage Nike Windbreaker" />
+          </div>
+          <div>
+            <div style={labelStyle}>Brand</div>
+            <input value={form.brand} onChange={e => setForm({...form, brand: e.target.value})} style={inputStyle} placeholder="e.g. Ralph Lauren" />
+          </div>
         </div>
-        <div style={{ marginBottom: '12px' }}>
-          <select className="rw-input" value={form.cat} onChange={e => setForm({...form, cat: e.target.value})}>
-            <option value="">Category</option>
+
+        {/* Category */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={labelStyle}>Category</div>
+          <select value={form.cat} onChange={e => setForm({...form, cat: e.target.value})}
+            style={{...inputStyle, appearance: 'none', paddingRight: '36px', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22%3E%3Cpath d=%22M2 4l4 4 4-4%22 fill=%22none%22 stroke=%22%23938B7E%22 stroke-width=%221.5%22/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}>
             {REWIND_CATS.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-          <input className="rw-input" type="number" step="0.01" placeholder="Price" value={form.price} onChange={e => setForm({...form, price: e.target.value})} />
-          <input className="rw-input" type="number" step="0.01" placeholder="Original price" value={form.was} onChange={e => setForm({...form, was: e.target.value})} />
+
+        {/* Price row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+          <div>
+            <div style={labelStyle}>Current price (€)</div>
+            <input type="number" step="0.01" value={form.price} onChange={e => setForm({...form, price: e.target.value})} style={inputStyle} placeholder="95.00" />
+          </div>
+          <div>
+            <div style={labelStyle}>Original price (€)</div>
+            <input type="number" step="0.01" value={form.was} onChange={e => setForm({...form, was: e.target.value})} style={inputStyle} placeholder="120.00" />
+          </div>
         </div>
-        <input className="rw-input" type="number" placeholder="Stock" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} style={{ marginBottom: '12px' }} />
-        <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes} onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
-        <input className="rw-input" placeholder="Material" value={form.material} onChange={e => setForm({...form, material: e.target.value})} style={{ marginBottom: '12px' }} />
-        <button type="submit" disabled={saving}
-          style={{ padding: '12px 32px', borderRadius: '999px', background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-          {saving ? 'Saving...' : '💾 Save changes'}
-        </button>
+
+        {/* Stock */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={labelStyle}>Stock (shows "Only X left" when ≤ 5)</div>
+          <input type="number" value={form.stock} onChange={e => setForm({...form, stock: e.target.value})} style={{...inputStyle, maxWidth: '120px'}} />
+        </div>
+
+        {/* Sizes */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={labelStyle}>Sizes</div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {['XS','S','M','L','XL','XXL'].map(s => {
+              const active = form.sizes.split(',').map(x => x.trim()).includes(s);
+              return (
+                <button key={s} type="button" onClick={() => {
+                  const current = form.sizes.split(',').map(x => x.trim()).filter(Boolean);
+                  const next = active ? current.filter(x => x !== s) : [...current, s];
+                  setForm({...form, sizes: next.join(',')});
+                }}
+                  style={{
+                    width: '52px', height: '52px', borderRadius: '50%',
+                    border: active ? '2px solid #16130F' : '1px solid #e0dcd5',
+                    background: active ? '#16130F' : '#fff',
+                    color: active ? '#EDEBE4' : '#6E665A',
+                    cursor: 'pointer', fontWeight: 700, fontSize: '13px', transition: 'all 0.15s',
+                  }}
+                  onMouseOver={e => { if (!active) { e.target.style.borderColor = '#bbb'; e.target.style.transform = 'scale(1.05)'; } }}
+                  onMouseOut={e => { if (!active) { e.target.style.borderColor = '#e0dcd5'; e.target.style.transform = ''; } }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Material */}
+        <div style={{ marginBottom: '28px' }}>
+          <div style={labelStyle}>Material</div>
+          <input value={form.material} onChange={e => setForm({...form, material: e.target.value})} style={inputStyle} placeholder="e.g. 100% cotton pique, fleece" />
+        </div>
+
+        {/* Save */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <button type="submit" disabled={saving}
+            style={{...btnStyle, background: saving ? '#ccc' : '#16130F', cursor: saving ? 'default' : 'pointer' }}>
+            {saving ? 'Saving...' : 'Save changes'}
+          </button>
+          <button type="button" onClick={onDone}
+            style={{ padding: '14px 28px', borderRadius: '999px', border: '1px solid #e0dcd5', background: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#6E665A' }}>
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );
