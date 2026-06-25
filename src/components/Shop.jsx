@@ -298,11 +298,45 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
+  const [confetti, setConfetti] = useState([]);
+
+  // Launch confetti pieces
+  useEffect(() => {
+    if (orderNum) {
+      const pieces = [];
+      const colors = ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB', '#FF9100'];
+      for (let i = 0; i < 60; i++) {
+        pieces.push({
+          id: i,
+          left: Math.random() * 100,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          delay: Math.random() * 1.5,
+          size: 6 + Math.random() * 8,
+          rotation: Math.random() * 720,
+          drift: (Math.random() - 0.5) * 200,
+        });
+      }
+      setConfetti(pieces);
+      setTimeout(() => setConfetti([]), 5000);
+    }
+  }, [orderNum]);
 
   if (!open) return null;
   if (placed) {
     return (
       <div className="rw-checkout">
+        {/* Confetti */}
+        {confetti.map(c => (
+          <div key={c.id} style={{
+            position: 'fixed', top: '-20px', left: c.left + '%',
+            width: c.size + 'px', height: c.size * 0.6 + 'px',
+            background: c.color, borderRadius: '2px',
+            zIndex: 9999, pointerEvents: 'none',
+            animation: `confettiFall 2.5s ${c.delay}s ease-out forwards`,
+            transform: `rotate(${c.rotation}deg)`,
+            '--drift': c.drift + 'px',
+          }} />
+        ))}
         <div className="rw-checkout-bar">
           <div className="rw-logo">REWIND<span>.</span></div>
           <button className="rw-btn rw-btn-ghost" onClick={onClose}>Close</button>
