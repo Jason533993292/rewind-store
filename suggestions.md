@@ -1,5 +1,17 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Product detail page quantity stepper buttons use hardcoded colors — last interactive elements breaking design-token consistency
+- **Where:** `src/components/ProductPage.jsx` lines 168–176 — the `+` and `−` quantity stepper buttons
+- **What:** The quantity stepper buttons use hardcoded hex colors instead of CSS design tokens. Border: `'1px solid #ddd'`, background: `'#fff'`, hover background: `'#f0f0f0'`. These are cold, generic grays that clash with REWIND's warm neutral palette (`--line-2`: #D9D0C0, `--surface`: #FFFFFF, `--line`: #E8E0D2). Every other interactive element on the product page now uses design tokens: size buttons (`.rw-size` → `var(--line-2)` border), add-to-bag (`.rw-btn-pri` → `var(--ink)`/`var(--accent)`), back button (`.rw-btn-ghost` → `var(--line-2)`). The quantity steppers are the **lone holdout**.
+- **Compare:** The cart drawer's own quantity steppers (`.rw-qty button` in App.css line 397) use `var(--line)` for the hover state — a warm, subtle highlight. The product page steppers, built with bare inline styles, use stark `#f0f0f0` / `#ddd` that feels like a different app.
+- **Why it matters:** Users engage with these buttons immediately before hitting "Add to bag" — the most important CTA on the page. The hardcoded grays sit jarringly beside the warm, cohesive surrounding elements (size pills with their `var(--line-2)` borders, the accent-colored low-stock badge). It's a small visual papercut that makes the purchase flow feel slightly unpolished at a critical moment.
+- **Fix:** Replace 6 hardcoded values across both buttons:
+  - `border: '1px solid #ddd'` → `border: '1px solid var(--line-2)'`
+  - `background: '#fff'` → `background: 'var(--surface)'`
+  - `onMouseOver` `'#f0f0f0'` → `'var(--line)'`
+  - `onMouseOut` `'#fff'` → `'var(--surface)'`
+  The existing `transition: 'background 0.15s'` inline style already handles smooth hover animation — no new CSS needed.
+
 ## [DONE] Wishlist drawer "Add to cart" silently picks the first size — user has no way to choose
 - **Where:** `src/components/Shop.jsx` lines 584–588 (WishlistDrawer add button) + `src/App.jsx` line 360 (onAddToCart prop)
 - **What:** The wishlist drawer renders an "add to cart" ⊕ button for each saved item (line 584–588), which calls `onAddToCart(p)` with no size argument. In `App.jsx` line 360, the handler calls `addToCart(p)` — still no size. The `addToCart` function (lines 113–122) defaults to `p.sizes[0]` when no size is passed. **Result: adding a product from the wishlist drawer always silently adds the first listed size.** For clothing that's almost always "S", for shoes it's "40". A user who wears size L or shoe size 44 gets the wrong size without any warning or chance to change it.

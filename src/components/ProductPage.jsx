@@ -166,14 +166,14 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
             <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>Quantity</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button onClick={() => setQty(Math.max(1, qty - 1))}
-                onMouseOver={e => e.target.style.background = '#f0f0f0'}
-                onMouseOut={e => e.target.style.background = '#fff'}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '16px', transition: 'background 0.15s' }}>−</button>
+                onMouseOver={e => e.target.style.background = 'var(--line)'}
+                onMouseOut={e => e.target.style.background = 'var(--surface)'}
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '16px', transition: 'background 0.15s' }}>−</button>
               <span style={{ fontSize: '16px', fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>{qty}</span>
               <button onClick={() => setQty(Math.min(p.stock || 99, qty + 1))}
-                onMouseOver={e => e.target.style.background = '#f0f0f0'}
-                onMouseOut={e => e.target.style.background = '#fff'}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '16px', transition: 'background 0.15s' }}>+</button>
+                onMouseOver={e => e.target.style.background = 'var(--line)'}
+                onMouseOut={e => e.target.style.background = 'var(--surface)'}
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '16px', transition: 'background 0.15s' }}>+</button>
             </div>
           </div>
 
