@@ -299,16 +299,17 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
-  const [confetti, setConfetti] = useState([]);
 
-  // Launch confetti burst on order placement
+  // Launch confetti burst after order confirmation screen renders
   useEffect(() => {
     if (orderNum) {
-      const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.6 } };
-      confetti({ ...defaults, particleCount: 80, colors: ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'] });
-      setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } }), 150);
-      setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } }), 300);
-      setTimeout(() => confetti({ ...defaults, particleCount: 100, spread: 120, startVelocity: 60, origin: { y: 0.3 } }), 500);
+      setTimeout(() => {
+        const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.6 } };
+        confetti({ ...defaults, particleCount: 80, colors: ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'] });
+        setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } }), 150);
+        setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } }), 300);
+        setTimeout(() => confetti({ ...defaults, particleCount: 100, spread: 120, startVelocity: 60, origin: { y: 0.3 } }), 500);
+      }, 100);
     }
   }, [orderNum]);
 
