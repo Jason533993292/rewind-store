@@ -42,7 +42,7 @@
 - **Impact:** Custom products (added through the admin panel and synced from Supabase) are invisible in the wishlist drawer. Users can save them but can't see or interact with them.
 - **Fix:** Pass `customProducts` (or the merged `[...REWIND_PRODUCTS, ...customProducts]` array) as a prop to `WishlistDrawer` and use the merged array in the `.find()` call. `App.jsx` already has `customProducts` in scope at line 349 where the drawer is rendered.
 
-## [🟢] Product detail page category badge hardcodes accent color
+## [DONE] Product detail page category badge hardcodes accent color
 - Status: [DONE] — Fixed in ProductPage.jsx, InfoModal.jsx, and 6 admin-panel locations (App.jsx). All now use `var(--accent)`.
 - **Where:** `src/components/ProductPage.jsx` line 104 — `<span style={{ ... color: '#FF4D14' ... }}>`
 - **What:** The category label (e.g. "JERSEYS") on the product detail page uses a hardcoded `#FF4D14` instead of `var(--accent)`. Every other accent-colored element in the app (hero kicker, sale tags, stock lines, toast icons, nav active state, footer links on hover, wishlist heart overlay, etc.) uses `var(--accent)` from the CSS custom property set on `:root` and controlled by the Tweaks panel.
@@ -50,20 +50,20 @@
 - **Fix:** Change line 105 from `color: '#FF4D14'` to `color: 'var(--accent)'`.
 - **Bonus:** Also fixed same issue in InfoModal.jsx (email link) and 6 admin-panel spots (email button, copy-for-supplier button, saved-tab prices, Gemini button, upload label, add-product preview badge).
 
-## [🔴] Hardcoded admin promo code `74421` exposed in client JS bundle
+## [DONE] Hardcoded admin promo code `74421` exposed in client JS bundle
 - Status: [DONE] — Moved to server-side + Railway env var
 
-## [🟠] Return policy mismatch
+## [DONE] Return policy mismatch
 - Status: [DONE]
 
-## [🟢] Duplicate cart persistence effect
+## [DONE] Duplicate cart persistence effect
 - Status: [DONE]
 
-## [🟢] Cart count badge on header icon
+## [DONE] Cart count badge on header icon
 - Status: [DONE]
 
-## [🟢] Make footer payment icons clickable
+## [DONE] Make footer payment icons clickable
 - Status: [DONE]
 
-## [🟢] /api/run-tests endpoint crashes with Playwright test.describe error
+## [DONE] /api/run-tests endpoint crashes with Playwright test.describe error
 - Status: [DONE] — Extracted runTests() into standalone tests/run-tests.js that doesn't import @playwright/test's test.describe. The admin panel's "🧪 Run tests" button now imports safely from tests/button-test.js → tests/run-tests.js without triggering the Playwright test runner context error.
