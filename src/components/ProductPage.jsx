@@ -59,7 +59,7 @@ export default function ProductPage({ p, onBack, onAdd }) {
             </button>
             <button onClick={() => {
               localStorage.setItem('rw_edit_product', p.id || p.product_id);
-              window.location.hash = '/admin';
+              window.location.hash = '#admin';
             }}
               onMouseOver={e => e.target.style.background = '#f5f5f5'}
               onMouseOut={e => e.target.style.background = 'none'}

@@ -954,7 +954,7 @@ function AdminPanel({ onExit, onSelect }) {
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => {
                           localStorage.setItem('rw_edit_product', p.id || p.product_id);
-                          window.location.hash = '/admin';
+                          setAdminTab('products');
                         }}
                           onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
                           onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}

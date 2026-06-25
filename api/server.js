@@ -10,6 +10,16 @@ app.use(express.json({ limit: '50mb' }));
 
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 
+// ── Health check ──
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
+  });
+});
+
 const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'REWIND <orders@rewind-stores.com>';
 const REPLY_TO = process.env.REPLY_TO || 'philippekojoanaman@gmail.com';
@@ -292,8 +302,13 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
-// Validate promo code (admin access)
+// Validate promo code
 app.post('/api/validate-promo', async (req, res) => {
+  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
+  const { code } = req.body;
+  if (code === ADMIN_CODE) return res.json({ admin: true });
+  res.json({ admin: false, discount: code ? 0 : null });
+});
 
 // Admin management (add/remove admins)
 app.post('/api/manage-admins', async (req, res) => {
@@ -321,11 +336,6 @@ app.post('/api/manage-admins', async (req, res) => {
   } else {
     res.status(400).json({ error: 'Invalid action' });
   }
-});
-  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
-  const { code } = req.body;
-  if (code === ADMIN_CODE) return res.json({ admin: true });
-  res.json({ admin: false, discount: code ? 0 : null });
 });
 
 // PayPal order creation

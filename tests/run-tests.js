@@ -8,8 +8,21 @@ import { expect } from '@playwright/test';
 const BASE = process.env.TEST_URL || 'https://rewind-stores.com';
 
 export async function runTests() {
-  const { chromium } = await import('playwright');
-  const browser = await chromium.launch({ headless: true });
+  let browser;
+  try {
+    const { chromium } = await import('playwright');
+    browser = await chromium.launch({ headless: true });
+  } catch (launchErr) {
+    // Browser can't launch (missing system deps on this server — e.g. libglib)
+    return {
+      results: [{ name: 'Browser launch', status: '⚠️', detail: `Playwright browser unavailable on this server. Run tests locally: npx playwright test tests/comprehensive.spec.js. (${launchErr.message?.slice(0, 80)})` }],
+      passed: 0,
+      failed: 0,
+      total: 0,
+      skipped: true,
+      hint: 'Missing system libraries for headless Chromium. Run `npx playwright install --with-deps chromium` on the server, or test locally.',
+    };
+  }
   const results = [];
   let passed = 0;
   let failed = 0;
