@@ -321,7 +321,7 @@ export default function App() {
         </div>
       </main>
 
-      <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={setCat} />
+      <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} />
       {showSizes && <SizeGuide onClose={() => setShowSizes(false)} />}
       {infoPage && <InfoModal page={infoPage} onClose={() => setInfoPage(null)} />}
 
