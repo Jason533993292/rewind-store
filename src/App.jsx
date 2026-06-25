@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V2.4';
+const VERSION = 'V3.0';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -174,6 +174,7 @@ export default function App() {
   const [promoCode, setPromoCode] = useState('');
   const [promoMsg, setPromoMsg] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sortBy, setSortBy] = useState('');
 
   // Handle back/forward navigation for product page
   useEffect(() => {
@@ -336,7 +337,15 @@ export default function App() {
             )}
           </aside>
           <div className="rw-shop-content">
-            <ProductGrid products={products} showCompare={t.showCompare} showStock={t.showStock}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#fff', fontSize: '13px', fontWeight: 600, color: '#16130F', outline: 'none' }}>
+                <option value="">Featured</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+              </select>
+            </div>
+            <ProductGrid products={products} sort={sortBy} showCompare={t.showCompare} showStock={t.showStock}
               onQuick={setQuick} onAdd={quickAdd}
               wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct} />
           </div>

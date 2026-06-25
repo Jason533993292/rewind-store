@@ -82,13 +82,17 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
 }
 
 /* ---------- ProductGrid ---------- */
-export function ProductGrid({ products, wishlist, onWishlist, ...rest }) {
+export function ProductGrid({ products, wishlist, onWishlist, sort, ...rest }) {
   if (products.length === 0) {
     return <div className="rw-empty">Nothing matched your search — try a different term?</div>;
   }
+  // Sort products
+  let sorted = [...products];
+  if (sort === 'price-asc') sorted.sort((a, b) => a.price - b.price);
+  else if (sort === 'price-desc') sorted.sort((a, b) => b.price - a.price);
   // Group products by brand → category, then flatten with headers
   const grouped = {};
-  products.forEach(p => {
+  sorted.forEach(p => {
     const brand = p.brand || '';
     const cat = p.cat || 'Other';
     if (!grouped[brand]) grouped[brand] = {};
