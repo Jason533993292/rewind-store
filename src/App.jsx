@@ -357,7 +357,8 @@ export default function App() {
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
         onClose={() => setWishlistOpen(false)}
         onRemove={(id) => setWishlist((prev) => prev.filter((i) => i !== id))}
-        onAddToCart={(p) => { addToCart(p); setDrawer(true); }} />
+        onAddToCart={(p) => { addToCart(p); setDrawer(true); }}
+        onSelect={(p) => { setSelectedProduct(p); setWishlistOpen(false); }} />
 
       {/* ── Promo code button ── */}
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>

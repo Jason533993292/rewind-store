@@ -547,7 +547,7 @@ export function SignupModal({ open, onClose, onSignup }) {
 }
 
 /* ---------- Wishlist Drawer ---------- */
-export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart }) {
+export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect }) {
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
   const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id)).filter(Boolean);
 
@@ -582,9 +582,9 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                   <div className="rw-line-bot">
                     <span className="rw-line-price">{money(p.price)}</span>
                     <button className="rw-add" style={{ width: 36, height: 36 }}
-                      onClick={() => onAddToCart(p)}
-                      aria-label={"Add " + p.name + " to cart"}>
-                      <Icon name="plus" size={16} />
+                      onClick={() => onSelect ? onSelect(p) : onAddToCart(p)}
+                      aria-label={"View " + p.name + " details"}>
+                      <Icon name="chevron-right" size={16} />
                     </button>
                   </div>
                 </div>
