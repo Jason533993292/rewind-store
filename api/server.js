@@ -292,6 +292,14 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
+// Validate promo code (admin access)
+app.post('/api/validate-promo', async (req, res) => {
+  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
+  const { code } = req.body;
+  if (code === ADMIN_CODE) return res.json({ admin: true });
+  res.json({ admin: false, discount: code ? 0 : null });
+});
+
 // PayPal order creation
 app.post('/api/create-paypal-order', async (req, res) => {
   const { amount, orderNum } = req.body;

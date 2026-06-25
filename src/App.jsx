@@ -366,22 +366,22 @@ export default function App() {
             <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#888' }}>Enter it below and get a discount.</p>
             <input className="rw-input" placeholder="Enter code" value={promoCode}
               onChange={e => setPromoCode(e.target.value)}
-              onKeyDown={e => {
+              onKeyDown={async e => {
                 if (e.key === 'Enter') {
-                  if (promoCode === '74421') {
-                    window.location.hash = 'admin';
-                  } else if (promoCode) {
-                    setPromoMsg('✅ Promo applied! (mock)');
-                  }
+                  if (!promoCode) return;
+                  const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
+                  const d = await r.json();
+                  if (d.admin) { window.location.hash = 'admin'; }
+                  else { setPromoMsg('✅ Promo applied!'); }
                 }
               }}
               style={{ marginBottom: '8px' }} />
-            <button onClick={() => {
-              if (promoCode === '74421') {
-                window.location.hash = 'admin';
-              } else if (promoCode) {
-                setPromoMsg('✅ Promo applied! (mock)');
-              }
+            <button onClick={async () => {
+              if (!promoCode) return;
+              const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
+              const d = await r.json();
+              if (d.admin) { window.location.hash = 'admin'; }
+              else { setPromoMsg('✅ Promo applied!'); }
             }}
               style={{ padding: '8px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
               Apply
