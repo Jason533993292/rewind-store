@@ -159,14 +159,8 @@ export default function ProductPage({ p, onBack, onAdd }) {
 
           <button onClick={() => { if (onAdd) onAdd(p, size); }}
             disabled={!size}
-            style={{
-              width: '100%', padding: '16px', borderRadius: '999px', border: 'none',
-              background: size ? '#16130F' : '#ddd',
-              color: size ? '#fff' : '#888',
-              cursor: size ? 'pointer' : 'default',
-              fontSize: '16px', fontWeight: 700,
-              marginBottom: '12px',
-            }}>
+            className="rw-btn rw-btn-pri rw-btn-full"
+            style={{ marginBottom: '12px' }}>
             {size ? `Add to bag — €${p.price}` : 'Select a size'}
           </button>
 

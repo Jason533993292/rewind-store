@@ -1,11 +1,16 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Product detail page "Add to bag" button has no hover animation — feels flat vs every other primary CTA
+- **Where:** `src/components/ProductPage.jsx` lines 160–171 — the main `<button onClick={() => { if (onAdd) onAdd(p, size); }}>` 
+- **What:** This is the single most important CTA on the product detail page, but it used hardcoded inline styles (`background: '#16130F'`, no transition) with zero animation. Every other primary button in the app — product cards (`.rw-add`), QuickView modal (`.rw-btn-pri`), checkout — has a polished hover effect: `translateY(-2px) scale(1.025)` + accent color swap + shadow. This button just sat there, dead, while the user's mouse was on it.
+- **Impact:** The button was invisible as an interactive element until clicked. After interacting with the lively card grid and maybe the QuickView modal (both of which have satisfying button feedback), the product page's add-to-bag button felt broken or cheap by comparison. There was also no disabled-state transition — the gray vs. black swap was instant and jarring.
+- **Fix:** Replaced inline styles with `className="rw-btn rw-btn-pri rw-btn-full"` and rely on the existing `.rw-btn:disabled` CSS for the disabled state (opacity 0.4, no-transform). The button text logic remains: `{size ? "Add to bag — €" + p.price : "Select a size"}`. Bonus: the `.rw-btn-pri` hover swaps background to `var(--accent)`, so it also responds to the Tweaks panel accent color — previously the button was locked to `#16130F` even when the user picked blue/green/pink.
+- Status: [DONE] — Replaced inline styles with `className="rw-btn rw-btn-pri rw-btn-full"` in `src/components/ProductPage.jsx`. Button now inherits hover animation (`translateY(-2px) scale(1.025)`, accent color swap, box-shadow) and disabled-state transition from CSS.
+
 ## [DONE] Product detail page "Back to shop" button has no hover effect & uses hardcoded colors
 - Status: [DONE] — Replaced inline styles with `className="rw-btn rw-btn-ghost"` in `src/components/ProductPage.jsx`. Button now inherits the same hover animation (inset border → `var(--ink)`, `translateY(-2px) scale(1.025)`) as all other ghost buttons in the app.
 - **Where:** `src/components/ProductPage.jsx` lines 19–25 — `<button onClick={onBack} style={{...}}>`
 - **Fix:** Dropped the inline styles and used the existing `.rw-btn-ghost` class, which already provides the polished hover effect (border highlight + lift + scale).
-
-## [🟢] Wishlist drawer can't display custom products (only searches REWIND_PRODUCTS)
 - Status: [DONE] — Added `customProducts` prop to `WishlistDrawer`; merged with `REWIND_PRODUCTS` via `useMemo`. Also passed `customProducts` from `App.jsx`.
 - **Where:** `src/components/Shop.jsx` line 551 — `WishlistDrawer` component
 - **What:** The drawer resolves wishlisted product IDs by searching only `REWIND_PRODUCTS`:
