@@ -5,3 +5,6 @@ dist/
 .DS_Store
 .vercel
 .env*
+test-results.json
+test-results/
+uptime-errors.log
