@@ -294,6 +294,34 @@ app.post('/api/create-payment-intent', async (req, res) => {
 
 // Validate promo code (admin access)
 app.post('/api/validate-promo', async (req, res) => {
+
+// Admin management (add/remove admins)
+app.post('/api/manage-admins', async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
+  const { action, email, adminEmail } = req.body;
+  // Verify the requester is an admin
+  const check = await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins?email=eq.${encodeURIComponent(adminEmail)}`, {
+    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+  });
+  const admins = await check.json();
+  if (!admins?.length) return res.status(403).json({ error: 'Not authorized' });
+
+  if (action === 'add') {
+    await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins`, {
+      method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ email, added_by: adminEmail }),
+    });
+    res.json({ ok: true });
+  } else if (action === 'remove') {
+    await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
+      method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    res.json({ ok: true });
+  } else {
+    res.status(400).json({ error: 'Invalid action' });
+  }
+});
   const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
   const { code } = req.body;
   if (code === ADMIN_CODE) return res.json({ admin: true });

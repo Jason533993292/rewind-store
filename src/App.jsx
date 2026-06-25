@@ -635,12 +635,36 @@ function AdminPanel({ onExit, onSelect }) {
               <div style={{ fontSize: '11px', color: '#888' }}>Total users</div>
             </div>
             <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.filter((u) => u.marketing_optin).length}</div>
+              <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.filter(u => u.marketing_optin).length}</div>
               <div style={{ fontSize: '11px', color: '#888' }}>Marketing opt-in</div>
             </div>
             <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
               <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</div>
-              <div style={{ fontSize: '11px', color: '#888' }}>Total saved items</div>
+              <div style={{ fontSize: '11px', color: '#888' }}>Saved items</div>
+            </div>
+          </div>
+
+          {/* ── Admin manager ── */}
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🔑 Admin management</h3>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <input placeholder="Email to add as admin" id="new-admin-email"
+                style={{ flex: 1, padding: '8px 12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '13px' }} />
+              <button onClick={async () => {
+                const input = document.getElementById('new-admin-email');
+                const email = input.value.trim();
+                if (!email) return;
+                const r = await fetch('/api/manage-admins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', email, adminEmail }) });
+                const d = await r.json();
+                alert(d.ok ? `✅ ${email} added as admin` : `❌ ${d.error}`);
+                if (d.ok) input.value = '';
+              }}
+                style={{ padding: '8px 16px', borderRadius: '8px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                Add admin
+              </button>
+            </div>
+            <div style={{ fontSize: '13px', color: '#888', marginTop: '8px' }}>
+              Current admins: {users.filter(u => u.blocked !== true).length} users · add your dad (fanaman74) or others here
             </div>
           </div>
 
