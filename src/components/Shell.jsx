@@ -141,8 +141,8 @@ export function Hero({ onShop }) {
           cleaned, and shipped in 24 hours. One of each — when it's gone, it's gone.
         </p>
         <div className="rw-hero-cta">
-          <button className="rw-btn rw-btn-pri" onClick={onShop}>Shop the drop <Icon name="arrow" size={17} /></button>
-          <button className="rw-btn rw-btn-ghost" onClick={onShop}>Browse jerseys</button>
+          <button className="rw-btn rw-btn-pri" onClick={() => onShop()}>Shop the drop <Icon name="arrow" size={17} /></button>
+          <button className="rw-btn rw-btn-ghost" onClick={() => onShop('Jerseys')}>Browse jerseys</button>
         </div>
         <div className="rw-hero-stats">
           <div><b>4.9</b><span>★ 2,300+ reviews</span></div>

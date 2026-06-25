@@ -264,7 +264,7 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
-      <Hero onShop={scrollToGrid} />
+      <Hero onShop={(filterCat) => { if (filterCat) setCat(filterCat); scrollToGrid(); }} />
       <Marquee />
 
       <main className="rw-shop">

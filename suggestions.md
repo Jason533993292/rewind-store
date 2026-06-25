@@ -1,5 +1,15 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Hero "Browse jerseys" button is misleading — says it filters to jerseys but just scrolls to full grid
+- **Where:** `src/components/Shell.jsx` lines 144–145 — both hero CTA buttons call `onShop` (which is `scrollToGrid`): `<button className="rw-btn rw-btn-pri" onClick={onShop}>Shop the drop</button>` and `<button className="rw-btn rw-btn-ghost" onClick={onShop}>Browse jerseys</button>`
+- **What:** The "Browse jerseys" button promises to show the user jerseys, but it behaves identically to "Shop the drop" — both just scroll down to the full product listing with whatever category/filter is active. There's no category filtering happening. A user who clicks "Browse jerseys" expecting to see just jerseys instead sees every product. The button label creates false expectations.
+- **Why it matters:** This is a trust/credibility papercut on the very first screen users see. The hero is the landing experience — when a labelled action doesn't deliver what it says, users feel misled. The fix also improves conversion: someone who clicks "Browse jerseys" has declared intent to see jerseys specifically, so showing them unfiltered results adds unnecessary friction to their purchase journey.
+- **Fix:**
+  1. In `src/App.jsx` line 267, change `onShop={scrollToGrid}` to accept an optional category: `onShop={(filterCat) => { if (filterCat) setCat(filterCat); scrollToGrid(); }}`
+  2. In `src/components/Shell.jsx` line 133, update the `Hero` component to pass category through: the `onShop` prop signature becomes `onShop(filterCat?)`.
+  3. In Shell.jsx line 145, change the "Browse jerseys" button to `onClick={() => onShop('Jerseys')}`.
+  4. In Shell.jsx line 144, change "Shop the drop" to `onClick={() => onShop()}` (no category → all).
+
 ## [DONE] Footer "Pay with" links all incorrectly point to shipping info — 5 links, wrong target
 - **Where:** `src/components/Shell.jsx` line 202 — the "Pay with" footer column: `<div><h4>Pay with</h4><a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>PayPal</a>...<a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>Klarna</a></div>`
 - **What:** All 5 payment method links (PayPal, Payconiq, Apple Pay, Bancontact, Klarna) call `onInfo('shipping')`, which opens the shipping information modal. The section header says "Pay with" but every link shows shipping delivery times, costs, and tracking — not payment information. There's also no `payments` page defined in `InfoModal.jsx`'s `PAGES` constant (only `shipping`, `returns`, `tracking` exist), so there's literally no payment info page to link to.
