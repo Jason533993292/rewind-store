@@ -124,7 +124,13 @@ export default function App() {
   const quickAdd = useCallback((p) => { addToCart(p); setDrawer(true); }, [addToCart]);
   const addFromQuick = useCallback((p, size) => { addToCart(p, size); setQuick(null); setDrawer(true); }, [addToCart]);
   const changeQty = useCallback((key, d) => { setCart((c) => c.map((it) => it.key === key ? { ...it, qty: Math.max(1, it.qty + d) } : it)); }, []);
-  const removeItem = useCallback((key) => { setCart((c) => c.filter((it) => it.key !== key)); }, []);
+  const removeItem = useCallback((key, name) => { 
+    setCart((c) => c.filter((it) => it.key !== key)); 
+    showToast((name || 'Item') + ' removed', {
+      label: 'Undo',
+      onClick: () => setCart((c) => [...c, cart.find(it => it.key === key)].filter(Boolean)),
+    });
+  }, [showToast]);
   const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); }, []);
   const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); }, []);
 
@@ -140,6 +146,11 @@ export default function App() {
         showToast(p.name + ' saved', {
           label: 'Show',
           onClick: () => setWishlistOpen(true),
+        });
+      } else {
+        showToast(p.name + ' removed', {
+          label: 'Undo',
+          onClick: () => setWishlist((inner) => inner.includes(p.id) ? inner : [...inner, p.id]),
         });
       }
       return exists ? prev.filter((id) => id !== p.id) : [...prev, p.id];

@@ -254,7 +254,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }
                 <div className="rw-line-info">
                   <div className="rw-line-top">
                     <h4>{it.name}</h4>
-                    <button className="rw-line-x" onClick={() => onRemove(it.key)} aria-label="Remove">
+                    <button className="rw-line-x" onClick={() => onRemove(it.key, it.name)} aria-label="Remove">
                       <Icon name="close" size={15} />
                     </button>
                   </div>
