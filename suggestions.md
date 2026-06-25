@@ -1,5 +1,36 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Search input has no clear/reset button — users must manually backspace to dismiss a query
+- **Where:** `src/components/Shell.jsx` lines 113–116 — the `.rw-search` div in the `Header` component: `<div className="rw-search"><Icon name="search" size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" /></div>`
+- **What:** When a user types a search query to filter products, the only way to return to the full unfiltered view is to manually backspace through the entire query string. There is no ✕ clear button inside or next to the search field. Once the user has typed even a short term like "nike", they must delete all 4 characters one-by-one to see all products again.
+- **Compare:** Modern search UI patterns universally include a clear button when the field is non-empty:
+  - macOS Spotlight: ✕ appears in the search field when text is present
+  - Apple.com / Google: ✕ clear button inside the input
+  - Amazon / ASOS / Zalando: ✕ or "Clear" link in/next to search
+  REWIND's search is the *only* filtering axis with no quick-reset affordance — both the category sidebar and brand filter have an "All" button that instantly resets to the full view. The search box lacks any equivalent.
+- **Why it matters:** Search is a primary navigation tool, especially on mobile where the header nav is hidden. A user who searches for "jerseys", browses results, and then wants to browse "All" again must either (a) manually delete the search text character by character, or (b) click a sidebar category — but that changes the category filter, not the search. The only *true* reset is backspacing the entire query. On mobile keyboards this is particularly tedious: the user must tap into the field, long-press backspace, or tap delete 6+ times. The ✕ is a sub-10-line fix with disproportionately high UX payoff.
+- **Fix:** Add a clear button that appears inside or immediately after the search field when `query` is non-empty:
+  ```jsx
+  <div className="rw-search">
+    <Icon name="search" size={17} />
+    <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+    {query && (
+      <button onClick={() => setQuery('')}
+        aria-label="Clear search"
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          padding: '2px', display: 'grid', placeItems: 'center',
+          color: 'var(--muted)', opacity: 0.7,
+        }}
+        onMouseOver={e => e.target.style.opacity = '1'}
+        onMouseOut={e => e.target.style.opacity = '0.7'}>
+        <Icon name="close" size={14} />
+      </button>
+    )}
+  </div>
+  ```
+  The `<Icon name="close">` already exists in the shared component — no new SVG needed. The `opacity: 0.7` with a hover-to-1 transition makes it subtle but discoverable, matching the muted aesthetic of the search field.
+
 ## [DONE] Promo code popup has no explicit close button — the only modal in the app without one
 - **Where:** `src/App.jsx` lines 378–414 — the promo code popup rendered when `promoOpen` is true
 - **What:** The promo code popup (triggered by the 💬 floating button at bottom-right) can only be dismissed by clicking the dark backdrop — there is no visible close/✕ button inside the popup itself. Every other modal, drawer, and overlay in the app has an explicit close button:

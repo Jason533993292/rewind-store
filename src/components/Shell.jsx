@@ -113,6 +113,19 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
           <div className="rw-search">
             <Icon name="search" size={17} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+            {query && (
+              <button onClick={() => setQuery('')}
+                aria-label="Clear search"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '2px', display: 'grid', placeItems: 'center',
+                  color: 'var(--muted)', opacity: 0.7,
+                }}
+                onMouseOver={e => e.target.style.opacity = '1'}
+                onMouseOut={e => e.target.style.opacity = '0.7'}>
+                <Icon name="close" size={14} />
+              </button>
+            )}
           </div>
           <button className="rw-iconbtn" onClick={onWishlistOpen} aria-label="Wishlist">
             <Icon name="heart" size={17} />
