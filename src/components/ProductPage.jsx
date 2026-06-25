@@ -102,17 +102,17 @@ export default function ProductPage({ p, onBack, onAdd }) {
             {p.cat?.toUpperCase()}
           </span>
           {p.brand && (
-            <span style={{ fontSize: '12px', color: '#888', marginLeft: '6px' }}>— {p.brand}</span>
+            <span style={{ fontSize: '12px', color: 'var(--muted)', marginLeft: '6px' }}>— {p.brand}</span>
           )}
-          <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '8px 0 4px', color: '#16130F' }}>{p.name}</h1>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '8px 0 4px', color: 'var(--ink)' }}>{p.name}</h1>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '24px', fontWeight: 700, color: '#16130F' }}>€{p.price}</span>
-            {p.was && <span style={{ fontSize: '18px', color: '#aaa', textDecoration: 'line-through' }}>€{p.was}</span>}
+            <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--ink)' }}>€{p.price}</span>
+            {p.was && <span style={{ fontSize: '18px', color: 'var(--muted)', textDecoration: 'line-through' }}>€{p.was}</span>}
           </div>
 
           {low && (
-            <div style={{ padding: '8px 14px', background: '#fff3cd', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+            <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
               ⚡ Only {p.stock} left
             </div>
           )}
@@ -167,8 +167,8 @@ export default function ProductPage({ p, onBack, onAdd }) {
           </button>
 
           {/* ── Details ── */}
-          <div style={{ borderTop: '1px solid #eee', paddingTop: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#888', marginBottom: '8px' }}>
+          <div style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
               <span>Free shipping on orders over €150</span>
               <span>14-day returns</span>
             </div>

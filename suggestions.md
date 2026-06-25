@@ -1,6 +1,6 @@
 # REWIND — Suggestions & Improvements
 
-## 🟢 Product detail page uses hardcoded colors instead of CSS design tokens — 5 locations
+## [DONE] Product detail page uses hardcoded colors instead of CSS design tokens — 5 locations
 - **Where:** `src/components/ProductPage.jsx` lines 105, 107, 110–111, 115, 170–174
 - **What:** Five distinct spots on the product detail page use raw hex colors instead of the CSS custom properties defined in `:root` (App.css lines 1–14). This breaks visual consistency and means the Tweaks panel accent/look controls don't fully affect the detail page:
   1. **Line 105 — brand label:** `color: '#888'` → should be `color: 'var(--muted)'` (token = `#6E665A`)
