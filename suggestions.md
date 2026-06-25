@@ -1,5 +1,12 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] Product detail page quantity stepper buttons have no hover feedback — inconsistent with cart drawer
+- **Where:** `src/components/ProductPage.jsx` lines 150–154 — the `+` and `−` quantity buttons: `<button onClick={() => setQty(Math.max(1, qty - 1))} style={{...}}>−</button>` and `<button onClick={() => setQty(Math.min(p.stock || 99, qty + 1))} style={{...}}>+</button>`
+- **What:** These buttons use bare inline styles (`border: '1px solid #ddd'`, `background: '#fff'`, no `transition`) with zero hover state. Mousing over them does absolutely nothing — no color shift, no background change, no border highlight. They feel completely dead.
+- **Compare:** The cart drawer quantity buttons (`.rw-qty button` in App.css line 395–396) have `transition: background .15s` and `.rw-qty button:hover { background: var(--line); }` — a subtle but essential hover cue that tells the user the button is interactive.
+- **Impact:** These are the *only* interactive elements users engage with before hitting the "Add to bag" CTA (alongside the size picker). When both the size buttons and the add-to-bag button have polished hover effects but the quantity steppers sit there inert, it creates a jarring inconsistency right at the point of purchase. It's especially noticeable on the product page where every other button now has proper feedback.
+- **Fix:** Either (A) add `onMouseOver`/`onMouseOut` handlers: `onMouseOver={e => e.target.style.background = '#f0f0f0'}` / `onMouseOut={e => e.target.style.background = '#fff'}` with `transition: 'background 0.15s'` on the style, or (B) better: reuse the `.rw-qty` CSS class pattern from the cart drawer and define `.rw-qty-btn` in App.css with `transition: all .15s` and a `:hover` that changes background to `var(--line)` and darkens the border to `var(--line-2)`.
+
 ## [DONE] Product detail page size-selector buttons have no hover feedback — inconsistent with QuickView modal
 - Status: [DONE] — Replaced inline styles with `className={"rw-size" + (size === s ? " is-on" : "")}` in `src/components/ProductPage.jsx`. Buttons now inherit hover transition (`border-color → var(--ink)`, `transition: all .15s`) from `.rw-size` CSS class while maintaining the circular 52×52px pill shape via inline style override.
 - **Where:** `src/components/ProductPage.jsx` lines 133–145 — the circular size buttons: `<button key={s} onClick={() => setSize(s)} style={{...}}>`
