@@ -288,7 +288,7 @@ export default function App() {
           }}>
             <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {REWIND_CATS.map((c) => (
-              <button key={c} onClick={() => setCat(c)}
+              <button key={c} onClick={() => { setCat(c); scrollToGrid(); }}
                 style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '10px 12px',
                   borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: cat === c ? 700 : 400,

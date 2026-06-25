@@ -427,5 +427,11 @@ if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 }
 
+// ── SPA fallback — serve index.html for any non-API, non-static route ──
+app.use((req, res) => {
+  if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
+});
+
 // Export for Vercel serverless
 export default app;
