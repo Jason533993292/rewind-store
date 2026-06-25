@@ -200,8 +200,8 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
               ))}
             </div>
           </div>
-          <button className="rw-btn rw-btn-pri rw-btn-full" onClick={() => onAdd(p, size)}>
-            Add to bag — {money(p.price)}
+          <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!size} onClick={() => onAdd(p, size)}>
+            {size ? 'Add to bag — ' + money(p.price) : 'Select a size'}
           </button>
           <div className="rw-modal-perks">
             <span><Icon name="truck" size={15} /> Ships in 24h</span>

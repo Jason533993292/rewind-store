@@ -1,5 +1,15 @@
 # REWIND — Suggestions & Improvements
 
+## [DONE] QuickView "Add to bag" button has no disabled state — silently picks first size when nothing selected
+- **Where:** `src/components/Shop.jsx` line 203 — QuickView modal's `<button className="rw-btn rw-btn-pri rw-btn-full" onClick={() => onAdd(p, size)}>Add to bag — {money(p.price)}</button>`
+- **What:** The QuickView modal lets the user pick a size via the `.rw-size` buttons (lines 197–200), but the "Add to bag" button at line 203 is always active — it has no `disabled` attribute and no guard. Clicking it without selecting a size calls `addFromQuick(p, size)` with `size = null`, which flows into `addToCart(p, size)` at App.jsx line 113 where line 114 silently defaults to `p.sizes[0]`. The user gets the first size in the array without ever being told which size that is.
+- **Compare:** The ProductPage (`src/components/ProductPage.jsx` line 181) correctly uses `disabled={!size}` and shows button text "Select a size" until a size is picked. The QuickView — which is the user's first interaction with the product after clicking "Quick view" on a card — has no such guard.
+- **Why it matters:** A user browsing quickly, or on mobile where the size buttons are easy to miss, can add an item to bag without ever choosing a size. They see "Added to bag" in the toast, open the cart drawer, and discover a size they didn't intend. This creates confusion and potential returns. The inconsistency between QuickView and ProductPage also feels like a bug — why does one page care about size selection but the other doesn't?
+- **Fix:**
+  1. In `Shop.jsx` line 203: add `disabled={!size}` to the button attributes
+  2. Change the button text to `{size ? `Add to bag — ${money(p.price)}` : 'Select a size'}` to match the ProductPage pattern
+  3. The existing `.rw-btn:disabled` CSS (App.css line 58) already handles `opacity: 0.4; cursor: not-allowed; transform: none;` — no new CSS needed.
+
 ## [DONE] InfoModal uses hardcoded colors and raw SVG — 6 locations break design-token consistency
 - **Where:** `src/components/InfoModal.jsx` lines 42, 45, 49, 50, 54, 55
 - **What:** The shipping/returns/tracking info modal (reached via footer links) has 6 spots that bypass the CSS design-token system:
