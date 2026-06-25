@@ -78,18 +78,18 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
           }}>
             <Photo id={p.id || p.product_id + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={p.img} />
           </div>
-          {/* Thumbnail strip — only show if multiple photos */}
-          {p.img && (
+          {/* Thumbnail strip — only real images */}
+          {images.filter(Boolean).length > 0 && (
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-              {[0, 1].map(i => (
+              {images.filter(Boolean).map((img, i) => (
                 <div key={i} onClick={() => setSelectedImg(i)}
                   style={{
                     width: '72px', height: '72px', borderRadius: '8px', cursor: 'pointer',
-                    background: i === 0 ? '#f5f0eb' : p.hue ? `hsl(${p.hue + 60},40%,80%)` : '#e8e4dd',
+                    background: p.hue ? `hsl(${p.hue},60%,85%)` : '#f5f0eb',
                     border: selectedImg === i ? '2px solid #16130F' : '2px solid transparent',
                     overflow: 'hidden',
                   }}>
-                  {i === 0 && p.img && <img src={p.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                  <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
             </div>
