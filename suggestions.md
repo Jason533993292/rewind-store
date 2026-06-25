@@ -1,6 +1,6 @@
 # REWIND — Suggestions & Improvements
 
-## 🟢 Product page quantity stepper is completely disconnected from "Add to bag" — always adds 1 regardless of selected quantity
+## [DONE] Product page quantity stepper is completely disconnected from "Add to bag" — always adds 1 regardless of selected quantity
 - **Where:** `src/components/ProductPage.jsx` line 180 + `src/App.jsx` lines 113–122, 252–253
 - **What:** The product detail page has a quantity stepper (`qty` state, lines 6–7, 164–178) that lets the user set a quantity between 1 and the product's stock level. The +/- buttons work, the display updates — but the quantity value is never passed to the "Add to bag" action. Line 180 calls `onAdd(p, size)` with no quantity argument. In `App.jsx` line 253, the `onAdd` handler calls `addToCart(p, size)` — still no quantity. The `addToCart` function (lines 113–122) always hardcodes `qty: 1` when creating a new cart entry, or increments an existing entry by 1. **Result: setting quantity to 3 and clicking "Add to bag" adds exactly 1 item.**
 - **Why it matters:** This is a functional bug, not a cosmetic one. The user interacts with a control, sees visual feedback (the number changes), and trusts that it affects the outcome. When they add to bag and see only 1 item in the cart drawer, the experience is confusing and feels broken. Compare: the cart drawer's own quantity steppers (`onQty`/`changeQty`) work correctly — only the product page's stepper is disconnected.
