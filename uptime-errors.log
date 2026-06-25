@@ -1,0 +1,15 @@
+=== REWIND UPTIME CHECK — Thu Jun 25 2026 16:43 UTC ===
+
+ALL CHECKS PASSED (8/8) — no failures.
+
+PASSED CHECKS (8):
+  [PASS] / (root) — HTTP 200
+  [PASS] Title tag — "REWIND — Curated Vintage & Retro Sportswear"
+  [PASS] Meta description — present and populated
+  [PASS] JS bundle (/assets/index-Dt2wLhp6.js) — HTTP 200
+  [PASS] CSS bundle (/assets/index-QrbpxMQz.css) — HTTP 200
+  [PASS] /api/health — HTTP 200, {"status":"ok"}
+  [PASS] /api/send-order — HTTP 400 (correctly rejects empty body)
+  [PASS] /#admin — HTTP 200
+
+Test suite: 21/21 passed (0 unexpected, 0 flaky) — Thu Jun 25 2026 16:27 UTC
