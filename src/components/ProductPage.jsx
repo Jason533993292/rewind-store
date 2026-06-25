@@ -132,12 +132,10 @@ export default function ProductPage({ p, onBack, onAdd }) {
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {p.sizes?.map(s => (
                 <button key={s} onClick={() => setSize(s)}
+                  className={"rw-size" + (size === s ? " is-on" : "")}
                   style={{
-                    width: '52px', height: '52px', borderRadius: '50%',
-                    border: size === s ? '2px solid #16130F' : '1px solid #ddd',
-                    background: size === s ? '#16130F' : '#fff',
-                    color: size === s ? '#fff' : '#16130F',
-                    cursor: 'pointer', fontWeight: 700, fontSize: '14px',
+                    borderRadius: '50%', width: '52px', height: '52px',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                   {s}
                 </button>
