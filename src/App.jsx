@@ -346,7 +346,7 @@ export default function App() {
       <Checkout open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} />
       <Toast toast={toast} />
       <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} onSignup={handleSignup} />
-      <WishlistDrawer open={wishlistOpen} items={wishlist}
+      <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
         onClose={() => setWishlistOpen(false)}
         onRemove={(id) => setWishlist((prev) => prev.filter((i) => i !== id))}
         onAddToCart={(p) => { addToCart(p); setDrawer(true); }} />

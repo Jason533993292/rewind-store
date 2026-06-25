@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
@@ -547,8 +547,9 @@ export function SignupModal({ open, onClose, onSignup }) {
 }
 
 /* ---------- Wishlist Drawer ---------- */
-export function WishlistDrawer({ open, items, onClose, onRemove, onAddToCart }) {
-  const wishlistItems = items.map((id) => REWIND_PRODUCTS.find((p) => p.id === id)).filter(Boolean);
+export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart }) {
+  const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
+  const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id)).filter(Boolean);
 
   return (
     <>
