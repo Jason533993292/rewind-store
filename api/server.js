@@ -347,49 +347,50 @@ app.post('/api/manage-admins', async (req, res) => {
   }
 });
 
+// ── Stripe Checkout Session ──
+app.post('/api/create-checkout-session', async (req, res) => {
+  if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured on Railway' });
+  const { items, total, orderNum, email, name, address } = req.body;
+  try {
+    const line_items = (items || []).map(it => ({
+      price_data: {
+        currency: 'eur',
+        product_data: { name: `${it.name}${it.size ? ` (${it.size})` : ''}` },
+        unit_amount: Math.round(it.price * 100),
+      },
+      quantity: it.qty || 1,
+    }));
+    const shipping = total - (items || []).reduce((s, it) => s + it.price * (it.qty || 1), 0);
+    if (shipping > 0) {
+      line_items.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'Shipping' },
+          unit_amount: Math.round(shipping * 100),
+        },
+        quantity: 1,
+      });
+    }
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items,
+      customer_email: email,
+      metadata: { orderNum, customer_name: name || '', address: address || '' },
+      success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success`,
+      cancel_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=cancelled`,
+      payment_method_types: ['card', 'bancontact', 'ideal', 'eps', 'klarna'],
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe session error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // PayPal order creation
 app.post('/api/create-paypal-order', async (req, res) => {
   const { amount, orderNum } = req.body;
   const PAYPAL_CLIENT = process.env.PAYPAL_CLIENT_ID;
-
-  // ── Stripe Checkout Session ──
-  app.post('/api/create-checkout-session', async (req, res) => {
-    if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured on Railway' });
-    const { items, total, orderNum, email, name, address } = req.body;
-    try {
-      const line_items = (items || []).map(it => ({
-        price_data: {
-          currency: 'eur',
-          product_data: { name: `${it.name}${it.size ? ` (${it.size})` : ''}` },
-          unit_amount: Math.round(it.price * 100),
-        },
-        quantity: it.qty || 1,
-      }));
-      const shipping = total - (items || []).reduce((s, it) => s + it.price * (it.qty || 1), 0);
-      if (shipping > 0) {
-        line_items.push({
-          price_data: {
-            currency: 'eur',
-            product_data: { name: 'Shipping' },
-            unit_amount: Math.round(shipping * 100),
-          },
-          quantity: 1,
-        });
-      }
-      const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        line_items,
-        customer_email: email,
-        metadata: { orderNum, customer_name: name || '', address: address || '' },
-        success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=cancelled`,
-        payment_method_types: ['card', 'bancontact', 'ideal', 'eps', 'klarna'],
-      });
-      res.json({ url: session.url });
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
   const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
   if (!PAYPAL_CLIENT || !PAYPAL_SECRET) return res.status(400).json({ error: 'PayPal keys not configured on Railway' });
   try {
