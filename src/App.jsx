@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V4.2.0';
+const VERSION = 'V4.3.0';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
