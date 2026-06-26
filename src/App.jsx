@@ -36,6 +36,7 @@ export default function App() {
   const [drawer, setDrawer] = useState(false);
   const [quick, setQuick] = useState(null);
   const [checkout, setCheckout] = useState(false);
+  const [checkoutCount, setCheckoutCount] = useState(0);
   const [toast, setToast] = useState(null);
   const [brand, setBrand] = useState(null);
   const [signupOpen, setSignupOpen] = useState(false);
@@ -131,7 +132,7 @@ export default function App() {
       onClick: () => setCart((c) => [...c, cart.find(it => it.key === key)].filter(Boolean)),
     });
   }, [showToast]);
-  const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); }, []);
+  const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); }, []);
   const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); }, []);
 
   const handleWishlist = useCallback((p) => {
@@ -372,7 +373,7 @@ export default function App() {
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
       <CartDrawer open={drawer} items={cart} onClose={() => setDrawer(false)}
         onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout} />
-      <Checkout open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} />
+      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} />
       <Toast toast={toast} />
       <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} onSignup={handleSignup} />
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
