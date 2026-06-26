@@ -2,7 +2,6 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
-import confetti from 'canvas-confetti';
 import { deleteCustomProduct } from '../lib/supabase';
 
 /* ---------- LazyImage (for real product photos) ---------- */
@@ -300,16 +299,24 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
 
-  // Launch confetti burst
+  // Launch confetti burst (CSS-based, no external lib needed)
   useEffect(() => {
     if (orderNum) {
-      const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.5 } };
       const colors = ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'];
-      confetti({ ...defaults, particleCount: 80, colors });
-      const t1 = setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.6 } }), 200);
-      const t2 = setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.6 } }), 400);
-      const t3 = setTimeout(() => confetti({ ...defaults, particleCount: 120, spread: 130, startVelocity: 55, origin: { y: 0.2 } }), 600);
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999';
+      document.body.appendChild(container);
+      for (let i = 0; i < 80; i++) {
+        const c = document.createElement('div');
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.5;
+        const size = 5 + Math.random() * 8;
+        const drift = (Math.random() - 0.5) * 150;
+        c.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size * 0.6}px;background:${color};border-radius:2px;animation:confettiFall 2.2s ${delay}s ease-out forwards;--drift:${drift}px`;
+        container.appendChild(c);
+      }
+      setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 3000);
     }
   }, [orderNum]);
 
@@ -326,7 +333,7 @@ export function Checkout({ open, items, onClose, onPlaced }) {
           <h2>Order confirmed</h2>
           <p>Thanks for your order! We'll send you a shipping confirmation once your items are on their way.</p>
           <div className="rw-confirm-num">{orderNum}</div>
-          <p style={{ fontSize: '12px', color: '#938B7E', marginTop: '12px' }}>A confirmation is also sent to <strong>orders@rewind-stores.com</strong></p>
+          <p style={{ fontSize: '12px', color: '#938B7E', marginTop: '12px' }}>A confirmation has been sent to your email</p>
           <button className="rw-btn rw-btn-pri" onClick={onPlaced}>Continue shopping</button>
         </div>
       </div>
