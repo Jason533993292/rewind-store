@@ -303,13 +303,13 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   // Launch confetti burst
   useEffect(() => {
     if (orderNum) {
-      requestAnimationFrame(() => {
-        const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.6 } };
-        confetti({ ...defaults, particleCount: 80, colors: ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'] });
-        setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } }), 150);
-        setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } }), 300);
-        setTimeout(() => confetti({ ...defaults, particleCount: 100, spread: 120, startVelocity: 60, origin: { y: 0.3 } }), 500);
-      });
+      const defaults = { spread: 90, startVelocity: 45, ticks: 100, origin: { y: 0.5 } };
+      const colors = ['#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'];
+      confetti({ ...defaults, particleCount: 80, colors });
+      const t1 = setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.6 } }), 200);
+      const t2 = setTimeout(() => confetti({ ...defaults, particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.6 } }), 400);
+      const t3 = setTimeout(() => confetti({ ...defaults, particleCount: 120, spread: 130, startVelocity: 55, origin: { y: 0.2 } }), 600);
+      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
     }
   }, [orderNum]);
 
