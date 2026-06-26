@@ -383,7 +383,7 @@ export default function App() {
 
       {/* ── Promo code button ── */}
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
-        <button onClick={() => setPromoOpen(true)}
+        <button onClick={() => setPromoOpen(prev => !prev)}
           style={{
             width: '44px', height: '44px', borderRadius: '50%',
             background: '#16130F', color: '#fff', border: 'none',
