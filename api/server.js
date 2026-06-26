@@ -381,7 +381,7 @@ app.post('/api/create-paypal-order', async (req, res) => {
         line_items,
         customer_email: email,
         metadata: { orderNum, customer_name: name || '', address: address || '' },
-        success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success&orderNum=${orderNum}`,
+        success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=cancelled`,
         payment_method_types: ['card', 'bancontact', 'ideal', 'eps', 'klarna'],
       });
@@ -477,6 +477,41 @@ app.get('/api/run-tests', async (_req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+// Stripe webhook — save order on payment success
+app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const { orderNum, customer_name, address } = session.metadata || {};
+    const email = session.customer_details?.email || session.customer_email || '';
+    try {
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+      const items = lineItems.data.map(it => ({ name: it.description, price: it.amount_total / 100, qty: it.quantity }));
+      const total = session.amount_total / 100;
+      // Save order directly to Supabase
+      await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/orders`, {
+        method: 'POST',
+        headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_num: orderNum, customer_name, email, address: address || '', items, total, status: 'paid' }),
+      });
+      if (process.env.RESEND_API_KEY) {
+        await fetch(`http://localhost:${PORT}/api/send-order`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name: customer_name, items, total, address, orderNum }),
+        });
+      }
+    } catch (e) { console.error('Webhook error:', e); }
+  }
+  res.json({ received: true });
+});
+
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 }
