@@ -354,58 +354,35 @@ export function Checkout({ open, items, onClose, onPlaced }) {
 
   async function handlePay() {
     setProcessing(true);
-    // Mock API delay — replace with real payment gateway call
-    await new Promise((r) => setTimeout(r, 1800));
-
-    // Send order confirmation email
     const orderNum = 'RW-' + String(Date.now()).slice(-8);
     try {
-      await fetch('/api/send-order', {
+      const r = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty })),
+          total: total,
+          orderNum,
           email: document.querySelector('.rw-input[type="email"]')?.value || '',
           name: document.querySelector('.rw-input[placeholder="Full name"]')?.value || '',
-          items: items.map((it) => ({ name: it.name, size: it.size, price: it.price })),
-          total: subtotal + shipping,
           address: [
             document.querySelector('.rw-input[placeholder="Address"]')?.value,
             document.querySelector('.rw-input[placeholder="Postal code"]')?.value,
             document.querySelector('.rw-input[placeholder="City"]')?.value,
           ].filter(Boolean).join(', '),
-          orderNum,
         }),
       });
+      const d = await r.json();
+      if (d.url) {
+        window.location.href = d.url;
+      } else {
+        throw new Error(d.error || 'Checkout failed');
+      }
     } catch (e) {
-      console.warn('Order email not sent:', e);
+      setProcessing(false);
+      console.warn('Payment error:', e);
     }
-
-    // Save order to Supabase
-    try {
-      await fetch('/api/save-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderNum,
-          customer_name: document.querySelector('.rw-input[placeholder="Full name"]')?.value || 'Guest',
-          email: document.querySelector('.rw-input[type="email"]')?.value || '',
-          address: [
-            document.querySelector('.rw-input[placeholder="Address"]')?.value,
-            document.querySelector('.rw-input[placeholder="Postal code"]')?.value,
-            document.querySelector('.rw-input[placeholder="City"]')?.value,
-          ].filter(Boolean).join(', '),
-          items: items.map((it) => ({ name: it.name, size: it.size, price: it.price, qty: it.qty || 1 })),
-          total: subtotal + shipping,
-          status: 'pending',
-        }),
-      });
-    } catch (e) {
-      console.warn('Order save failed:', e);
-    }
-
-    setProcessing(false);
-    setOrderNum(orderNum);
-    setPlaced(true);
+  }
   }
 
   return (

@@ -189,7 +189,20 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
 
-  // Handle back/forward navigation for product page
+  // Handle Stripe success/cancel redirects
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('order') === 'success') {
+      const orderNum = params.get('orderNum');
+      if (orderNum) {
+        showToast('✅ Order ' + orderNum + ' confirmed!');
+        setCart([]);
+        setCheckout(false);
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+  }, [showToast]);
   useEffect(() => {
     const onPop = () => {
       if (!window.location.hash.startsWith('#/product/')) {
