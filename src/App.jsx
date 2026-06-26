@@ -384,6 +384,7 @@ export default function App() {
         onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }} />
 
       {/* ── Promo code button ── */}
+      {!drawer && !wishlistOpen && (
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
         <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); } }}
           style={{
@@ -398,8 +399,9 @@ export default function App() {
           💬
         </button>
       </div>
+      )}
 
-      {(promoOpen || promoClosing) && (
+      {!drawer && !wishlistOpen && (promoOpen || promoClosing) && (
         <div className="rw-modal-wrap" onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
           style={{ animation: promoClosing ? 'fadeOut 0.25s ease forwards' : 'fadeIn 0.15s ease' }}>
           <div onClick={e => e.stopPropagation()}
