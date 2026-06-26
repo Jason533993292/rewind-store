@@ -566,7 +566,7 @@ export function SignupModal({ open, onClose, onSignup }) {
 }
 
 /* ---------- Wishlist Drawer ---------- */
-export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect }) {
+export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect, onCartOpen }) {
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
   const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id)).filter(Boolean);
   const [selected, setSelected] = useState([]);
@@ -578,6 +578,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
     const toAdd = wishlistItems.filter(p => selected.includes(p.id));
     toAdd.forEach(p => onAddToCart(p));
     setSelected([]);
+    if (onCartOpen) onCartOpen();
   };
 
   return (
@@ -612,11 +613,8 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                     onChange={() => toggleSelect(p.id)}
                     style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
                 </div>
-                <div className="rw-line-media" style={{ cursor: 'pointer' }}
-                  onClick={() => onAddToCart(p)}>
-                  <div style={{ width: '74px', height: '74px', borderRadius: '8px', background: p.hue ? `hsl(${p.hue},50%,88%)` : '#f0ece6', display: 'grid', placeItems: 'center', color: '#16130F', fontSize: '20px' }}>
-                    🛒
-                  </div>
+                <div className="rw-line-media">
+                  <Photo id={p.id + "-wish"} hue={p.hue} label="" h={74} />
                 </div>
                 <div className="rw-line-info">
                   <div className="rw-line-top">
