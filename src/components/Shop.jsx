@@ -313,10 +313,10 @@ export function Checkout({ open, items, onClose, onPlaced }) {
         const delay = Math.random() * 0.5;
         const size = 5 + Math.random() * 8;
         const drift = (Math.random() - 0.5) * 150;
-        c.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size * 0.6}px;background:${color};border-radius:2px;animation:confettiFall 2.2s ${delay}s ease-out forwards;--drift:${drift}px`;
+        c.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size * 0.6}px;background:${color};border-radius:2px;animation:confettiFall 3.5s ${delay}s ease-out forwards;--drift:${drift}px`;
         container.appendChild(c);
       }
-      setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 3000);
+      setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 5500);
     }
   }, [orderNum]);
 
