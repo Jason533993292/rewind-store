@@ -383,7 +383,6 @@ export function Checkout({ open, items, onClose, onPlaced }) {
       console.warn('Payment error:', e);
     }
   }
-  }
 
   return (
     <div className="rw-checkout">

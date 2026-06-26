@@ -349,7 +349,7 @@ export default function App() {
                   <button key={b} onClick={() => setBrand(b)}
                     style={{
                       display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
-                      borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: brand === b ? 700 : 400,
+                      borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
                       background: brand === b ? '#16130F' : 'transparent',
                       color: brand === b ? '#fff' : '#16130F',
                       fontWeight: brand === b ? 700 : 400,
