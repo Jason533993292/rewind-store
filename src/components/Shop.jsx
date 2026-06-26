@@ -306,17 +306,17 @@ export function Checkout({ open, items, onClose, onPlaced }) {
       const container = document.createElement('div');
       container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999';
       document.body.appendChild(container);
-      for (let i = 0; i < 80; i++) {
+      for (let i = 0; i < 150; i++) {
         const c = document.createElement('div');
         const color = colors[Math.floor(Math.random() * colors.length)];
         const left = Math.random() * 100;
-        const delay = Math.random() * 0.5;
-        const size = 5 + Math.random() * 8;
-        const drift = (Math.random() - 0.5) * 150;
-        c.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size * 0.6}px;background:${color};border-radius:2px;animation:confettiFall 3.5s ${delay}s ease-out forwards;--drift:${drift}px`;
+        const delay = Math.random() * 1.5;
+        const size = 4 + Math.random() * 10;
+        const drift = (Math.random() - 0.5) * 200;
+        c.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size * 0.6}px;background:${color};border-radius:2px;animation:confettiFall 5s ${delay}s ease-out forwards;--drift:${drift}px`;
         container.appendChild(c);
       }
-      setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 5500);
+      setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 8000);
     }
   }, [orderNum]);
 
