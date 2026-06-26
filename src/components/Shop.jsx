@@ -332,7 +332,15 @@ export function Checkout({ open, items, onClose, onPlaced }) {
           <div className="rw-confirm-mark"><Icon name="check" size={36} /></div>
           <h2>Order confirmed</h2>
           <p>Thanks for your order! We'll send you a shipping confirmation once your items are on their way.</p>
-          <div className="rw-confirm-num">{orderNum}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '4px' }}>
+            <div className="rw-confirm-num">{orderNum}</div>
+            <button onClick={() => { navigator.clipboard.writeText(orderNum); const btn = document.activeElement; btn.textContent = '✓'; setTimeout(() => btn.textContent = '⎘', 1200); }}
+              style={{ width: '28px', height: '28px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#fff', cursor: 'pointer', fontSize: '13px', display: 'grid', placeItems: 'center', color: '#6E665A', transition: 'background 0.15s' }}
+              onMouseOver={e => e.target.style.background = '#f5f0eb'}
+              onMouseOut={e => e.target.style.background = '#fff'}>
+              ⎘
+            </button>
+          </div>
           <p style={{ fontSize: '12px', color: '#938B7E', marginTop: '12px' }}>A confirmation has been sent to your email</p>
           <button className="rw-btn rw-btn-pri" onClick={onPlaced}>Continue shopping</button>
         </div>
