@@ -182,6 +182,7 @@ export default function App() {
   const [showSizes, setShowSizes] = useState(false);
   const [infoPage, setInfoPage] = useState(null);
   const [promoOpen, setPromoOpen] = useState(false);
+  const [promoClosing, setPromoClosing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoMsg, setPromoMsg] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -383,7 +384,7 @@ export default function App() {
 
       {/* ── Promo code button ── */}
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
-        <button onClick={() => setPromoOpen(prev => !prev)}
+        <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); } }}
           style={{
             width: '44px', height: '44px', borderRadius: '50%',
             background: '#16130F', color: '#fff', border: 'none',
@@ -397,19 +398,19 @@ export default function App() {
         </button>
       </div>
 
-      {promoOpen && (
-        <div className="rw-modal-wrap" onClick={() => setPromoOpen(false)}
-          style={{ animation: 'fadeIn 0.15s ease' }}>
+      {(promoOpen || promoClosing) && (
+        <div className="rw-modal-wrap" onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
+          style={{ animation: promoClosing ? 'fadeOut 0.25s ease forwards' : 'fadeIn 0.15s ease' }}>
           <div onClick={e => e.stopPropagation()}
             style={{
               position: 'fixed', bottom: '80px', right: '24px',
               background: '#fff', borderRadius: '14px', padding: '24px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
               width: '280px', zIndex: 1001,
-              animation: 'genieUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              animation: promoClosing ? 'genieDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'genieUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
               transformOrigin: 'bottom right',
             }}>
-            <button onClick={() => setPromoOpen(false)}
+            <button onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
               style={{
                 position: 'absolute', top: '10px', right: '10px',
                 width: '24px', height: '24px', borderRadius: '50%',
