@@ -412,7 +412,8 @@ a { color: inherit; cursor: pointer; }
 .rw-subtotal span { color: var(--muted); }
 .rw-subtotal b { font-family: var(--font-head); font-size: 22px; font-weight: 700; }
 .rw-paystrip { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; justify-content: center; }
-.rw-paychip { font-size: 10.5px; font-weight: 600; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; letter-spacing: .02em; }
+.rw-paychip { font-size: 10.5px; font-weight: 600; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; letter-spacing: .02em; cursor: default; transition: transform 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.rw-paychip:hover { color: #FF4D14; border-color: #FF4D14; transform: translateY(-2px) scale(1.06); box-shadow: 0 2px 8px rgba(255,77,20,0.15); }
 
 /* ---- checkout ---- */
 .rw-checkout { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow: auto; animation: fadeUp .25s ease; }
