@@ -378,6 +378,21 @@ app.post('/api/create-paypal-order', async (req, res) => {
   }
 });
 
+// ── Get orders by email ──
+app.post('/api/get-orders', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const response = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}&order=created_at.desc`, {
+      headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
+    });
+    const orders = await response.json();
+    res.json({ orders: orders || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Save order to Supabase ──
 app.post('/api/save-order', async (req, res) => {
   const { orderNum, customer_name, email, address, items, total, status } = req.body;
