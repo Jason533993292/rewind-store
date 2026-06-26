@@ -378,7 +378,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       metadata: { orderNum, customer_name: name || '', address: address || '' },
       success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success`,
       cancel_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=cancelled`,
-      payment_method_types: ['card', 'bancontact', 'ideal', 'eps', 'klarna'],
+      payment_method_types: ['card'],
     });
     res.json({ url: session.url });
   } catch (err) {
