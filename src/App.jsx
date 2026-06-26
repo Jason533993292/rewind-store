@@ -398,24 +398,31 @@ export default function App() {
       </div>
 
       {promoOpen && (
-        <div className="rw-modal-wrap" onClick={() => setPromoOpen(false)}>
+        <div className="rw-modal-wrap" onClick={() => setPromoOpen(false)}
+          style={{ animation: 'fadeIn 0.15s ease' }}>
           <div onClick={e => e.stopPropagation()}
             style={{
               position: 'fixed', bottom: '80px', right: '24px',
-              background: '#fff', borderRadius: '12px', padding: '20px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
-              width: '260px', zIndex: 1001,
+              background: '#fff', borderRadius: '14px', padding: '24px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+              width: '280px', zIndex: 1001,
+              animation: 'genieUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              transformOrigin: 'bottom right',
             }}>
             <button onClick={() => setPromoOpen(false)}
               style={{
                 position: 'absolute', top: '10px', right: '10px',
-                width: '28px', height: '28px', borderRadius: '50%',
-                border: 'none', background: 'none', cursor: 'pointer',
+                width: '24px', height: '24px', borderRadius: '50%',
+                border: 'none', background: '#eee', cursor: 'pointer',
                 display: 'grid', placeItems: 'center',
-                color: 'var(--muted)', fontSize: '16px',
-              }} aria-label="Close">
-              <Icon name="close" size={16} /></button>
-            <h4 style={{ margin: '0 0 8px', fontSize: '15px', fontWeight: 700 }}>Got a promo code?</h4>
+                color: '#888', fontSize: '13px', fontWeight: 700,
+                transition: 'background 0.15s',
+              }}
+              onMouseOver={e => e.target.style.background = '#ddd'}
+              onMouseOut={e => e.target.style.background = '#eee'}>
+              ✕
+            </button>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16130F', marginBottom: '4px' }}>Got a code?</div>
             <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#888' }}>Enter it below and get a discount.</p>
             <input className="rw-input" placeholder="Enter code" value={promoCode}
               onChange={e => setPromoCode(e.target.value)}
