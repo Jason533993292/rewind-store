@@ -591,7 +591,7 @@ app.post('/api/check-blocked-email', express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.json({ blocked: false });
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email)}`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email)}`, { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
     const data = await r.json();
     res.json({ blocked: data && data.length > 0 });
   } catch { res.json({ blocked: false }); }
