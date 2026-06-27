@@ -1146,26 +1146,30 @@ function AdminPanel({ onExit, onSelect }) {
   );
 }
 
-/* ── Blocked IPs & Emails Panel ── */
 /* ── Blocked Emails Panel ── */
 function BlockedPanel() {
   const [emails, setEmails] = useState([]);
   const [newEmail, setNewEmail] = useState('');
   const [loading, setLoading] = useState(true);
+  const [allUsers, setAllUsers] = useState([]);
 
   const loadAll = async () => {
     try {
-      const re = await fetch('/api/admin/blocked-emails').then(r => r.json());
+      const [re, ru] = await Promise.all([
+        fetch('/api/admin/blocked-emails').then(r => r.json()),
+        fetch('/api/admin/user-emails').then(r => r.json()),
+      ]);
       setEmails(re.emails || []);
+      setAllUsers(ru.emails || []);
     } catch {}
     setLoading(false);
   };
 
   React.useEffect(() => { loadAll(); }, []);
 
-  const blockEmail = async () => {
-    if (!newEmail.trim()) return;
-    await fetch('/api/admin/block-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: newEmail.trim() }) });
+  const blockEmail = async (email) => {
+    if (!email) return;
+    await fetch('/api/admin/block-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
     setNewEmail(''); loadAll();
   };
 
@@ -1174,24 +1178,41 @@ function BlockedPanel() {
     loadAll();
   };
 
+  const blockedEmails = new Set(emails.map(e => e.email));
+  const unblockedUsers = allUsers.filter(email => !blockedEmails.has(email));
+
   return (
-    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
-      <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked Emails</h3>
-      <p style={{ fontSize: '12px', color: '#6E665A', marginBottom: '12px' }}>Blocked users will see a permanent notice when they try to checkout: <em>"Contact orders@rewind-stores.com to appeal."</em></p>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-        <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') blockEmail(); }} />
-        <button onClick={blockEmail} style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}>Block</button>
-      </div>
-      {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : emails.length === 0 ? (
-        <p style={{ fontSize: '13px', color: '#888' }}>No blocked emails.</p>
-      ) : emails.map(e => (
-        <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-          <span style={{ fontSize: '13px' }}>{e.email}</span>
-          <span style={{ fontSize: '11px', color: '#888' }}>{new Date(e.created_at).toLocaleDateString()}</span>
-          <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Unblock</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked Emails</h3>
+        <p style={{ fontSize: '12px', color: '#6E665A', marginBottom: '12px' }}>Blocked users will see a permanent notice when they try to checkout: <em>"Contact orders@rewind-stores.com to appeal."</em></p>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && newEmail.trim()) blockEmail(newEmail.trim()); }} />
+          <button onClick={() => blockEmail(newEmail.trim())} disabled={!newEmail.trim()}
+            style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}>Block</button>
         </div>
-      ))}
+        {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : emails.length === 0 ? (
+          <p style={{ fontSize: '13px', color: '#888' }}>No blocked emails.</p>
+        ) : emails.map(e => (
+          <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <span style={{ fontSize: '13px' }}>{e.email}</span>
+            <span style={{ fontSize: '11px', color: '#888' }}>{new Date(e.created_at).toLocaleDateString()}</span>
+            <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Unblock</button>
+          </div>
+        ))}
+      </div>
+      {unblockedUsers.length > 0 && (
+        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>👥 All Users</h3>
+          {unblockedUsers.map(email => (
+            <div key={email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <span style={{ fontSize: '13px' }}>{email}</span>
+              <button onClick={() => blockEmail(email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Block</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

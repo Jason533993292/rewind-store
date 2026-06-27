@@ -621,6 +621,20 @@ app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Admin: list all user emails from orders + wishlists ──
+app.get('/api/admin/user-emails', async (req, res) => {
+  try {
+    const [ords, wls] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/orders?select=email`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }).then(r => r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/wishlists?select=email`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }).then(r => r.json()),
+    ]);
+    const emailSet = new Set();
+    (Array.isArray(ords) ? ords : []).forEach(o => { if (o.email) emailSet.add(o.email.toLowerCase().trim()); });
+    (Array.isArray(wls) ? wls : []).forEach(w => { if (w.email) emailSet.add(w.email.toLowerCase().trim()); });
+    res.json({ emails: [...emailSet].sort() });
+  } catch { res.json({ emails: [] }); }
+});
+
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 }
