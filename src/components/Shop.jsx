@@ -355,6 +355,16 @@ export function Checkout({ open, items, onClose, onPlaced }) {
   async function handlePay() {
     setProcessing(true);
     const orderNum = 'RW-' + String(Date.now()).slice(-8);
+    const email = document.querySelector('.rw-input[type="email"]')?.value || '';
+    // Check if email is blocked
+    try {
+      const br = await fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+      const bd = await br.json();
+      if (bd.blocked) {
+        setProcessing(false);
+        return alert('🚫 Your email has been blocked.\nPlease contact orders@rewind-stores.com to appeal.');
+      }
+    } catch {}
     try {
       const r = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -363,7 +373,7 @@ export function Checkout({ open, items, onClose, onPlaced }) {
           items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty })),
           total: total,
           orderNum,
-          email: document.querySelector('.rw-input[type="email"]')?.value || '',
+          email,
           name: document.querySelector('.rw-input[placeholder="Full name"]')?.value || '',
           address: [
             document.querySelector('.rw-input[placeholder="Address"]')?.value,
@@ -580,6 +590,17 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
           <h3>Wishlist <span>({wishlistItems.length})</span></h3>
           <button onClick={onClose} aria-label="Close"><Icon name="close" size={20} /></button>
         </div>
+        {wishlistItems.length > 0 && (
+          <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input type="checkbox" checked={selected.length === wishlistItems.length && wishlistItems.length > 0}
+              onChange={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}
+              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
+            <span style={{ fontSize: '13px', color: '#6E665A', cursor: 'pointer' }}
+              onClick={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}>
+              Select all
+            </span>
+          </div>
+        )}
         {selected.length > 0 && (
           <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line)' }}>
             <button className="rw-btn rw-btn-pri" style={{ padding: '8px 14px', fontSize: '13px' }}
