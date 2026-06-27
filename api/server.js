@@ -376,7 +376,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
       line_items,
       customer_email: email,
       metadata: { orderNum, customer_name: name || '', address: address || '' },
-      success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success`,
+      success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success&orderNum=${orderNum}`,
       cancel_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=cancelled`,
       payment_method_types: ['card'],
     });
@@ -496,12 +496,32 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
       const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
       const items = lineItems.data.map(it => ({ name: it.description, price: it.amount_total / 100, qty: it.quantity }));
       const total = session.amount_total / 100;
-      // Save order directly to Supabase
+      // Save order to Supabase
       await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/orders`, {
         method: 'POST',
         headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_num: orderNum, customer_name, email, address: address || '', items, total, status: 'paid' }),
       });
+      // Decrement stock for purchased items
+      for (const it of items) {
+        if (it.name && it.qty) {
+          const name = it.name.replace(/\s*\(.*?\)\s*$/, '').trim(); // strip size from name
+          await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?name=eq.${encodeURIComponent(name)}`, {
+            headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
+          }).then(async r => {
+            const products = await r.json();
+            if (products && products.length > 0) {
+              const p = products[0];
+              const newStock = Math.max(0, (p.stock || 1) - it.qty);
+              await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?id=eq.${p.id}`, {
+                method: 'PATCH',
+                headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stock: newStock }),
+              });
+            }
+          });
+        }
+      }
       if (process.env.RESEND_API_KEY) {
         await fetch(`http://localhost:${PORT}/api/send-order`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },

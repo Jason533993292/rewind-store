@@ -189,18 +189,16 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
 
-  // Handle Stripe success/cancel redirects
+  // Handle Stripe success redirect
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('order') === 'success') {
       const orderNum = params.get('orderNum');
-      if (orderNum) {
-        showToast('✅ Order ' + orderNum + ' confirmed!');
-        setCart([]);
-        setCheckout(false);
-        // Clean URL
-        window.history.replaceState({}, '', window.location.pathname);
-      }
+      const msg = orderNum ? `✅ ${orderNum} confirmed!` : '✅ Order confirmed!';
+      showToast(msg);
+      setCart([]);
+      setCheckout(false);
+      window.history.replaceState({}, '', window.location.pathname);
     }
   }, [showToast]);
   useEffect(() => {
