@@ -1387,16 +1387,26 @@ function Survey({ onDone, onSkip }) {
   const [step, setStep] = useState('choose');
   const [source, setSource] = useState('');
   const [otherText, setOtherText] = useState('');
+  const [done, setDone] = useState(false);
 
   const submit = async () => {
     const answer = source === 'Other' ? otherText : source;
     try { await fetch('/api/survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: answer }) }); } catch {}
-    onDone();
+    setDone(true);
+    setTimeout(() => onDone(), 1500);
   };
 
   const options = ['Social media', 'Vinted', 'Grailed', 'Google', 'From a friend', 'Other'];
   return (
     <div>
+      {done ? (
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🙏</div>
+          <p style={{ fontSize: '15px', fontWeight: 600, color: '#16130F', margin: '0' }}>Thanks for letting us know!</p>
+          <p style={{ fontSize: '12px', color: '#6E665A', margin: '4px 0 0' }}>Enjoy browsing REWIND.</p>
+        </div>
+      ) : (
+      <>
       {options.map(o => (
         <button key={o} onClick={() => { setSource(o); if (o === 'Other') setStep('other'); else submit(); }}
           style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid #e0dcd5', background: source === o ? '#16130F' : '#fff', color: source === o ? '#fff' : '#16130F', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center' }}>
@@ -1414,6 +1424,7 @@ function Survey({ onDone, onSkip }) {
         </div>
       )}
       <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: '#938B7E', fontSize: '12px' }}>Skip</button>
+      </>)}
     </div>
   );
 }
