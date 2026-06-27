@@ -10,6 +10,25 @@ app.use(express.json({ limit: '50mb' }));
 
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 
+// ── IP blocker middleware ──
+const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
+
+app.use(async (req, res, next) => {
+  // Only check non-API routes (block page load, not API calls)
+  if (!req.path.startsWith('/api/')) {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress;
+    if (BLOCKED_IPS.has(ip)) {
+      return res.status(403).send(`
+        <html><body style="background:#FAF6EF;display:grid;place-items:center;height:100vh;margin:0;font-family:sans-serif">
+        <div style="text-align:center"><h1 style="font-size:48px;color:#16130F;margin:0">403</h1>
+        <p style="color:#6E665A;margin-top:8px">You don't have access to this site.</p></div></body></html>`);
+    }
+  }
+  next();
+});
+
+// Load blocked IPs on startup
+
 // ── Health check ──
 app.get('/api/health', (_req, res) => {
   res.json({
@@ -531,6 +550,30 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
     } catch (e) { console.error('Webhook error:', e); }
   }
   res.json({ received: true });
+});
+
+// ── Admin: manage blocked IPs ──
+app.get('/api/admin/blocked-ips', async (req, res) => {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    res.json({ ips: await r.json() || [] });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/block-ip', express.json(), async (req, res) => {
+  const { ip } = req.body;
+  if (!ip) return res.status(400).json({ error: 'IP required' });
+  await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ip_address: ip }) });
+  BLOCKED_IPS.set(ip, true);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/unblock-ip', express.json(), async (req, res) => {
+  const { ip } = req.body;
+  if (!ip) return res.status(400).json({ error: 'IP required' });
+  await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  BLOCKED_IPS.delete(ip);
+  res.json({ ok: true });
 });
 
 if (!process.env.VERCEL) {
