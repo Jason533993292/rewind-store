@@ -600,7 +600,7 @@ app.post('/api/check-blocked-email', express.json(), async (req, res) => {
 // ── Admin: manage blocked emails ──
 app.get('/api/admin/blocked-emails', async (req, res) => {
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
     res.json({ emails: await r.json() || [] });
   } catch { res.json({ emails: [] }); }
 });
@@ -609,16 +609,22 @@ app.post('/api/admin/block-email', express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }) });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { method: 'POST', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }) });
+    const d = await r.json();
+    if (d.error) return res.status(500).json({ error: d.error });
     res.json({ ok: true });
-  } catch { res.json({ ok: true }); }
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
-  await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
-  res.json({ ok: true });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
+    const d = await r.json();
+    if (d.error) return res.status(500).json({ error: d.error });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Admin: list all user emails from orders + wishlists ──
