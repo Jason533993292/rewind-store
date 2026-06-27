@@ -102,7 +102,8 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
   return (
     <header className="rw-header">
       <div className="rw-header-row">
-        <div className="rw-logo">REWIND<span>.</span></div>
+        <div className="rw-logo" style={{ cursor: 'pointer' }}
+          onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }}>REWIND<span>.</span></div>
         <nav className="rw-nav">
           {cats.map((c) => (
             <button key={c} className={"rw-navlink" + (cat === c ? " is-on" : "")}
