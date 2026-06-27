@@ -81,19 +81,19 @@ export default function InfoModal({ page, onClose }) {
                 onChange={e => setLookupEmail(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }} />
               <button onClick={handleLookup} disabled={loadingOrders}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                 {loadingOrders ? 'Searching...' : 'Look up'}
               </button>
             </div>
             {orders !== null && orders.length === 0 && (
-              <p style={{ fontSize: '13px', color: '#888' }}>No orders found for that email.</p>
+              <p style={{ fontSize: '13px', color: 'var(--muted)' }}>No orders found for that email.</p>
             )}
             {orders && orders.length > 0 && (
               <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                 {orders.map((o, i) => (
-                  <div key={i} style={{ padding: '14px', marginBottom: '10px', background: '#f5f0eb', borderRadius: '10px', fontSize: '13px' }}>
+                  <div key={i} style={{ padding: '14px', marginBottom: '10px', background: 'var(--line)', borderRadius: '10px', fontSize: '13px' }}>
                     <div style={{ fontWeight: 700, marginBottom: '4px' }}>{o.order_num}</div>
-                    <div style={{ color: '#6E665A' }}>{(Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size})`).join(', ')}</div>
+                    <div style={{ color: 'var(--muted)' }}>{(Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size})`).join(', ')}</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
                       <span style={{ fontWeight: 700 }}>€{o.total}</span>
                       <span style={{ color: o.status === 'shipped' ? '#4caf50' : o.status === 'ordered' ? '#2979FF' : '#cc8b00' }}>
