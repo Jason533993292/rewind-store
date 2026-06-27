@@ -136,7 +136,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
             <Icon name="bag" />
             {cartCount > 0 && <span className="rw-badge">{cartCount}</span>}
           </button>
-          {version && <span style={{ fontSize: '10px', color: '#aaa', marginLeft: '10px', fontWeight: 600 }}>{version}</span>}
+          {version && <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '10px', fontWeight: 600 }}>{version}</span>}
         </div>
       </div>
     </header>

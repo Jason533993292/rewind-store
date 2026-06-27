@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.2.3';
+const VERSION = 'V6.2.4';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -593,7 +593,7 @@ function AdminPanel({ onExit, onSelect }) {
           ← Back to store
         </button>
       </div>
-      <div style={{ position: 'absolute', top: '44px', right: '24px', fontSize: '11px', color: '#aaa', fontWeight: 600 }}>{VERSION}</div>
+      <div style={{ position: 'absolute', top: '44px', right: '24px', fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>{VERSION}</div>
 
       {/* ── Admin login ── */}
       {adminChecking && <p style={{ textAlign: 'center', color: '#888' }}>Checking access...</p>}
