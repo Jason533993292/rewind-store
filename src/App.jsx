@@ -204,9 +204,19 @@ export default function App() {
   
   // First-visit questionnaire
   const [showSurvey, setShowSurvey] = useState(false);
+  const [blockedOverlay, setBlockedOverlay] = useState(false);
+  
   useEffect(() => {
     if (!localStorage.getItem('rw_survey_done')) {
       setShowSurvey(true);
+    }
+    // Check if this user's email is blocked
+    const stored = localStorage.getItem('rw_email');
+    if (stored) {
+      fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: stored }) })
+        .then(r => r.json())
+        .then(d => { if (d.blocked) setBlockedOverlay(true); })
+        .catch(() => {});
     }
   }, []);
   useEffect(() => {
@@ -409,6 +419,19 @@ export default function App() {
             <p style={{ fontSize: '13px', color: '#6E665A', marginBottom: '20px' }}>Where did you hear about us?</p>
             <Survey onDone={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} onSkip={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} />
           </div>
+        </div>
+      )}
+
+      {blockedOverlay && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: '#FAF6EF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#16130F', margin: '0 0 8px' }}>Access Restricted</h1>
+          <p style={{ fontSize: '15px', color: '#6E665A', maxWidth: '400px', lineHeight: '1.6', margin: '0' }}>
+            Your account has been blocked from using REWIND.
+          </p>
+          <p style={{ fontSize: '14px', color: '#6E665A', maxWidth: '400px', lineHeight: '1.6', marginTop: '16px' }}>
+            If you believe this is a mistake, please email us at <strong style={{ color: '#16130F' }}>orders@rewind-stores.com</strong> to appeal.
+          </p>
         </div>
       )}
 
