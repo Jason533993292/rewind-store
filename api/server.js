@@ -576,6 +576,51 @@ app.post('/api/admin/unblock-ip', express.json(), async (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Survey ──
+app.post('/api/survey', express.json(), async (req, res) => {
+  const { source } = req.body;
+  if (!source) return res.json({ ok: false });
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/survey_responses`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ source }) });
+  } catch {}
+  res.json({ ok: true });
+});
+
+// ── Check blocked email ──
+app.post('/api/check-blocked-email', express.json(), async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.json({ blocked: false });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email)}`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    const data = await r.json();
+    res.json({ blocked: data && data.length > 0 });
+  } catch { res.json({ blocked: false }); }
+});
+
+// ── Admin: manage blocked emails ──
+app.get('/api/admin/blocked-emails', async (req, res) => {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    res.json({ emails: await r.json() || [] });
+  } catch { res.json({ emails: [] }); }
+});
+
+app.post('/api/admin/block-email', express.json(), async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }) });
+    res.json({ ok: true });
+  } catch { res.json({ ok: true }); }
+});
+
+app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+  res.json({ ok: true });
+});
+
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 }

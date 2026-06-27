@@ -201,6 +201,14 @@ export default function App() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [showToast]);
+  
+  // First-visit questionnaire
+  const [showSurvey, setShowSurvey] = useState(false);
+  useEffect(() => {
+    if (!localStorage.getItem('rw_survey_done')) {
+      setShowSurvey(true);
+    }
+  }, []);
   useEffect(() => {
     const onPop = () => {
       if (!window.location.hash.startsWith('#/product/')) {
@@ -393,6 +401,16 @@ export default function App() {
         onAddToCart={(p) => { addToCart(p); }}
         onSelect={(p) => { setSelectedProduct(p); setWishlistOpen(false); }}
         onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }} />
+
+      {showSurvey && (
+        <div className="rw-modal-wrap" onClick={() => {}}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '32px', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Welcome to REWIND 👋</h2>
+            <p style={{ fontSize: '13px', color: '#6E665A', marginBottom: '20px' }}>Where did you hear about us?</p>
+            <Survey onDone={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} onSkip={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} />
+          </div>
+        </div>
+      )}
 
       {/* ── Promo code button ── */}
       {!drawer && !wishlistOpen && (
@@ -1345,7 +1363,57 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
   );
 }
 
-/* ── Product Form (separate component) ── */
+/* ── First-visit survey ── */
+function Survey({ onDone, onSkip }) {
+  const [step, setStep] = useState('choose');
+  const [source, setSource] = useState('');
+  const [otherText, setOtherText] = useState('');
+
+  const submit = async () => {
+    const answer = source === 'Other' ? otherText : source;
+    try { await fetch('/api/survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: answer }) }); } catch {}
+    onDone();
+  };
+
+  const options = ['Social media', 'Vinted', 'Grailed', 'Google', 'From a friend', 'Other'];
+  return (
+    <div>
+      {options.map(o => (
+        <button key={o} onClick={() => { setSource(o); if (o === 'Other') setStep('other'); else submit(); }}
+          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid #e0dcd5', background: source === o ? '#16130F' : '#fff', color: source === o ? '#fff' : '#16130F', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center' }}>
+          {o}
+        </button>
+      ))}
+      {step === 'other' && (
+        <div style={{ marginTop: '12px' }}>
+          <input className="rw-input" placeholder="Tell us where..." value={otherText} onChange={e => setOtherText(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(); }} autoFocus />
+          <button onClick={submit} disabled={!otherText.trim()}
+            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%' }}>
+            Submit
+          </button>
+        </div>
+      )}
+      <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: '#938B7E', fontSize: '12px' }}>Skip</button>
+    </div>
+  );
+}
+
+// ── Blocked email check ──
+const EMAIL_CODES = {}; // email → blocked status cache
+
+async function checkBlockedEmail(email, showToast) {
+  if (!email || EMAIL_CODES[email] === false) return false;
+  try {
+    const r = await fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const d = await r.json();
+    EMAIL_CODES[email] = d.blocked;
+    if (d.blocked) {
+      showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', { label: 'OK', onClick: () => {} }, 8000);
+    }
+    return d.blocked;
+  } catch { return false; }
+}
 function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProducts }) {
   const [form, setForm] = React.useState({
     name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: []
