@@ -1147,37 +1147,21 @@ function AdminPanel({ onExit, onSelect }) {
 }
 
 /* ── Blocked IPs & Emails Panel ── */
+/* ── Blocked Emails Panel ── */
 function BlockedPanel() {
-  const [ips, setIps] = useState([]);
-  const [newIp, setNewIp] = useState('');
-  const [loading, setLoading] = useState(true);
   const [emails, setEmails] = useState([]);
   const [newEmail, setNewEmail] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const loadAll = async () => {
     try {
-      const [ri, re] = await Promise.all([
-        fetch('/api/admin/blocked-ips').then(r => r.json()),
-        fetch('/api/admin/blocked-emails').then(r => r.json()),
-      ]);
-      setIps(ri.ips || []);
+      const re = await fetch('/api/admin/blocked-emails').then(r => r.json());
       setEmails(re.emails || []);
     } catch {}
     setLoading(false);
   };
 
   React.useEffect(() => { loadAll(); }, []);
-
-  const blockIp = async () => {
-    if (!newIp.trim()) return;
-    await fetch('/api/admin/block-ip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip: newIp.trim() }) });
-    setNewIp(''); loadAll();
-  };
-
-  const unblockIp = async (ip) => {
-    await fetch('/api/admin/unblock-ip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip }) });
-    loadAll();
-  };
 
   const blockEmail = async () => {
     if (!newEmail.trim()) return;
@@ -1191,41 +1175,23 @@ function BlockedPanel() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked Emails</h3>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') blockEmail(); }} />
-          <button onClick={blockEmail} style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}>Block</button>
-        </div>
-        {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : emails.length === 0 ? (
-          <p style={{ fontSize: '13px', color: '#888' }}>No blocked emails.</p>
-        ) : emails.map(e => (
-          <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-            <span style={{ fontSize: '13px' }}>{e.email}</span>
-            <span style={{ fontSize: '11px', color: '#888' }}>{new Date(e.created_at).toLocaleDateString()}</span>
-            <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Unblock</button>
-          </div>
-        ))}
+    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
+      <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked Emails</h3>
+      <p style={{ fontSize: '12px', color: '#6E665A', marginBottom: '12px' }}>Blocked users will see a permanent notice when they try to checkout: <em>"Contact orders@rewind-stores.com to appeal."</em></p>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') blockEmail(); }} />
+        <button onClick={blockEmail} style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}>Block</button>
       </div>
-      <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked IPs</h3>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <input className="rw-input" placeholder="IP address (e.g. 192.168.1.1)" value={newIp} onChange={e => setNewIp(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') blockIp(); }} />
-          <button onClick={blockIp} style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}>Block</button>
+      {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : emails.length === 0 ? (
+        <p style={{ fontSize: '13px', color: '#888' }}>No blocked emails.</p>
+      ) : emails.map(e => (
+        <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+          <span style={{ fontSize: '13px' }}>{e.email}</span>
+          <span style={{ fontSize: '11px', color: '#888' }}>{new Date(e.created_at).toLocaleDateString()}</span>
+          <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Unblock</button>
         </div>
-        {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : ips.length === 0 ? (
-          <p style={{ fontSize: '13px', color: '#888' }}>No blocked IPs.</p>
-        ) : ips.map(ip => (
-          <div key={ip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
-            <code style={{ fontSize: '13px' }}>{ip.ip_address}</code>
-            <span style={{ fontSize: '11px', color: '#888' }}>{new Date(ip.created_at).toLocaleDateString()}</span>
-            <button onClick={() => unblockIp(ip.ip_address)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Unblock</button>
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
