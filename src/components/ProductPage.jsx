@@ -76,7 +76,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             minHeight: '400px',
           }}>
-            <Photo id={p.id || p.product_id + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={p.img} />
+            <Photo id={p.id || p.product_id + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={images[selectedImg] || p.img} />
           </div>
           {/* Thumbnail strip — only real images */}
           {images.filter(Boolean).length > 0 && (
