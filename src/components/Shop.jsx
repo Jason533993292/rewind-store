@@ -577,9 +577,11 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   };
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(p.id));
-    toAdd.forEach(p => onAddToCart(p));
+    if (toAdd.length > 0 && onSelect) {
+      // Navigate to the first selected product's detail page so the user can choose a size
+      onSelect(toAdd[0]);
+    }
     setSelected([]);
-    if (onCartOpen) onCartOpen();
   };
 
   return (
@@ -605,7 +607,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
           <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line)' }}>
             <button className="rw-btn rw-btn-pri" style={{ padding: '8px 14px', fontSize: '13px' }}
               onClick={addSelectedToCart}>
-              Add {selected.length} to bag
+              Choose size for {selected.length}
             </button>
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px' }}
               onClick={() => setSelected([])}>Cancel</button>
@@ -629,18 +631,30 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                   <Photo id={p.id + "-wish"} hue={p.hue} label="" h={74} />
                 </div>
                 <div className="rw-line-info">
-                  <div className="rw-line-top">
-                    <h4>{p.name}</h4>
-                    <button className="rw-line-x" onClick={() => onRemove(p.id)} aria-label="Remove from wishlist">
-                      <Icon name="close" size={15} />
-                    </button>
-                  </div>
-                  <div className="rw-line-meta">{p.cat}</div>
-                  <div className="rw-line-bot">
-                    <span className="rw-line-price">{money(p.price)}</span>
-                  </div>
+                <div className="rw-line-top">
+                  <h4>{p.name}</h4>
+                  <button className="rw-line-x" onClick={() => onRemove(p.id)} aria-label="Remove from wishlist">
+                    <Icon name="close" size={15} />
+                  </button>
+                </div>
+                <div className="rw-line-meta">{p.cat}</div>
+                <div className="rw-line-bot">
+                  <span className="rw-line-price">{money(p.price)}</span>
+                  <button onClick={() => onSelect(p)}
+                    aria-label={"Select size for " + p.name}
+                    style={{
+                      width: '30px', height: '30px', borderRadius: '50%',
+                      border: '1.5px solid var(--line-2)', background: 'var(--surface)',
+                      cursor: 'pointer', display: 'grid', placeItems: 'center',
+                      color: 'var(--ink)', transition: 'all 0.15s',
+                    }}
+                    onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; e.target.style.borderColor = 'var(--ink)'; }}
+                    onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--line-2)'; }}>
+                    <Icon name="plus" size={14} />
+                  </button>
                 </div>
               </div>
+            </div>
             ))}
           </div>
         )}
