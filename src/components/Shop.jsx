@@ -584,11 +584,19 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   };
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(p.id));
-    if (toAdd.length > 0 && onSelect) {
-      // Navigate to the first selected product's detail page so the user can choose a size
-      onSelect(toAdd[0]);
+    if (toAdd.length > 0) {
+      if (toAdd.length === 1 && onSelect) {
+        // Single item — navigate to product page so the user can pick a size
+        onSelect(toAdd[0]);
+        setSelected([]);
+      } else if (onAddToCart) {
+        // Multiple items — add all to cart (silently picks first size; user can adjust later)
+        toAdd.forEach(p => onAddToCart(p));
+        setSelected([]);
+        // Open cart drawer to show what was added
+        if (onCartOpen) onCartOpen();
+      }
     }
-    setSelected([]);
   };
 
   return (
@@ -614,7 +622,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
           <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line)' }}>
             <button className="rw-btn rw-btn-pri" style={{ padding: '8px 14px', fontSize: '13px' }}
               onClick={addSelectedToCart}>
-              Choose size for {selected.length}
+              {selected.length === 1 ? 'Choose size' : `Add ${selected.length} to cart`}
             </button>
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px' }}
               onClick={() => setSelected([])}>Cancel</button>
