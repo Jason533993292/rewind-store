@@ -111,7 +111,10 @@ export default function SizeGuide({ onClose }) {
                 background: cat === c ? 'var(--ink)' : 'var(--line)',
                 color: cat === c ? '#fff' : 'var(--ink)',
                 cursor: 'pointer', fontWeight: 600, fontSize: '14px',
-              }}>
+                transition: 'background 0.15s, color 0.15s, transform 0.15s',
+              }}
+              onMouseOver={e => { if (cat !== c) { e.target.style.background = '#d9d0c0'; } }}
+              onMouseOut={e => { if (cat !== c) { e.target.style.background = 'var(--line)'; } }}>
               {c}
             </button>
           ))}
@@ -127,7 +130,10 @@ export default function SizeGuide({ onClose }) {
                 background: size === s ? 'var(--ink)' : 'var(--surface)',
                 color: size === s ? '#fff' : 'var(--ink)',
                 cursor: 'pointer', fontWeight: 700, fontSize: '14px',
-              }}>
+                transition: 'background 0.15s, border-color 0.15s, transform 0.15s',
+              }}
+              onMouseOver={e => { if (size !== s) { e.target.style.borderColor = 'var(--ink)'; e.target.style.transform = 'scale(1.05)'; } }}
+              onMouseOut={e => { if (size !== s) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.transform = ''; } }}>
               {s}
             </button>
           ))}
