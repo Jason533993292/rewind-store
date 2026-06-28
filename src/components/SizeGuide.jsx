@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from './Shell';
 
 const CATEGORIES = ['Tops / Shirts', 'Jumpers', 'Shoes', 'Bottoms'];
 
@@ -75,7 +76,7 @@ function SizeDiagram({ cat }) {
         {lbl.map((l, i) => (
           <div key={i} style={{
             position: 'absolute',
-            background: i === 0 ? 'rgba(255,77,20,0.9)' : i === 1 ? 'rgba(76,175,80,0.9)' : 'rgba(136,136,136,0.9)',
+            background: i === 0 ? 'color-mix(in oklab, var(--accent) 90%, transparent)' : i === 1 ? 'rgba(76,175,80,0.9)' : 'color-mix(in oklab, var(--muted) 90%, transparent)',
             color: '#fff', fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px',
             top: `${10 + i * 25}%`, left: '8px',
           }}>{l}</div>
@@ -96,7 +97,7 @@ export default function SizeGuide({ onClose }) {
       <div className="rw-modal size-guide-modal" onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '650px', padding: '32px' }}>
         <button className="rw-modal-x" onClick={onClose} aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <Icon name="close" size={18} />
         </button>
 
         <h2 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '20px' }}>Size Guide</h2>
@@ -107,8 +108,8 @@ export default function SizeGuide({ onClose }) {
             <button key={c} onClick={() => setCat(c)}
               style={{
                 padding: '8px 18px', borderRadius: '999px', border: 'none',
-                background: cat === c ? '#16130F' : '#f0f0f0',
-                color: cat === c ? '#fff' : '#16130F',
+                background: cat === c ? 'var(--ink)' : 'var(--line)',
+                color: cat === c ? '#fff' : 'var(--ink)',
                 cursor: 'pointer', fontWeight: 600, fontSize: '14px',
               }}>
               {c}
@@ -121,9 +122,10 @@ export default function SizeGuide({ onClose }) {
           {SIZES.map(s => (
             <button key={s} onClick={() => setSize(s)}
               style={{
-                width: '48px', height: '48px', borderRadius: '50%', border: size === s ? '2px solid #16130F' : '1px solid #ddd',
-                background: size === s ? '#16130F' : '#fff',
-                color: size === s ? '#fff' : '#16130F',
+                width: '48px', height: '48px', borderRadius: '50%',
+                border: size === s ? '2px solid var(--ink)' : '1px solid var(--line-2)',
+                background: size === s ? 'var(--ink)' : 'var(--surface)',
+                color: size === s ? '#fff' : 'var(--ink)',
                 cursor: 'pointer', fontWeight: 700, fontSize: '14px',
               }}>
               {s}
@@ -135,7 +137,7 @@ export default function SizeGuide({ onClose }) {
         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <div style={{ flex: '0 0 auto' }}>
             <SizeDiagram cat={cat} />
-            <p style={{ fontSize: '11px', color: '#888', marginTop: '4px', textAlign: 'center' }}>
+            <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px', textAlign: 'center' }}>
               Size {size} — {cat}
             </p>
           </div>
@@ -143,16 +145,16 @@ export default function SizeGuide({ onClose }) {
           <div style={{ flex: 1, minWidth: '200px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #16130F' }}>
+                <tr style={{ borderBottom: '2px solid var(--ink)' }}>
                   <th style={{ padding: '8px 12px', textAlign: 'left' }}>Size</th>
                   {m.cols.map(col => (
-                    <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '13px', color: '#666' }}>{col}</th>
+                    <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '13px', color: 'var(--muted)' }}>{col}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {SIZES.map(s => (
-                  <tr key={s} style={{ background: size === s ? '#f5f5f5' : 'transparent', borderBottom: '1px solid #eee' }}>
+                  <tr key={s} style={{ background: size === s ? 'var(--bg)' : 'transparent', borderBottom: '1px solid var(--line)' }}>
                     <td style={{ padding: '8px 12px', fontWeight: 700 }}>{s}</td>
                     {m.data[s].map((v, i) => (
                       <td key={i} style={{ padding: '8px 12px' }}>{v} {i === 0 ? m.unit : ''}</td>
@@ -164,7 +166,7 @@ export default function SizeGuide({ onClose }) {
           </div>
         </div>
 
-        <p style={{ fontSize: '12px', color: '#888', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '12px' }}>
+        <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '20px', borderTop: '1px solid var(--line)', paddingTop: '12px' }}>
           Measurements are approximate. For the best fit, compare to a similar item you already own.<br />
           How to measure: <strong>A</strong> = shoulder seam to shoulder seam · <strong>B</strong> = shoulder seam to bottom hem · <strong>C</strong> = armpit to cuff
         </p>
