@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.15';
+const VERSION = 'V6.4.16';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -478,7 +478,7 @@ export default function App() {
         <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); } }}
           style={{
             width: '44px', height: '44px', borderRadius: '50%',
-            background: '#16130F', color: '#fff', border: 'none',
+            background: 'var(--ink)', color: '#fff', border: 'none',
             cursor: 'pointer', fontSize: '18px', fontWeight: 700,
             boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
             transition: 'transform 0.15s',
@@ -656,7 +656,7 @@ function AdminPanel({ onExit, onSelect }) {
             onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
             Enter admin panel
           </button>
-          <p style={{ fontSize: '12px', color: '#e53935', marginTop: '8px' }}>{adminMsg}</p>
+          <p style={{ fontSize: '12px', color: 'var(--accent)', marginTop: '8px' }}>{adminMsg}</p>
         </div>
       )}
 
@@ -688,7 +688,7 @@ function AdminPanel({ onExit, onSelect }) {
       </div>
 
       {!supabase && (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#666', background: '#f9f9f9', borderRadius: '12px' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', background: 'var(--line)', borderRadius: '12px' }}>
           <p style={{ fontSize: '18px', marginBottom: '8px' }}>Supabase not connected</p>
           <p style={{ fontSize: '14px' }}>Set up VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env, then redeploy.</p>
         </div>
@@ -697,7 +697,7 @@ function AdminPanel({ onExit, onSelect }) {
       {supabase && loading && <p>Loading users...</p>}
 
       {supabase && !loading && users.length === 0 && (
-        <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)' }}>
           <p>No users signed up yet. Sign up on the storefront to see data here.</p>
         </div>
       )}
@@ -705,10 +705,10 @@ function AdminPanel({ onExit, onSelect }) {
       {supabase && !loading && users.length > 0 && adminTab === 'users' && (
         <>
           {/* ── User table ── */}
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden', marginBottom: '32px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden', marginBottom: '32px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
-                <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                <tr style={{ background: 'var(--line)', textAlign: 'left' }}>
                   <th style={{ padding: '12px 16px' }}>Email</th>
                   <th style={{ padding: '12px 16px' }}>Wishlist</th>
                   <th style={{ padding: '12px 16px' }}>Marketing</th>
@@ -718,29 +718,29 @@ function AdminPanel({ onExit, onSelect }) {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.email} style={{ borderTop: '1px solid #eee', background: u.blocked ? '#fff0f0' : 'transparent' }}
+                  <tr key={u.email} style={{ borderTop: '1px solid var(--line)', background: u.blocked ? 'color-mix(in oklab, var(--accent) 10%, transparent)' : 'transparent' }}
                     onContextMenu={(e) => {
                       e.preventDefault();
                       setSelectedUser(selectedUser?.email === u.email ? null : u);
                     }}>
                     <td style={{ padding: '12px 16px', fontWeight: 600, cursor: 'context-menu' }}>
-                      {u.email} {u.blocked && <span style={{ fontSize: '11px', color: '#e53935' }}>🚫</span>}
+                      {u.email} {u.blocked && <span style={{ fontSize: '11px', color: 'var(--accent)' }}>🚫</span>}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       {u.product_ids?.length || 0} items
                       {u.product_ids?.length > 0 && (
                         <button onClick={() => setSelectedUser(selectedUser?.email === u.email ? null : u)}
-                          style={{ marginLeft: '8px', padding: '2px 8px', borderRadius: '4px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '12px' }}>
+                          style={{ marginLeft: '8px', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px' }}>
                           {selectedUser?.email === u.email ? 'Hide' : 'View'}
                         </button>
                       )}
                     </td>
                     <td style={{ padding: '12px 16px' }}>{u.marketing_optin ? '✅' : '—'}</td>
-                    <td style={{ padding: '12px 16px', color: '#888', fontSize: '13px' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: '13px' }}>
                       {new Date(u.created_at).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <a href={`mailto:${u.email}`} style={{ color: '#666', textDecoration: 'none', fontSize: '16px' }}>✉️</a>
+                      <a href={`mailto:${u.email}`} style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '16px' }}>✉️</a>
                       <button onClick={() => toggleBlockUser(u.email, !u.blocked)}
                         style={{
                           marginLeft: '8px',
@@ -767,7 +767,7 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Selected user's wishlist ── */}
           {selectedUser && (
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '32px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
                 {selectedUser.email}'s wishlist
               </h3>
@@ -777,9 +777,9 @@ function AdminPanel({ onExit, onSelect }) {
                   return (
                     <a key={pid} href="#"
                       onClick={(e) => { e.preventDefault(); window.location.hash = ''; setSelectedProduct(product); }}
-                      style={{ padding: '6px 12px', background: '#f0f0f0', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', color: '#16130F', display: 'inline-block', cursor: 'pointer', transition: 'background 0.15s' }}
-                      onMouseOver={e => e.target.style.background = '#e0e0e0'}
-                      onMouseOut={e => e.target.style.background = '#f0f0f0'}
+                      style={{ padding: '6px 12px', background: 'var(--line)', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', color: 'var(--ink)', display: 'inline-block', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseOver={e => e.target.style.background = 'var(--line-2)'}
+                      onMouseOut={e => e.target.style.background = 'var(--line)'}
                       title={`${product?.name || pid} — ${product?.brand || 'no brand'} — ${product?.cat || ''}`}>
                       {product?.name || pid} {product ? `— ${product.cat}` : ''}
                     </a>
@@ -791,26 +791,26 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Stats ── */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '16px' }}>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
               <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.length}</div>
-              <div style={{ fontSize: '11px', color: '#888' }}>Total users</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total users</div>
             </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
               <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.filter(u => u.marketing_optin).length}</div>
-              <div style={{ fontSize: '11px', color: '#888' }}>Marketing opt-in</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Marketing opt-in</div>
             </div>
-            <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
               <div style={{ fontSize: '20px', fontWeight: 700 }}>{users.reduce((s, u) => s + (u.product_ids?.length || 0), 0)}</div>
-              <div style={{ fontSize: '11px', color: '#888' }}>Saved items</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Saved items</div>
             </div>
           </div>
 
           {/* ── Admin manager ── */}
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🔑 Admin management</h3>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <input placeholder="Email to add as admin" id="new-admin-email"
-                style={{ flex: 1, padding: '8px 12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '13px' }} />
+                style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line-2)', borderRadius: '8px', fontSize: '13px' }} />
               <button onClick={async () => {
                 const input = document.getElementById('new-admin-email');
                 const email = input.value.trim();
@@ -826,15 +826,15 @@ function AdminPanel({ onExit, onSelect }) {
                 Add admin
               </button>
             </div>
-            <div style={{ fontSize: '13px', color: '#888', marginTop: '8px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '8px' }}>
               Current admins: {users.filter(u => u.blocked !== true).length} users · add your dad (fanaman74) or others here
             </div>
           </div>
 
           {/* ── Run Tests ── */}
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🧪 Automated tests</h3>
-            <p style={{ fontSize: '13px', color: '#888', marginBottom: '12px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>
               Tests every button and page on the site using Playwright browser automation.
             </p>
             <button onClick={async () => {
@@ -874,13 +874,13 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Email tool ── */}
           {adminTab === 'email' && (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📧 Email users about discounts / sales</h3>
             <textarea value={emailText} onChange={(e) => setEmailText(e.target.value)}
               placeholder="Write your email message here... (or leave blank for default)"
               rows={5}
-              style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', resize: 'vertical', marginBottom: '8px' }} />
-            <p style={{ fontSize: '12px', color: '#888', marginBottom: '12px' }}>
+              style={{ width: '100%', padding: '12px', border: '1px solid var(--line-2)', borderRadius: '8px', fontSize: '14px', resize: 'vertical', marginBottom: '8px' }} />
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>
               Emails are sent via Resend. Leave message blank for a default template.
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -922,7 +922,7 @@ function AdminPanel({ onExit, onSelect }) {
                 📩 Email opted-in only ({users.filter((u) => u.marketing_optin).length})
               </button>
               <button onClick={() => { navigator.clipboard?.writeText(users.map((u) => u.email).join(', ')); }}
-                style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '14px' }}>
+                style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px' }}>
                 Copy all emails
               </button>
             </div>
@@ -931,24 +931,24 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Orders ── */}
           {adminTab === 'orders' && (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             {/* ── Order stats chart ── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '20px' }}>
-              <div style={{ background: '#f0ece6', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ background: 'var(--bg)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.length}</div>
-                <div style={{ fontSize: '11px', color: '#888' }}>Total</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total</div>
               </div>
-              <div style={{ background: '#fff3cd', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ background: 'color-mix(in oklab, var(--accent) 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'pending').length}</div>
-                <div style={{ fontSize: '11px', color: '#888' }}>⏳ Pending</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>⏳ Pending</div>
               </div>
-              <div style={{ background: '#cce5ff', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ background: 'color-mix(in oklab, #2979FF 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'ordered').length}</div>
-                <div style={{ fontSize: '11px', color: '#888' }}>📦 Ordered</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>📦 Ordered</div>
               </div>
-              <div style={{ background: '#d4edda', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ background: 'color-mix(in oklab, #4caf50 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'shipped').length}</div>
-                <div style={{ fontSize: '11px', color: '#888' }}>🚚 Shipped</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>🚚 Shipped</div>
               </div>
             </div>
 
@@ -965,22 +965,22 @@ function AdminPanel({ onExit, onSelect }) {
                     navigator.clipboard.writeText(csv.join('\n'));
                     alert('📋 Orders CSV copied! Paste into Shopify or Excel.');
                   }}
-                    style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ddd', background: '#fff', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
-                    📋 Export CSV
+                    style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                            📋 Export CSV
                   </button>
                 )}
               </div>
             </div>
             {orders.length === 0 ? (
-              <p style={{ color: '#888', fontSize: '14px' }}>No orders yet. When a customer checks out, orders appear here.</p>
+              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No orders yet. When a customer checks out, orders appear here.</p>
             ) : (
               <>
-                <p style={{ fontSize: '13px', color: '#888', marginBottom: '12px' }}>
+                <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>
                   {orders.filter(o => o.status === 'pending').length} pending · {orders.filter(o => o.status === 'ordered').length} ordered · {orders.filter(o => o.status === 'shipped').length} shipped
                 </p>
                 <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                    <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                    <thead><tr style={{ background: 'var(--line)', textAlign: 'left' }}>
                       <th style={{ padding: '8px 10px' }}>Order</th>
                       <th style={{ padding: '8px 10px' }}>Customer</th>
                       <th style={{ padding: '8px 10px' }}>Items</th>
@@ -990,12 +990,12 @@ function AdminPanel({ onExit, onSelect }) {
                     </tr></thead>
                     <tbody>
                       {orders.map(o => (
-                        <tr key={o.id} style={{ borderTop: '1px solid #f0f0f0', background: o.status === 'pending' ? '#fffef5' : 'transparent' }}>
+                        <tr key={o.id} style={{ borderTop: '1px solid var(--line)', background: o.status === 'pending' ? 'color-mix(in oklab, var(--accent) 8%, transparent)' : 'transparent' }}>
                           <td style={{ padding: '8px 10px', fontWeight: 600, fontSize: '12px' }}>{o.order_num}</td>
                           <td style={{ padding: '8px 10px' }}>
                             <div>{o.customer_name}</div>
-                            <div style={{ fontSize: '11px', color: '#888' }}>{o.email}</div>
-                            <div style={{ fontSize: '11px', color: '#aaa' }}>{o.address}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{o.email}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{o.address}</div>
                           </td>
                           <td style={{ padding: '8px 10px', fontSize: '12px' }}>
                             {(Array.isArray(o.items) ? o.items : []).map((it, i) => (
@@ -1008,8 +1008,8 @@ function AdminPanel({ onExit, onSelect }) {
                               await updateOrderStatus(o.id, e.target.value);
                               setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
                             }}
-                              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '12px', fontWeight: 600,
-                                background: o.status === 'pending' ? '#fff3cd' : o.status === 'ordered' ? '#cce5ff' : '#d4edda' }}>
+                              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', fontWeight: 600,
+                                background: o.status === 'pending' ? 'color-mix(in oklab, var(--accent) 20%, transparent)' : o.status === 'ordered' ? 'color-mix(in oklab, #2979FF 20%, transparent)' : 'color-mix(in oklab, #4caf50 20%, transparent)' }}>
                               <option value="pending">⏳ Pending</option>
                               <option value="ordered">📦 Ordered</option>
                               <option value="shipped">🚚 Shipped</option>
@@ -1022,7 +1022,7 @@ function AdminPanel({ onExit, onSelect }) {
                               navigator.clipboard.writeText(msg);
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: '#fff', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
                               📋 Copy for supplier
                             </button>
                           </td>
@@ -1038,7 +1038,7 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Stock bar chart ── */}
           {adminTab === 'orders' && (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Stock levels</h3>
             {(() => {
               const allProds = [...REWIND_PRODUCTS, ...customProducts];
@@ -1048,7 +1048,7 @@ function AdminPanel({ onExit, onSelect }) {
                   {allProds.map(p => (
                     <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <span style={{ width: '160px', fontSize: '12px', fontWeight: 600, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                      <div style={{ flex: 1, height: '22px', background: '#f0f0f0', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
+                      <div style={{ flex: 1, height: '22px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
                         <div style={{
                           width: `${Math.round(((p.stock || 0) / maxStock) * 100)}%`,
                           height: '100%',
@@ -1057,7 +1057,7 @@ function AdminPanel({ onExit, onSelect }) {
                           transition: 'width 0.3s',
                         }} />
                       </div>
-                      <span style={{ width: '30px', fontSize: '12px', fontWeight: 700, color: (p.stock || 0) <= 5 ? '#e53935' : '#888' }}>{p.stock || 0}</span>
+                      <span style={{ width: '30px', fontSize: '12px', fontWeight: 700, color: (p.stock || 0) <= 5 ? 'var(--accent)' : 'var(--muted)' }}>{p.stock || 0}</span>
                     </div>
                   ))}
                 </div>
@@ -1068,16 +1068,16 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Stock alerts ── */}
           {adminTab === 'orders' && (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📉 Stock alerts</h3>
             {(() => {
               const allProds = [...REWIND_PRODUCTS, ...customProducts];
               const low = allProds.filter(p => p.stock !== undefined && p.stock <= 5);
-              if (low.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>All products have sufficient stock.</p>;
+              if (low.length === 0) return <p style={{ color: 'var(--muted)', fontSize: '14px' }}>All products have sufficient stock.</p>;
               return (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {low.map(p => (
-                    <span key={p.id || p.product_id} style={{ padding: '6px 12px', background: '#fff3cd', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
+                    <span key={p.id || p.product_id} style={{ padding: '6px 12px', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
                       {p.name} — only {p.stock} left
                     </span>
                   ))}
@@ -1098,23 +1098,23 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Saved products ── */}
           {adminTab === 'saved' && (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>⭐ Saved products</h3>
             {(() => {
               const allProds = [...REWIND_PRODUCTS, ...customProducts];
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
               const saved = allProds.filter(p => savedIds.includes(p.id || p.product_id));
-              if (saved.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>No saved products yet. Click ⋮ on any product and select Save.</p>;
+              if (saved.length === 0) return <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No saved products yet. Click ⋮ on any product and select Save.</p>;
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {saved.map(p => (
-                    <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: '#f5f5f5', borderRadius: '8px' }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: p.hue ? `hsl(${p.hue},60%,80%)` : '#eee', overflow: 'hidden', flexShrink: 0 }}>
+                    <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: 'var(--line)', borderRadius: '8px' }}>
+                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: p.hue ? `hsl(${p.hue},60%,80%)` : 'var(--line-2)', overflow: 'hidden', flexShrink: 0 }}>
                         {p.img && <img src={p.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '14px', fontWeight: 600 }}>{p.name}</div>
-                        <div style={{ fontSize: '12px', color: '#888' }}>{p.brand}{p.brand && p.cat ? ' · ' : ''}{p.cat}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{p.brand}{p.brand && p.cat ? ' · ' : ''}{p.cat}</div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>€{p.price}</div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
@@ -1124,7 +1124,7 @@ function AdminPanel({ onExit, onSelect }) {
                         }}
                           onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
                           onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
-                          style={{ padding: '6px 12px', borderRadius: '6px', background: '#fff', border: '1px solid #ddd', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
+                          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--line-2)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
                           ✏️ Edit
                         </button>
                         <button onClick={() => {
@@ -1136,7 +1136,7 @@ function AdminPanel({ onExit, onSelect }) {
                         }}
                           onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
                           onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
-                          style={{ padding: '6px 12px', borderRadius: '6px', background: '#e53935', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
+                          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
                           ✕ Remove
                         </button>
                       </div>
@@ -1150,10 +1150,10 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Product stats ── */}
           {adminTab === 'products' && (
-          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Product stats</h3>
             <input placeholder="Search products..." value={productSearch} onChange={e => setProductSearch(e.target.value)}
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', marginBottom: '12px' }} />
+              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--line-2)', borderRadius: '8px', fontSize: '14px', marginBottom: '12px' }} />
             {(() => {
               // Count favorites per product from all users
               const favCounts = {};
@@ -1177,11 +1177,11 @@ function AdminPanel({ onExit, onSelect }) {
                 favUsers: favCounts[p.id || p.product_id]?.users || [],
               })).sort((a, b) => b.favs - a.favs);
 
-              if (productStats.length === 0) return <p style={{ color: '#888', fontSize: '14px' }}>No products found.</p>;
+              if (productStats.length === 0) return <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No products found.</p>;
               return (
                 <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                    <thead><tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                    <thead><tr style={{ background: 'var(--line)', textAlign: 'left' }}>
                       <th style={{ padding: '8px 12px' }}>Product</th>
                       <th style={{ padding: '8px 12px' }}>Brand</th>
                       <th style={{ padding: '8px 12px' }}>Category</th>
@@ -1190,12 +1190,12 @@ function AdminPanel({ onExit, onSelect }) {
                     </tr></thead>
                     <tbody>
                       {productStats.map(p => (
-                        <tr key={p.id || p.product_id} style={{ borderTop: '1px solid #f0f0f0' }}>
+                        <tr key={p.id || p.product_id} style={{ borderTop: '1px solid var(--line)' }}>
                           <td style={{ padding: '8px 12px', fontWeight: 600 }}>{p.name || 'Unnamed'}</td>
-                          <td style={{ padding: '8px 12px', color: '#888' }}>{p.brand || '—'}</td>
+                          <td style={{ padding: '8px 12px', color: 'var(--muted)' }}>{p.brand || '—'}</td>
                           <td style={{ padding: '8px 12px' }}>{p.cat}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 700 }}>{p.favs}</td>
-                          <td style={{ padding: '8px 12px', fontSize: '12px', color: '#888', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.favUsers.join(', ') || '—'}</td>
+                          <td style={{ padding: '8px 12px', fontSize: '12px', color: 'var(--muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.favUsers.join(', ') || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1253,9 +1253,9 @@ function BlockedPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked Emails</h3>
-        <p style={{ fontSize: '12px', color: '#6E665A', marginBottom: '12px' }}>Blocked users will see a permanent notice when they try to checkout: <em>"Contact orders@rewind-stores.com to appeal."</em></p>
+        <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>Blocked users will see a permanent notice when they try to checkout: <em>"Contact orders@rewind-stores.com to appeal."</em></p>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
           <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && newEmail.trim()) blockEmail(newEmail.trim()); }} />
@@ -1264,23 +1264,23 @@ function BlockedPanel() {
             onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
             onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>Block</button>
         </div>
-        {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : emails.length === 0 ? (
-          <p style={{ fontSize: '13px', color: '#888' }}>No blocked emails.</p>
+        {loading ? <p style={{ fontSize: '13px', color: 'var(--muted)' }}>Loading...</p> : emails.length === 0 ? (
+          <p style={{ fontSize: '13px', color: 'var(--muted)' }}>No blocked emails.</p>
         ) : emails.map(e => (
-          <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+          <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
             <span style={{ fontSize: '13px' }}>{e.email}</span>
-            <span style={{ fontSize: '11px', color: '#888' }}>{new Date(e.created_at).toLocaleDateString()}</span>
-            <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Unblock</button>
+            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{new Date(e.created_at).toLocaleDateString()}</span>
+            <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--accent)' }}>Unblock</button>
           </div>
         ))}
       </div>
       {unblockedUsers.length > 0 && (
-        <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '20px' }}>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>👥 All Users</h3>
           {unblockedUsers.map(email => (
-            <div key={email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <div key={email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
               <span style={{ fontSize: '13px' }}>{email}</span>
-              <button onClick={() => blockEmail(email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #ddd', background: 'none', cursor: 'pointer', fontSize: '11px', color: '#e53935' }}>Block</button>
+              <button onClick={() => blockEmail(email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--accent)' }}>Block</button>
             </div>
           ))}
         </div>
@@ -1341,7 +1341,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
 
       {msg && (
         <div style={{ padding: '10px 14px', borderRadius: '8px', marginBottom: '20px', fontSize: '13px', fontWeight: 600,
-          background: msg.includes('✅') ? 'color-mix(in oklab, #4caf50 12%, transparent)' : 'color-mix(in oklab, var(--accent) 10%, transparent)', color: msg.includes('✅') ? '#2e7d32' : 'var(--accent)' }}>
+          background: msg.includes('✅') ? 'color-mix(in oklab, var(--ink) 12%, transparent)' : 'color-mix(in oklab, var(--accent) 10%, transparent)', color: msg.includes('✅') ? 'var(--ink)' : 'var(--accent)' }}>
           {msg}
         </div>
       )}
@@ -1588,11 +1588,11 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
   };
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
         {editingId ? '✏️ Edit product' : '📦 Add new product'}
         {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] }); if (onClearEdit) onClearEdit(); }}
-          style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: '#eee', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Cancel edit</button>}
+          style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: 'var(--line)', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Cancel edit</button>}
       </h3>
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
@@ -1639,7 +1639,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
                 };
                 reader.readAsDataURL(form.file);
               }}
-              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid var(--accent)', background: '#fff', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
               📋 Copy to Gemini
             </button>
             <button type="button"
@@ -1653,7 +1653,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
                 };
                 reader.readAsDataURL(form.file);
               }}
-              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid #4caf50', background: '#fff', color: '#4caf50', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid color-mix(in oklab, var(--ink) 30%, transparent)', background: 'var(--surface)', color: 'var(--ink)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
               🎨 Enhance photo
             </button>
             <button type="button"
@@ -1725,10 +1725,10 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
               style={{ display: 'none' }} />
           </label>
           {form.files?.length > 0 && (
-            <div style={{ fontSize: '13px', color: '#888', marginTop: '6px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '6px' }}>
               {form.files.length} file{form.files.length > 1 ? 's' : ''} selected
               {form.files.map((f, i) => (
-                <span key={i} style={{ display: 'block', fontSize: '12px', color: '#aaa', marginTop: '2px' }}>
+                <span key={i} style={{ display: 'block', fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
                   {f.name}
                 </span>
               ))}
@@ -1736,9 +1736,9 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
           )}
         </div>
         {form.file && (
-          <div style={{ marginTop: '16px', border: '1px solid #eee', borderRadius: '12px', padding: '20px', background: '#FAF6EF' }}>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: '#16130F', marginBottom: '12px' }}>📱 Storefront preview</p>
-            <div style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
+          <div style={{ marginTop: '16px', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', background: 'var(--bg)' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '12px' }}>📱 Storefront preview</p>
+            <div style={{ background: 'var(--surface)', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
               <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : 'var(--line)', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 <img src={URL.createObjectURL(form.file)} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
               </div>
@@ -1762,7 +1762,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}
           {showProduct && <button onClick={() => { window.location.hash = '/product/' + showProduct; }}
-            style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: '#4caf50', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+            style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
             👁 View on store
           </button>}
         </p>}
