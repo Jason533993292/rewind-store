@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.17';
+const VERSION = 'V6.4.18';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -752,7 +752,7 @@ function AdminPanel({ onExit, onSelect }) {
                           padding: '8px 16px',
                           borderRadius: '8px',
                           border: 'none',
-                          background: u.blocked ? '#4caf50' : '#e53935',
+                          background: u.blocked ? 'color-mix(in oklab, var(--accent) 30%, transparent)' : 'var(--accent)',
                           color: '#fff',
                           cursor: 'pointer',
                           fontSize: '13px',
@@ -947,11 +947,11 @@ function AdminPanel({ onExit, onSelect }) {
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'pending').length}</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)' }}>⏳ Pending</div>
               </div>
-              <div style={{ background: 'color-mix(in oklab, #2979FF 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ background: 'color-mix(in oklab, var(--accent) 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'ordered').length}</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)' }}>📦 Ordered</div>
               </div>
-              <div style={{ background: 'color-mix(in oklab, #4caf50 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+              <div style={{ background: 'color-mix(in oklab, var(--ink) 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'shipped').length}</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)' }}>🚚 Shipped</div>
               </div>
@@ -1014,7 +1014,7 @@ function AdminPanel({ onExit, onSelect }) {
                               setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
                             }}
                               style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', fontWeight: 600,
-                                background: o.status === 'pending' ? 'color-mix(in oklab, var(--accent) 20%, transparent)' : o.status === 'ordered' ? 'color-mix(in oklab, #2979FF 20%, transparent)' : 'color-mix(in oklab, #4caf50 20%, transparent)' }}>
+                                background: o.status === 'pending' ? 'color-mix(in oklab, var(--accent) 20%, transparent)' : o.status === 'ordered' ? 'color-mix(in oklab, var(--accent) 40%, transparent)' : 'color-mix(in oklab, var(--ink) 20%, transparent)' }}>
                               <option value="pending">⏳ Pending</option>
                               <option value="ordered">📦 Ordered</option>
                               <option value="shipped">🚚 Shipped</option>
@@ -1057,7 +1057,7 @@ function AdminPanel({ onExit, onSelect }) {
                         <div style={{
                           width: `${Math.round(((p.stock || 0) / maxStock) * 100)}%`,
                           height: '100%',
-                          background: (p.stock || 0) <= 5 ? '#e53935' : (p.stock || 0) <= 15 ? '#FF4D14' : '#4caf50',
+                          background: (p.stock || 0) <= 5 ? 'var(--accent)' : (p.stock || 0) <= 15 ? 'color-mix(in oklab, var(--accent) 60%, var(--ink))' : 'color-mix(in oklab, var(--ink) 40%, transparent)',
                           borderRadius: '4px',
                           transition: 'width 0.3s',
                         }} />
