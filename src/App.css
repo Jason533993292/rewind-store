@@ -358,7 +358,7 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- drawer ---- */
 .rw-scrim {
-  position: fixed; inset: 0; z-index: 80;
+  position: fixed; top: 52px; left: 0; right: 0; bottom: 0; z-index: 80;
   background: rgba(22,19,15,.42); backdrop-filter: blur(2px);
   opacity: 0; pointer-events: none; transition: opacity .3s;
 }
