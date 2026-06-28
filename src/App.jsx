@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.13';
+const VERSION = 'V6.4.14';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -1313,28 +1313,28 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
     }
   };
 
-  const labelStyle = { fontSize: '13px', fontWeight: 600, color: '#16130F', marginBottom: '6px' };
-  const inputStyle = { display: 'block', width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#FAF6EF', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' };
-  const btnStyle = { padding: '14px 28px', borderRadius: '999px', background: '#16130F', color: '#EDEBE4', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, letterSpacing: '0.5px' };
+  const labelStyle = { fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '6px' };
+  const inputStyle = { display: 'block', width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' };
+  const btnStyle = { padding: '14px 28px', borderRadius: '999px', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, letterSpacing: '0.5px' };
 
   return (
     <div style={{ maxWidth: '640px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
         <div>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: '#FF4D14', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px' }}>Edit product</div>
-          <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#16130F', margin: 0 }}>{product.name}</h3>
-          <div style={{ fontSize: '12px', color: '#938B7E', marginTop: '2px' }}>{product.brand}{product.brand && product.cat ? ' · ' : ''}{product.cat}</div>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '4px' }}>Edit product</div>
+          <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--ink)', margin: 0 }}>{product.name}</h3>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>{product.brand}{product.brand && product.cat ? ' · ' : ''}{product.cat}</div>
         </div>
         <button onClick={onDone}
-          style={{ padding: '10px 18px', borderRadius: '999px', border: '1px solid #e0dcd5', background: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#6E665A' }}>
+          style={{ padding: '10px 18px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>
           ← Back to saved
         </button>
       </div>
 
       {msg && (
         <div style={{ padding: '10px 14px', borderRadius: '8px', marginBottom: '20px', fontSize: '13px', fontWeight: 600,
-          background: msg.includes('✅') ? '#e8f5e9' : '#ffebee', color: msg.includes('✅') ? '#2e7d32' : '#c62828' }}>
+          background: msg.includes('✅') ? 'color-mix(in oklab, #4caf50 12%, transparent)' : 'color-mix(in oklab, var(--accent) 10%, transparent)', color: msg.includes('✅') ? '#2e7d32' : 'var(--accent)' }}>
           {msg}
         </div>
       )}
@@ -1347,11 +1347,11 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
             <div style={{ width: '160px', height: '200px', borderRadius: '12px', overflow: 'hidden', background: product.hue ? `hsl(${product.hue},50%,88%)` : '#f0ece6', flexShrink: 0 }}>
               {product.img
                 ? <img src={product.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: '#aaa' }}>No photo</div>
+                : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: 'var(--muted)' }}>No photo</div>
               }
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: '0 0 6px', fontSize: '12px', color: '#6E665A', lineHeight: '1.5' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '12px', color: 'var(--muted)', lineHeight: '1.5' }}>
                 To change the photo, you'll need to delete this product and re-add it with the new image. All other fields can be edited here.
               </p>
             </div>
@@ -1374,7 +1374,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         <div style={{ marginBottom: '20px' }}>
           <div style={labelStyle}>Category</div>
           <select value={form.cat} onChange={e => setForm({...form, cat: e.target.value})}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#FAF6EF', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
+            style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
             {REWIND_CATS.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
@@ -1411,13 +1411,13 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
                 }}
                   style={{
                     width: '52px', height: '52px', borderRadius: '50%',
-                    border: active ? '2px solid #16130F' : '1px solid #e0dcd5',
-                    background: active ? '#16130F' : '#fff',
-                    color: active ? '#EDEBE4' : '#6E665A',
+                    border: active ? '2px solid var(--ink)' : '1px solid var(--line-2)',
+                    background: active ? 'var(--ink)' : 'var(--surface)',
+                    color: active ? 'var(--bg)' : 'var(--muted)',
                     cursor: 'pointer', fontWeight: 700, fontSize: '13px', transition: 'all 0.15s',
                   }}
-                  onMouseOver={e => { if (!active) { e.target.style.borderColor = '#bbb'; e.target.style.transform = 'scale(1.05)'; } }}
-                  onMouseOut={e => { if (!active) { e.target.style.borderColor = '#e0dcd5'; e.target.style.transform = ''; } }}>
+                  onMouseOver={e => { if (!active) { e.target.style.borderColor = 'var(--line)'; e.target.style.transform = 'scale(1.05)'; } }}
+                  onMouseOut={e => { if (!active) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.transform = ''; } }}>
                   {s}
                 </button>
               );
@@ -1434,11 +1434,11 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         {/* Save */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button type="submit" disabled={saving}
-            style={{...btnStyle, background: saving ? '#ccc' : '#16130F', cursor: saving ? 'default' : 'pointer' }}>
+            style={{...btnStyle, background: saving ? 'var(--line-2)' : 'var(--ink)', cursor: saving ? 'default' : 'pointer' }}>
             {saving ? 'Saving...' : 'Save changes'}
           </button>
           <button type="button" onClick={onDone}
-            style={{ padding: '14px 28px', borderRadius: '999px', border: '1px solid #e0dcd5', background: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#6E665A' }}>
+            style={{ padding: '14px 28px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--muted)' }}>
             Cancel
           </button>
         </div>
