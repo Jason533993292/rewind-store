@@ -86,7 +86,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
                   style={{
                     width: '72px', height: '72px', borderRadius: '8px', cursor: 'pointer',
                     background: p.hue ? `hsl(${p.hue},60%,85%)` : '#f5f0eb',
-                    border: selectedImg === i ? '2px solid #16130F' : '2px solid transparent',
+                    border: selectedImg === i ? '2px solid var(--ink)' : '2px solid transparent',
                     overflow: 'hidden',
                   }}>
                   <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

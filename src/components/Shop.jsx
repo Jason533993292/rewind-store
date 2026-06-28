@@ -348,7 +348,7 @@ export function Checkout({ open, items, onClose, onPlaced }) {
               ⎘
             </button>
           </div>
-          <p style={{ fontSize: '12px', color: '#938B7E', marginTop: '12px' }}>A confirmation has been sent to your email</p>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '12px' }}>A confirmation has been sent to your email</p>
           <button className="rw-btn rw-btn-pri" onClick={onPlaced}>Continue shopping</button>
         </div>
       </div>

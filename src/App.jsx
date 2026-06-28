@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.5';
+const VERSION = 'V6.4.6';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -296,10 +296,10 @@ export default function App() {
   // Blocked screen
   if (blocked) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#FAF6EF', padding: '40px', textAlign: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)', padding: '40px', textAlign: 'center' }}>
         <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</h1>
-        <h2 style={{ fontSize: '24px', color: '#16130F', marginBottom: '8px' }}>Access restricted</h2>
-        <p style={{ fontSize: '16px', color: '#6E665A', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please contact us.</p>
+        <h2 style={{ fontSize: '24px', color: 'var(--ink)', marginBottom: '8px' }}>Access restricted</h2>
+        <p style={{ fontSize: '16px', color: 'var(--muted)', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please contact us.</p>
       </div>
     );
   }
@@ -442,21 +442,21 @@ export default function App() {
         <div className="rw-survey-overlay" onClick={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }}>
           <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '32px', textAlign: 'center' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Welcome to REWIND 👋</h2>
-            <p style={{ fontSize: '13px', color: '#6E665A', marginBottom: '20px' }}>Where did you hear about us?</p>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>Where did you hear about us?</p>
             <Survey onDone={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} onSkip={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} />
           </div>
         </div>
       )}
 
       {blockedOverlay && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: '#FAF6EF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#16130F', margin: '0 0 8px' }}>Access Restricted</h1>
-          <p style={{ fontSize: '15px', color: '#6E665A', maxWidth: '400px', lineHeight: '1.6', margin: '0' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px' }}>Access Restricted</h1>
+          <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '400px', lineHeight: '1.6', margin: '0' }}>
             Your account has been blocked from using REWIND.
           </p>
-          <p style={{ fontSize: '14px', color: '#6E665A', maxWidth: '400px', lineHeight: '1.6', marginTop: '16px' }}>
-            If you believe this is a mistake, please email us at <strong style={{ color: '#16130F' }}>orders@rewind-stores.com</strong> to appeal.
+          <p style={{ fontSize: '14px', color: 'var(--muted)', maxWidth: '400px', lineHeight: '1.6', marginTop: '16px' }}>
+            If you believe this is a mistake, please email us at <strong style={{ color: 'var(--ink)' }}>orders@rewind-stores.com</strong> to appeal.
           </p>
         </div>
       )}
