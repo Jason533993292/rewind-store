@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.2';
+const VERSION = 'V6.5.3';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -323,7 +323,7 @@ export default function App() {
           onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
           onWishlistOpen={() => setWishlistOpen(true)}
           query={query} setQuery={setQuery} cats={availableCats} version={VERSION} />
-        <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => setSelectedProduct(null)}
+        <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
           onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
           onWishlist={handleWishlist}
           wishlisted={wishlist.includes(selectedProduct?.id)} />
