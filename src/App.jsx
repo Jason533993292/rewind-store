@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.7';
+const VERSION = 'V6.4.8';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -124,9 +124,11 @@ export default function App() {
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
+  const toastTimer = useRef(null);
   const showToast = useCallback((msg, action, duration = 2400) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
-    setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= duration - 100 ? null : cur)), duration);
+    toastTimer.current = setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= duration - 100 ? null : cur)), duration);
   }, []);
 
   const addToCart = useCallback((p, size, qty = 1) => {
