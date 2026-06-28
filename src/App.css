@@ -15,6 +15,7 @@
 }
 
 * { box-sizing: border-box; }
+html { overflow-x: hidden; width: 100%; }
 html, body { margin: 0; padding: 0; }
 body {
   background: var(--bg);
@@ -23,6 +24,7 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; width: 100%;
 }
 h1, h2, h3, h4 {
   font-family: var(--font-head);
