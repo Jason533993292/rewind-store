@@ -97,7 +97,7 @@ export default function InfoModal({ page, onClose }) {
                     <div style={{ color: 'var(--muted)' }}>{(Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size})`).join(', ')}</div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
                       <span style={{ fontWeight: 700 }}>€{o.total}</span>
-                      <span style={{ color: o.status === 'shipped' ? '#4caf50' : o.status === 'ordered' ? '#2979FF' : '#cc8b00' }}>
+                      <span style={{ color: o.status === 'shipped' ? 'var(--ink)' : o.status === 'ordered' ? 'var(--accent)' : 'var(--muted)' }}>
                         {o.status === 'shipped' ? '✅ Shipped' : o.status === 'ordered' ? '📦 Ordered' : '⏳ Pending'}
                       </span>
                     </div>
