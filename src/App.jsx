@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.4';
+const VERSION = 'V6.4.5';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -342,25 +342,25 @@ export default function App() {
           <aside id="rw-sidebar" style={{
             width: '200px',
             flexShrink: 0,
-            background: '#f0ece6',
+            background: 'var(--line)',
             borderRadius: '12px',
             padding: '20px 16px',
             position: 'sticky',
             top: '20px',
             alignSelf: 'flex-start',
           }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#16130F', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
+            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {REWIND_CATS.map((c) => (
               <button key={c} onClick={() => { setCat(c); scrollToGrid(); }}
                 style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
                   borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: cat === c ? 700 : 400,
-                  background: cat === c ? '#16130F' : 'transparent',
-                  color: cat === c ? '#fff' : '#16130F',
+                  background: cat === c ? 'var(--ink)' : 'transparent',
+                  color: cat === c ? 'var(--surface)' : 'var(--ink)',
                   marginBottom: '2px',
                   transition: 'background 0.15s',
                 }}
-                onMouseOver={e => { if (cat !== c) e.target.style.background = '#ddd'; }}
+                onMouseOver={e => { if (cat !== c) e.target.style.background = 'var(--line)'; }}
                 onMouseOut={e => { if (cat !== c) e.target.style.background = 'transparent'; }}>
                 {c === 'All' ? 'All' : c}
               </button>
@@ -368,31 +368,31 @@ export default function App() {
 
             {cat !== 'All' && currentBrands.length > 0 && (
               <>
-                <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
                 <button onClick={() => { setBrand(null); scrollToGrid(); }}
                   style={{
                     display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
                     borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
-                    background: !brand ? '#16130F' : 'transparent',
-                    color: !brand ? '#fff' : '#16130F',
+                    background: !brand ? 'var(--ink)' : 'transparent',
+                    color: !brand ? 'var(--surface)' : 'var(--ink)',
                     fontWeight: !brand ? 700 : 400,
                     marginBottom: '2px',
                     transition: 'background 0.15s',
                   }}
-                  onMouseOver={e => { if (brand !== null) e.target.style.background = '#ddd'; }}
+                  onMouseOver={e => { if (brand !== null) e.target.style.background = 'var(--line)'; }}
                   onMouseOut={e => { if (brand !== null) e.target.style.background = 'transparent'; }}>All</button>
                 {currentBrands.map((b) => (
                   <button key={b} onClick={() => { setBrand(b); scrollToGrid(); }}
                     style={{
                       display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
                       borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
-                      background: brand === b ? '#16130F' : 'transparent',
-                      color: brand === b ? '#fff' : '#16130F',
+                      background: brand === b ? 'var(--ink)' : 'transparent',
+                      color: brand === b ? 'var(--surface)' : 'var(--ink)',
                       fontWeight: brand === b ? 700 : 400,
                       marginBottom: '2px',
                       transition: 'background 0.15s',
                     }}
-                    onMouseOver={e => { if (brand !== b) e.target.style.background = '#ddd'; }}
+                    onMouseOver={e => { if (brand !== b) e.target.style.background = 'var(--line)'; }}
                     onMouseOut={e => { if (brand !== b) e.target.style.background = 'transparent'; }}>{b}</button>
                 ))}
               </>
@@ -401,13 +401,13 @@ export default function App() {
           <div className="rw-shop-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#fff', fontSize: '13px', fontWeight: 600, color: '#16130F', outline: 'none' }}>
+                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
                 <option value="">Featured</option>
                 <option value="price-asc">Price: Low → High</option>
                 <option value="price-desc">Price: High → Low</option>
               </select>
               <select id="rw-mobile-cat" value={cat} onChange={e => { setCat(e.target.value); scrollToGrid(); }}
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #e0dcd5', background: '#fff', fontSize: '13px', fontWeight: 600, color: '#16130F', outline: 'none' }}>
+                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
                 {REWIND_CATS.map((c) => (
                   <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
                 ))}
