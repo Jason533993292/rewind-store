@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.3';
+const VERSION = 'V6.3.4';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -1701,25 +1701,25 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
           <div style={{ marginTop: '16px', border: '1px solid #eee', borderRadius: '12px', padding: '20px', background: '#FAF6EF' }}>
             <p style={{ fontSize: '13px', fontWeight: 600, color: '#16130F', marginBottom: '12px' }}>📱 Storefront preview</p>
             <div style={{ background: '#fff', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
-              <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : '#f5f0eb', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : 'var(--line)', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 <img src={URL.createObjectURL(form.file)} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
               </div>
               <div style={{ padding: '14px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>{form.cat?.toUpperCase() || 'CATEGORY'}</span>
-                {form.brand && <span style={{ fontSize: '11px', color: '#888', marginLeft: '6px' }}>— {form.brand}</span>}
-                <h3 style={{ fontSize: '15px', fontWeight: 600, margin: '4px 0 2px', color: '#16130F' }}>{form.name || 'Product name'}</h3>
+                {form.brand && <span style={{ fontSize: '11px', color: 'var(--muted)', marginLeft: '6px' }}>— {form.brand}</span>}
+                <h3 style={{ fontSize: '15px', fontWeight: 600, margin: '4px 0 2px', color: 'var(--ink)' }}>{form.name || 'Product name'}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '18px', fontWeight: 700, color: '#16130F' }}>{form.price ? `€${form.price}` : '€--'}</span>
-                  {form.was && <span style={{ fontSize: '14px', color: '#aaa', textDecoration: 'line-through' }}>€{form.was}</span>}
+                  <span style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ink)' }}>{form.price ? `€${form.price}` : '€--'}</span>
+                  {form.was && <span style={{ fontSize: '14px', color: 'var(--muted)', textDecoration: 'line-through' }}>€{form.was}</span>}
                 </div>
                 <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
                   {form.sizes.split(',').map(s => s.trim()).filter(Boolean).map(s => (
-                    <span key={s} style={{ padding: '3px 8px', borderRadius: '4px', border: '1px solid #eee', fontSize: '11px', color: '#888' }}>{s}</span>
+                    <span key={s} style={{ padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--line)', fontSize: '11px', color: 'var(--muted)' }}>{s}</span>
                   ))}
                 </div>
               </div>
             </div>
-            {form.note && <p style={{ fontSize: '12px', color: '#888', marginTop: '8px', fontStyle: 'italic' }}>{form.note}</p>}
+            {form.note && <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '8px', fontStyle: 'italic' }}>{form.note}</p>}
           </div>
         )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}
