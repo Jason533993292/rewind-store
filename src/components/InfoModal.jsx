@@ -81,7 +81,8 @@ export default function InfoModal({ page, onClose }) {
                 onChange={e => setLookupEmail(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }} />
               <button onClick={handleLookup} disabled={loadingOrders}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                className="rw-btn rw-btn-pri"
+                style={{ whiteSpace: 'nowrap' }}>
                 {loadingOrders ? 'Searching...' : 'Look up'}
               </button>
             </div>
