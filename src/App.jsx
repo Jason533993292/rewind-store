@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.2.8';
+const VERSION = 'V6.2.9';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -472,20 +472,17 @@ export default function App() {
               transformOrigin: 'bottom right',
             }}>
             <button onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
+              className="rw-modal-x"
               style={{
                 position: 'absolute', top: '10px', right: '10px',
-                width: '24px', height: '24px', borderRadius: '50%',
-                border: 'none', background: '#eee', cursor: 'pointer',
-                display: 'grid', placeItems: 'center',
-                color: '#888', fontSize: '13px', fontWeight: 700,
-                transition: 'background 0.15s',
+                width: '28px', height: '28px',
+                background: 'color-mix(in oklab, var(--surface) 85%, transparent)', backdropFilter: 'blur(6px)',
               }}
-              onMouseOver={e => e.target.style.background = '#ddd'}
-              onMouseOut={e => e.target.style.background = '#eee'}>
-              ✕
+              aria-label="Close">
+              <Icon name="close" size={16} />
             </button>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#16130F', marginBottom: '4px' }}>Got a code?</div>
-            <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#888' }}>Enter it below and get a discount.</p>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)', marginBottom: '4px' }}>Got a code?</div>
+            <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--muted)' }}>Enter it below and get a discount.</p>
             <input className="rw-input" placeholder="Enter code" value={promoCode}
               onChange={e => setPromoCode(e.target.value)}
               onKeyDown={async e => {
@@ -505,10 +502,10 @@ export default function App() {
               if (d.admin) { window.location.hash = 'admin'; }
               else { setPromoMsg('✅ Promo applied!'); }
             }}
-              style={{ padding: '8px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+              style={{ padding: '8px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
               Apply
             </button>
-            {promoMsg && <p style={{ fontSize: '12px', marginTop: '8px', color: '#4caf50' }}>{promoMsg}</p>}
+            {promoMsg && <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--accent)' }}>{promoMsg}</p>}
           </div>
         </div>
       )}
