@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.9';
+const VERSION = 'V6.3.10';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -365,7 +365,7 @@ export default function App() {
             {cat !== 'All' && currentBrands.length > 0 && (
               <>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#16130F', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
-                <button onClick={() => setBrand(null)}
+                <button onClick={() => { setBrand(null); scrollToGrid(); }}
                   style={{
                     display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
                     borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
@@ -378,7 +378,7 @@ export default function App() {
                   onMouseOver={e => { if (brand !== null) e.target.style.background = '#ddd'; }}
                   onMouseOut={e => { if (brand !== null) e.target.style.background = 'transparent'; }}>All</button>
                 {currentBrands.map((b) => (
-                  <button key={b} onClick={() => setBrand(b)}
+                  <button key={b} onClick={() => { setBrand(b); scrollToGrid(); }}
                     style={{
                       display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
                       borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
