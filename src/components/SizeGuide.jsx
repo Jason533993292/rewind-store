@@ -76,7 +76,7 @@ function SizeDiagram({ cat }) {
         {lbl.map((l, i) => (
           <div key={i} style={{
             position: 'absolute',
-            background: i === 0 ? 'color-mix(in oklab, var(--accent) 90%, transparent)' : i === 1 ? 'rgba(76,175,80,0.9)' : 'color-mix(in oklab, var(--muted) 90%, transparent)',
+            background: i === 0 ? 'color-mix(in oklab, var(--accent) 90%, transparent)' : i === 1 ? 'color-mix(in oklab, var(--ink) 90%, transparent)' : 'color-mix(in oklab, var(--muted) 90%, transparent)',
             color: '#fff', fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px',
             top: `${10 + i * 25}%`, left: '8px',
           }}>{l}</div>
