@@ -43,6 +43,7 @@ function LazyImage({ src, alt, className }) {
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect }) {
   const low = p.stock <= 5;
+  const [added, setAdded] = useState(false);
   return (
     <article className="rw-card">
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
@@ -69,9 +70,16 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
             <span className="rw-price-now">{money(p.price)}</span>
             {showCompare && p.was && <span className="rw-price-was">{money(p.was)}</span>}
           </div>
-          <button className="rw-add" onClick={() => onAdd(p)} aria-label={"Add " + p.name}>
+          {added ? (
+            <button className="rw-add" style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+              onClick={() => onSelect ? onSelect(p) : onQuick(p)} aria-label="Go to cart">
+              <Icon name="bag" size={16} />
+            </button>
+          ) : (
+          <button className="rw-add" onClick={() => { onAdd(p); setAdded(true); setTimeout(() => setAdded(false), 2000); }} aria-label={"Add " + p.name}>
             <Icon name="plus" size={18} />
           </button>
+          )}
         </div>
         <div className="rw-card-ship">
           <Icon name="retrn" size={13} /> Free returns <span className="rw-price-was">€8</span>
