@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.8';
+const VERSION = 'V6.3.9';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -308,7 +308,7 @@ export default function App() {
           onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
           onWishlistOpen={() => setWishlistOpen(true)}
           query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
-        <ProductPage p={selectedProduct} onBack={() => setSelectedProduct(null)}
+        <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => setSelectedProduct(null)}
           onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
           onWishlist={handleWishlist}
           wishlisted={wishlist.includes(selectedProduct?.id)} />
