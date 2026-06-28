@@ -103,7 +103,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
     <header className="rw-header">
       <div className="rw-header-row">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }}>REWIND<span>.</span></div>
+          onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
         <nav className="rw-nav">
           {cats.map((c) => (
             <button key={c} className={"rw-navlink" + (cat === c ? " is-on" : "")}

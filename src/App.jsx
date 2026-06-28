@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.10';
+const VERSION = 'V6.4.0';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -234,6 +234,10 @@ export default function App() {
         .then(d => { if (d.blocked) setBlockedOverlay(true); })
         .catch(() => {});
     }
+    // Listen for logo click to reset store
+    const handler = () => { setCat('All'); setBrand(null); setQuery(''); };
+    window.addEventListener('reset-store', handler);
+    return () => window.removeEventListener('reset-store', handler);
   }, []);
   useEffect(() => {
     const onPop = () => {
