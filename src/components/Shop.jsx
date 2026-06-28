@@ -91,9 +91,25 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, ...re
   }
   // Sort products
   let sorted = [...products];
+  const isSorting = sort === 'price-asc' || sort === 'price-desc';
   if (sort === 'price-asc') sorted.sort((a, b) => a.price - b.price);
   else if (sort === 'price-desc') sorted.sort((a, b) => b.price - a.price);
-  // Group products by brand → category, then flatten with headers
+
+  // When sorting is active, render a single flat grid so the sort order is respected globally.
+  if (isSorting) {
+    return (
+      <div>
+        <div className="rw-grid">
+          {sorted.map((p) => (
+            <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist}
+              showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Group products by brand → category, then flatten with headers (Featured view)
   const grouped = {};
   sorted.forEach(p => {
     const brand = p.brand || '';
