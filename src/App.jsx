@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.14';
+const VERSION = 'V6.4.15';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -121,6 +121,13 @@ export default function App() {
       (query.trim() === '' || (p.name + ' ' + p.cat).toLowerCase().includes(query.toLowerCase()))
     );
   }, [cat, brand, query, customProducts]);
+
+  // Compute categories that actually have products (including custom products)
+  const availableCats = useMemo(() => {
+    const allProds = [...REWIND_PRODUCTS, ...customProducts];
+    const available = new Set(allProds.map(p => p.cat).filter(Boolean));
+    return REWIND_CATS.filter(c => c === 'All' || available.has(c));
+  }, [customProducts]);
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
@@ -315,7 +322,7 @@ export default function App() {
         <Header cat={cat} setCat={(c) => { setCat(c); }} cartCount={cartCount}
           onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
           onWishlistOpen={() => setWishlistOpen(true)}
-          query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
+          query={query} setQuery={setQuery} cats={availableCats} version={VERSION} />
         <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => setSelectedProduct(null)}
           onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
           onWishlist={handleWishlist}
@@ -330,7 +337,7 @@ export default function App() {
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
-        query={query} setQuery={setQuery} cats={REWIND_CATS} version={VERSION} />
+        query={query} setQuery={setQuery} cats={availableCats} version={VERSION} />
       <Hero onShop={(filterCat) => { if (filterCat) setCat(filterCat); scrollToGrid(); }} />
       <Marquee />
 
@@ -354,7 +361,7 @@ export default function App() {
             alignSelf: 'flex-start',
           }}>
             <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
-            {REWIND_CATS.map((c) => (
+            {availableCats.map((c) => (
               <button key={c} onClick={() => { setCat(c); scrollToGrid(); }}
                 style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
@@ -412,7 +419,7 @@ export default function App() {
               </select>
               <select id="rw-mobile-cat" value={cat} onChange={e => { setCat(e.target.value); scrollToGrid(); }}
                 style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
-                {REWIND_CATS.map((c) => (
+                {availableCats.map((c) => (
                   <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
                 ))}
               </select>
