@@ -163,20 +163,20 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
             const menu = e.target.nextElementSibling;
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
           }}
-            style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
+            style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
             ⋮
           </button>
           <div onClick={e => e.stopPropagation()}
-            style={{ display: 'none', position: 'absolute', top: '32px', left: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
+            style={{ display: 'none', position: 'absolute', top: '32px', left: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
             <button onClick={() => {
               const id = p.id || p.product_id;
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
               if (savedIds.includes(id)) { localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id))); alert('Removed from saved'); }
               else { localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id])); alert('Saved!'); }
             }}
-              onMouseOver={e => e.target.style.background = '#f5f5f5'}
-              onMouseOut={e => e.target.style.background = 'none'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+              onMouseOver={e => e.target.style.background = 'var(--line)'}
+              onMouseOut={e => e.target.style.background = 'transparent'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ⭐ Save
             </button>
             <button onClick={() => {
@@ -185,18 +185,18 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
                 window.location.reload();
               }
             }}
-              onMouseOver={e => e.target.style.background = '#f5f5f5'}
-              onMouseOut={e => e.target.style.background = 'none'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+              onMouseOver={e => e.target.style.background = 'var(--line)'}
+              onMouseOut={e => e.target.style.background = 'transparent'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               🗑 Delete
             </button>
             <button onClick={() => {
               localStorage.setItem('rw_edit_product', p.id || p.product_id);
               window.location.hash = '#admin';
             }}
-              onMouseOver={e => e.target.style.background = '#f5f5f5'}
-              onMouseOut={e => e.target.style.background = 'none'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+              onMouseOver={e => e.target.style.background = 'var(--line)'}
+              onMouseOut={e => e.target.style.background = 'transparent'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ✏️ Edit
             </button>
           </div>
