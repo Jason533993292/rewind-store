@@ -82,9 +82,12 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
 }
 
 /* ---------- ProductGrid ---------- */
-export function ProductGrid({ products, wishlist, onWishlist, sort, ...rest }) {
+export function ProductGrid({ products, wishlist, onWishlist, sort, query, ...rest }) {
   if (products.length === 0) {
-    return <div className="rw-empty">Nothing matched your search — try a different term?</div>;
+    const msg = query && query.trim()
+      ? `Nothing matched "${query.trim()}" — try a different term?`
+      : 'Nothing here yet — check back soon for new drops in this category.';
+    return <div className="rw-empty">{msg}</div>;
   }
   // Sort products
   let sorted = [...products];

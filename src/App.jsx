@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.0';
+const VERSION = 'V6.3.1';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -400,7 +400,7 @@ export default function App() {
                 <option value="price-desc">Price: High → Low</option>
               </select>
             </div>
-            <ProductGrid products={products} sort={sortBy} showCompare={t.showCompare} showStock={t.showStock}
+            <ProductGrid products={products} sort={sortBy} query={query} showCompare={t.showCompare} showStock={t.showStock}
               onQuick={setQuick} onAdd={quickAdd}
               wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct} />
           </div>
