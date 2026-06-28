@@ -300,7 +300,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }
 }
 
 /* ---------- Checkout ---------- */
-export function Checkout({ open, items, onClose, onPlaced }) {
+export function Checkout({ open, items, onClose, onPlaced, userEmail }) {
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -411,7 +411,7 @@ export function Checkout({ open, items, onClose, onPlaced }) {
         <div className="rw-checkout-main">
           <div className="rw-co-sec">
             <h3>Contact</h3>
-            <input className="rw-input" type="email" placeholder="Email" defaultValue="hi@example.com" />
+            <input className="rw-input" type="email" placeholder="Email" defaultValue={userEmail || ''} />
           </div>
           <div className="rw-co-sec">
             <h3>Delivery</h3>

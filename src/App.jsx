@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.9';
+const VERSION = 'V6.4.10';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -432,7 +432,7 @@ export default function App() {
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
       <CartDrawer open={drawer} items={cart} onClose={() => setDrawer(false)}
         onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout} />
-      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} />
+      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} />
       <Toast toast={toast} />
       <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} onSignup={handleSignup} />
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
