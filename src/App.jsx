@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.27';
+const VERSION = 'V6.4.28';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -856,10 +856,10 @@ function AdminPanel({ onExit, onSelect }) {
                 const resultsDiv = document.getElementById('test-results');
                 if (resultsDiv) {
                   resultsDiv.innerHTML = d.results.map(r =>
-                    `<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px">
+                    `<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13px">
                       <span>${r.status}</span>
                       <span style="font-weight:600;margin:0 8px">${r.name}</span>
-                      <span style="color:#888;font-size:12px">${r.detail}</span>
+                      <span style="color:var(--muted);font-size:12px">${r.detail}</span>
                     </div>`
                   ).join('');
                 }
