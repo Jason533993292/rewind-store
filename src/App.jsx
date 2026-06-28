@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.2.4';
+const VERSION = 'V6.2.5';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -126,12 +126,18 @@ export default function App() {
   const addFromQuick = useCallback((p, size) => { addToCart(p, size); setQuick(null); setDrawer(true); }, [addToCart]);
   const changeQty = useCallback((key, d) => { setCart((c) => c.map((it) => it.key === key ? { ...it, qty: Math.max(1, it.qty + d) } : it)); }, []);
   const removeItem = useCallback((key, name) => { 
+    // Capture the removed item so Undo always restores the right data,
+    // regardless of subsequent cart changes before the user clicks Undo.
+    const removedItem = cart.find(it => it.key === key);
     setCart((c) => c.filter((it) => it.key !== key)); 
     showToast((name || 'Item') + ' removed', {
       label: 'Undo',
-      onClick: () => setCart((c) => [...c, cart.find(it => it.key === key)].filter(Boolean)),
+      onClick: () => setCart((c) => {
+        if (c.find(it => it.key === key)) return c; // already restored
+        return [...c, removedItem].filter(Boolean);
+      }),
     });
-  }, [showToast]);
+  }, [cart, showToast]);
   const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); }, []);
   const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); }, []);
 
