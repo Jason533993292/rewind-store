@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.6';
+const VERSION = 'V6.3.7';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -609,12 +609,12 @@ function AdminPanel({ onExit, onSelect }) {
       <div style={{ position: 'absolute', top: '44px', right: '24px', fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>{VERSION}</div>
 
       {/* ── Admin login ── */}
-      {adminChecking && <p style={{ textAlign: 'center', color: '#888' }}>Checking access...</p>}
+      {adminChecking && <p style={{ textAlign: 'center', color: 'var(--muted)' }}>Checking access...</p>}
 
       {!adminChecking && !adminAuthed && (
         <div style={{ maxWidth: '400px', margin: '60px auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>🔐 Admin Access</h2>
-          <p style={{ fontSize: '14px', color: '#888', marginBottom: '16px' }}>Enter your email to access the admin panel.</p>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your email to access the admin panel.</p>
           <input className="rw-input" placeholder="your@email.com" value={adminEmail}
             onChange={e => setAdminEmail(e.target.value)}
             style={{ width: '100%', marginBottom: '12px' }} />
