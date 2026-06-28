@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.28';
+const VERSION = 'V6.4.29';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -1487,7 +1487,9 @@ function Survey({ onDone, onSkip }) {
       <>
       {options.map(o => (
         <button key={o} onClick={() => { setSource(o); if (o === 'Other') setStep('other'); else submit(); }}
-          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center' }}>
+          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center', transition: 'all 0.15s' }}
+          onMouseOver={e => { if (source !== o) { e.target.style.background = 'var(--line)'; e.target.style.transform = 'translateY(-1px)'; } }}
+          onMouseOut={e => { if (source !== o) { e.target.style.background = 'var(--surface)'; e.target.style.transform = ''; } }}>
           {o}
         </button>
       ))}
@@ -1496,12 +1498,16 @@ function Survey({ onDone, onSkip }) {
           <input className="rw-input" placeholder="Tell us where..." value={otherText} onChange={e => setOtherText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(); }} autoFocus />
           <button onClick={submit} disabled={!otherText.trim()}
-            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%' }}>
+            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
+            onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
             Submit
           </button>
         </div>
       )}
-      <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '12px' }}>Skip</button>
+      <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '12px', transition: 'color 0.15s' }}
+        onMouseOver={e => e.target.style.color = 'var(--ink)'}
+        onMouseOut={e => e.target.style.color = 'var(--muted)'}>Skip</button>
       </>)}
     </div>
   );
