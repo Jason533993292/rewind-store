@@ -644,7 +644,9 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
             </button>
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px' }}
               onClick={() => setSelected([])}>Cancel</button>
-            <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e53935', background: 'none', cursor: 'pointer', fontSize: '12px', color: '#e53935' }}
+            <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--accent)', background: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--accent)', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}
               onClick={() => { selected.forEach(id => onRemove(id)); setSelected([]); }}>Delete all</button>
           </div>
         )}
