@@ -52,6 +52,11 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sortBy, setSortBy] = useState('');
+  // ── ALL new state vars for modals/panels MUST go above this line ──
+  // The scroll-lock useEffect (below) references these in its `anyOpen` check.
+  // Adding a new state AFTER this point will break the site with a TDZ error.
   const customProductsRef = useRef(customProducts);
   useEffect(() => { customProductsRef.current = customProducts; }, [customProducts]);
 
@@ -199,8 +204,6 @@ export default function App() {
   // ── Admin mode ──
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
   const [blocked, setBlocked] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [sortBy, setSortBy] = useState('');
 
   // Handle Stripe success redirect
   useEffect(() => {
