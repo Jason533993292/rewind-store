@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.11';
+const VERSION = 'V6.4.12';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -616,7 +616,9 @@ function AdminPanel({ onExit, onSelect }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 700, margin: 0 }}>REWIND Admin</h1>
         <button onClick={onExit}
-          style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}>
+          style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', color: 'var(--ink)', transition: 'all 0.15s' }}
+          onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.transform = 'translateY(-1px)'; }}
+          onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; e.target.style.transform = ''; }}>
           ← Back to store
         </button>
       </div>
@@ -642,7 +644,9 @@ function AdminPanel({ onExit, onSelect }) {
               setAdminMsg('❌ Access denied. This email is not on the admin list.');
             }
           }}
-            style={{ padding: '10px 24px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+            style={{ padding: '10px 24px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
+            onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+            onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
             Enter admin panel
           </button>
           <p style={{ fontSize: '12px', color: '#e53935', marginTop: '8px' }}>{adminMsg}</p>
@@ -664,10 +668,13 @@ function AdminPanel({ onExit, onSelect }) {
           <button key={t.id} onClick={() => setAdminTab(t.id)}
             style={{
               padding: '10px 20px', borderRadius: '999px', border: 'none',
-              background: adminTab === t.id ? '#16130F' : '#f0f0f0',
-              color: adminTab === t.id ? '#fff' : '#16130F',
+              background: adminTab === t.id ? 'var(--ink)' : 'var(--line)',
+              color: adminTab === t.id ? '#fff' : 'var(--ink)',
               cursor: 'pointer', fontWeight: 600, fontSize: '14px',
-            }}>
+              transition: 'all 0.15s',
+            }}
+            onMouseOver={e => { if (adminTab !== t.id) { e.target.style.background = '#d9d0c0'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOut={e => { if (adminTab !== t.id) { e.target.style.background = 'var(--line)'; e.target.style.transform = ''; } }}>
             {t.label}
           </button>
         ))}
@@ -806,7 +813,9 @@ function AdminPanel({ onExit, onSelect }) {
                 alert(d.ok ? `✅ ${email} added as admin` : `❌ ${d.error}`);
                 if (d.ok) input.value = '';
               }}
-                style={{ padding: '8px 16px', borderRadius: '8px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
                 Add admin
               </button>
             </div>
@@ -846,7 +855,9 @@ function AdminPanel({ onExit, onSelect }) {
               }
               setTimeout(() => { btn.textContent = '🧪 Run tests'; btn.disabled = false; }, 5000);
             }}
-              style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
+              onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
               🧪 Run tests
             </button>
             <div id="test-results" style={{ marginTop: '16px', maxHeight: '300px', overflow: 'auto' }} />
@@ -880,7 +891,9 @@ function AdminPanel({ onExit, onSelect }) {
                 btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : `❌ ${d.error || 'Failed'}`;
                 setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000);
               }}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+                style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
                 📩 Email all users ({users.length})
               </button>
               <button onClick={async () => {
@@ -1240,7 +1253,9 @@ function BlockedPanel() {
           <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && newEmail.trim()) blockEmail(newEmail.trim()); }} />
           <button onClick={() => blockEmail(newEmail.trim())} disabled={!newEmail.trim()}
-            style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}>Block</button>
+            style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+            onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>Block</button>
         </div>
         {loading ? <p style={{ fontSize: '13px', color: '#888' }}>Loading...</p> : emails.length === 0 ? (
           <p style={{ fontSize: '13px', color: '#888' }}>No blocked emails.</p>
@@ -1671,7 +1686,9 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
                 }
                 setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 3000);
               }}
-              style={{ padding: '8px 16px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              style={{ padding: '8px 16px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
               ✨ Generate from photo
             </button>
             </div>
@@ -1744,7 +1761,9 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         </p>}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <button type="submit" disabled={saving}
-        style={{ padding: '10px 20px', borderRadius: '999px', background: '#16130F', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+        style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
+        onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+        onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
         {saving ? 'Saving...' : '➕ Add product'}
         </button>
         </div>
