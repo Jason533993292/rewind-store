@@ -311,15 +311,13 @@ a { color: inherit; cursor: pointer; }
   background: rgba(22,19,15,.42); backdrop-filter: blur(3px);
   display: grid; place-items: center; padding: 24px; animation: fadeUp .2s ease;
 }
-/* Survey overlay — non-blocking; clicks pass through the backdrop to page elements */
+/* Survey overlay */
 .rw-survey-overlay {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(22,19,15,.42); backdrop-filter: blur(3px);
   padding: 24px; animation: fadeUp .2s ease;
-  pointer-events: none;
   display: flex; align-items: center; justify-content: center;
 }
-.rw-survey-overlay > * { pointer-events: auto; }
 .rw-modal {
   background: var(--surface); border-radius: var(--r); max-width: 860px; width: 100%;
   max-height: 90vh; overflow: auto; display: grid; grid-template-columns: 1fr 1fr;
