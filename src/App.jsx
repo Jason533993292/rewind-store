@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.20';
+const VERSION = 'V6.4.21';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -475,7 +475,8 @@ export default function App() {
       {/* ── Promo code button ── */}
       {!drawer && !wishlistOpen && (
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
-        <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); } }}
+        <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); setPromoCode(''); setPromoMsg(''); } }}
+          aria-label="Promo code"
           style={{
             width: '44px', height: '44px', borderRadius: '50%',
             background: 'var(--ink)', color: '#fff', border: 'none',
@@ -501,7 +502,7 @@ export default function App() {
             style={{
               pointerEvents: 'auto',
               position: 'fixed', bottom: '80px', right: '24px',
-              background: '#fff', borderRadius: '14px', padding: '24px',
+              background: 'var(--surface)', borderRadius: '14px', padding: '24px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
               width: '280px', zIndex: 1001,
               animation: promoClosing ? 'genieDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'genieUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
