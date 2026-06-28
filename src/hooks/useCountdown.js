@@ -3,10 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 function nextDeadline() {
   const now = new Date();
   const d = new Date(now);
-  const days = (7 - now.getDay()) % 7;
-  d.setDate(now.getDate() + days);
+  d.setDate(now.getDate() + 9);
   d.setHours(23, 59, 59, 999);
-  if (d <= now) d.setDate(d.getDate() + 7);
   return d;
 }
 

@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.2.10';
+const VERSION = 'V6.2.11';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -94,6 +94,13 @@ export default function App() {
     r.style.setProperty('--accent', t.accent);
     r.style.setProperty('--font-head', `"${t.headingFont}", sans-serif`);
   }, [t.accent, t.headingFont]);
+
+  // Lock body scroll when any modal/drawer is open
+  useEffect(() => {
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen]);
 
   const products = useMemo(() => {
     const allProducts = [...REWIND_PRODUCTS, ...customProducts];
