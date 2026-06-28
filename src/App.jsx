@@ -35,6 +35,7 @@ export default function App() {
   }, [cart]);
   const [drawer, setDrawer] = useState(false);
   const [quick, setQuick] = useState(null);
+  const [showSizes, setShowSizes] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [checkoutCount, setCheckoutCount] = useState(0);
   const [toast, setToast] = useState(null);
@@ -193,7 +194,6 @@ export default function App() {
   // ── Admin mode ──
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
   const [blocked, setBlocked] = useState(false);
-  const [showSizes, setShowSizes] = useState(false);
   const [infoPage, setInfoPage] = useState(null);
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoClosing, setPromoClosing] = useState(false);
