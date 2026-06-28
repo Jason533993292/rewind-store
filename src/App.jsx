@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.6';
+const VERSION = 'V6.4.7';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -1448,14 +1448,14 @@ function Survey({ onDone, onSkip }) {
       {done ? (
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🙏</div>
-          <p style={{ fontSize: '15px', fontWeight: 600, color: '#16130F', margin: '0' }}>Thanks for letting us know!</p>
-          <p style={{ fontSize: '12px', color: '#6E665A', margin: '4px 0 0' }}>Enjoy browsing REWIND.</p>
+          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--ink)', margin: '0' }}>Thanks for letting us know!</p>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0' }}>Enjoy browsing REWIND.</p>
         </div>
       ) : (
       <>
       {options.map(o => (
         <button key={o} onClick={() => { setSource(o); if (o === 'Other') setStep('other'); else submit(); }}
-          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid #e0dcd5', background: source === o ? '#16130F' : '#fff', color: source === o ? '#fff' : '#16130F', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center' }}>
+          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center' }}>
           {o}
         </button>
       ))}
@@ -1464,12 +1464,12 @@ function Survey({ onDone, onSkip }) {
           <input className="rw-input" placeholder="Tell us where..." value={otherText} onChange={e => setOtherText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(); }} autoFocus />
           <button onClick={submit} disabled={!otherText.trim()}
-            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%' }}>
+            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%' }}>
             Submit
           </button>
         </div>
       )}
-      <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: '#938B7E', fontSize: '12px' }}>Skip</button>
+      <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '12px' }}>Skip</button>
       </>)}
     </div>
   );

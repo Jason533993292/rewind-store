@@ -604,7 +604,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
             <input type="checkbox" checked={selected.length === wishlistItems.length && wishlistItems.length > 0}
               onChange={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}
               style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
-            <span style={{ fontSize: '13px', color: '#6E665A', cursor: 'pointer' }}
+            <span style={{ fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}
               onClick={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}>
               Select all
             </span>
