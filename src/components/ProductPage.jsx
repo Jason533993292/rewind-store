@@ -27,20 +27,20 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
             const menu = e.target.nextElementSibling;
             menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
           }}
-            style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#333', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+            style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
             ⋮
           </button>
           <div onClick={e => e.stopPropagation()}
-            style={{ display: 'none', position: 'absolute', top: '36px', right: 0, background: '#fff', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
+            style={{ display: 'none', position: 'absolute', top: '36px', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
             <button onClick={() => {
               const id = p.id || p.product_id;
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
               if (savedIds.includes(id)) { localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id))); alert('Removed from saved'); }
               else { localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id])); alert('Saved!'); }
             }}
-              onMouseOver={e => e.target.style.background = '#f5f5f5'}
-              onMouseOut={e => e.target.style.background = 'none'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+              onMouseOver={e => e.target.style.background = 'var(--line)'}
+              onMouseOut={e => e.target.style.background = 'transparent'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ⭐ Save
             </button>
             <button onClick={() => {
@@ -49,18 +49,18 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
                 onBack();
               }
             }}
-              onMouseOver={e => e.target.style.background = '#f5f5f5'}
-              onMouseOut={e => e.target.style.background = 'none'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+              onMouseOver={e => e.target.style.background = 'var(--line)'}
+              onMouseOut={e => e.target.style.background = 'transparent'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               🗑 Delete
             </button>
             <button onClick={() => {
               localStorage.setItem('rw_edit_product', p.id || p.product_id);
               window.location.hash = '#admin';
             }}
-              onMouseOver={e => e.target.style.background = '#f5f5f5'}
-              onMouseOut={e => e.target.style.background = 'none'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+              onMouseOver={e => e.target.style.background = 'var(--line)'}
+              onMouseOut={e => e.target.style.background = 'transparent'}
+              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ✏️ Edit
             </button>
           </div>
@@ -71,7 +71,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
         {/* ── Images ── */}
         <div className="rw-product-images">
           <div className="rw-product-main-img" style={{
-            background: p.hue ? `hsl(${p.hue},60%,85%)` : '#f5f0eb',
+            background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--bg)',
             borderRadius: '16px', overflow: 'hidden', marginBottom: '12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             minHeight: '400px',
@@ -85,7 +85,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
                 <div key={i} onClick={() => setSelectedImg(i)}
                   style={{
                     width: '72px', height: '72px', borderRadius: '8px', cursor: 'pointer',
-                    background: p.hue ? `hsl(${p.hue},60%,85%)` : '#f5f0eb',
+                    background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--bg)',
                     border: selectedImg === i ? '2px solid var(--ink)' : '2px solid transparent',
                     overflow: 'hidden',
                   }}>
