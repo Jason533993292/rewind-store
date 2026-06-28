@@ -66,7 +66,7 @@ export default function InfoModal({ page, onClose }) {
   return (
     <div className="rw-modal-wrap" onClick={onClose}>
       <div className="rw-modal" onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '580px', padding: '36px 32px' }}>
+        style={{ maxWidth: '580px', padding: '36px 32px', display: 'block' }}>
         <button className="rw-modal-x" onClick={onClose} aria-label="Close">
           <Icon name="close" size={18} />
         </button>

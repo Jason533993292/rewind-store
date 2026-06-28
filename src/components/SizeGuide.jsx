@@ -95,7 +95,7 @@ export default function SizeGuide({ onClose }) {
   return (
     <div className="rw-modal-wrap" onClick={onClose}>
       <div className="rw-modal size-guide-modal" onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '650px', padding: '32px' }}>
+        style={{ maxWidth: '650px', padding: '32px', display: 'block' }}>
         <button className="rw-modal-x" onClick={onClose} aria-label="Close">
           <Icon name="close" size={18} />
         </button>
