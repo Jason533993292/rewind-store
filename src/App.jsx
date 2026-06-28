@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.3';
+const VERSION = 'V6.5.4';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -44,6 +44,7 @@ export default function App() {
   const [promoClosing, setPromoClosing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoMsg, setPromoMsg] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
   const [brand, setBrand] = useState(null);
   const [signupOpen, setSignupOpen] = useState(false);
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem('rw_email') || '');
@@ -201,6 +202,21 @@ export default function App() {
       showToast('Saved to wishlist');
     }
   }, [pendingWishlistId, showToast]);
+
+  const applyPromo = useCallback(async () => {
+    if (!promoCode || promoLoading) return;
+    setPromoLoading(true);
+    setPromoMsg('');
+    try {
+      const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
+      const d = await r.json();
+      if (d.admin) { window.location.hash = 'admin'; }
+      else { setPromoMsg('✅ Promo applied!'); }
+    } catch {
+      setPromoMsg('❌ Network error — try again');
+    }
+    setPromoLoading(false);
+  }, [promoCode, promoLoading]);
 
   const headingId = 'the-drop';
   const scrollToGrid = useCallback(() => {
@@ -521,26 +537,20 @@ export default function App() {
             <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)', marginBottom: '4px' }}>Got a code?</div>
             <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--muted)' }}>Enter it below and get a discount.</p>
             <input className="rw-input" placeholder="Enter code" value={promoCode}
-              onChange={e => setPromoCode(e.target.value)}
-              onKeyDown={async e => {
-                if (e.key === 'Enter') {
-                  if (!promoCode) return;
-                  const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
-                  const d = await r.json();
-                  if (d.admin) { window.location.hash = 'admin'; }
-                  else { setPromoMsg('✅ Promo applied!'); }
-                }
+              onChange={e => { setPromoCode(e.target.value); setPromoMsg(''); }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') applyPromo();
               }}
+              disabled={promoLoading}
               style={{ marginBottom: '8px' }} />
-            <button onClick={async () => {
-              if (!promoCode) return;
-              const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
-              const d = await r.json();
-              if (d.admin) { window.location.hash = 'admin'; }
-              else { setPromoMsg('✅ Promo applied!'); }
-            }}
-              style={{ padding: '8px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-              Apply
+            <button onClick={applyPromo} disabled={promoLoading}
+              style={{
+                padding: '8px 20px', borderRadius: '999px',
+                background: promoLoading ? 'var(--line-2)' : 'var(--ink)',
+                color: '#fff', border: 'none', cursor: promoLoading ? 'default' : 'pointer',
+                fontSize: '13px', fontWeight: 600, transition: 'background 0.15s',
+              }}>
+              {promoLoading ? '⏳ Applying…' : 'Apply'}
             </button>
             {promoMsg && <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--accent)' }}>{promoMsg}</p>}
           </div>
