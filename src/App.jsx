@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.4.16';
+const VERSION = 'V6.4.17';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -491,10 +491,15 @@ export default function App() {
       )}
 
       {!drawer && !wishlistOpen && (promoOpen || promoClosing) && (
-        <div className="rw-modal-wrap" onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
-          style={{ animation: promoClosing ? 'fadeOut 0.25s ease forwards' : 'fadeIn 0.15s ease' }}>
-          <div onClick={e => e.stopPropagation()}
+        <div onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            pointerEvents: 'none',
+            animation: promoClosing ? 'fadeOut 0.25s ease forwards' : 'fadeIn 0.15s ease',
+          }}>
+          <div onClick={e => { e.stopPropagation(); }}
             style={{
+              pointerEvents: 'auto',
               position: 'fixed', bottom: '80px', right: '24px',
               background: '#fff', borderRadius: '14px', padding: '24px',
               boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
