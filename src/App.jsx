@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.3.4';
+const VERSION = 'V6.3.5';
 
 export default function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -429,7 +429,7 @@ export default function App() {
         onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }} />
 
       {showSurvey && (
-        <div className="rw-modal-wrap" onClick={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }}>
+        <div className="rw-survey-overlay" onClick={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }}>
           <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '32px', textAlign: 'center' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Welcome to REWIND 👋</h2>
             <p style={{ fontSize: '13px', color: '#6E665A', marginBottom: '20px' }}>Where did you hear about us?</p>

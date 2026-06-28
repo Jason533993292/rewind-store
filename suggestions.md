@@ -257,3 +257,8 @@
 
 ## [DONE] /api/run-tests endpoint crashes with Playwright test.describe error
 - Status: [DONE] — Extracted runTests() into standalone tests/run-tests.js that doesn't import @playwright/test's test.describe. The admin panel's "🧪 Run tests" button now imports safely from tests/button-test.js → tests/run-tests.js without triggering the Playwright test runner context error.
+
+## [DONE] First-visit survey blocks all page interaction — users can't click anything until they dismiss it
+- **Where:** `src/App.jsx` lines 431–439 + `src/App.css` class `.rw-modal-wrap`
+- **What:** The first-visit "Welcome to REWIND" survey modal uses `.rw-modal-wrap` which is a full-screen overlay with `pointer-events: auto` (default). This blocks ALL clicks on the page behind it until the survey is dismissed. Users who want to browse must first answer or skip the survey. The survey also causes flaky Playwright tests — the sidebar test (`sidebar category buttons filter products`) times out because the survey overlay intercepts clicks on sidebar buttons.
+- **Fix:** Replaced the survey overlay with a new CSS class `.rw-survey-overlay` that sets `pointer-events: none` on the wrapper but `pointer-events: auto` on the modal card (`.rw-survey-overlay > *`). This allows clicks to pass through the semi-transparent backdrop to the underlying page elements. Users can now browse the site, click sidebar categories, and scroll while the survey is visible, dismissing it when they're ready. The survey card itself remains fully interactive — all buttons inside it work normally.
