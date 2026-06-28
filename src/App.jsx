@@ -39,6 +39,11 @@ export default function App() {
   const [checkout, setCheckout] = useState(false);
   const [checkoutCount, setCheckoutCount] = useState(0);
   const [toast, setToast] = useState(null);
+  const [infoPage, setInfoPage] = useState(null);
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoClosing, setPromoClosing] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoMsg, setPromoMsg] = useState('');
   const [brand, setBrand] = useState(null);
   const [signupOpen, setSignupOpen] = useState(false);
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem('rw_email') || '');
@@ -194,11 +199,6 @@ export default function App() {
   // ── Admin mode ──
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
   const [blocked, setBlocked] = useState(false);
-  const [infoPage, setInfoPage] = useState(null);
-  const [promoOpen, setPromoOpen] = useState(false);
-  const [promoClosing, setPromoClosing] = useState(false);
-  const [promoCode, setPromoCode] = useState('');
-  const [promoMsg, setPromoMsg] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
 
