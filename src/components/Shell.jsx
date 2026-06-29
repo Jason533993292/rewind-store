@@ -113,7 +113,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
         <div className="rw-header-actions">
           <div className="rw-search">
             <Icon name="search" size={17} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && query) { e.target.blur(); setQuery(''); } }} placeholder="Search" />
             {query && (
               <button onClick={() => setQuery('')}
                 aria-label="Clear search"
