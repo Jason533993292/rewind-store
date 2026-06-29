@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.20';
+const VERSION = 'V6.5.21';
 
 export default function App() {
   // ── Small reusable components ──

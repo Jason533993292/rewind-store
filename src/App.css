@@ -113,7 +113,8 @@ a { color: inherit; cursor: pointer; }
   border-color: var(--ink);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
 }
-.rw-search input { border: none; outline: none; background: none; width: 120px; font-size: 14px; color: var(--ink); }
+.rw-search input { border: none; outline: none; background: none; width: 120px; font-size: 14px; color: var(--ink); transition: width .2s ease; }
+.rw-search:focus-within input { width: 220px; }
 .rw-iconbtn {
   position: relative; width: 42px; height: 42px; border-radius: 999px;
   display: grid; place-items: center;
@@ -126,8 +127,8 @@ a { color: inherit; cursor: pointer; }
   background: var(--accent); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700;
   display: grid; place-items: center; border: 2px solid var(--bg);
 }
-@media (max-width: 880px) { .rw-nav { display: none; } .rw-search input { width: 80px; } }
-@media (max-width: 540px) { .rw-header-row { padding: 0 12px; gap: 6px; } .rw-search input { width: 60px; font-size: 12px; } .rw-logo { font-size: 18px; } }
+@media (max-width: 880px) { .rw-nav { display: none; } .rw-search input { width: 80px; } .rw-search:focus-within input { width: 160px; } }
+@media (max-width: 540px) { .rw-header-row { padding: 0 12px; gap: 6px; } .rw-search input { width: 60px; font-size: 12px; } .rw-search:focus-within input { width: 110px; } .rw-logo { font-size: 18px; } }
 
 /* ---- photo tile ---- */
 .rw-photo {
