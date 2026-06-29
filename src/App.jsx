@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.23';
+const VERSION = 'V6.5.24';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -122,11 +122,16 @@ export default function App() {
   }, [t.accent, t.headingFont]);
 
   // Lock body scroll when any modal/drawer is open
+  // NOTE: showSurvey and blockedOverlay deliberately excluded from this effect.
+  //   The survey overlay uses pointer-events: none (clicks pass through), and the
+  //   blocked overlay fills the full viewport (inset:0). Neither needs body
+  //   scroll-lock. Excluding them also prevents the minifier from hoisting the
+  //   effect's closure before those state variables are initialized (TDZ bug).
   useEffect(() => {
-    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showSurvey || blockedOverlay;
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showSurvey, blockedOverlay]);
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen]);
 
   // Close modals/drawers on Escape key
   useEffect(() => {
