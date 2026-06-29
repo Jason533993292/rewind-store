@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.14';
+const VERSION = 'V6.5.15';
 
 export default function App() {
   // ── Small reusable components ──
@@ -197,7 +197,7 @@ export default function App() {
       }),
     });
   }, [cart, showToast]);
-  const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); }, []);
+  const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); setPromoOpen(false); setPromoClosing(false); }, []);
   const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); }, []);
 
   const handleWishlist = useCallback((p) => {
@@ -483,8 +483,8 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Promo code button ── */}
-      {!drawer && !wishlistOpen && (
+      {/* ── Promo code button (hidden during checkout so it doesn't overlay the payment form) ── */}
+      {!drawer && !wishlistOpen && !checkout && (
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
         <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); setPromoCode(''); setPromoMsg(''); } }}
           aria-label="Promo code"
@@ -502,7 +502,7 @@ export default function App() {
       </div>
       )}
 
-      {!drawer && !wishlistOpen && (promoOpen || promoClosing) && (
+      {!drawer && !wishlistOpen && !checkout && (promoOpen || promoClosing) && (
         <div onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
