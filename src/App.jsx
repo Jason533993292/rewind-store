@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.9';
+const VERSION = 'V6.5.10';
 
 export default function App() {
   // ── Small reusable components ──
@@ -126,6 +126,25 @@ export default function App() {
     document.body.style.overflow = anyOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showSurvey, blockedOverlay]);
+
+  // Close modals/drawers on Escape key
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (promoOpen)        { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }
+      if (quick !== null)    setQuick(null);
+      if (drawer)           setDrawer(false);
+      if (checkout)         setCheckout(false);
+      if (signupOpen)       setSignupOpen(false);
+      if (showSizes)        setShowSizes(false);
+      if (infoPage !== null) setInfoPage(null);
+      if (wishlistOpen)     setWishlistOpen(false);
+      if (showSurvey)       { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }
+      if (selectedProduct)  { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [promoOpen, quick, drawer, checkout, signupOpen, showSizes, infoPage, wishlistOpen, showSurvey, selectedProduct]);
 
   const products = useMemo(() => {
     const allProducts = [...REWIND_PRODUCTS, ...customProducts];
