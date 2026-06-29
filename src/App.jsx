@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.24';
+const VERSION = 'V6.5.25';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1760,7 +1760,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
             fontSize: '14px',
             transition: 'transform 0.15s, box-shadow 0.15s',
           }}
-            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.4)'; }}
+            onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent)'; }}
             onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
             📁 Choose files
             <input ref={fileRef} type="file" accept="image/*,.png,.jpg,.jpeg,.webp,.pdf,.svg"
