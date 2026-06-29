@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.32';
+const VERSION = 'V6.5.33';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1693,6 +1693,13 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
           <input className="rw-input" placeholder="Material (e.g. 100% cotton, fleece)" value={form.material}
             onChange={e => setForm({...form, material: e.target.value})} />
+        </div>
+        <textarea className="rw-input" placeholder="Description / product notes (appears on product page)"
+          value={form.note}
+          onChange={e => setForm({...form, note: e.target.value})}
+          rows={3}
+          style={{ marginBottom: '12px', resize: 'vertical', fontFamily: 'inherit' }} />
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
           {form.file && (<div style={{ display: 'flex', gap: '8px', flexDirection: 'column' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
             <button type="button"
