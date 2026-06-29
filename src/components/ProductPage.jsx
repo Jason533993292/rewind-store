@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Photo, Icon } from './Shell';
 import { deleteCustomProduct } from '../lib/supabase';
 import { money } from '../hooks/useCountdown';
@@ -7,6 +7,9 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const [selectedImg, setSelectedImg] = useState(0);
+
+  // Reset selected thumbnail when navigating to a different product
+  useEffect(() => { setSelectedImg(0); setSize(null); setQty(1); }, [p?.id || p?.product_id]);
 
   if (!p) return null;
 
