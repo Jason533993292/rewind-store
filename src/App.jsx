@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.8';
+const VERSION = 'V6.5.9';
 
 export default function App() {
   // ── Small reusable components ──
@@ -132,7 +132,7 @@ export default function App() {
     return allProducts.filter((p) =>
       (cat === 'All' || p.cat === cat) &&
       (!brand || p.brand === brand) &&
-      (query.trim() === '' || (p.name + ' ' + p.cat).toLowerCase().includes(query.toLowerCase()))
+      (query.trim() === '' || (p.name + ' ' + p.cat + ' ' + (p.brand || '')).toLowerCase().includes(query.toLowerCase()))
     );
   }, [cat, brand, query, customProducts]);
 
