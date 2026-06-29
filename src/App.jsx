@@ -303,6 +303,20 @@ export default function App() {
     }
   }, [showSurvey, signupOpen, quick, drawer, checkout, showSizes, infoPage, promoOpen, wishlistOpen]);
 
+  // Auto-dismiss survey when user scrolls down past the hero — prevents
+  // the survey card from covering the product grid area.
+  useEffect(() => {
+    if (!showSurvey) return;
+    const onScroll = () => {
+      if (window.scrollY > 200) {
+        localStorage.setItem('rw_survey_done', '1');
+        setShowSurvey(false);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [showSurvey]);
+
   useEffect(() => {
     const onPop = () => {
       if (!window.location.hash.startsWith('#/product/')) {
