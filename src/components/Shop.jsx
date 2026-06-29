@@ -608,11 +608,15 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id || p.product_id === id)).filter(Boolean);
   const [selected, setSelected] = useState([]);
 
+  // Custom products (from Supabase) use product_id as their key, not id.
+  // Always use getId(p) to get the canonical wishlist identifier.
+  const getId = (p) => p.id || p.product_id;
+
   const toggleSelect = (id) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
   const addSelectedToCart = () => {
-    const toAdd = wishlistItems.filter(p => selected.includes(p.id));
+    const toAdd = wishlistItems.filter(p => selected.includes(getId(p)));
     if (toAdd.length > 0) {
       if (toAdd.length === 1 && onSelect) {
         // Single item — navigate to product page so the user can pick a size
@@ -639,10 +643,10 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
         {wishlistItems.length > 0 && (
           <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input type="checkbox" checked={selected.length === wishlistItems.length && wishlistItems.length > 0}
-              onChange={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}
+              onChange={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => getId(p))); } }}
               style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
             <span style={{ fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}
-              onClick={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}>
+              onClick={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => getId(p))); } }}>
               {selected.length === wishlistItems.length && wishlistItems.length > 0 ? 'Deselect all' : 'Select all'}
             </span>
           </div>
@@ -669,10 +673,10 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
         ) : (
           <div className="rw-drawer-items">
             {wishlistItems.map((p) => (
-              <div key={p.id} className="rw-line" style={{ alignItems: 'flex-start', paddingTop: '12px' }}>
+              <div key={p.id || p.product_id} className="rw-line" style={{ alignItems: 'flex-start', paddingTop: '12px' }}>
                 <div style={{ paddingTop: '4px' }}>
-                  <input type="checkbox" checked={selected.includes(p.id)}
-                    onChange={() => toggleSelect(p.id)}
+                  <input type="checkbox" checked={selected.includes(getId(p))}
+                    onChange={() => toggleSelect(getId(p))}
                     style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
                 </div>
                 <div className="rw-line-media">
@@ -681,7 +685,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                 <div className="rw-line-info">
                 <div className="rw-line-top">
                   <h4>{p.name}</h4>
-                  <button className="rw-line-x" onClick={() => onRemove(p.id)} aria-label="Remove from wishlist">
+                  <button className="rw-line-x" onClick={() => onRemove(getId(p))} aria-label="Remove from wishlist">
                     <Icon name="close" size={15} />
                   </button>
                 </div>
