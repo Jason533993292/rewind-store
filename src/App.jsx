@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.10';
+const VERSION = 'V6.5.11';
 
 export default function App() {
   // ── Small reusable components ──
@@ -60,13 +60,12 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [sortBy, setSortBy] = useState('');
-
-  // First-visit questionnaire / blocked overlay — declared here so the
-  // scroll-lock useEffect below can reference them without TDZ issues.
+  // showSurvey & blockedOverlay MUST be declared at the very top of all state
+  // vars so no TDZ error can occur when the scroll-lock useEffect references them.
   const [showSurvey, setShowSurvey] = useState(false);
   const [blockedOverlay, setBlockedOverlay] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sortBy, setSortBy] = useState('');
 
   // ── ALL new state vars for modals/panels MUST go above this line ──
   // The scroll-lock useEffect (below) references these in its `anyOpen` check.
