@@ -17,9 +17,16 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.4';
+const VERSION = 'V6.5.5';
 
 export default function App() {
+  // ── Small reusable components ──
+  function SidebarBtn({ label, isOn, onClick }) {
+    return (
+      <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>{label}</button>
+    );
+  }
+
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cat, setCat] = useState('All');
   const [query, setQuery] = useState('');
@@ -378,49 +385,15 @@ export default function App() {
           }}>
             <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {availableCats.map((c) => (
-              <button key={c} onClick={() => { setCat(c); scrollToGrid(); }}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
-                  borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: cat === c ? 700 : 400,
-                  background: cat === c ? 'var(--ink)' : 'transparent',
-                  color: cat === c ? 'var(--surface)' : 'var(--ink)',
-                  marginBottom: '2px',
-                  transition: 'background 0.15s',
-                }}
-                onMouseOver={e => { if (cat !== c) e.target.style.background = 'var(--line)'; }}
-                onMouseOut={e => { if (cat !== c) e.target.style.background = 'transparent'; }}>
-                {c === 'All' ? 'All' : c}
-              </button>
+              <SidebarBtn key={c} label={c === 'All' ? 'All' : c} isOn={cat === c} onClick={() => { setCat(c); scrollToGrid(); }} />
             ))}
 
             {cat !== 'All' && currentBrands.length > 0 && (
               <>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
-                <button onClick={() => { setBrand(null); scrollToGrid(); }}
-                  style={{
-                    display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
-                    borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
-                    background: !brand ? 'var(--ink)' : 'transparent',
-                    color: !brand ? 'var(--surface)' : 'var(--ink)',
-                    fontWeight: !brand ? 700 : 400,
-                    marginBottom: '2px',
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseOver={e => { if (brand !== null) e.target.style.background = 'var(--line)'; }}
-                  onMouseOut={e => { if (brand !== null) e.target.style.background = 'transparent'; }}>All</button>
+                <SidebarBtn label="All" isOn={!brand} onClick={() => { setBrand(null); scrollToGrid(); }} />
                 {currentBrands.map((b) => (
-                  <button key={b} onClick={() => { setBrand(b); scrollToGrid(); }}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'left', padding: '6px 10px',
-                      borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px',
-                      background: brand === b ? 'var(--ink)' : 'transparent',
-                      color: brand === b ? 'var(--surface)' : 'var(--ink)',
-                      fontWeight: brand === b ? 700 : 400,
-                      marginBottom: '2px',
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseOver={e => { if (brand !== b) e.target.style.background = 'var(--line)'; }}
-                    onMouseOut={e => { if (brand !== b) e.target.style.background = 'transparent'; }}>{b}</button>
+                  <SidebarBtn key={b} label={b} isOn={brand === b} onClick={() => { setBrand(b); scrollToGrid(); }} />
                 ))}
               </>
             )}
