@@ -309,7 +309,14 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }
                       <span>{it.qty}</span>
                       <button onClick={() => onQty(it.key, 1)} aria-label="Increase"><Icon name="plus" size={13} /></button>
                     </div>
-                    <span className="rw-line-price">{money(it.price * it.qty)}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {it.was && (
+                        <span style={{ fontSize: '12px', color: 'var(--muted)', textDecoration: 'line-through' }}>
+                          {money(it.was * it.qty)}
+                        </span>
+                      )}
+                      <span className="rw-line-price">{money(it.price * it.qty)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
