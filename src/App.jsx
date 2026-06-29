@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.30';
+const VERSION = 'V6.5.31';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -466,20 +466,24 @@ export default function App() {
             )}
           </aside>
           <div className="rw-shop-content">
+            {products.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                aria-label="Sort products"
                 style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
                 <option value="">Featured</option>
                 <option value="price-asc">Price: Low → High</option>
                 <option value="price-desc">Price: High → Low</option>
               </select>
               <select id="rw-mobile-cat" value={cat} onChange={e => { setCat(e.target.value); scrollToGrid(); }}
+                aria-label="Select category"
                 style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
                 {availableCats.map((c) => (
                   <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
                 ))}
               </select>
             </div>
+            )}
             <ProductGrid products={products} sort={sortBy} query={query} showCompare={t.showCompare} showStock={t.showStock}
               onQuick={setQuick} onAdd={quickAdd}
               wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct} />
