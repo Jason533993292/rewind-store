@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.5';
+const VERSION = 'V6.5.6';
 
 export default function App() {
   // ── Small reusable components ──
@@ -62,6 +62,12 @@ export default function App() {
   const [customProducts, setCustomProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
+
+  // First-visit questionnaire / blocked overlay — declared here so the
+  // scroll-lock useEffect below can reference them without TDZ issues.
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [blockedOverlay, setBlockedOverlay] = useState(false);
+
   // ── ALL new state vars for modals/panels MUST go above this line ──
   // The scroll-lock useEffect (below) references these in its `anyOpen` check.
   // Adding a new state AFTER this point will break the site with a TDZ error.
@@ -250,9 +256,7 @@ export default function App() {
     }
   }, [showToast]);
   
-  // First-visit questionnaire
-  const [showSurvey, setShowSurvey] = useState(false);
-  const [blockedOverlay, setBlockedOverlay] = useState(false);
+  // First-visit questionnaire — moved closer to the other state vars above
   
   useEffect(() => {
     if (!localStorage.getItem('rw_survey_done')) {
