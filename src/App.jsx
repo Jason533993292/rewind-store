@@ -17,16 +17,17 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.22';
+const VERSION = 'V6.5.23';
+
+// Small reusable component — defined outside App() to prevent TDZ issues with
+// the minifier reordering hoisted function declarations before state variables.
+function SidebarBtn({ label, isOn, onClick }) {
+  return (
+    <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>{label}</button>
+  );
+}
 
 export default function App() {
-  // ── Small reusable components ──
-  function SidebarBtn({ label, isOn, onClick }) {
-    return (
-      <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>{label}</button>
-    );
-  }
-
   // showSurvey & blockedOverlay MUST be the VERY FIRST state vars so no TDZ
   // error can occur when the scroll-lock useEffect references them.
   const [showSurvey, setShowSurvey] = useState(false);
