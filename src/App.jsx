@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.17';
+const VERSION = 'V6.5.18';
 
 export default function App() {
   // ── Small reusable components ──
@@ -1124,7 +1124,7 @@ function AdminPanel({ onExit, onSelect }) {
 
           {/* ── Edit product panel ── */}
           {adminTab === 'edit' && editProduct && (
-            <EditProductPanel product={editProduct} onDone={() => { setEditProduct(null); setAdminTab('saved'); }}
+            <EditProductPanel key={editProduct.id || editProduct.product_id} product={editProduct} onDone={() => { setEditProduct(null); setAdminTab('saved'); }}
               setCustomProducts={setCustomProducts} />
           )}
 
