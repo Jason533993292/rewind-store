@@ -99,9 +99,11 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, ...re
   }
   // Sort products
   let sorted = [...products];
-  const isSorting = sort === 'price-asc' || sort === 'price-desc';
+  const isSorting = sort === 'price-asc' || sort === 'price-desc' || sort === 'name-asc' || sort === 'name-desc';
   if (sort === 'price-asc') sorted.sort((a, b) => a.price - b.price);
   else if (sort === 'price-desc') sorted.sort((a, b) => b.price - a.price);
+  else if (sort === 'name-asc') sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  else if (sort === 'name-desc') sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
 
   // When sorting is active, render a single flat grid so the sort order is respected globally.
   if (isSorting) {
