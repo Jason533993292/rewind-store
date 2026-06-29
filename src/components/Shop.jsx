@@ -109,7 +109,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, ...re
       <div>
         <div className="rw-grid">
           {sorted.map((p) => (
-            <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist}
+            <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id || p.product_id)} onWishlist={onWishlist}
               showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
           ))}
         </div>
@@ -146,7 +146,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, ...re
           )}
           <div className="rw-grid" style={{ marginBottom: '8px' }}>
             {s.items.map((p) => (
-              <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id)} onWishlist={onWishlist}
+              <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id || p.product_id)} onWishlist={onWishlist}
                 showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
             ))}
           </div>

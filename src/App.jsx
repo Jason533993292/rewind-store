@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.26';
+const VERSION = 'V6.5.27';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -208,13 +208,15 @@ export default function App() {
   const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); }, []);
 
   const handleWishlist = useCallback((p) => {
+    const pid = p.id || p.product_id;
+    if (!pid) return;
     if (!userEmail) {
-      setPendingWishlistId(p.id);
+      setPendingWishlistId(pid);
       setSignupOpen(true);
       return;
     }
     setWishlist((prev) => {
-      const exists = prev.includes(p.id);
+      const exists = prev.includes(pid);
       if (!exists) {
         showToast(p.name + ' saved', {
           label: 'Show',
@@ -223,10 +225,10 @@ export default function App() {
       } else {
         showToast(p.name + ' removed', {
           label: 'Undo',
-          onClick: () => setWishlist((inner) => inner.includes(p.id) ? inner : [...inner, p.id]),
+          onClick: () => setWishlist((inner) => inner.includes(pid) ? inner : [...inner, pid]),
         });
       }
-      return exists ? prev.filter((id) => id !== p.id) : [...prev, p.id];
+      return exists ? prev.filter((id) => id !== pid) : [...prev, pid];
     });
   }, [userEmail, showToast]);
 
@@ -402,7 +404,7 @@ export default function App() {
         <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
           onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
           onWishlist={handleWishlist}
-          wishlisted={wishlist.includes(selectedProduct?.id)} />
+          wishlisted={wishlist.includes(selectedProduct?.id || selectedProduct?.product_id)} />
       </div>
     );
   }
