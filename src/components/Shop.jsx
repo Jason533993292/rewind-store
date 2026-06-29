@@ -90,12 +90,24 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
 }
 
 /* ---------- ProductGrid ---------- */
-export function ProductGrid({ products, wishlist, onWishlist, sort, query, ...rest }) {
+export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, ...rest }) {
   if (products.length === 0) {
     const msg = query && query.trim()
       ? `Nothing matched "${query.trim()}" — try a different term?`
       : 'Nothing here yet — check back soon for new drops in this category.';
-    return <div className="rw-empty">{msg}</div>;
+    return (
+      <div className="rw-empty">
+        <span>{msg}</span>
+        {query && query.trim() && onClearSearch && (
+          <div style={{ marginTop: '14px' }}>
+            <button className="rw-btn rw-btn-ghost" onClick={onClearSearch}
+              style={{ fontSize: '13px', padding: '10px 18px' }}>
+              ✕ Clear search & show all
+            </button>
+          </div>
+        )}
+      </div>
+    );
   }
   // Sort products
   let sorted = [...products];
