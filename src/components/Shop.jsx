@@ -640,7 +640,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
               style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
             <span style={{ fontSize: '13px', color: 'var(--muted)', cursor: 'pointer' }}
               onClick={() => { if (selected.length === wishlistItems.length) { setSelected([]); } else { setSelected(wishlistItems.map(p => p.id)); } }}>
-              Select all
+              {selected.length === wishlistItems.length && wishlistItems.length > 0 ? 'Deselect all' : 'Select all'}
             </span>
           </div>
         )}
