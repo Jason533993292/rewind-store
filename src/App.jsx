@@ -17,13 +17,16 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.34';
+const VERSION = 'V6.5.35';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
-function SidebarBtn({ label, isOn, onClick }) {
+function SidebarBtn({ label, isOn, onClick, count }) {
   return (
-    <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>{label}</button>
+    <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>
+      <span className="rw-sb-label">{label}</span>
+      {count !== undefined && <span className="rw-sb-count">{count}</span>}
+    </button>
   );
 }
 
@@ -276,6 +279,25 @@ export default function App() {
 
   const currentBrands = cat !== 'All' ? BRANDS[cat] || [] : [];
 
+  // Count products per category and brand for sidebar badges
+  const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...customProducts], [customProducts]);
+  const catCounts = useMemo(() => {
+    const counts = {};
+    allProducts.forEach(p => {
+      if (p.cat) counts[p.cat] = (counts[p.cat] || 0) + 1;
+    });
+    counts['All'] = allProducts.length;
+    return counts;
+  }, [allProducts]);
+  const brandCounts = useMemo(() => {
+    if (cat === 'All') return {};
+    const counts = {};
+    allProducts.filter(p => p.cat === cat).forEach(p => {
+      if (p.brand) counts[p.brand] = (counts[p.brand] || 0) + 1;
+    });
+    return counts;
+  }, [allProducts, cat]);
+
   // ── Admin mode ──
   const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
   const [blocked, setBlocked] = useState(false);
@@ -452,15 +474,15 @@ export default function App() {
           }}>
             <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {availableCats.map((c) => (
-              <SidebarBtn key={c} label={c === 'All' ? 'All' : c} isOn={cat === c} onClick={() => { setCat(c); scrollToGrid(); }} />
+              <SidebarBtn key={c} label={c === 'All' ? 'All' : c} count={catCounts[c] || 0} isOn={cat === c} onClick={() => { setCat(c); scrollToGrid(); }} />
             ))}
 
             {cat !== 'All' && currentBrands.length > 0 && (
               <>
                 <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
-                <SidebarBtn label="All" isOn={!brand} onClick={() => { setBrand(null); scrollToGrid(); }} />
+                <SidebarBtn label="All" isOn={!brand} count={catCounts[cat] || 0} onClick={() => { setBrand(null); scrollToGrid(); }} />
                 {currentBrands.map((b) => (
-                  <SidebarBtn key={b} label={b} isOn={brand === b} onClick={() => { setBrand(b); scrollToGrid(); }} />
+                  <SidebarBtn key={b} label={b} isOn={brand === b} count={brandCounts[b] || 0} onClick={() => { setBrand(b); scrollToGrid(); }} />
                 ))}
               </>
             )}
