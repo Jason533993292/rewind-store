@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.37';
+const VERSION = 'V6.5.38';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1868,7 +1868,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
         onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
         onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
-        {saving ? 'Saving...' : '➕ Add product'}
+        {saving ? 'Saving...' : editingId ? '💾 Save changes' : '➕ Add product'}
         </button>
         </div>
       </form>
