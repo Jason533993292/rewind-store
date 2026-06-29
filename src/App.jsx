@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.15';
+const VERSION = 'V6.5.16';
 
 export default function App() {
   // ── Small reusable components ──
@@ -293,6 +293,16 @@ export default function App() {
     window.addEventListener('reset-store', handler);
     return () => window.removeEventListener('reset-store', handler);
   }, []);
+
+  // Auto-dismiss survey when any other modal/drawer opens — prevents
+  // the survey overlay from blocking interaction with signup, cart quickview, etc.
+  useEffect(() => {
+    if (showSurvey && (signupOpen || quick !== null || drawer || checkout || showSizes || infoPage !== null || promoOpen || wishlistOpen)) {
+      localStorage.setItem('rw_survey_done', '1');
+      setShowSurvey(false);
+    }
+  }, [showSurvey, signupOpen, quick, drawer, checkout, showSizes, infoPage, promoOpen, wishlistOpen]);
+
   useEffect(() => {
     const onPop = () => {
       if (!window.location.hash.startsWith('#/product/')) {
