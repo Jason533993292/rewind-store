@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.29';
+const VERSION = 'V6.5.30';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -32,6 +32,12 @@ export default function App() {
   // error can occur when the scroll-lock useEffect references them.
   const [showSurvey, setShowSurvey] = useState(false);
   const [blockedOverlay, setBlockedOverlay] = useState(false);
+  // Ref-based guard against minifier TDZ — effects use showSurveyRef.current
+  // instead of the raw `showSurvey` state variable so that even if esbuild
+  // hoists the effect closures, they reference a stable object (ref) rather
+  // than an uninitialized const binding.
+  const showSurveyRef = useRef(showSurvey);
+  useEffect(() => { showSurveyRef.current = showSurvey; }, [showSurvey]);
 
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cat, setCat] = useState('All');
@@ -310,7 +316,8 @@ export default function App() {
   // Auto-dismiss survey when any other modal/drawer opens — prevents
   // the survey overlay from blocking interaction with signup, cart quickview, etc.
   useEffect(() => {
-    if (showSurvey && (signupOpen || quick !== null || drawer || checkout || showSizes || infoPage !== null || promoOpen || wishlistOpen)) {
+    // Use ref instead of raw showSurvey to prevent minifier TDZ
+    if (showSurveyRef.current && (signupOpen || quick !== null || drawer || checkout || showSizes || infoPage !== null || promoOpen || wishlistOpen)) {
       localStorage.setItem('rw_survey_done', '1');
       setShowSurvey(false);
     }
@@ -319,7 +326,8 @@ export default function App() {
   // Auto-dismiss survey when user scrolls down past the hero — prevents
   // the survey card from covering the product grid area.
   useEffect(() => {
-    if (!showSurvey) return;
+    // Use ref instead of raw showSurvey to prevent minifier TDZ
+    if (!showSurveyRef.current) return;
     const onScroll = () => {
       if (window.scrollY > 200) {
         localStorage.setItem('rw_survey_done', '1');
