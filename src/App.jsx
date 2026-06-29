@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.7';
+const VERSION = 'V6.5.8';
 
 export default function App() {
   // ── Small reusable components ──
@@ -488,7 +488,6 @@ export default function App() {
         <div onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
-            pointerEvents: 'none',
             animation: promoClosing ? 'fadeOut 0.25s ease forwards' : 'fadeIn 0.15s ease',
           }}>
           <div onClick={e => { e.stopPropagation(); }}
