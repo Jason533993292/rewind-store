@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.39';
+const VERSION = 'V6.5.40';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -617,8 +617,10 @@ export default function App() {
                 padding: '8px 20px', borderRadius: '999px',
                 background: promoLoading ? 'var(--line-2)' : 'var(--ink)',
                 color: '#fff', border: 'none', cursor: promoLoading ? 'default' : 'pointer',
-                fontSize: '13px', fontWeight: 600, transition: 'background 0.15s',
-              }}>
+                fontSize: '13px', fontWeight: 600, transition: 'background 0.15s, transform 0.15s, opacity 0.15s',
+              }}
+              onMouseOver={e => { if (!promoLoading) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+              onMouseOut={e => { if (!promoLoading) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
               {promoLoading ? '⏳ Applying…' : 'Apply'}
             </button>
             {promoMsg && <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--accent)' }}>{promoMsg}</p>}
