@@ -72,7 +72,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           </div>
           {added ? (
             <button className="rw-add" style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-              onClick={() => onSelect ? onSelect(p) : onQuick(p)} aria-label="Go to cart">
+              onClick={() => onSelect ? onSelect(p) : onQuick(p)} aria-label="View in bag">
               <Icon name="bag" size={16} />
             </button>
           ) : (

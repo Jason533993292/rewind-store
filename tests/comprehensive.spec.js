@@ -347,7 +347,7 @@ test.describe('Cart lifecycle', () => {
 
     // ── Open cart drawer ──
     await page.waitForTimeout(300);
-    const cartIcon = page.getByLabel('Cart');
+    const cartIcon = page.getByRole('button', { name: 'Cart', exact: true });
     await cartIcon.click({ force: true });
     await page.waitForTimeout(400);
 
@@ -390,7 +390,7 @@ test.describe('Cart lifecycle', () => {
 
     // Open cart
     await page.waitForTimeout(300);
-    const cartIcon = page.getByLabel('Cart');
+    const cartIcon = page.getByRole('button', { name: 'Cart', exact: true });
     await cartIcon.click({ force: true });
     await page.waitForTimeout(400);
 
