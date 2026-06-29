@@ -602,7 +602,7 @@ export function SignupModal({ open, onClose, onSignup }) {
 /* ---------- Wishlist Drawer ---------- */
 export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect, onCartOpen }) {
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
-  const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id)).filter(Boolean);
+  const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id || p.product_id === id)).filter(Boolean);
   const [selected, setSelected] = useState([]);
 
   const toggleSelect = (id) => {
