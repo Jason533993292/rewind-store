@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Photo, Icon } from './Shell';
 import { deleteCustomProduct } from '../lib/supabase';
+import { money } from '../hooks/useCountdown';
 
 export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }) {
   const [size, setSize] = useState(null);
@@ -125,8 +126,8 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
           <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '8px 0 4px', color: 'var(--ink)' }}>{p.name}</h1>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--ink)' }}>€{p.price}</span>
-            {p.was && <span style={{ fontSize: '18px', color: 'var(--muted)', textDecoration: 'line-through' }}>€{p.was}</span>}
+            <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--ink)' }}>{money(p.price)}</span>
+            {p.was && <span style={{ fontSize: '18px', color: 'var(--muted)', textDecoration: 'line-through' }}>{money(p.was)}</span>}
           </div>
 
           {low && (
@@ -182,7 +183,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
             className="rw-btn rw-btn-pri rw-btn-full"
             style={{ marginBottom: '12px' }}>
             {size
-              ? `Add ${qty > 1 ? qty + '× ' : ''}to bag — €${(p.price * qty).toFixed(2)}`
+              ? `Add ${qty > 1 ? qty + '× ' : ''}to bag — ${money(p.price * qty)}`
               : 'Select a size'}
           </button>
 
