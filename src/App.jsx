@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.16';
+const VERSION = 'V6.5.17';
 
 export default function App() {
   // ── Small reusable components ──
@@ -26,6 +26,11 @@ export default function App() {
       <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>{label}</button>
     );
   }
+
+  // showSurvey & blockedOverlay MUST be the VERY FIRST state vars so no TDZ
+  // error can occur when the scroll-lock useEffect references them.
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [blockedOverlay, setBlockedOverlay] = useState(false);
 
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cat, setCat] = useState('All');
@@ -60,10 +65,6 @@ export default function App() {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
-  // showSurvey & blockedOverlay MUST be declared at the very top of all state
-  // vars so no TDZ error can occur when the scroll-lock useEffect references them.
-  const [showSurvey, setShowSurvey] = useState(false);
-  const [blockedOverlay, setBlockedOverlay] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
 
