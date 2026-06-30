@@ -534,11 +534,16 @@ export async function runTests() {
     await expect(p.locator('h1')).toBeVisible();
   });
 
-  await check('Admin panel loads', async (p) => {
-    const res = await p.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
-    expect(res?.status()).toBe(200);
-    await expect(p.locator('h1')).toContainText(/REWIND Admin/i);
-  });
+  // Skip admin test on production — the admin panel requires local auth (rw_admin_email in localStorage).
+  if (isAdmin) {
+    await check('Admin panel loads', async (p) => {
+      const res = await p.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
+      expect(res?.status()).toBe(200);
+      await expect(p.locator('h1')).toContainText(/REWIND Admin/i);
+    });
+  } else {
+    results.push({ name: 'Admin panel loads', status: '⏭️', detail: 'Skipped (requires local auth)' });
+  }
 
   await check('Navigation buttons exist', async (p) => {
     await p.goto(BASE, { waitUntil: 'networkidle' });
