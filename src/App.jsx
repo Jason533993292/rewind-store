@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.49';
+const VERSION = 'V6.5.50';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1550,9 +1550,9 @@ function Survey({ onDone, onSkip }) {
   const [otherText, setOtherText] = useState('');
   const [done, setDone] = useState(false);
 
-  const submit = async () => {
-    const answer = source === 'Other' ? otherText : source;
-    try { await fetch('/api/survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: answer }) }); } catch {}
+  const submit = async (answer) => {
+    const ans = answer || (source === 'Other' ? otherText : source);
+    try { await fetch('/api/survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: ans }) }); } catch {}
     setDone(true);
     setTimeout(() => onDone(), 1500);
   };
@@ -1569,7 +1569,7 @@ function Survey({ onDone, onSkip }) {
       ) : (
       <>
       {options.map(o => (
-        <button key={o} onClick={() => { setSource(o); if (o === 'Other') setStep('other'); else submit(); }}
+        <button key={o} onClick={() => { if (o === 'Other') { setSource(o); setStep('other'); } else { submit(o); } }}
           style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center', transition: 'all 0.15s' }}
           onMouseOver={e => { if (source !== o) { e.target.style.background = 'var(--line)'; e.target.style.transform = 'translateY(-1px)'; } }}
           onMouseOut={e => { if (source !== o) { e.target.style.background = 'var(--surface)'; e.target.style.transform = ''; } }}>
@@ -1579,8 +1579,8 @@ function Survey({ onDone, onSkip }) {
       {step === 'other' && (
         <div style={{ marginTop: '12px' }}>
           <input className="rw-input" placeholder="Tell us where..." value={otherText} onChange={e => setOtherText(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(); }} autoFocus />
-          <button onClick={submit} disabled={!otherText.trim()}
+            onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(otherText.trim()); }} autoFocus />
+          <button onClick={() => submit(otherText.trim())} disabled={!otherText.trim()}
             style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
             onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
             onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
