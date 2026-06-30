@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.60';
+const VERSION = 'V6.5.61';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -326,7 +326,14 @@ export default function App() {
   }, [allProducts, cat]);
 
   // ── Admin mode ──
-  const [adminMode, setAdminMode] = useState(window.location.hash === '#admin');
+  // Lazy initializer prevents flash: only activate admin mode if the user
+  // already has a saved admin email, not just because #admin is in the URL.
+  const [adminMode, setAdminMode] = useState(() => {
+    if (window.location.hash === '#admin' && localStorage.getItem('rw_admin_email')) {
+      return true;
+    }
+    return false;
+  });
   const [blocked, setBlocked] = useState(false);
 
   // Handle Stripe success redirect
@@ -410,7 +417,7 @@ export default function App() {
       if (isAdminHash) {
         // Only show admin if already authenticated
         const saved = localStorage.getItem('rw_admin_email');
-        if (!saved) { window.location.hash = ''; return; }
+        if (!saved) { window.location.hash = ''; setAdminMode(false); return; }
         // Verify against Supabase
         supabase?.from('admins').select('email').eq('email', saved).single()
           .then(({ data }) => { if (!data) { window.location.hash = ''; } else { setAdminMode(true); } });
