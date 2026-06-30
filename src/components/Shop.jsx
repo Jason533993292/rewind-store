@@ -373,6 +373,16 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
     try { return JSON.parse(localStorage.getItem('rw_checkout_info') || '{}'); }
     catch { return {}; }
   }, []);
+  // Controlled form fields — prevents defaultValue reset bug when payment method buttons re-render the component
+  const [formFields, setFormFields] = useState(() => ({
+    email: userEmail || '',
+    name: saved.name || '',
+    address: saved.address || '',
+    postal: saved.postal || '',
+    city: saved.city || '',
+    country: saved.country || '',
+  }));
+  const setField = (field) => (e) => setFormFields(prev => ({ ...prev, [field]: e.target.value }));
 
   // Launch confetti burst (CSS-based, no external lib needed)
   useEffect(() => {
@@ -437,11 +447,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
     // Save delivery info to localStorage if checkbox is checked
     if (saveInfo) {
       localStorage.setItem('rw_checkout_save_info', 'true');
-      const name = document.querySelector('.rw-input[placeholder="Full name"]')?.value || '';
-      const address = document.querySelector('.rw-input[placeholder="Address"]')?.value || '';
-      const postal = document.querySelector('.rw-input[placeholder="Postal code"]')?.value || '';
-      const city = document.querySelector('.rw-input[placeholder="City"]')?.value || '';
-      const country = document.querySelector('.rw-input[placeholder="Country"]')?.value || '';
+      const { name, address, postal, city, country } = formFields;
       if (name || address || postal || city || country) {
         localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
       }
@@ -450,7 +456,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
       localStorage.removeItem('rw_checkout_info');
     }
     const orderNum = 'RW-' + String(Date.now()).slice(-8);
-    const email = document.querySelector('.rw-input[type="email"]')?.value || '';
+    const email = formFields.email;
     // Check if email is blocked
     try {
       const br = await fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
@@ -474,13 +480,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
           total: total,
           orderNum,
           email,
-          name: document.querySelector('.rw-input[placeholder="Full name"]')?.value || '',
-          address: [
-            document.querySelector('.rw-input[placeholder="Address"]')?.value,
-            document.querySelector('.rw-input[placeholder="Postal code"]')?.value,
-            document.querySelector('.rw-input[placeholder="City"]')?.value,
-            document.querySelector('.rw-input[placeholder="Country"]')?.value,
-          ].filter(Boolean).join(', '),
+          name: formFields.name,
+          address: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
         }),
       });
       const d = await r.json();
@@ -508,17 +509,17 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
         <div className="rw-checkout-main">
           <div className="rw-co-sec">
             <h3>Contact</h3>
-            <input className="rw-input" type="email" placeholder="Email" defaultValue={userEmail || ''} />
+            <input className="rw-input" type="email" placeholder="Email" value={formFields.email} onChange={setField('email')} />
           </div>
           <div className="rw-co-sec">
             <h3>Delivery</h3>
-            <input className="rw-input" type="text" placeholder="Full name" defaultValue={saved.name || ''} />
-            <input className="rw-input" type="text" placeholder="Address" defaultValue={saved.address || ''} />
+            <input className="rw-input" type="text" placeholder="Full name" value={formFields.name} onChange={setField('name')} />
+            <input className="rw-input" type="text" placeholder="Address" value={formFields.address} onChange={setField('address')} />
             <div className="rw-input-row">
-              <input className="rw-input" type="text" placeholder="Postal code" defaultValue={saved.postal || ''} />
-              <input className="rw-input" type="text" placeholder="City" defaultValue={saved.city || ''} />
+              <input className="rw-input" type="text" placeholder="Postal code" value={formFields.postal} onChange={setField('postal')} />
+              <input className="rw-input" type="text" placeholder="City" value={formFields.city} onChange={setField('city')} />
             </div>
-            <input className="rw-input" type="text" placeholder="Country" defaultValue={saved.country || ''} />
+            <input className="rw-input" type="text" placeholder="Country" value={formFields.country} onChange={setField('country')} />
           </div>
           <div className="rw-co-sec">
             <h3>Payment</h3>
