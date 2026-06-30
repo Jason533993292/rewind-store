@@ -721,7 +721,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                     style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--accent)' }} />
                 </div>
                 <div className="rw-line-media">
-                  <Photo id={p.id + "-wish"} hue={p.hue} label="" h={74} />
+                  <Photo id={(p.id || p.product_id) + "-wish"} hue={p.hue} label="" h={74} />
                 </div>
                 <div className="rw-line-info">
                 <div className="rw-line-top">
