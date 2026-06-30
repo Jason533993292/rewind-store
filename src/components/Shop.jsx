@@ -273,7 +273,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }
           <h3>Bag</h3>
           <button onClick={onClose} aria-label="Close"><Icon name="close" size={20} /></button>
         </div>
-        {subtotal < FREE_THRESHOLD ? (
+        {items.length > 0 && subtotal < FREE_THRESHOLD ? (
           <div className="rw-freebar">
             <Icon name="truck" size={14} /> Add <b>{money(freeLeft)}</b> more for free shipping
             <div className="rw-freebar-track"><div style={{ width: freeProgress + '%' }} /></div>
