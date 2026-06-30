@@ -345,7 +345,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }
 }
 
 /* ---------- Checkout ---------- */
-export function Checkout({ open, items, onClose, onPlaced, userEmail }) {
+export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast }) {
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -418,7 +418,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail }) {
       const bd = await br.json();
       if (bd.blocked) {
         setProcessing(false);
-        return alert('🚫 Your email has been blocked.\nPlease contact orders@rewind-stores.com to appeal.');
+        if (showToast) {
+          showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', { label: 'OK', onClick: () => {} }, 8000);
+        } else {
+          alert('🚫 Your email has been blocked.\nPlease contact orders@rewind-stores.com to appeal.');
+        }
+        return;
       }
     } catch {}
     try {
