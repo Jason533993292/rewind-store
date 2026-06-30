@@ -350,6 +350,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
+  const [payError, setPayError] = useState('');
 
   // Launch confetti burst (CSS-based, no external lib needed)
   useEffect(() => {
@@ -410,6 +411,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
 
   async function handlePay() {
     setProcessing(true);
+    setPayError('');
     const orderNum = 'RW-' + String(Date.now()).slice(-8);
     const email = document.querySelector('.rw-input[type="email"]')?.value || '';
     // Check if email is blocked
@@ -447,10 +449,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
       if (d.url) {
         window.location.href = d.url;
       } else {
-        throw new Error(d.error || 'Checkout failed');
+        setPayError(d.error || 'Checkout failed — please try again');
+        setProcessing(false);
       }
     } catch (e) {
       setProcessing(false);
+      setPayError('Payment could not be processed — please check your details and try again.');
       console.warn('Payment error:', e);
     }
   }
@@ -537,6 +541,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
           <div className="rw-sum-total">
             <div><span>Total</span><b>{money(total)}</b></div>
           </div>
+          {payError && (
+            <div style={{
+              fontSize: '13px', color: 'var(--accent)', marginBottom: '10px',
+              padding: '10px 12px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)',
+              borderRadius: '8px', lineHeight: '1.4', textAlign: 'center',
+            }}>
+              {payError}
+            </div>
+          )}
           <button className="rw-btn rw-btn-pri rw-btn-full" disabled={processing}
             onClick={handlePay}>
             {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(total)}`}
