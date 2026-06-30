@@ -90,19 +90,32 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
 }
 
 /* ---------- ProductGrid ---------- */
-export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, ...rest }) {
+export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, activeCat, activeBrand, ...rest }) {
   if (products.length === 0) {
-    const msg = query && query.trim()
-      ? `Nothing matched "${query.trim()}" — try a different term?`
-      : 'Nothing here yet — check back soon for new drops in this category.';
+    const hasQuery = query && query.trim();
+    const hasBrand = activeBrand;
+    const hasCat = activeCat && activeCat !== 'All';
+    let msg;
+    if (hasQuery && hasBrand) {
+      msg = `Nothing matched "${query.trim()}" for ${activeBrand}${hasCat ? ' in ' + activeCat : ''} — try a different term?`;
+    } else if (hasQuery) {
+      msg = `Nothing matched "${query.trim()}" — try a different term?`;
+    } else if (hasBrand) {
+      msg = `No ${activeBrand} products${hasCat ? ' in ' + activeCat : ''} — try a different brand or category?`;
+    } else if (hasCat) {
+      msg = 'Nothing here in this category yet — try browsing all or checking back soon.';
+    } else {
+      msg = 'Nothing here yet — check back soon for new drops.';
+    }
+    const showClearFilters = hasQuery || hasBrand || hasCat;
     return (
       <div className="rw-empty">
         <span>{msg}</span>
-        {query && query.trim() && onClearSearch && (
+        {showClearFilters && (
           <div style={{ marginTop: '14px' }}>
             <button className="rw-btn rw-btn-ghost" onClick={onClearSearch}
               style={{ fontSize: '13px', padding: '10px 18px' }}>
-              ✕ Clear search & show all
+              ✕ Clear filters & show all
             </button>
           </div>
         )}
