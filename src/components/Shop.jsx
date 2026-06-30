@@ -442,6 +442,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
             document.querySelector('.rw-input[placeholder="Address"]')?.value,
             document.querySelector('.rw-input[placeholder="Postal code"]')?.value,
             document.querySelector('.rw-input[placeholder="City"]')?.value,
+            document.querySelector('.rw-input[placeholder="Country"]')?.value,
           ].filter(Boolean).join(', '),
         }),
       });
