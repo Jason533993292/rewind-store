@@ -63,9 +63,8 @@ test.describe('Page loads', () => {
     expect(critical).toEqual([]);
   });
 
-  // Admin panel requires local auth (rw_admin_email in localStorage) — only works in dev
-  const adminTest = !isAdmin ? test.skip : test;
-  adminTest('admin panel loads', async ({ page }) => {
+  test('admin panel loads', async ({ page }) => {
+    test.skip(!isAdmin, 'Admin panel requires local auth — only works locally');
     await page.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
     await expect(page.locator('h1')).toContainText(/REWIND Admin/i);
   });
@@ -377,10 +376,8 @@ test.describe('Cart lifecycle', () => {
     await page.waitForTimeout(300);
   });
 
-  // Should see confirmation — skip on production (checkout redirects to Stripe)
-  // Only works locally where Stripe test keys can complete the redirect
-  const checkoutTest = !isAdmin ? test.skip : test;
-  checkoutTest('full checkout flow places order', async ({ page }) => {
+  test('full checkout flow places order', async ({ page }) => {
+    test.skip(!isAdmin, 'Checkout redirects to Stripe on production — only works locally');
     // Add item
     const firstCard = page.locator('.rw-card').first();
     await firstCard.scrollIntoViewIfNeeded();
