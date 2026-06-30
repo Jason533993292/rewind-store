@@ -475,13 +475,13 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
           </div>
           <div className="rw-co-sec">
             <h3>Delivery</h3>
-            <input className="rw-input" type="text" placeholder="Full name" defaultValue="Alex R." />
-            <input className="rw-input" type="text" placeholder="Address" defaultValue="Kerkstraat 42" />
+            <input className="rw-input" type="text" placeholder="Full name" defaultValue="" />
+            <input className="rw-input" type="text" placeholder="Address" defaultValue="" />
             <div className="rw-input-row">
-              <input className="rw-input" type="text" placeholder="Postal code" defaultValue="1000" />
-              <input className="rw-input" type="text" placeholder="City" defaultValue="Brussels" />
+              <input className="rw-input" type="text" placeholder="Postal code" defaultValue="" />
+              <input className="rw-input" type="text" placeholder="City" defaultValue="" />
             </div>
-            <input className="rw-input" type="text" placeholder="Country" defaultValue="Belgium" />
+            <input className="rw-input" type="text" placeholder="Country" defaultValue="" />
           </div>
           <div className="rw-co-sec">
             <h3>Payment</h3>
@@ -499,10 +499,10 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
             </div>
             {payment === 'card' && (
               <div className="rw-card-fields">
-                <input className="rw-input" type="text" placeholder="Card number" defaultValue="4242 4242 4242 4242" />
+                <input className="rw-input" type="text" placeholder="Card number" defaultValue="" />
                 <div className="rw-input-row">
-                  <input className="rw-input" type="text" placeholder="MM / YY" defaultValue="12 / 27" />
-                  <input className="rw-input" type="text" placeholder="CVC" defaultValue="123" />
+                  <input className="rw-input" type="text" placeholder="MM / YY" defaultValue="" />
+                  <input className="rw-input" type="text" placeholder="CVC" defaultValue="" />
                 </div>
               </div>
             )}
