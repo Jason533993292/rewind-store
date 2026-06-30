@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.55';
+const VERSION = 'V6.5.56';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -441,7 +441,7 @@ export default function App() {
       });
   }, [adminMode]);
 
-  if (adminMode) return <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} />;
+  if (adminMode) return <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />;
 
   // Blocked screen
   if (blocked) {
@@ -675,13 +675,12 @@ export default function App() {
 /* ══════════════════════════════════════════════
    ADMIN PANEL — accessible at /#admin
    ══════════════════════════════════════════════ */
-function AdminPanel({ onExit, onSelect }) {
+function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [emailText, setEmailText] = useState('');
   const [productSearch, setProductSearch] = useState('');
-  const [customProducts, setCustomProducts] = useState([]);
   const [adminTab, setAdminTab] = useState('users');
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
