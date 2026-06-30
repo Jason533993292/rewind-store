@@ -85,7 +85,7 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- header ---- */
 .rw-header {
-  position: sticky; top: 0; z-index: 100;
+  position: sticky; top: 0; z-index: 50;
   background: color-mix(in oklab, var(--bg) 88%, transparent);
   backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
 }
@@ -391,7 +391,7 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- drawer ---- */
 .rw-scrim {
-  position: fixed; top: 52px; left: 0; right: 0; bottom: 0; z-index: 80;
+  position: fixed; inset: 0; z-index: 80;
   background: rgba(22,19,15,.42); backdrop-filter: blur(2px);
   opacity: 0; pointer-events: none; transition: opacity .3s;
 }

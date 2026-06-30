@@ -639,15 +639,9 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(getId(p)));
     if (toAdd.length > 0) {
-      if (toAdd.length === 1 && onSelect) {
-        // Single item — navigate to product page so the user can pick a size
-        onSelect(toAdd[0]);
-        setSelected([]);
-      } else if (onAddToCart) {
-        // Multiple items — add all to cart (silently picks first size; user can adjust later)
+      if (onAddToCart) {
         toAdd.forEach(p => onAddToCart(p));
         setSelected([]);
-        // Open cart drawer to show what was added
         if (onCartOpen) onCartOpen();
       }
     }
