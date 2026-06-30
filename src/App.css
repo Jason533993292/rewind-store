@@ -201,6 +201,7 @@ a { color: inherit; cursor: pointer; }
 .rw-marquee-item svg { color: var(--accent); }
 .rw-marquee-track > * { flex-shrink: 0; }
 @keyframes scroll { to { transform: translateX(-50%); } }
+.rw-marquee-track:hover { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .rw-marquee-track { animation: none; }
 }
