@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.53';
+const VERSION = 'V6.5.54';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -184,6 +184,10 @@ export default function App() {
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
   const toastTimer = useRef(null);
+  // Buffered undo for cart removals — accumulates items removed in rapid
+  // succession so the final toast Undo restores ALL of them, not just the last.
+  const pendingRestoreRef = useRef([]);
+  const restoreTimerRef = useRef(null);
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
@@ -209,13 +213,35 @@ export default function App() {
     // Capture the removed item so Undo always restores the right data,
     // regardless of subsequent cart changes before the user clicks Undo.
     const removedItem = cart.find(it => it.key === key);
-    setCart((c) => c.filter((it) => it.key !== key)); 
-    showToast((name || 'Item') + ' removed', {
+    setCart((c) => c.filter((it) => it.key !== key));
+    // Accumulate into the pending-restore buffer so rapid removals don't
+    // silently drop earlier undo actions (showToast replaces the current toast).
+    if (removedItem) {
+      pendingRestoreRef.current = [...pendingRestoreRef.current, removedItem];
+    }
+    // Clear the buffer when the toast auto-dismisses (slightly after the toast
+    // duration so there's no race with a user clicking Undo in the final ms).
+    if (restoreTimerRef.current) clearTimeout(restoreTimerRef.current);
+    restoreTimerRef.current = setTimeout(() => { pendingRestoreRef.current = []; }, 2600);
+    const count = pendingRestoreRef.current.length;
+    const msg = count > 1
+      ? `${count} items removed`
+      : (name || 'Item') + ' removed';
+    showToast(msg, {
       label: 'Undo',
-      onClick: () => setCart((c) => {
-        if (c.find(it => it.key === key)) return c; // already restored
-        return [...c, removedItem].filter(Boolean);
-      }),
+      onClick: () => {
+        setCart((c) => {
+          let next = [...c];
+          pendingRestoreRef.current.forEach(item => {
+            if (item && !next.find(i => i.key === item.key)) {
+              next.push(item);
+            }
+          });
+          pendingRestoreRef.current = [];
+          if (restoreTimerRef.current) clearTimeout(restoreTimerRef.current);
+          return next;
+        });
+      },
     });
   }, [cart, showToast]);
   const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); setPromoOpen(false); setPromoClosing(false); }, []);
