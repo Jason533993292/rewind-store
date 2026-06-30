@@ -232,6 +232,17 @@ a { color: inherit; cursor: pointer; }
 @media (max-width: 540px) { .rw-card .rw-photo { height: 160px !important; } .rw-card-body { padding: 10px 12px; } .rw-card-name { font-size: 13px; } .rw-card-price { font-size: 15px; } .rw-card-was { font-size: 11px; } }
 .rw-empty { padding: 60px 0; text-align: center; color: var(--muted); font-size: 16px; }
 
+/* ── Sort/category dropdowns ── */
+.rw-sort {
+  padding: 8px 12px; border-radius: 8px;
+  border: 1px solid var(--line-2); background: var(--surface);
+  font-size: 13px; font-weight: 600; color: var(--ink); outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  cursor: pointer;
+}
+.rw-sort:hover { border-color: var(--ink); }
+.rw-sort:focus { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent); }
+
 /* ── Sidebar buttons ── */
 .rw-sb-btn {
   display: flex; align-items: center; justify-content: space-between; width: 100%;

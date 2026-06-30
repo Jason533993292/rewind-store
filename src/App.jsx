@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.40';
+const VERSION = 'V6.5.41';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -493,7 +493,7 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                 aria-label="Sort products"
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
+                className="rw-sort">
                 <option value="">Featured</option>
                 <option value="name-asc">Name: A → Z</option>
                 <option value="name-desc">Name: Z → A</option>
@@ -502,7 +502,7 @@ export default function App() {
               </select>
               <select id="rw-mobile-cat" value={cat} onChange={e => { setCat(e.target.value); scrollToGrid(); }}
                 aria-label="Select category"
-                style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', outline: 'none' }}>
+                className="rw-sort">
                 {availableCats.map((c) => (
                   <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
                 ))}
