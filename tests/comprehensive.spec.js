@@ -63,7 +63,9 @@ test.describe('Page loads', () => {
     expect(critical).toEqual([]);
   });
 
-  test('admin panel loads', async ({ page }) => {
+  // Admin panel requires local auth (rw_admin_email in localStorage) — only works in dev
+  const adminTest = !isAdmin ? test.skip : test;
+  adminTest('admin panel loads', async ({ page }) => {
     await page.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
     await expect(page.locator('h1')).toContainText(/REWIND Admin/i);
   });
