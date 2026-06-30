@@ -638,12 +638,20 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   };
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(getId(p)));
-    if (toAdd.length > 0) {
-      if (onAddToCart) {
-        toAdd.forEach(p => onAddToCart(p));
+    if (toAdd.length === 0) return;
+    // Single item → navigate to product detail page for explicit size selection
+    if (toAdd.length === 1) {
+      if (onSelect) {
+        onSelect(toAdd[0]);
         setSelected([]);
-        if (onCartOpen) onCartOpen();
       }
+      return;
+    }
+    // Multiple items → batch add (uses first size, which is the best we can do for bulk)
+    if (onAddToCart) {
+      toAdd.forEach(p => onAddToCart(p));
+      setSelected([]);
+      if (onCartOpen) onCartOpen();
     }
   };
 
