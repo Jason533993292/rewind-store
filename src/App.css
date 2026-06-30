@@ -546,6 +546,11 @@ a { color: inherit; cursor: pointer; }
 .rw-footer-cols a:hover { color: var(--accent); }
 .rw-footer-base { max-width: var(--maxw); margin: 24px auto 0; font-size: 12.5px; color: color-mix(in oklab, var(--bg) 50%, transparent); }
 
+@media (max-width: 640px) {
+  .rw-footer-cols { grid-template-columns: 1fr; gap: 24px; }
+  .rw-footer-top { flex-direction: column; gap: 20px; }
+}
+
 /* ---- toast ---- */
 .rw-toast {
   position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 300;
