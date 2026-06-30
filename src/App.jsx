@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.46';
+const VERSION = 'V6.5.47';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1005,7 +1005,9 @@ function AdminPanel({ onExit, onSelect }) {
                 btn.textContent = d.ok ? `✅ Sent (${d.sent}/${d.total})` : `❌ ${d.error || 'Failed'}`;
                 setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 4000);
               }}
-                style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+                style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
                 📩 Email opted-in only ({users.filter((u) => u.marketing_optin).length})
               </button>
               <button onClick={() => { navigator.clipboard?.writeText(users.map((u) => u.email).join(', ')); }}
