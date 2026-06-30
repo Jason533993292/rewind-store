@@ -1,6 +1,6 @@
 {
-  "last_run": "2026-06-29",
-  "done_count": 29,
+  "last_run": "2026-06-30",
+  "done_count": 30,
   "done_items": [
     "Wishlist drawer 'Add to cart' silently picks the first size",
     "Product page thumbnail strip shows a fake second thumbnail",
@@ -30,6 +30,7 @@
     "Make footer payment icons clickable",
     "/api/run-tests endpoint crashes with Playwright test.describe error",
     "Product detail page quantity stepper buttons use hardcoded colors",
-    "Search input clears on Escape key"
+    "Search input clears on Escape key",
+    "Checkout component exposed hardcoded test data (Alex R., Kerkstraat 42, Stripe test card) to production users"
   ]
 }

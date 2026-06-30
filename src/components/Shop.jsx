@@ -351,6 +351,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
   const [payError, setPayError] = useState('');
+  // Save-my-info feature — persists delivery fields to localStorage
+  const [saveInfo, setSaveInfo] = useState(() => {
+    const stored = localStorage.getItem('rw_checkout_save_info');
+    return stored !== null ? stored === 'true' : true;
+  });
+  const saved = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('rw_checkout_info') || '{}'); }
+    catch { return {}; }
+  }, []);
 
   // Launch confetti burst (CSS-based, no external lib needed)
   useEffect(() => {
@@ -412,6 +421,21 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
   async function handlePay() {
     setProcessing(true);
     setPayError('');
+    // Save delivery info to localStorage if checkbox is checked
+    if (saveInfo) {
+      localStorage.setItem('rw_checkout_save_info', 'true');
+      const name = document.querySelector('.rw-input[placeholder="Full name"]')?.value || '';
+      const address = document.querySelector('.rw-input[placeholder="Address"]')?.value || '';
+      const postal = document.querySelector('.rw-input[placeholder="Postal code"]')?.value || '';
+      const city = document.querySelector('.rw-input[placeholder="City"]')?.value || '';
+      const country = document.querySelector('.rw-input[placeholder="Country"]')?.value || '';
+      if (name || address || postal || city || country) {
+        localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
+      }
+    } else {
+      localStorage.setItem('rw_checkout_save_info', 'false');
+      localStorage.removeItem('rw_checkout_info');
+    }
     const orderNum = 'RW-' + String(Date.now()).slice(-8);
     const email = document.querySelector('.rw-input[type="email"]')?.value || '';
     // Check if email is blocked
@@ -475,13 +499,13 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
           </div>
           <div className="rw-co-sec">
             <h3>Delivery</h3>
-            <input className="rw-input" type="text" placeholder="Full name" defaultValue="" />
-            <input className="rw-input" type="text" placeholder="Address" defaultValue="" />
+            <input className="rw-input" type="text" placeholder="Full name" defaultValue={saved.name || ''} />
+            <input className="rw-input" type="text" placeholder="Address" defaultValue={saved.address || ''} />
             <div className="rw-input-row">
-              <input className="rw-input" type="text" placeholder="Postal code" defaultValue="" />
-              <input className="rw-input" type="text" placeholder="City" defaultValue="" />
+              <input className="rw-input" type="text" placeholder="Postal code" defaultValue={saved.postal || ''} />
+              <input className="rw-input" type="text" placeholder="City" defaultValue={saved.city || ''} />
             </div>
-            <input className="rw-input" type="text" placeholder="Country" defaultValue="" />
+            <input className="rw-input" type="text" placeholder="Country" defaultValue={saved.country || ''} />
           </div>
           <div className="rw-co-sec">
             <h3>Payment</h3>
@@ -514,7 +538,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
               {payment === 'paypal' && 'You will be redirected to PayPal to complete your purchase.'}
             </div>
             <label className="rw-check">
-              <input type="checkbox" defaultChecked /> Save my info for next time
+              <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} /> Save my info for next time
             </label>
           </div>
         </div>
