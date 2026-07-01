@@ -348,6 +348,19 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
   }));
   const setField = (field) => (e) => setFormFields(prev => ({ ...prev, [field]: e.target.value }));
 
+  // Auto-save delivery fields to localStorage as user types (when saveInfo is enabled)
+  // Previously only saved on Pay click — users who closed checkout lost their data.
+  const hasInfo = formFields.name || formFields.address || formFields.postal || formFields.city || formFields.country;
+  useEffect(() => {
+    if (!saveInfo) return;
+    if (hasInfo) {
+      const { name, address, postal, city, country } = formFields;
+      localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
+    } else {
+      localStorage.removeItem('rw_checkout_info');
+    }
+  }, [formFields.name, formFields.address, formFields.postal, formFields.city, formFields.country, saveInfo]);
+
   // Launch confetti burst (CSS-based, no external lib needed)
   useEffect(() => {
     if (!orderNum) return;
