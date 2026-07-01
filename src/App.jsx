@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.91';
+const VERSION = 'V6.5.92';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -179,10 +179,14 @@ export default function App() {
   }, [cat, brand, query, customProducts]);
 
   // Compute categories that actually have products (including custom products)
+  // Also appends any categories created via the admin panel's custom-category
+  // input that aren't already in REWIND_CATS.
   const availableCats = useMemo(() => {
     const allProds = [...REWIND_PRODUCTS, ...customProducts];
     const available = new Set(allProds.map(p => p.cat).filter(Boolean));
-    return REWIND_CATS.filter(c => c === 'All' || available.has(c));
+    const base = REWIND_CATS.filter(c => c === 'All' || available.has(c));
+    const extras = [...available].filter(c => !REWIND_CATS.includes(c));
+    return [...base, ...extras];
   }, [customProducts]);
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
