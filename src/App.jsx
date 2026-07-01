@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.73';
+const VERSION = 'V6.5.74';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1053,8 +1053,10 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 📩 Email opted-in only ({users.filter((u) => u.marketing_optin).length})
               </button>
               <button onClick={() => { navigator.clipboard?.writeText(users.map((u) => u.email).join(', ')); }}
-                style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px' }}>
-                Copy all emails
+                style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
+                📋 Copy all emails
               </button>
             </div>
           </div>
@@ -1096,7 +1098,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                     navigator.clipboard.writeText(csv.join('\n'));
                     alert('📋 Orders CSV copied! Paste into Shopify or Excel.');
                   }}
-                    style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                    style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}
+                    onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                    onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
                             📋 Export CSV
                   </button>
                 )}
@@ -1153,7 +1157,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                               navigator.clipboard.writeText(msg);
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+                              onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
                               📋 Copy for supplier
                             </button>
                           </td>
@@ -1469,8 +1475,9 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
           <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>{product.brand}{product.brand && product.cat ? ' · ' : ''}{product.cat}</div>
         </div>
         <button onClick={onDone}
-          style={{ padding: '10px 18px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>
-          ← Back to saved
+          style={{ padding: '10px 18px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s' }}
+          onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+          onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>← Back to saved
         </button>
       </div>
 
@@ -1580,7 +1587,9 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
             {saving ? 'Saving...' : 'Save changes'}
           </button>
           <button type="button" onClick={onDone}
-            style={{ padding: '14px 28px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--muted)' }}>
+            style={{ padding: '14px 28px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s' }}
+            onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+            onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
             Cancel
           </button>
         </div>
@@ -1733,7 +1742,9 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
         {editingId ? '✏️ Edit product' : '📦 Add new product'}
         {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] }); if (onClearEdit) onClearEdit(); }}
-          style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: 'var(--line)', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Cancel edit</button>}
+          style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: 'var(--line)', border: 'none', cursor: 'pointer', fontSize: '12px', transition: 'all 0.15s' }}
+          onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+          onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>Cancel edit</button>}
       </h3>
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
