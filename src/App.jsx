@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.75';
+const VERSION = 'V6.5.76';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -532,7 +532,8 @@ export default function App() {
           </aside>
           <div className="rw-shop-content">
             {products.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '10px' }}>
+            <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand)) ? '8px' : '16px', gap: '10px' }}>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                 aria-label="Sort products"
                 className="rw-sort">
@@ -550,6 +551,17 @@ export default function App() {
                 ))}
               </select>
             </div>
+            {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
+              <select className="rw-sort rw-mobile-brand" value={brand || ''} onChange={e => { setBrand(e.target.value || null); scrollToGrid(); }}
+                aria-label="Filter by brand"
+                style={{ width: '100%', marginBottom: '16px' }}>
+                <option value="">All brands</option>
+                {currentBrands.map(b => (
+                  <option key={b} value={b}>{b} ({brandCounts[b] || 0})</option>
+                ))}
+              </select>
+            )}
+            </>
             )}
             <ProductGrid products={products} sort={sortBy} query={query} showCompare={t.showCompare} showStock={t.showStock}
               onQuick={setQuick} onAdd={quickAdd}
