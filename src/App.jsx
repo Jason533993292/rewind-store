@@ -7,6 +7,7 @@ import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, add
 import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
 import ProductPage from './components/ProductPage';
+import { money } from './hooks/useCountdown';
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -17,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.82';
+const VERSION = 'V6.5.83';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -79,7 +80,7 @@ export default function App() {
   const [sortBy, setSortBy] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
 
-  // ── ALL new state vars for modals/panels MUST go above this line ──
+// ── ALL new state vars for modals/panels MUST go above this line ──
   // The scroll-lock useEffect (below) references these in its `anyOpen` check.
   // Adding a new state AFTER this point will break the site with a TDZ error.
   const customProductsRef = useRef(customProducts);
@@ -1153,7 +1154,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                               <div key={i}>{typeof it === 'string' ? it : `${it.name} (${it.size}) × ${it.qty || 1}`}</div>
                             ))}
                           </td>
-                          <td style={{ padding: '8px 10px', fontWeight: 700 }}>€{o.total}</td>
+                          <td style={{ padding: '8px 10px', fontWeight: 700 }}>{money(o.total)}</td>
                           <td style={{ padding: '8px 10px' }}>
                             <select value={o.status} onChange={async (e) => {
                               await updateOrderStatus(o.id, e.target.value);
@@ -1268,7 +1269,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: '14px', fontWeight: 600 }}>{p.name}</div>
                         <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{p.brand}{p.brand && p.cat ? ' · ' : ''}{p.cat}</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>€{p.price}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>{money(p.price)}</div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
                         <button onClick={() => {
