@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.84';
+const VERSION = 'V6.5.85';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -85,6 +85,8 @@ export default function App() {
   // Adding a new state AFTER this point will break the site with a TDZ error.
   const customProductsRef = useRef(customProducts);
   useEffect(() => { customProductsRef.current = customProducts; }, [customProducts]);
+  const wishlistRef = useRef(wishlist);
+  useEffect(() => { wishlistRef.current = wishlist; }, [wishlist]);
 
   // Load custom products from Supabase
   useEffect(() => {
@@ -258,7 +260,7 @@ export default function App() {
       return;
     }
     // Read current state BEFORE the update (state updaters must be pure — no side effects inside)
-    const alreadyHeld = wishlist.includes(pid);
+    const alreadyHeld = wishlistRef.current.includes(pid);
     setWishlist((prev) => {
       const exists = prev.includes(pid);
       return exists ? prev.filter((id) => id !== pid) : [...prev, pid];
@@ -275,7 +277,7 @@ export default function App() {
         onClick: () => setWishlist((inner) => inner.includes(pid) ? inner : [...inner, pid]),
       });
     }
-  }, [userEmail, showToast, wishlist]);
+  }, [userEmail, showToast]);
 
   const handleSignup = useCallback(({ email, acceptMarketing }) => {
     setUserEmail(email);
