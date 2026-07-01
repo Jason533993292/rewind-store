@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.85';
+const VERSION = 'V6.5.86';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -500,7 +500,7 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={setQuery} cats={availableCats} version={VERSION} />
-      <Hero onShop={(filterCat) => { if (filterCat) setCat(filterCat); scrollToGrid(); }} />
+      <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
 
       <main className="rw-shop">
