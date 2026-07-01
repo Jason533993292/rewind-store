@@ -513,12 +513,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
               ))}
             </div>
             {payment === 'card' && (
-              <div className="rw-card-fields">
-                <input className="rw-input" type="text" placeholder="Card number" defaultValue="" />
-                <div className="rw-input-row">
-                  <input className="rw-input" type="text" placeholder="MM / YY" defaultValue="" />
-                  <input className="rw-input" type="text" placeholder="CVC" defaultValue="" />
-                </div>
+              <div className="rw-card-fields" style={{ fontSize: '13px', color: 'var(--muted)', padding: '12px 0', lineHeight: '1.6' }}>
+                <Icon name="check" size={14} /> Payment handled securely by <strong>Stripe</strong> — you'll complete card entry on their checkout page.
               </div>
             )}
             <div className="rw-co-config">

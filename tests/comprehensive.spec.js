@@ -418,9 +418,6 @@ test.describe('Cart lifecycle', () => {
     await checkoutPage.locator('.rw-input[placeholder="Postal code"]').fill('1000');
     await checkoutPage.locator('.rw-input[placeholder="City"]').fill('Brussels');
     await checkoutPage.locator('.rw-input[placeholder="Country"]').fill('Belgium');
-    await checkoutPage.locator('.rw-input[placeholder="Card number"]').fill('4242 4242 4242 4242');
-    await checkoutPage.locator('.rw-input[placeholder="MM / YY"]').fill('12 / 27');
-    await checkoutPage.locator('.rw-input[placeholder="CVC"]').fill('123');
 
     // Place order — target the main action button (not payment method toggles)
     await checkoutPage.locator('.rw-btn-pri:has-text("Pay")').click();
