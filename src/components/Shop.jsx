@@ -1,44 +1,8 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import { deleteCustomProduct } from '../lib/supabase';
-
-/* ---------- LazyImage (for real product photos) ---------- */
-function LazyImage({ src, alt, className }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  const imgRef = useRef(null);
-
-  useEffect(() => {
-    if (!imgRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && imgRef.current) {
-          imgRef.current.src = src;
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' }
-    );
-    observer.observe(imgRef.current);
-    return () => observer.disconnect();
-  }, [src]);
-
-  return (
-    <div className="rw-photo" style={{ position: 'relative', overflow: 'hidden' }}>
-      {!loaded && !error && <div className="rw-skeleton" style={{ position: 'absolute', inset: 0 }} />}
-      {error && (
-        <div className="rw-photo-bg" style={{ background: 'var(--line)' }}>
-          <span className="rw-photo-word" style={{ color: 'var(--muted)', mixBlendMode: 'normal' }}>{alt}</span>
-        </div>
-      )}
-      <img ref={imgRef} className={`rw-img ${loaded ? 'loaded' : ''}`}
-        alt={alt} onLoad={() => setLoaded(true)} onError={() => setError(true)}
-        style={{ position: 'absolute', inset: 0 }} />
-    </div>
-  );
-}
 
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect }) {
