@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.86';
+const VERSION = 'V6.5.87';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -317,6 +317,13 @@ export default function App() {
     if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
   }, []);
 
+  // Wrap setQuery so that the first keystroke scrolled to the product grid,
+  // consistent with every other filter method (sidebar, header nav, hero, footer).
+  const handleQueryChange = useCallback((value) => {
+    if (value && !query) scrollToGrid();
+    setQuery(value);
+  }, [query, scrollToGrid]);
+
   const currentBrands = cat !== 'All' ? BRANDS[cat] || [] : [];
 
   // Count products per category and brand for sidebar badges
@@ -484,7 +491,7 @@ export default function App() {
         <Header cat={cat} setCat={(c) => { setCat(c); }} cartCount={cartCount}
           onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
           onWishlistOpen={() => setWishlistOpen(true)}
-          query={query} setQuery={setQuery} cats={availableCats} version={VERSION} />
+          query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
         <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
           onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
           onWishlist={handleWishlist}
@@ -499,7 +506,7 @@ export default function App() {
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
-        query={query} setQuery={setQuery} cats={availableCats} version={VERSION} />
+        query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
 
