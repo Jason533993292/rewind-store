@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.74';
+const VERSION = 'V6.5.75';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1493,7 +1493,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         <div style={{ marginBottom: '28px' }}>
           <div style={labelStyle}>Product photo</div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px' }}>
-            <div style={{ width: '160px', height: '200px', borderRadius: '12px', overflow: 'hidden', background: product.hue ? `hsl(${product.hue},50%,88%)` : '#f0ece6', flexShrink: 0 }}>
+            <div style={{ width: '160px', height: '200px', borderRadius: '12px', overflow: 'hidden', background: product.hue ? `hsl(${product.hue},50%,88%)` : 'var(--line)', flexShrink: 0 }}>
               {product.img
                 ? <img src={product.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: 'var(--muted)' }}>No photo</div>
