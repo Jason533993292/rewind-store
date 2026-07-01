@@ -50,11 +50,17 @@ export default function InfoModal({ page, onClose }) {
   const [lookupEmail, setLookupEmail] = useState('');
   const [orders, setOrders] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [lookupError, setLookupError] = useState('');
 
   if (!info) return null;
 
   const handleLookup = async () => {
-    if (!lookupEmail) return;
+    if (!lookupEmail.trim()) {
+      setLookupError('Please enter your email address');
+      setOrders(null);
+      return;
+    }
+    setLookupError('');
     setLoadingOrders(true);
     try {
       const r = await fetch('/api/get-orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: lookupEmail }) });
@@ -79,7 +85,7 @@ export default function InfoModal({ page, onClose }) {
             <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter the email you used to place your order to see your order history.</p>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
               <input className="rw-input" placeholder="your@email.com" value={lookupEmail}
-                onChange={e => setLookupEmail(e.target.value)}
+                onChange={e => { setLookupEmail(e.target.value); setLookupError(''); }}
                 onKeyDown={e => { if (e.key === 'Enter') handleLookup(); }} />
               <button onClick={handleLookup} disabled={loadingOrders}
                 className="rw-btn rw-btn-pri"
@@ -87,6 +93,9 @@ export default function InfoModal({ page, onClose }) {
                 {loadingOrders ? 'Searching...' : 'Look up'}
               </button>
             </div>
+            {lookupError && (
+              <p style={{ fontSize: '13px', color: 'var(--accent)', marginBottom: '16px' }}>{lookupError}</p>
+            )}
             {orders !== null && orders.length === 0 && (
               <p style={{ fontSize: '13px', color: 'var(--muted)' }}>No orders found for that email.</p>
             )}
