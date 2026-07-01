@@ -486,17 +486,17 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
         <div className="rw-checkout-main">
           <div className="rw-co-sec">
             <h3>Contact</h3>
-            <input className="rw-input" type="email" placeholder="Email" value={formFields.email} onChange={setField('email')} />
+            <input className="rw-input" type="email" placeholder="Email" value={formFields.email} onChange={setField('email')} autoComplete="email" />
           </div>
           <div className="rw-co-sec">
             <h3>Delivery</h3>
-            <input className="rw-input" type="text" placeholder="Full name" value={formFields.name} onChange={setField('name')} />
-            <input className="rw-input" type="text" placeholder="Address" value={formFields.address} onChange={setField('address')} />
+            <input className="rw-input" type="text" placeholder="Full name" value={formFields.name} onChange={setField('name')} autoComplete="name" />
+            <input className="rw-input" type="text" placeholder="Address" value={formFields.address} onChange={setField('address')} autoComplete="street-address" />
             <div className="rw-input-row">
-              <input className="rw-input" type="text" placeholder="Postal code" value={formFields.postal} onChange={setField('postal')} />
-              <input className="rw-input" type="text" placeholder="City" value={formFields.city} onChange={setField('city')} />
+              <input className="rw-input" type="text" placeholder="Postal code" value={formFields.postal} onChange={setField('postal')} autoComplete="postal-code" />
+              <input className="rw-input" type="text" placeholder="City" value={formFields.city} onChange={setField('city')} autoComplete="address-level2" />
             </div>
-            <input className="rw-input" type="text" placeholder="Country" value={formFields.country} onChange={setField('country')} />
+            <input className="rw-input" type="text" placeholder="Country" value={formFields.country} onChange={setField('country')} autoComplete="country-name" />
           </div>
           <div className="rw-co-sec">
             <h3>Payment</h3>
