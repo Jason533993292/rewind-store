@@ -408,6 +408,19 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
   async function handlePay() {
     setProcessing(true);
     setPayError('');
+    // Client-side field validation before hitting the API
+    const missing = [];
+    if (!formFields.email?.trim()) missing.push('Email');
+    if (!formFields.name?.trim()) missing.push('Full name');
+    if (!formFields.address?.trim()) missing.push('Address');
+    if (!formFields.postal?.trim()) missing.push('Postal code');
+    if (!formFields.city?.trim()) missing.push('City');
+    if (!formFields.country?.trim()) missing.push('Country');
+    if (missing.length > 0) {
+      setPayError('Please fill in: ' + missing.join(', '));
+      setProcessing(false);
+      return;
+    }
     // Save delivery info to localStorage if checkbox is checked
     if (saveInfo) {
       localStorage.setItem('rw_checkout_save_info', 'true');
