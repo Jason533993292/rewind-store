@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.80';
+const VERSION = 'V6.5.81';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -77,6 +77,7 @@ export default function App() {
   const [customProducts, setCustomProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
+  const [orderNumber, setOrderNumber] = useState('');
 
   // ── ALL new state vars for modals/panels MUST go above this line ──
   // The scroll-lock useEffect (below) references these in its `anyOpen` check.
@@ -345,7 +346,7 @@ export default function App() {
   });
   const [blocked, setBlocked] = useState(false);
 
-  // Handle Stripe success redirect
+  // Handle Stripe success redirect — show confirmation view instead of just a toast
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('order') === 'success') {
@@ -353,7 +354,10 @@ export default function App() {
       const msg = orderNum ? `✅ ${orderNum} confirmed!` : '✅ Order confirmed!';
       showToast(msg);
       setCart([]);
-      setCheckout(false);
+      // Keep checkout open and pass the order number so the confirmation view
+      // (with confetti, copy button, and Continue shopping CTA) is shown.
+      setOrderNumber(orderNum || '');
+      setCheckout(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [showToast]);
@@ -580,7 +584,7 @@ export default function App() {
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
       <CartDrawer open={drawer} items={cart} onClose={() => setDrawer(false)}
         onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout} />
-      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} />
+      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} orderNumber={orderNumber} />
       <Toast toast={toast} onDismiss={() => setToast(null)} />
       <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} onSignup={handleSignup} />
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}

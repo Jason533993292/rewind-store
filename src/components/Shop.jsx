@@ -322,12 +322,20 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }
 }
 
 /* ---------- Checkout ---------- */
-export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast }) {
+export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast, orderNumber: orderNumberProp }) {
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
   const [payError, setPayError] = useState('');
+
+  // When ordernumber is passed via prop (Stripe success redirect), show confirmation immediately
+  useEffect(() => {
+    if (orderNumberProp) {
+      setOrderNum(orderNumberProp);
+      setPlaced(true);
+    }
+  }, [orderNumberProp]);
   // Save-my-info feature — persists delivery fields to localStorage
   const [saveInfo, setSaveInfo] = useState(() => {
     const stored = localStorage.getItem('rw_checkout_save_info');
