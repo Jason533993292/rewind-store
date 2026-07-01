@@ -150,6 +150,10 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
 /* ---------- QuickView ---------- */
 export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
   const [size, setSize] = useState(null);
+  // Reset size selection when the product changes — prevents stale size
+  // from a previous product (e.g. shoe size "42" persisting after switching
+  // to a jersey with S/M/L/XL sizes).
+  useEffect(() => { setSize(null); }, [p?.id || p?.product_id]);
   if (!p) return null;
   const low = p.stock <= 5;
   return (
