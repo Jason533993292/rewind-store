@@ -183,7 +183,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
           </div>
 
           <button onClick={() => { if (onAdd) onAdd(p, size, qty); setAdded(true); setTimeout(() => setAdded(false), 2000); }}
-            disabled={!size}
+            disabled={!size || added}
             className="rw-btn rw-btn-pri rw-btn-full"
             style={{ marginBottom: '12px', transition: 'background 0.2s, transform 0.15s' }}>
             {added ? (
