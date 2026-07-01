@@ -772,8 +772,8 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                 <div className="rw-line-meta">{p.cat}</div>
                 <div className="rw-line-bot">
                   <span className="rw-line-price">{money(p.price)}</span>
-                  <button onClick={() => { onAddToCart(p); onCartOpen(); }}
-                    aria-label={"Add " + p.name + " to cart"}
+                  <button onClick={() => { if (onSelect) onSelect(p); }}
+                    aria-label={"Choose size for " + p.name}
                     style={{
                       width: '30px', height: '30px', borderRadius: '50%',
                       border: '1.5px solid var(--line-2)', background: 'var(--surface)',
