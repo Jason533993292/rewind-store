@@ -568,6 +568,14 @@ a { color: inherit; cursor: pointer; }
   transition: transform .12s, opacity .15s;
 }
 .rw-toast-btn:hover { transform: scale(1.06); }
+.rw-toast-close {
+  margin-left: 6px; padding: 4px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,0.12); cursor: pointer;
+  color: rgba(255,255,255,0.7); display: grid; place-items: center;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+  flex-shrink: 0; line-height: 0;
+}
+.rw-toast-close:hover { background: rgba(255,255,255,0.22); color: #fff; transform: scale(1.12); }
 @keyframes toastIn { from { transform: translate(-50%,16px); opacity: 0; } to { transform: translateX(-50%); opacity: 1; } }
 
 /* ---- image-slot compat ---- */

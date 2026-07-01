@@ -187,7 +187,7 @@ export function Marquee() {
 }
 
 /* ---------- Toast ---------- */
-export function Toast({ toast, onAction }) {
+export function Toast({ toast, onDismiss }) {
   if (!toast) return null;
   return (
     <div className="rw-toast" key={toast.k}>
@@ -197,6 +197,10 @@ export function Toast({ toast, onAction }) {
           {toast.action.label}
         </button>
       )}
+      <button onClick={onDismiss} aria-label="Dismiss"
+        className="rw-toast-close">
+        <Icon name="close" size={12} />
+      </button>
     </div>
   );
 }
