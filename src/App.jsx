@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.79';
+const VERSION = 'V6.5.80';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1673,7 +1673,7 @@ async function checkBlockedEmail(email, showToast) {
     const d = await r.json();
     EMAIL_CODES[email] = d.blocked;
     if (d.blocked) {
-      showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', { label: 'OK', onClick: () => {} }, 8000);
+      showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', null, 8000);
     }
     return d.blocked;
   } catch { return false; }

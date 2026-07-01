@@ -454,7 +454,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast 
       if (bd.blocked) {
         setProcessing(false);
         if (showToast) {
-          showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', { label: 'OK', onClick: () => {} }, 8000);
+          showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', null, 8000);
         } else {
           alert('🚫 Your email has been blocked.\nPlease contact orders@rewind-stores.com to appeal.');
         }
