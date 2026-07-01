@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.63';
+const VERSION = 'V6.5.65';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -255,22 +255,25 @@ export default function App() {
       setSignupOpen(true);
       return;
     }
+    // Read current state BEFORE the update (state updaters must be pure — no side effects inside)
+    const alreadyHeld = wishlist.includes(pid);
     setWishlist((prev) => {
       const exists = prev.includes(pid);
-      if (!exists) {
-        showToast(p.name + ' saved', {
-          label: 'Show',
-          onClick: () => setWishlistOpen(true),
-        });
-      } else {
-        showToast(p.name + ' removed', {
-          label: 'Undo',
-          onClick: () => setWishlist((inner) => inner.includes(pid) ? inner : [...inner, pid]),
-        });
-      }
       return exists ? prev.filter((id) => id !== pid) : [...prev, pid];
     });
-  }, [userEmail, showToast]);
+    // Show toast outside the updater — React StrictMode invokes updaters twice in dev
+    if (!alreadyHeld) {
+      showToast(p.name + ' saved', {
+        label: 'Show',
+        onClick: () => setWishlistOpen(true),
+      });
+    } else {
+      showToast(p.name + ' removed', {
+        label: 'Undo',
+        onClick: () => setWishlist((inner) => inner.includes(pid) ? inner : [...inner, pid]),
+      });
+    }
+  }, [userEmail, showToast, wishlist]);
 
   const handleSignup = useCallback(({ email, acceptMarketing }) => {
     setUserEmail(email);

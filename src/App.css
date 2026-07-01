@@ -341,7 +341,7 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- quick view ---- */
 .rw-modal-wrap {
-  position: fixed; inset: 0; z-index: 100;
+  position: fixed; inset: 0; z-index: 840;
   background: rgba(22,19,15,.42); backdrop-filter: blur(3px);
   display: grid; place-items: center; padding: 24px; animation: fadeUp .2s ease;
 }
@@ -392,13 +392,13 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- drawer ---- */
 .rw-scrim {
-  position: fixed; inset: 0; z-index: 80;
+  position: fixed; inset: 0; z-index: 850;
   background: rgba(22,19,15,.42); backdrop-filter: blur(2px);
   opacity: 0; pointer-events: none; transition: opacity .3s;
 }
 .rw-scrim.is-on { opacity: 1; pointer-events: auto; }
 .rw-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 90;
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 860;
   width: 420px; max-width: 92vw; background: var(--bg);
   display: flex; flex-direction: column;
   transform: translateX(100%);
@@ -446,7 +446,7 @@ a { color: inherit; cursor: pointer; }
 .rw-paychip:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-2px) scale(1.06); box-shadow: 0 2px 8px color-mix(in oklab, var(--accent) 60%, transparent); }
 
 /* ---- checkout ---- */
-.rw-checkout { position: fixed; inset: 0; z-index: 200; background: var(--bg); overflow: auto; animation: fadeUp .25s ease; }
+.rw-checkout { position: fixed; inset: 0; z-index: 870; background: var(--bg); overflow: auto; animation: fadeUp .25s ease; }
 .rw-checkout-bar {
   position: sticky; top: 0; background: color-mix(in oklab, var(--bg) 90%, transparent);
   backdrop-filter: blur(12px); border-bottom: 1px solid var(--line);
