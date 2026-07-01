@@ -7,9 +7,10 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const [selectedImg, setSelectedImg] = useState(0);
+  const [added, setAdded] = useState(false);
 
   // Reset selected thumbnail when navigating to a different product
-  useEffect(() => { setSelectedImg(0); setSize(null); setQty(1); }, [p?.id || p?.product_id]);
+  useEffect(() => { setSelectedImg(0); setSize(null); setQty(1); setAdded(false); }, [p?.id || p?.product_id]);
 
   if (!p) return null;
 
@@ -181,13 +182,17 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
             </div>
           </div>
 
-          <button onClick={() => { if (onAdd) onAdd(p, size, qty); }}
+          <button onClick={() => { if (onAdd) onAdd(p, size, qty); setAdded(true); setTimeout(() => setAdded(false), 2000); }}
             disabled={!size}
             className="rw-btn rw-btn-pri rw-btn-full"
-            style={{ marginBottom: '12px' }}>
-            {size
-              ? `Add ${qty > 1 ? qty + '× ' : ''}to bag — ${money(p.price * qty)}`
-              : 'Select a size'}
+            style={{ marginBottom: '12px', transition: 'background 0.2s, transform 0.15s' }}>
+            {added ? (
+              <>✓ Added!</>
+            ) : size ? (
+              `Add ${qty > 1 ? qty + '× ' : ''}to bag — ${money(p.price * qty)}`
+            ) : (
+              'Select a size'
+            )}
           </button>
 
           {/* ── Details ── */}
