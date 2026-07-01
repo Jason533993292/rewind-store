@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.87';
+const VERSION = 'V6.5.88';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -760,6 +760,20 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
     getCustomProducts().then(setCustomProducts).catch(() => {});
     getOrders().then(setOrders).catch(() => {});
   }, []);
+
+  // Check if we were directed here to edit a specific product (from QuickView or ProductPage "Edit" button)
+  useEffect(() => {
+    const editId = localStorage.getItem('rw_edit_product');
+    if (editId) {
+      localStorage.removeItem('rw_edit_product');
+      const allProds = [...REWIND_PRODUCTS, ...customProducts];
+      const found = allProds.find(p => (p.id || p.product_id) === editId);
+      if (found) {
+        setEditProduct(found);
+        setAdminTab('edit');
+      }
+    }
+  }, [customProducts]);
 
   async function toggleBlockUser(email, blocked) {
     if (!supabase) return;
