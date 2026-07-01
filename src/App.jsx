@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.66';
+const VERSION = 'V6.5.67';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -281,10 +281,16 @@ export default function App() {
     signupUser(email, acceptMarketing);
     if (pendingWishlistId) {
       setWishlist((prev) => prev.includes(pendingWishlistId) ? prev : [...prev, pendingWishlistId]);
+      // Look up product name for a personalised toast
+      const allProds = [...REWIND_PRODUCTS, ...customProducts];
+      const pendingProduct = allProds.find(p => (p.id || p.product_id) === pendingWishlistId);
       setPendingWishlistId(null);
-      showToast('Saved to wishlist');
+      showToast((pendingProduct?.name || 'Item') + ' saved', {
+        label: 'Show',
+        onClick: () => setWishlistOpen(true),
+      });
     }
-  }, [pendingWishlistId, showToast]);
+  }, [pendingWishlistId, showToast, customProducts]);
 
   const applyPromo = useCallback(async () => {
     if (!promoCode || promoLoading) return;
