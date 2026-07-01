@@ -55,8 +55,14 @@ export default function InfoModal({ page, onClose }) {
   if (!info) return null;
 
   const handleLookup = async () => {
-    if (!lookupEmail.trim()) {
+    const trimmed = lookupEmail.trim();
+    if (!trimmed) {
       setLookupError('Please enter your email address');
+      setOrders(null);
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
+      setLookupError('Please enter a valid email address');
       setOrders(null);
       return;
     }
