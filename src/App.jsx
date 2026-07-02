@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.104';
+const VERSION = 'V6.5.105';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -642,7 +642,18 @@ export default function App() {
               const pid = p.id || p.product_id;
               return (
                 <div key={pid} style={{ flexShrink: 0, width: '120px', cursor: 'pointer' }}
-                  onClick={() => setSelectedProduct(p)}>
+                  onClick={() => {
+                    // Resolve current product data — stale sessionStorage objects
+                    // may reference edited or deleted custom products.
+                    const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
+                    if (fresh) {
+                      setSelectedProduct(fresh);
+                    } else {
+                      // Product was deleted from admin — remove from recently viewed
+                      setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
+                      showToast('This product is no longer available');
+                    }
+                  }}>
                   <div style={{
                     width: '120px', height: '150px', borderRadius: '10px', overflow: 'hidden',
                     background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--line)',
