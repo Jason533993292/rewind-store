@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.95';
+const VERSION = 'V6.5.96';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -353,7 +353,7 @@ export default function App() {
   // Lazy initializer prevents flash: only activate admin mode if the user
   // already has a saved admin email, not just because #admin is in the URL.
   const [adminMode, setAdminMode] = useState(() => {
-    if (window.location.hash === '#admin' && localStorage.getItem('rw_admin_email')) {
+    if (window.location.hash === '#admin') {
       return true;
     }
     return false;
@@ -442,12 +442,13 @@ export default function App() {
     const onHash = () => {
       const isAdminHash = window.location.hash === '#admin';
       if (isAdminHash) {
-        // Only show admin if already authenticated
+        setAdminMode(true);
+        // Verify against Supabase if already authenticated
         const saved = localStorage.getItem('rw_admin_email');
-        if (!saved) { window.location.hash = ''; setAdminMode(false); return; }
-        // Verify against Supabase
-        supabase?.from('admins').select('email').eq('email', saved).single()
-          .then(({ data }) => { if (!data) { window.location.hash = ''; } else { setAdminMode(true); } });
+        if (saved) {
+          supabase?.from('admins').select('email').eq('email', saved).single()
+            .then(({ data }) => { if (!data) { setAdminMode(true); } });
+        }
       } else {
         setAdminMode(false);
       }
