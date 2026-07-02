@@ -76,8 +76,9 @@ export default function InfoModal({ page, onClose }) {
     } catch {
       setOrders(null);
       setLookupError('Could not connect to the server — please check your connection and try again.');
+    } finally {
+      setLoadingOrders(false);
     }
-    setLoadingOrders(false);
   };
 
   return (
