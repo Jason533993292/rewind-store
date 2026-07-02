@@ -789,7 +789,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                   {choosingSize === getId(p) ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                       {p.sizes.map(s => (
-                        <button key={s} onClick={() => { if (onAddToCart) onAddToCart(p, s); setChoosingSize(null); }}
+                        <button key={s} onClick={() => { if (onAddToCart) onAddToCart(p, s); setChoosingSize(null); if (onCartOpen) onCartOpen(); }}
                           style={{
                             minWidth: '30px', height: '26px', borderRadius: '5px', border: '1px solid var(--line-2)',
                             background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
