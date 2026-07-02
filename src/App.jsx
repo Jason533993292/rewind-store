@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.93';
+const VERSION = 'V6.5.94';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -736,13 +736,16 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [orders, setOrders] = useState([]);
   const [adminMsg, setAdminMsg] = useState('');
 
+  // Separated admin auth check from data loading so that expensive Supabase
+  // queries (users, custom products, orders) only fire after authentication
+  // is confirmed — prevents unnecessary API calls and potential data exposure
+  // when non-admin visitors land on #admin.
   useEffect(() => {
     if (!supabase) {
       setLoading(false);
       setAdminChecking(false);
       return;
     }
-    // Check if user's email is an admin
     const saved = localStorage.getItem('rw_admin_email');
     if (saved) {
       setAdminEmail(saved);
@@ -755,6 +758,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
     } else {
       setAdminChecking(false);
     }
+  }, []);
+
+  // Only load users, orders, and custom products after admin auth is confirmed
+  useEffect(() => {
+    if (!adminAuthed || !supabase) return;
     supabase.from('wishlists').select('*').order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!error && data) setUsers(data);
@@ -763,7 +771,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
       .catch(() => setLoading(false));
     getCustomProducts().then(setCustomProducts).catch(() => {});
     getOrders().then(setOrders).catch(() => {});
-  }, []);
+  }, [adminAuthed]);
 
   // Check if we were directed here to edit a specific product (from QuickView or ProductPage "Edit" button)
   useEffect(() => {
