@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.121';
+const VERSION = 'V6.5.122';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -367,6 +367,26 @@ export default function App() {
     });
     return counts;
   }, [allProducts, cat]);
+
+  // Reconcile recently viewed with fresh product data when custom products load/update.
+  // Prevents stale names/prices in the recently viewed mini-cards after editing a
+  // custom product in the admin panel. The click handler already resolves fresh data,
+  // but the mini-card display now updates automatically.
+  useEffect(() => {
+    if (!allProducts.length || !recentlyViewed.length) return;
+    setRecentlyViewed((prev) => {
+      let changed = false;
+      const updated = prev.map((p) => {
+        const pid = p.id || p.product_id;
+        if (!pid) return p;
+        const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
+        if (fresh && fresh !== p) { changed = true; return fresh; }
+        return p;
+      });
+      return changed ? updated : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allProducts]);
 
   // ── Admin mode ──
   // Lazy initializer prevents flash: only activate admin mode if the user
