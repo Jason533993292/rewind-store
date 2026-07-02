@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.106';
+const VERSION = 'V6.5.107';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -161,7 +161,10 @@ export default function App() {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Escape') return;
-      if (promoOpen)        { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }
+      if (promoOpen && !promoClosing) {
+        setPromoClosing(true);
+        promoCloseTimerRef.current = setTimeout(() => { setPromoOpen(false); setPromoClosing(false); promoCloseTimerRef.current = null; }, 300);
+      }
       if (quick !== null)    setQuick(null);
       if (drawer)           setDrawer(false);
       if (checkout)         setCheckout(false);
@@ -177,7 +180,10 @@ export default function App() {
       if (selectedProduct)  { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (promoCloseTimerRef.current) { clearTimeout(promoCloseTimerRef.current); promoCloseTimerRef.current = null; }
+    };
   }, [promoOpen, quick, drawer, checkout, signupOpen, showSizes, infoPage, wishlistOpen, selectedProduct]);
 
   const products = useMemo(() => {
@@ -203,6 +209,7 @@ export default function App() {
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
   const toastTimer = useRef(null);
+  const promoCloseTimerRef = useRef(null);
   // Buffered undo for cart removals — accumulates items removed in rapid
   // succession so the final toast Undo restores ALL of them, not just the last.
   const pendingRestoreRef = useRef([]);
@@ -421,7 +428,9 @@ export default function App() {
   useEffect(() => {
     if ((drawer || wishlistOpen || checkout) && promoOpen && !promoClosing) {
       setPromoClosing(true);
-      setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300);
+      const tid = setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300);
+      promoCloseTimerRef.current = tid;
+      return () => { clearTimeout(tid); if (promoCloseTimerRef.current === tid) promoCloseTimerRef.current = null; };
     }
   }, [drawer, wishlistOpen, checkout, promoOpen, promoClosing]);
 
