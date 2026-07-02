@@ -689,6 +689,8 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
   const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id || p.product_id === id)).filter(Boolean);
   const [selected, setSelected] = useState([]);
+  // Track which wishlist item has its inline size picker open (stored as product id)
+  const [choosingSize, setChoosingSize] = useState(null);
 
   // Custom products (from Supabase) use product_id as their key, not id.
   // Always use getId(p) to get the canonical wishlist identifier.
@@ -700,14 +702,6 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(getId(p)));
     if (toAdd.length === 0) return;
-    // Single item → navigate to product detail page for explicit size selection
-    if (toAdd.length === 1) {
-      if (onSelect) {
-        onSelect(toAdd[0]);
-        setSelected([]);
-      }
-      return;
-    }
     // Multiple items → batch add (uses first size, which is the best we can do for bulk)
     if (onAddToCart) {
       toAdd.forEach(p => onAddToCart(p));
@@ -743,7 +737,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
           <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--line)' }}>
             <button className="rw-btn rw-btn-pri" style={{ padding: '8px 14px', fontSize: '13px' }}
               onClick={addSelectedToCart}>
-              {selected.length === 1 ? 'Choose size' : `Add ${selected.length} to cart`}
+              {`Add ${selected.length} to cart`}
             </button>
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px' }}
               onClick={() => setSelected([])}>Cancel</button>
@@ -780,8 +774,28 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                 <div className="rw-line-meta">{p.cat}</div>
                 <div className="rw-line-bot">
                   <span className="rw-line-price">{money(p.price)}</span>
-                  <button onClick={() => { if (onSelect) onSelect(p); }}
-                    aria-label={"Choose size for " + p.name}
+                  {choosingSize === getId(p) ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {p.sizes.map(s => (
+                        <button key={s} onClick={() => { if (onAddToCart) onAddToCart(p, s); setChoosingSize(null); }}
+                          style={{
+                            minWidth: '30px', height: '26px', borderRadius: '5px', border: '1px solid var(--line-2)',
+                            background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+                            color: 'var(--ink)', transition: 'all 0.1s',
+                          }}
+                          onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                          onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; }}>{s}</button>
+                      ))}
+                      <button onClick={() => setChoosingSize(null)}
+                        style={{ width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', display: 'grid', placeItems: 'center' }}
+                        onMouseOver={e => e.target.style.color = 'var(--ink)'}
+                        onMouseOut={e => e.target.style.color = 'var(--muted)'}>
+                        <Icon name="close" size={11} />
+                      </button>
+                    </div>
+                  ) : (
+                  <button onClick={() => setChoosingSize(getId(p))}
+                    aria-label={"Add " + p.name + " to bag"}
                     style={{
                       width: '30px', height: '30px', borderRadius: '50%',
                       border: '1.5px solid var(--line-2)', background: 'var(--surface)',
@@ -792,6 +806,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                     onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--line-2)'; }}>
                     <Icon name="plus" size={14} />
                   </button>
+                  )}
                 </div>
               </div>
             </div>
