@@ -71,8 +71,12 @@ export default function InfoModal({ page, onClose }) {
     try {
       const r = await fetch('/api/get-orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: lookupEmail }) });
       const d = await r.json();
+      if (!r.ok) { setLookupError(d.error || 'Server error — please try again'); setOrders(null); return; }
       setOrders(d.orders || []);
-    } catch { setOrders([]); }
+    } catch {
+      setOrders(null);
+      setLookupError('Could not connect to the server — please check your connection and try again.');
+    }
     setLoadingOrders(false);
   };
 
