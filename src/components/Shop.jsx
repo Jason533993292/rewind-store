@@ -620,6 +620,18 @@ export function SignupModal({ open, onClose, onSignup }) {
   const [error, setError] = useState('');
   const [showPolicy, setShowPolicy] = useState(false);
 
+  // Reset form fields whenever the modal opens — prevents stale data from a
+  // previous session persisting when the user reopens the signup modal.
+  useEffect(() => {
+    if (open) {
+      setEmail('');
+      setAgreePolicy(false);
+      setAcceptMarketing(false);
+      setError('');
+      setShowPolicy(false);
+    }
+  }, [open]);
+
   if (!open) return null;
 
   function handleSubmit(e) {
