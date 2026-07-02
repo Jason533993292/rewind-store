@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.97';
+const VERSION = 'V6.5.98';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -406,6 +406,14 @@ export default function App() {
     }
   }, [showSurvey, signupOpen, quick, drawer, checkout, showSizes, infoPage, promoOpen, wishlistOpen]);
 
+  // Auto-close promo popup with animation when any drawer/checkout opens
+  useEffect(() => {
+    if ((drawer || wishlistOpen || checkout) && promoOpen && !promoClosing) {
+      setPromoClosing(true);
+      setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300);
+    }
+  }, [drawer, wishlistOpen, checkout, promoOpen, promoClosing]);
+
   // Auto-dismiss survey when user scrolls down past the hero — prevents
   // the survey card from covering the product grid area.
   useEffect(() => {
@@ -652,7 +660,8 @@ export default function App() {
       </div>
       )}
 
-      {!drawer && !wishlistOpen && !checkout && (promoOpen || promoClosing) && (
+      {/* ── Promo code popup (always rendered so the closing animation plays) ── */}
+      {(promoOpen || promoClosing) && (
         <div onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
           style={{
             position: 'fixed', inset: 0, zIndex: 100,
