@@ -121,7 +121,10 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
   const sections = [];
   Object.entries(grouped).forEach(([brand, cats]) => {
     Object.entries(cats).forEach(([cat, items]) => {
-      const label = [brand, cat].filter(Boolean).join(' — ');
+      // When browsing a specific category (not "All"), the category is already
+      // shown in the page title — omit it from section headers to reduce noise.
+      const isCurrentCat = activeCat && activeCat !== 'All' && cat === activeCat;
+      const label = isCurrentCat ? brand : [brand, cat].filter(Boolean).join(' — ');
       sections.push({ label, items });
     });
   });
