@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.115';
+const VERSION = 'V6.5.116';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -32,10 +32,9 @@ function SidebarBtn({ label, isOn, onClick, count }) {
 }
 
 export default function App() {
-  // showSurvey & blockedOverlay MUST be the VERY FIRST state vars so no TDZ
-  // error can occur when the scroll-lock useEffect references them.
+  // showSurvey MUST be the VERY FIRST state var so no TDZ error can occur
+  // when the scroll-lock useEffect references it.
   const [showSurvey, setShowSurvey] = useState(false);
-  const [blockedOverlay, setBlockedOverlay] = useState(false);
   // Ref-based guard against minifier TDZ — effects use showSurveyRef.current
   // instead of the raw `showSurvey` state variable so that even if esbuild
   // hoists the effect closures, they reference a stable object (ref) rather
@@ -146,11 +145,8 @@ export default function App() {
   }, [t.accent, t.headingFont]);
 
   // Lock body scroll when any modal/drawer is open
-  // NOTE: showSurvey and blockedOverlay deliberately excluded from this effect.
-  //   The survey overlay uses pointer-events: none (clicks pass through), and the
-  //   blocked overlay fills the full viewport (inset:0). Neither needs body
-  //   scroll-lock. Excluding them also prevents the minifier from hoisting the
-  //   effect's closure before those state variables are initialized (TDZ bug).
+  // showSurvey is deliberately excluded from this effect.
+  // The survey overlay uses pointer-events: none (clicks pass through).
   useEffect(() => {
     const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
@@ -405,12 +401,12 @@ export default function App() {
     if (!localStorage.getItem('rw_survey_done')) {
       setShowSurvey(true);
     }
-    // Check if this user's email is blocked
+    // Check if this user's email is blocked (API path — e.g. blocked_emails table)
     const stored = localStorage.getItem('rw_email');
     if (stored) {
       fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: stored }) })
         .then(r => r.json())
-        .then(d => { if (d.blocked) setBlockedOverlay(true); })
+        .then(d => { if (d.blocked) setBlocked(true); })
         .catch(() => {});
     }
     // Listen for logo click to reset store
@@ -725,19 +721,6 @@ export default function App() {
             <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>Where did you hear about us?</p>
             <Survey onDone={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} onSkip={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} />
           </div>
-        </div>
-      )}
-
-      {blockedOverlay && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</div>
-          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px' }}>Access Restricted</h1>
-          <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '400px', lineHeight: '1.6', margin: '0' }}>
-            Your account has been blocked from using REWIND.
-          </p>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', maxWidth: '400px', lineHeight: '1.6', marginTop: '16px' }}>
-            If you believe this is a mistake, please email us at <strong style={{ color: 'var(--ink)' }}>orders@rewind-stores.com</strong> to appeal.
-          </p>
         </div>
       )}
 
