@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.99';
+const VERSION = 'V6.5.100';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1495,12 +1495,15 @@ function BlockedPanel() {
 
 /* ── Edit Product Panel ── */
 function EditProductPanel({ product, onDone, setCustomProducts }) {
+  const isCustomCat = product.cat && product.cat !== 'Other' && !REWIND_CATS.includes(product.cat);
   const [form, setForm] = React.useState(() => ({
     name: product.name || '', brand: product.brand || '', cat: product.cat || '',
     price: product.price?.toString() || '', was: product.was?.toString() || '',
     stock: product.stock?.toString() || '10', sizes: (product.sizes || ['S','M','L','XL']).join(','),
     material: product.material || '', note: product.note || '',
   }));
+  const [showCustomCat, setShowCustomCat] = React.useState(form.cat === 'Other' || isCustomCat);
+  const [catCustom, setCatCustom] = React.useState(isCustomCat ? form.cat : '');
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
 
@@ -1585,10 +1588,28 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         {/* Category */}
         <div style={{ marginBottom: '20px' }}>
           <div style={labelStyle}>Category</div>
-          <select value={form.cat} onChange={e => setForm({...form, cat: e.target.value})}
-            style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
-            {REWIND_CATS.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
+          {(() => {
+            const catOptions = [...REWIND_CATS.filter(c => c !== 'All')];
+            if (isCustomCat) catOptions.push(product.cat);
+            catOptions.push('Other');
+            return (<>
+            <select value={showCustomCat ? 'Other' : form.cat}
+              onChange={e => {
+                setForm({...form, cat: e.target.value});
+                setShowCustomCat(e.target.value === 'Other');
+                if (e.target.value !== 'Other') setCatCustom('');
+              }}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
+              {catOptions.map(c => <option key={c} value={c === product.cat && isCustomCat ? 'Other' : c}>{c}</option>)}
+            </select>
+            {showCustomCat && (
+              <input style={{ marginTop: '8px', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', width: '100%' }}
+                placeholder="Custom category name"
+                value={catCustom}
+                onChange={e => { setCatCustom(e.target.value); setForm({...form, cat: e.target.value}); }} />
+            )}
+            </>);
+          })()}
         </div>
 
         {/* Price row */}
