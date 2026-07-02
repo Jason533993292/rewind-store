@@ -64,9 +64,14 @@ export async function signupUser(email, marketingOptin) {
     localStorage.setItem('rw_email', email);
     return;
   }
+  // IMPORTANT: Do NOT include product_ids in the upsert — that would reset
+  // the user's existing wishlist to empty when a returning user signs in
+  // again (e.g. after clearing localStorage). Supabase preserves the
+  // existing product_ids when they're omitted, and for new rows the DB
+  // default `'[]'::jsonb` is used.
   const { error } = await supabase
     .from('wishlists')
-    .upsert({ email, product_ids: [], marketing_optin: marketingOptin ?? false },
+    .upsert({ email, marketing_optin: marketingOptin ?? false, updated_at: new Date().toISOString() },
       { onConflict: 'email' });
   if (error) console.warn('Supabase signup:', error.message);
 }
