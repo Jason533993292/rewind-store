@@ -63,8 +63,8 @@ test.describe('Page loads', () => {
     expect(critical).toEqual([]);
   });
 
-  test('admin panel loads', async ({ page }) => {
-    test.skip(!isAdmin, 'Admin panel requires local auth — only works locally');
+  const adminTest = isAdmin ? test : test.skip;
+  adminTest('admin panel loads', async ({ page }) => {
     await page.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
     await expect(page.locator('h1')).toContainText(/REWIND Admin/i);
   });
@@ -376,8 +376,8 @@ test.describe('Cart lifecycle', () => {
     await page.waitForTimeout(300);
   });
 
-  test('full checkout flow places order', async ({ page }) => {
-    test.skip(!isAdmin, 'Checkout redirects to Stripe on production — only works locally');
+  const checkoutTest = isAdmin ? test : test.skip;
+  checkoutTest('full checkout flow places order', async ({ page }) => {
     // Add item
     const firstCard = page.locator('.rw-card').first();
     await firstCard.scrollIntoViewIfNeeded();
