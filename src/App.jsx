@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.116';
+const VERSION = 'V6.5.117';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -570,7 +570,7 @@ export default function App() {
           <aside id="rw-sidebar" style={{
             width: '200px',
             flexShrink: 0,
-            background: 'var(--line)',
+            background: 'var(--bg)',
             borderRadius: '12px',
             padding: '20px 16px',
             position: 'sticky',
