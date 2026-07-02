@@ -62,6 +62,8 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
     let msg;
     if (hasQuery && hasBrand) {
       msg = `Nothing matched "${query.trim()}" for ${activeBrand}${hasCat ? ' in ' + activeCat : ''} — try a different term?`;
+    } else if (hasQuery && hasCat) {
+      msg = `Nothing matched "${query.trim()}" in ${activeCat} — try a different term?`;
     } else if (hasQuery) {
       msg = `Nothing matched "${query.trim()}" — try a different term?`;
     } else if (hasBrand) {
