@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.110';
+const VERSION = 'V6.5.111';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1767,7 +1767,9 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         {/* Save */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button type="submit" disabled={saving}
-            style={{...btnStyle, background: saving ? 'var(--line-2)' : 'var(--ink)', cursor: saving ? 'default' : 'pointer' }}>
+            style={{...btnStyle, background: saving ? 'var(--line-2)' : 'var(--ink)', cursor: saving ? 'default' : 'pointer', transition: 'all 0.15s' }}
+            onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
             {saving ? 'Saving...' : 'Save changes'}
           </button>
           <button type="button" onClick={onDone}
@@ -2117,7 +2119,9 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         )}
         {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}
           {showProduct && <button onClick={() => { window.location.hash = '/product/' + showProduct; }}
-            style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+            style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}
+            onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+            onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
             👁 View on store
           </button>}
         </p>}
