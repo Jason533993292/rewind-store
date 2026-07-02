@@ -679,7 +679,7 @@ export function SignupModal({ open, onClose, onSignup }) {
 }
 
 /* ---------- Wishlist Drawer ---------- */
-export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect, onCartOpen }) {
+export function WishlistDrawer({ open, items, customProducts, onClose, onRemove, onAddToCart, onSelect, onCartOpen, showToast }) {
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...(customProducts || [])], [customProducts]);
   const wishlistItems = items.map((id) => allProducts.find((p) => p.id === id || p.product_id === id)).filter(Boolean);
   const [selected, setSelected] = useState([]);
@@ -707,6 +707,10 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
       toAdd.forEach(p => onAddToCart(p));
       setSelected([]);
       if (onCartOpen) onCartOpen();
+      // Show a single summary toast instead of the last individual item toast
+      if (showToast) {
+        setTimeout(() => showToast(toAdd.length + ' items added to bag'), 50);
+      }
     }
   };
 

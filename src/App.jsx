@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.96';
+const VERSION = 'V6.5.97';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -607,7 +607,8 @@ export default function App() {
         onRemove={(id) => setWishlist((prev) => prev.filter((i) => i !== id))}
         onAddToCart={(p) => { addToCart(p); }}
         onSelect={(p) => { setSelectedProduct(p); setWishlistOpen(false); }}
-        onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }} />
+        onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }}
+        showToast={showToast} />
 
       {showSurvey && !signupOpen && quick === null && !drawer && !checkout && !showSizes && infoPage === null && !promoOpen && !wishlistOpen && (
         <div className="rw-survey-overlay" onClick={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }}>
