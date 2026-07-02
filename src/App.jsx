@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.98';
+const VERSION = 'V6.5.99';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -252,8 +252,8 @@ export default function App() {
       },
     });
   }, [cart, showToast]);
-  const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); setPromoOpen(false); setPromoClosing(false); }, []);
-  const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); }, []);
+  const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); setPromoOpen(false); setPromoClosing(false); setOrderNumber(''); }, []);
+  const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); setOrderNumber(''); }, []);
 
   const handleWishlist = useCallback((p) => {
     const pid = p.id || p.product_id;
