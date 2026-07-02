@@ -362,9 +362,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
 
   // Auto-save delivery fields to localStorage as user types (when saveInfo is enabled)
   // Previously only saved on Pay click — users who closed checkout lost their data.
+  // Also clears saved data immediately when the user unchecks "Save my info",
+  // preventing stale pre-filled fields on the next checkout session.
   const hasInfo = formFields.name || formFields.address || formFields.postal || formFields.city || formFields.country;
   useEffect(() => {
-    if (!saveInfo) return;
+    if (!saveInfo) {
+      localStorage.removeItem('rw_checkout_info');
+      localStorage.setItem('rw_checkout_save_info', 'false');
+      return;
+    }
     if (hasInfo) {
       const { name, address, postal, city, country } = formFields;
       localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
