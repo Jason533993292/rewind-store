@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.103';
+const VERSION = 'V6.5.104';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -79,6 +79,12 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sortBy, setSortBy] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
+  const [recentlyViewed, setRecentlyViewed] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('rw_recent');
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
 
 // ── ALL new state vars for modals/panels MUST go above this line ──
   // The scroll-lock useEffect (below) references these in its `anyOpen` check.
@@ -123,6 +129,11 @@ export default function App() {
 
   // Persist email
   useEffect(() => { if (userEmail) localStorage.setItem('rw_email', userEmail); }, [userEmail]);
+
+  // Persist recently viewed to sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem('rw_recent', JSON.stringify(recentlyViewed));
+  }, [recentlyViewed]);
 
   // Reset brand when category changes
   useEffect(() => { setBrand(null); }, [cat]);
@@ -449,6 +460,17 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [selectedProduct]);
+
+  // Track recently viewed products (only full-page views, not quickview)
+  useEffect(() => {
+    if (!selectedProduct) return;
+    const pid = selectedProduct.id || selectedProduct.product_id;
+    if (!pid) return;
+    setRecentlyViewed((prev) => {
+      const filtered = prev.filter((p) => (p.id || p.product_id) !== pid);
+      return [selectedProduct, ...filtered].slice(0, 8);
+    });
+  }, [selectedProduct]);
   useEffect(() => {
     const onHash = () => {
       const isAdminHash = window.location.hash === '#admin';
@@ -600,6 +622,56 @@ export default function App() {
               onClearSearch={() => { setQuery(''); setCat('All'); setBrand(null); }} />
           </div>
         </div>
+
+        {/* ── Recently viewed ── */}
+        {recentlyViewed.length > 0 && (
+        <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
+              👁 Recently viewed
+            </h3>
+            <button onClick={() => setRecentlyViewed([])}
+              style={{ fontSize: '12px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, transition: 'color 0.15s' }}
+              onMouseOver={e => e.target.style.color = 'var(--ink)'}
+              onMouseOut={e => e.target.style.color = 'var(--muted)'}>
+              Clear
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'thin' }}>
+            {recentlyViewed.map((p) => {
+              const pid = p.id || p.product_id;
+              return (
+                <div key={pid} style={{ flexShrink: 0, width: '120px', cursor: 'pointer' }}
+                  onClick={() => setSelectedProduct(p)}>
+                  <div style={{
+                    width: '120px', height: '150px', borderRadius: '10px', overflow: 'hidden',
+                    background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--line)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'transform 0.15s, box-shadow 0.15s',
+                  }}
+                    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow)'; }}
+                    onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
+                    <span style={{
+                      fontFamily: 'var(--font-head)', fontWeight: 800,
+                      color: 'rgba(255,255,255,0.78)', fontSize: '11px',
+                      textAlign: 'center', padding: '8px', lineHeight: '1.1',
+                      textShadow: '0 1px 6px rgba(0,0,0,0.2)', mixBlendMode: 'overlay',
+                    }}>
+                      {p.name?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
+                    {p.name}
+                  </div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)' }}>
+                    {money(p.price)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        )}
       </main>
 
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} />
