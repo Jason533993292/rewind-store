@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.102';
+const VERSION = 'V6.5.103';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -439,11 +439,14 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // When selectedProduct changes, update the URL hash
+  // When selectedProduct changes, update the URL hash and scroll to top
   useEffect(() => {
     if (selectedProduct) {
       const id = selectedProduct.id || selectedProduct.product_id;
       window.history.pushState({ product: id }, '', '#/product/' + id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [selectedProduct]);
   useEffect(() => {
