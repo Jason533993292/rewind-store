@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.127';
+const VERSION = 'V6.5.128';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1874,7 +1874,7 @@ async function checkBlockedEmail(email, showToast) {
 }
 function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProducts }) {
   const [form, setForm] = React.useState({
-    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: []
+    name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [], hue: Math.floor(Math.random() * 360)
   });
   const [saving, setSaving] = React.useState(false);
   const [msg, setMsg] = React.useState('');
@@ -1904,6 +1904,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         catCustom: '', price: editProduct.price?.toString() || '', was: editProduct.was?.toString() || '',
         stock: editProduct.stock?.toString() || '10', sizes: (editProduct.sizes || ['S','M','L','XL']).join(','),
         material: editProduct.material || '', note: editProduct.note || '', file: null, files: [],
+        hue: editProduct.hue ?? Math.floor(Math.random() * 360),
       });
       setEditingId(editProduct.product_id || editProduct.id);
       setMsg('✏️ Editing: ' + editProduct.name);
@@ -1921,7 +1922,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
     const product = {
       product_id: productId, name: form.name, brand: form.brand || '', cat,
       price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
-      stock: form.stock || 5, hue: Math.floor(Math.random() * 360), img: '', note: form.note || '',
+      stock: form.stock || 5, hue: form.hue ?? Math.floor(Math.random() * 360), img: '', note: form.note || '',
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '',
     };
     // Upload images if selected
@@ -1940,7 +1941,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         setMsg(`✅ "${form.name}" updated!`);
         setEditingId(null);
         if (onClearEdit) onClearEdit();
-        setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
+        setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [], hue: Math.floor(Math.random() * 360) });
         getCustomProducts().then(setCustomProducts);
       } else { setMsg('❌ Failed to update.'); }
     } else {
@@ -1948,7 +1949,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
       if (result) {
         setMsg(`✅ "${form.name}" added! `);
         setShowProduct(productId);
-        setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
+        setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [], hue: Math.floor(Math.random() * 360) });
         if (fileRef.current) fileRef.current.value = '';
         getCustomProducts().then(setCustomProducts);
       } else { setMsg('❌ Failed to save.'); }
@@ -1960,7 +1961,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
     <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
         {editingId ? '✏️ Edit product' : '📦 Add new product'}
-        {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] }); if (onClearEdit) onClearEdit(); }}
+        {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [], hue: Math.floor(Math.random() * 360) }); if (onClearEdit) onClearEdit(); }}
           style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: 'var(--line)', border: 'none', cursor: 'pointer', fontSize: '12px', transition: 'all 0.15s' }}
           onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
           onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>Cancel edit</button>}
