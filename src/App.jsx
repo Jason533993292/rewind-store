@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.125';
+const VERSION = 'V6.5.126';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1950,6 +1950,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         setShowProduct(productId);
         setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [] });
         if (fileRef.current) fileRef.current.value = '';
+        getCustomProducts().then(setCustomProducts);
       } else { setMsg('❌ Failed to save.'); }
     }
     setSaving(false);
