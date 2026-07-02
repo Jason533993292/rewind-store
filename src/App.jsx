@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.123';
+const VERSION = 'V6.5.124';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -510,7 +510,7 @@ export default function App() {
         const saved = localStorage.getItem('rw_admin_email');
         if (saved) {
           supabase?.from('admins').select('email').eq('email', saved).single()
-            .then(({ data }) => { if (!data) { setAdminMode(true); } });
+            .then(({ data }) => { if (!data) { setAdminMode(false); } });
         }
       } else {
         setAdminMode(false);
@@ -933,14 +933,31 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         <div style={{ maxWidth: '400px', margin: '60px auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>🔐 Admin Access</h2>
           <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your email to access the admin panel.</p>
-          <input className="rw-input" placeholder="your@email.com" value={adminEmail}
-            onChange={e => setAdminEmail(e.target.value)}
-            style={{ width: '100%', marginBottom: '12px' }} />
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+            <input className="rw-input" placeholder="your@email.com" value={adminEmail}
+              onChange={e => setAdminEmail(e.target.value)}
+              style={{ flex: 1 }} />
+            {localStorage.getItem('rw_admin_email') && (
+              <button onClick={() => {
+                localStorage.removeItem('rw_admin_email');
+                localStorage.removeItem('rw_admin_saved');
+                setAdminEmail('');
+                setAdminMsg('✅ Stored email cleared');
+              }}
+                style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.color = 'var(--ink)'; }}
+                onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; e.target.style.color = 'var(--muted)'; }}
+                title="Clear saved email and try again">
+                ✕ Clear stored
+              </button>
+            )}
+          </div>
           <button onClick={async () => {
             if (!adminEmail) return;
-            localStorage.setItem('rw_admin_email', adminEmail);
+            setAdminMsg('');
             const { data } = await supabase.from('admins').select('email').eq('email', adminEmail).single();
             if (data) {
+              localStorage.setItem('rw_admin_email', adminEmail);
               setAdminAuthed(true);
             } else {
               setAdminMsg('❌ Access denied. This email is not on the admin list.');
