@@ -719,16 +719,19 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(getId(p)));
     if (toAdd.length === 0) return;
+    // Single item: open inline size picker instead of silently defaulting size
+    if (toAdd.length === 1) {
+      setChoosingSize(getId(toAdd[0]));
+      setSelected([]);
+      return;
+    }
+    // Multiple items: add all with default sizes but warn explicitly
     if (onAddToCart) {
       toAdd.forEach(p => onAddToCart(p));
       setSelected([]);
       if (onCartOpen) onCartOpen();
-      // Show a single summary toast — warn that batch additions used default sizes
       if (showToast) {
-        const msg = toAdd.length === 1
-          ? '1 item added to bag'
-          : toAdd.length + ' items added — verify sizes in your bag';
-        setTimeout(() => showToast(msg), 50);
+        setTimeout(() => showToast(toAdd.length + ' items added — each used the first available size, tap ⊕ to pick a different size'), 50);
       }
     }
   };
