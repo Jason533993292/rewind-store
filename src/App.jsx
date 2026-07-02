@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.109';
+const VERSION = 'V6.5.110';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -172,11 +172,16 @@ export default function App() {
       if (showSizes)        setShowSizes(false);
       if (infoPage !== null) setInfoPage(null);
       if (wishlistOpen)     setWishlistOpen(false);
-      // Always try to dismiss survey on Escape — safe no-op if not open.
+      // Dismiss survey on Escape only when it's actually visible — prevents
+      // permanently hiding the first-visit survey for new users who press
+      // Escape to close a modal/popup/drawer before the survey was dismissed.
       // NOTE: showSurvey deliberately omitted from deps to prevent the minifier
       // from hoisting this effect before showSurvey's state variable is initialized (TDZ bug).
-      localStorage.setItem('rw_survey_done', '1');
-      setShowSurvey(false);
+      // showSurveyRef is used instead since refs are stable across hoisting.
+      if (showSurveyRef.current) {
+        localStorage.setItem('rw_survey_done', '1');
+        setShowSurvey(false);
+      }
       if (selectedProduct)  { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }
     };
     window.addEventListener('keydown', onKey);
