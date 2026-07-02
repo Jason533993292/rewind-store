@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.108';
+const VERSION = 'V6.5.109';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1857,6 +1857,18 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
   const fileRef = React.useRef(null);
   const catOptions = [...REWIND_CATS.filter(c => c !== 'All'), 'Other'];
 
+  // Memoize the preview blob URL so it's not recreated on every keystroke.
+  // Without this, each form-field change re-renders the component and calls
+  // URL.createObjectURL() again, leaking blob URLs until the page is reloaded.
+  const previewUrl = React.useMemo(() => {
+    return form.file ? URL.createObjectURL(form.file) : null;
+  }, [form.file]);
+  React.useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   // Load product for editing when editProduct prop changes
   React.useEffect(() => {
     if (editProduct) {
@@ -2078,7 +2090,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
             <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '12px' }}>📱 Storefront preview</p>
             <div style={{ background: 'var(--surface)', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
               <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : 'var(--line)', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                <img src={URL.createObjectURL(form.file)} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
+                <img src={previewUrl} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
               </div>
               <div style={{ padding: '14px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>{form.cat?.toUpperCase() || 'CATEGORY'}</span>
