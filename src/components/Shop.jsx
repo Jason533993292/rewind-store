@@ -714,14 +714,16 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const addSelectedToCart = () => {
     const toAdd = wishlistItems.filter(p => selected.includes(getId(p)));
     if (toAdd.length === 0) return;
-    // Multiple items → batch add (uses first size, which is the best we can do for bulk)
     if (onAddToCart) {
       toAdd.forEach(p => onAddToCart(p));
       setSelected([]);
       if (onCartOpen) onCartOpen();
-      // Show a single summary toast instead of the last individual item toast
+      // Show a single summary toast — warn that batch additions used default sizes
       if (showToast) {
-        setTimeout(() => showToast(toAdd.length + ' items added to bag'), 50);
+        const msg = toAdd.length === 1
+          ? '1 item added to bag'
+          : toAdd.length + ' items added — verify sizes in your bag';
+        setTimeout(() => showToast(msg), 50);
       }
     }
   };
