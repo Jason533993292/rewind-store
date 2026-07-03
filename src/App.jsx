@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.161';
+const VERSION = 'V6.5.162';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -222,6 +222,10 @@ export default function App() {
   // a single toast Undo restores everything the user accidentally wiped.
   const recentlyViewedBufferRef = useRef([]);
   const recentlyViewedTimerRef = useRef(null);
+  // Scroll position memory — saves the Y offset before opening a product
+  // detail page so that clicking "Back" restores the user exactly where they
+  // were in the grid, rather than snapping them to the top of the page.
+  const scrollPosRef = useRef(0);
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
@@ -493,14 +497,17 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  // When selectedProduct changes, update the URL hash and scroll to top
+  // When selectedProduct changes, update the URL hash and scroll to top.
+  // Saves the grid scroll position before opening a product and restores it
+  // on return so the user lands exactly where they left off browsing.
   useEffect(() => {
     if (selectedProduct) {
       const id = selectedProduct.id || selectedProduct.product_id;
       window.history.pushState({ product: id }, '', '#/product/' + id);
+      scrollPosRef.current = window.scrollY;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: scrollPosRef.current, behavior: 'smooth' });
     }
   }, [selectedProduct]);
 
