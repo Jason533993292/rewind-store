@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.141';
+const VERSION = 'V6.5.142';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -674,7 +674,7 @@ export default function App() {
             {recentlyViewed.map((p, idx) => {
               const pid = p.id || p.product_id;
               return (
-                <div key={pid} className="rw-recent-item" style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animationDelay: `${idx * 0.07}s` }}
+                <div key={pid} className="rw-recent-item" style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animation: 'fadeUp .35s ease both', animationDelay: `${idx * 0.07}s` }}
                   onClick={() => {
                     // Resolve current product data — stale sessionStorage objects
                     // may reference edited or deleted custom products.
