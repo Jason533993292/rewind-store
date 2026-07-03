@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.139';
+const VERSION = 'V6.5.140';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -559,7 +559,7 @@ export default function App() {
   if (selectedProduct) {
     return (
       <div className="rw-app">
-        <Header cat={cat} setCat={(c) => { setCat(c); }} cartCount={cartCount}
+        <Header cat={cat} setCat={(c) => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollToGrid(); }} cartCount={cartCount}
           onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
           onWishlistOpen={() => setWishlistOpen(true)}
           query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
