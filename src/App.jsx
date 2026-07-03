@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.158';
+const VERSION = 'V6.5.159';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -712,9 +712,8 @@ export default function App() {
                   },
                 });
               }}
-              style={{ fontSize: '12px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, transition: 'color 0.15s' }}
-              onMouseOver={e => e.target.style.color = 'var(--ink)'}
-              onMouseOut={e => e.target.style.color = 'var(--muted)'}>
+              style={{ fontSize: '12px' }}
+              className="rw-txt-btn">
               Clear
             </button>
           </div>
@@ -1943,9 +1942,7 @@ function Survey({ onDone, onSkip }) {
           </button>
         </div>
       )}
-      <button onClick={onSkip} style={{ marginTop: '12px', padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '12px', transition: 'color 0.15s' }}
-        onMouseOver={e => e.target.style.color = 'var(--ink)'}
-        onMouseOut={e => e.target.style.color = 'var(--muted)'}>Skip</button>
+      <button onClick={onSkip} className="rw-txt-btn" style={{ marginTop: '12px', padding: '8px', fontSize: '12px' }}>Skip</button>
       </>)}
     </div>
   );

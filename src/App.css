@@ -667,6 +667,17 @@ input:focus:not(:focus-visible) {
   background: var(--muted);
 }
 
+/* ---- text button (muted → ink on hover) ---- */
+.rw-txt-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.15s;
+  color: var(--muted);
+}
+.rw-txt-btn:hover { color: var(--ink); }
+
 /* ---- utilities ---- */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
