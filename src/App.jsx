@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.142';
+const VERSION = 'V6.5.143';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -2188,14 +2188,21 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
             {form.note && <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '8px', fontStyle: 'italic' }}>{form.note}</p>}
           </div>
         )}
-        {msg && <p style={{ fontSize: '14px', marginBottom: '10px' }}>{msg}
+        {msg && (
+          <div style={{
+            padding: '10px 14px', borderRadius: '8px', marginBottom: '12px', fontSize: '13px', fontWeight: 600,
+            background: msg.includes('✅') ? 'color-mix(in oklab, var(--ink) 12%, transparent)' : 'color-mix(in oklab, var(--accent) 10%, transparent)',
+            color: msg.includes('✅') ? 'var(--ink)' : 'var(--accent)',
+          }}>
+            {msg}
           {showProduct && <button onClick={() => { window.location.hash = '/product/' + showProduct; }}
             style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}
             onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
             onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
             👁 View on store
           </button>}
-        </p>}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         <button type="submit" disabled={saving}
         style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
@@ -2208,4 +2215,3 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
     </div>
   );
 }
-// trigger
