@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.149';
+const VERSION = 'V6.5.150';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1460,6 +1460,12 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>{money(p.price)}</div>
                       </div>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button onClick={() => { onSelect(p); }}
+                          onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
+                          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
+                          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--line-2)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
+                          👁 View
+                        </button>
                         <button onClick={() => {
                           setEditProduct(p);
                           setAdminTab('edit');
