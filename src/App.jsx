@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.137';
+const VERSION = 'V6.5.138';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1811,9 +1811,17 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         </div>
 
         {/* Material */}
-        <div style={{ marginBottom: '28px' }}>
+        <div style={{ marginBottom: '20px' }}>
           <div style={labelStyle}>Material</div>
           <input value={form.material} onChange={e => setForm({...form, material: e.target.value})} style={inputStyle} placeholder="e.g. 100% cotton pique, fleece" />
+        </div>
+
+        {/* Description / note */}
+        <div style={{ marginBottom: '28px' }}>
+          <div style={labelStyle}>Description</div>
+          <textarea value={form.note} onChange={e => setForm({...form, note: e.target.value})}
+            style={{ ...inputStyle, resize: 'vertical', minHeight: '80px', fontFamily: 'inherit' }}
+            placeholder="Product description shown on the product detail page. e.g. Vintage argyle pattern, button front." />
         </div>
 
         {/* Save */}
