@@ -635,6 +635,14 @@ input:focus:not(:focus-visible) {
 .rw-recent-item {
   animation: recentSlideUp 0.4s ease both;
 }
+.rw-recent-item .rw-photo {
+  transition: transform .15s, box-shadow .15s;
+  border-radius: 10px;
+}
+.rw-recent-item:hover .rw-photo {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
 @keyframes recentSlideUp {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }

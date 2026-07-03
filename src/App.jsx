@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Banner, Header, Hero, Marquee, Toast, Footer, Icon } from './components/Shell';
+import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, Photo } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.135';
+const VERSION = 'V6.5.136';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -684,23 +684,7 @@ export default function App() {
                       showToast('This product is no longer available');
                     }
                   }}>
-                  <div style={{
-                    width: '120px', height: '150px', borderRadius: '10px', overflow: 'hidden',
-                    background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--line)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'transform 0.15s, box-shadow 0.15s',
-                  }}
-                    onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow)'; }}
-                    onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
-                    <span style={{
-                      fontFamily: 'var(--font-head)', fontWeight: 800,
-                      color: 'rgba(255,255,255,0.78)', fontSize: '11px',
-                      textAlign: 'center', padding: '8px', lineHeight: '1.1',
-                      textShadow: '0 1px 6px rgba(0,0,0,0.2)', mixBlendMode: 'overlay',
-                    }}>
-                      {p.name?.toUpperCase()}
-                    </span>
-                  </div>
+                  <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
                   <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
                     {p.name}
                   </div>
