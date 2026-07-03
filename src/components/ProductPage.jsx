@@ -83,8 +83,8 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
           }}>
             <Photo id={(p.id || p.product_id) + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={images[selectedImg] || p.img} />
           </div>
-          {/* Thumbnail strip — only real images */}
-          {images.filter(Boolean).length > 0 && (
+          {/* Thumbnail strip — only show when there are multiple distinct images */}
+          {images.filter(Boolean).length > 1 && (
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
               {images.filter(Boolean).map((img, i) => (
                 <div key={i} onClick={() => setSelectedImg(i)}
