@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.160';
+const VERSION = 'V6.5.161';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -2070,8 +2070,36 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         </div>
         <input className="rw-input" type="number" min="0" placeholder="Stock (e.g. 3)" value={form.stock}
           onChange={e => setForm({...form, stock: e.target.value})} style={{ marginBottom: '12px' }} />
-        <input className="rw-input" placeholder="Sizes (comma separated)" value={form.sizes}
-          onChange={e => setForm({...form, sizes: e.target.value})} style={{ marginBottom: '12px' }} />
+        {/* ── Size picker buttons ── */}
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)', marginBottom: '6px' }}>Sizes — click to toggle</div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {(form.cat === 'Shoes' ? ['36','37','38','39','40','41','42','43','44','45','46','47'] : ['XS','S','M','L','XL','XXL']).map(s => {
+              const active = form.sizes.split(',').map(x => x.trim()).includes(s);
+              return (
+                <button key={s} type="button" onClick={() => {
+                  const current = form.sizes.split(',').map(x => x.trim()).filter(Boolean);
+                  const next = active ? current.filter(x => x !== s) : [...current, s];
+                  setForm({...form, sizes: next.join(',')});
+                }}
+                  style={{
+                    width: '52px', height: '52px', borderRadius: '50%',
+                    border: active ? '2px solid var(--ink)' : '1px solid var(--line-2)',
+                    background: active ? 'var(--ink)' : 'var(--surface)',
+                    color: active ? 'var(--bg)' : 'var(--muted)',
+                    cursor: 'pointer', fontWeight: 700, fontSize: '13px', transition: 'all 0.15s',
+                  }}
+                  onMouseOver={e => { if (!active) { e.target.style.borderColor = 'var(--line)'; e.target.style.transform = 'scale(1.05)'; } }}
+                  onMouseOut={e => { if (!active) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.transform = ''; } }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+            {form.sizes.split(',').map(x => x.trim()).filter(Boolean).length || 0} size{form.sizes.split(',').filter(Boolean).length !== 1 ? 's' : ''} selected
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
           <input className="rw-input" placeholder="Material (e.g. 100% cotton, fleece)" value={form.material}
             onChange={e => setForm({...form, material: e.target.value})} />
