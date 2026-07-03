@@ -824,7 +824,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                       </button>
                     </div>
                   ) : (
-                  <button onClick={() => setChoosingSize(getId(p))}
+                  <button onClick={() => setChoosingSize(prev => prev === getId(p) ? null : getId(p))}
                     aria-label={"Add " + p.name + " to bag"}
                     style={{
                       width: '30px', height: '30px', borderRadius: '50%',
