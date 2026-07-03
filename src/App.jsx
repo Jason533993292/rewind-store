@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.131';
+const VERSION = 'V6.5.132';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1620,7 +1620,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
     name: product.name || '', brand: product.brand || '', cat: product.cat || '',
     price: product.price?.toString() || '', was: product.was?.toString() || '',
     stock: product.stock?.toString() || '10', sizes: (product.sizes || ['S','M','L','XL']).join(','),
-    material: product.material || '', note: product.note || '',
+    material: product.material || '', note: product.note || '', hue: product.hue ?? 128,
   }));
   const [showCustomCat, setShowCustomCat] = React.useState(form.cat === 'Other' || isCustomCat);
   const [catCustom, setCatCustom] = React.useState(isCustomCat ? form.cat : '');
@@ -1635,7 +1635,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
       price: parseFloat(form.price) || 0, was: form.was ? parseFloat(form.was) : null,
       stock: parseInt(form.stock) || 10,
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
-      material: form.material || '', note: form.note || '',
+      material: form.material || '', note: form.note || '', hue: form.hue,
     });
     setSaving(false);
     if (result) {
@@ -1776,6 +1776,29 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
               );
             })}
           </div>
+        </div>
+
+        {/* Hue color picker */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={labelStyle}>Color swatch</div>
+          <p style={{ margin: '0 0 8px', fontSize: '12px', color: 'var(--muted)' }}>Background tint for the product card & page</p>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {[0, 20, 38, 96, 128, 158, 188, 200, 210, 232, 248, 280, 300, 330, 350].map(h => (
+              <button key={h} type="button" onClick={() => setForm({...form, hue: h})}
+                title={`Hue ${h}°`}
+                style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  border: form.hue === h ? '3px solid var(--ink)' : '2px solid transparent',
+                  background: `hsl(${h},60%,80%)`,
+                  cursor: 'pointer', transition: 'transform 0.12s, border-color 0.12s',
+                  transform: form.hue === h ? 'scale(1.15)' : 'scale(1)',
+                  outline: 'none',
+                }}
+                onMouseOver={e => { if (form.hue !== h) { e.target.style.transform = 'scale(1.12)'; e.target.style.borderColor = 'var(--line-2)'; } }}
+                onMouseOut={e => { if (form.hue !== h) { e.target.style.transform = 'scale(1)'; e.target.style.borderColor = 'transparent'; } }} />
+            ))}
+          </div>
+          <div style={{ marginTop: '6px', width: '48px', height: '12px', borderRadius: '4px', background: `hsl(${form.hue},60%,80%)` }} />
         </div>
 
         {/* Material */}
@@ -1984,6 +2007,29 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '12px' }}>
           <input className="rw-input" placeholder="Material (e.g. 100% cotton, fleece)" value={form.material}
             onChange={e => setForm({...form, material: e.target.value})} />
+        </div>
+        {/* ── Hue color picker ── */}
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--muted)' }}>Color swatch</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>— pick the background tint for the product card</span>
+          </div>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {[0, 20, 38, 96, 128, 158, 188, 200, 210, 232, 248, 280, 300, 330, 350].map(h => (
+              <button key={h} type="button" onClick={() => setForm({...form, hue: h})}
+                title={`Hue ${h}°`}
+                style={{
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  border: form.hue === h ? '2px solid var(--ink)' : '2px solid transparent',
+                  background: `hsl(${h},60%,80%)`,
+                  cursor: 'pointer', transition: 'transform 0.12s, border-color 0.12s',
+                  transform: form.hue === h ? 'scale(1.2)' : 'scale(1)',
+                  outline: 'none',
+                }}
+                onMouseOver={e => { if (form.hue !== h) e.target.style.transform = 'scale(1.15)'; e.target.style.borderColor = 'var(--line-2)'; }}
+                onMouseOut={e => { if (form.hue !== h) { e.target.style.transform = 'scale(1)'; e.target.style.borderColor = 'transparent'; } }} />
+            ))}
+          </div>
         </div>
         <textarea className="rw-input" placeholder="Description / product notes (appears on product page)"
           value={form.note}
