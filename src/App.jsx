@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.152';
+const VERSION = 'V6.5.153';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1140,7 +1140,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                   const product = [...REWIND_PRODUCTS, ...customProducts].find((p) => p.id === pid || p.product_id === pid);
                   return (
                     <a key={pid} href="#"
-                      onClick={(e) => { e.preventDefault(); window.location.hash = ''; setSelectedProduct(product); }}
+                      onClick={(e) => { e.preventDefault(); window.location.hash = ''; onSelect(product); }}
                       style={{ padding: '6px 12px', background: 'var(--line)', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', color: 'var(--ink)', display: 'inline-block', cursor: 'pointer', transition: 'background 0.15s' }}
                       onMouseOver={e => e.target.style.background = 'var(--line-2)'}
                       onMouseOut={e => e.target.style.background = 'var(--line)'}
