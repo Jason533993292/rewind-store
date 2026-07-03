@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.154';
+const VERSION = 'V6.5.155';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -354,14 +354,6 @@ export default function App() {
     setQuery(value);
   }, [query, scrollToGrid]);
 
-  const currentBrands = useMemo(() => {
-    if (cat === 'All') return [];
-    const hardcoded = BRANDS[cat] || [];
-    const actualBrands = Object.keys(brandCounts);
-    const extras = actualBrands.filter(b => !hardcoded.includes(b));
-    return [...hardcoded, ...extras];
-  }, [cat, brandCounts]);
-
   // Count products per category and brand for sidebar badges
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...customProducts], [customProducts]);
   const catCounts = useMemo(() => {
@@ -380,6 +372,14 @@ export default function App() {
     });
     return counts;
   }, [allProducts, cat]);
+
+  const currentBrands = useMemo(() => {
+    if (cat === 'All') return [];
+    const hardcoded = BRANDS[cat] || [];
+    const actualBrands = Object.keys(brandCounts);
+    const extras = actualBrands.filter(b => !hardcoded.includes(b));
+    return [...hardcoded, ...extras];
+  }, [cat, brandCounts]);
 
   // Reconcile recently viewed with fresh product data when custom products load/update.
   // Prevents stale names/prices in the recently viewed mini-cards after editing a
