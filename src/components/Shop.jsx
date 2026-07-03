@@ -761,7 +761,9 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
               onClick={addSelectedToCart}>
               {`Add ${selected.length} to cart`}
             </button>
-            <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px' }}
+            <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '12px', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.target.style.background = 'var(--line)'; e.target.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={e => { e.target.style.background = 'none'; e.target.style.transform = ''; }}
               onClick={() => setSelected([])}>Cancel</button>
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--accent)', background: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--accent)', transition: 'all 0.15s' }}
               onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
