@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.150';
+const VERSION = 'V6.5.151';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -218,6 +218,10 @@ export default function App() {
   // Buffered undo for wishlist removals — same pattern as cart undo above.
   const pendingWishlistRestoreRef = useRef([]);
   const wishlistRestoreTimerRef = useRef(null);
+  // Buffered undo for recently-viewed "Clear" button — saves the full list so
+  // a single toast Undo restores everything the user accidentally wiped.
+  const recentlyViewedBufferRef = useRef([]);
+  const recentlyViewedTimerRef = useRef(null);
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
@@ -675,7 +679,33 @@ export default function App() {
             <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
               👁 Recently viewed
             </h3>
-            <button onClick={() => setRecentlyViewed([])}
+            <button onClick={() => {
+                // Buffer the current list so Undo can restore everything
+                recentlyViewedBufferRef.current = recentlyViewed;
+                setRecentlyViewed([]);
+                if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+                recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
+                showToast('Recently viewed cleared', {
+                  label: 'Undo',
+                  onClick: () => {
+                    setRecentlyViewed((prev) => {
+                      // Only restore items not already present (e.g. if user
+                      // navigated to a new product during the window)
+                      const saved = recentlyViewedBufferRef.current || [];
+                      const merged = [...prev];
+                      saved.forEach((item) => {
+                        const pid = item.id || item.product_id;
+                        if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
+                          merged.push(item);
+                        }
+                      });
+                      recentlyViewedBufferRef.current = [];
+                      if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+                      return merged;
+                    });
+                  },
+                });
+              }}
               style={{ fontSize: '12px', color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, transition: 'color 0.15s' }}
               onMouseOver={e => e.target.style.color = 'var(--ink)'}
               onMouseOut={e => e.target.style.color = 'var(--muted)'}>
