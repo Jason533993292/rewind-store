@@ -651,6 +651,22 @@ input:focus:not(:focus-visible) {
   .rw-recent-item { animation: none; }
 }
 
+/* ── Recently viewed scrollbar ── */
+.rw-recent-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-2) transparent;
+}
+.rw-recent-scroll::-webkit-scrollbar { height: 8px; }
+.rw-recent-scroll::-webkit-scrollbar-track { background: transparent; }
+.rw-recent-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+.rw-recent-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
 /* ---- utilities ---- */
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
