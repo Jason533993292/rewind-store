@@ -769,14 +769,8 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
               onClick={() => {
                 const ids = [...selected];
                 setSelected([]);
-                // Pass the whole array so App.jsx does a single state update
-                // instead of N independent functional updaters (React 18 automatic
-                // batching makes per-item forEach calls all read from the same
-                // previous state, so only the last item would actually be removed).
-                if (confirm('Remove ' + ids.length + ' item' + (ids.length !== 1 ? 's' : '') + ' from your wishlist?')) {
-                  // onRemove handles both single IDs and arrays
-                  onRemove(ids);
-                }
+                // Remove immediately — App.jsx shows an undo toast
+                onRemove(ids);
               }}>Delete all</button>
           </div>
         )}

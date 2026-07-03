@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.136';
+const VERSION = 'V6.5.137';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -215,6 +215,9 @@ export default function App() {
   // succession so the final toast Undo restores ALL of them, not just the last.
   const pendingRestoreRef = useRef([]);
   const restoreTimerRef = useRef(null);
+  // Buffered undo for wishlist removals — same pattern as cart undo above.
+  const pendingWishlistRestoreRef = useRef([]);
+  const wishlistRestoreTimerRef = useRef(null);
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
@@ -712,11 +715,29 @@ export default function App() {
       <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} onSignup={handleSignup} />
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
         onClose={() => setWishlistOpen(false)}
-        onRemove={(ids) => setWishlist((prev) => {
-          // Support both single ID and array of IDs for batch operations
+        onRemove={(ids) => {
           const removeIds = Array.isArray(ids) ? ids : [ids];
-          return prev.filter((i) => !removeIds.includes(i));
-        })}
+          // Buffer removed IDs for undo — captures them before removal
+          // so the final toast Undo restores ALL, not just the last batch.
+          pendingWishlistRestoreRef.current = [...pendingWishlistRestoreRef.current, ...removeIds];
+          setWishlist((prev) => prev.filter((i) => !removeIds.includes(i)));
+          // Clear the buffer when the toast auto-dismisses (slightly after the
+          // toast duration so there's no race with a user clicking Undo in the final ms).
+          if (wishlistRestoreTimerRef.current) clearTimeout(wishlistRestoreTimerRef.current);
+          wishlistRestoreTimerRef.current = setTimeout(() => { pendingWishlistRestoreRef.current = []; }, 2600);
+          const count = pendingWishlistRestoreRef.current.length;
+          showToast(count > 1 ? `${count} items removed` : 'Item removed', {
+            label: 'Undo',
+            onClick: () => {
+              setWishlist((prev) => {
+                const toRestore = pendingWishlistRestoreRef.current.filter(id => !prev.includes(id));
+                pendingWishlistRestoreRef.current = [];
+                if (wishlistRestoreTimerRef.current) clearTimeout(wishlistRestoreTimerRef.current);
+                return [...prev, ...toRestore];
+              });
+            },
+          });
+        }}
         onAddToCart={(p, size) => { addToCart(p, size); }}
         onSelect={(p) => { setSelectedProduct(p); setWishlistOpen(false); }}
         onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }}
