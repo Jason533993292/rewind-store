@@ -766,7 +766,18 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--accent)', background: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--accent)', transition: 'all 0.15s' }}
               onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
               onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}
-              onClick={() => { if (confirm('Remove ' + selected.length + ' item' + (selected.length !== 1 ? 's' : '') + ' from your wishlist?')) { selected.forEach(id => onRemove(id)); setSelected([]); } }}>Delete all</button>
+              onClick={() => {
+                const ids = [...selected];
+                setSelected([]);
+                // Pass the whole array so App.jsx does a single state update
+                // instead of N independent functional updaters (React 18 automatic
+                // batching makes per-item forEach calls all read from the same
+                // previous state, so only the last item would actually be removed).
+                if (confirm('Remove ' + ids.length + ' item' + (ids.length !== 1 ? 's' : '') + ' from your wishlist?')) {
+                  // onRemove handles both single IDs and arrays
+                  onRemove(ids);
+                }
+              }}>Delete all</button>
           </div>
         )}
         {wishlistItems.length === 0 ? (
