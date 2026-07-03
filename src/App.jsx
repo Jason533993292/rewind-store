@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.155';
+const VERSION = 'V6.5.156';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1197,7 +1197,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               </button>
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '8px' }}>
-              Current admins: {users.filter(u => u.blocked !== true).length} users · add your dad (fanaman74) or others here
+              Current admins: {users.filter(u => u.blocked !== true).length} users · Add a team member's email above to grant them admin access
             </div>
           </div>
 
