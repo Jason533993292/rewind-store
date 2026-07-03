@@ -457,20 +457,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       setProcessing(false);
       return;
     }
-    // Save delivery info to localStorage if checkbox is checked
-    if (saveInfo) {
-      localStorage.setItem('rw_checkout_save_info', 'true');
-      const { name, address, postal, city, country } = formFields;
-      if (name || address || postal || city || country) {
-        localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
-      }
-    } else {
-      localStorage.setItem('rw_checkout_save_info', 'false');
-      localStorage.removeItem('rw_checkout_info');
-    }
-    const orderNum = 'RW-' + String(Date.now()).slice(-8);
     const email = formFields.email;
-    // Check if email is blocked
+    // Check if email is blocked BEFORE persisting any data to localStorage —
+    // prevents blocked users' personal info from being saved locally.
     try {
       const br = await fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
       const bd = await br.json();
@@ -484,6 +473,18 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         return;
       }
     } catch {}
+    // Save delivery info to localStorage if checkbox is checked
+    if (saveInfo) {
+      localStorage.setItem('rw_checkout_save_info', 'true');
+      const { name, address, postal, city, country } = formFields;
+      if (name || address || postal || city || country) {
+        localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
+      }
+    } else {
+      localStorage.setItem('rw_checkout_save_info', 'false');
+      localStorage.removeItem('rw_checkout_info');
+    }
+    const orderNum = 'RW-' + String(Date.now()).slice(-8);
     try {
       const r = await fetch('/api/create-checkout-session', {
         method: 'POST',
