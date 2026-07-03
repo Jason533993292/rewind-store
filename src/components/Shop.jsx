@@ -423,7 +423,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <p>Thanks for your order! We'll send you a shipping confirmation once your items are on their way.</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '4px' }}>
             <div className="rw-confirm-num">{orderNum}</div>
-            <button onClick={() => { navigator.clipboard.writeText(orderNum); const btn = document.activeElement; btn.textContent = '✓'; setTimeout(() => btn.textContent = '⎘', 1200); }}
+            <button onClick={(e) => { const btn = e.currentTarget; navigator.clipboard.writeText(orderNum).then(() => { btn.textContent = '✓'; setTimeout(() => { btn.textContent = '⎘'; }, 1200); }).catch(() => { btn.textContent = '✗'; setTimeout(() => { btn.textContent = '⎘'; }, 1200); }); }}
               style={{ width: '28px', height: '28px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', display: 'grid', placeItems: 'center', color: 'var(--muted)', transition: 'background 0.15s' }}
               onMouseOver={e => e.target.style.background = 'var(--line)'}
               onMouseOut={e => e.target.style.background = 'var(--surface)'}>
