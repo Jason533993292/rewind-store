@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.145';
+const VERSION = 'V6.5.146';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -858,6 +858,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [adminChecking, setAdminChecking] = useState(true);
   const [orders, setOrders] = useState([]);
   const [adminMsg, setAdminMsg] = useState('');
+  const [savedVersion, setSavedVersion] = useState(0);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -1427,7 +1428,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
 
           {/* ── Saved products ── */}
           {adminTab === 'saved' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+          <div key={savedVersion} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>⭐ Saved products</h3>
             {(() => {
               const allProds = [...REWIND_PRODUCTS, ...customProducts];
@@ -1460,8 +1461,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                           const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
                           const newIds = savedIds.filter(id => id !== (p.id || p.product_id));
                           localStorage.setItem('rw_admin_saved', JSON.stringify(newIds));
-                          setAdminTab('users');
-                          setTimeout(() => setAdminTab('saved'), 0);
+                          setSavedVersion(v => v + 1);
                         }}
                           onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
                           onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
