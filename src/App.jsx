@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.130';
+const VERSION = 'V6.5.131';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -649,7 +649,7 @@ export default function App() {
               onQuick={setQuick} onAdd={quickAdd}
               wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct}
               activeCat={cat} activeBrand={brand}
-              onClearSearch={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); }} />
+              onClearSearch={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); scrollToGrid(); }} />
           </div>
         </div>
 
