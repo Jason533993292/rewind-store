@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.148';
+const VERSION = 'V6.5.149';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -492,6 +492,18 @@ export default function App() {
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  }, [selectedProduct]);
+
+  // Set document title to product name when viewing a product detail page,
+  // and restore the default title when returning to the shop.
+  useEffect(() => {
+    const DEFAULT_TITLE = 'REWIND — Curated Vintage & Retro Sportswear';
+    if (selectedProduct) {
+      document.title = selectedProduct.name + ' — REWIND';
+    } else {
+      document.title = DEFAULT_TITLE;
+    }
+    return () => { document.title = DEFAULT_TITLE; };
   }, [selectedProduct]);
 
   // Track recently viewed products (only full-page views, not quickview)
