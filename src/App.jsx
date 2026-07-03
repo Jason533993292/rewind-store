@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.146';
+const VERSION = 'V6.5.147';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -2043,7 +2043,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
                   transform: form.hue === h ? 'scale(1.2)' : 'scale(1)',
                   outline: 'none',
                 }}
-                onMouseOver={e => { if (form.hue !== h) e.target.style.transform = 'scale(1.15)'; e.target.style.borderColor = 'var(--line-2)'; }}
+                onMouseOver={e => { if (form.hue !== h) { e.target.style.transform = 'scale(1.15)'; e.target.style.borderColor = 'var(--line-2)'; } }}
                 onMouseOut={e => { if (form.hue !== h) { e.target.style.transform = 'scale(1)'; e.target.style.borderColor = 'transparent'; } }} />
             ))}
           </div>
