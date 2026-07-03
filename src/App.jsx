@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.138';
+const VERSION = 'V6.5.139';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1642,7 +1642,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
     const result = await updateCustomProduct(product.product_id || product.id, {
       name: form.name, brand: form.brand, cat: form.cat,
       price: parseFloat(form.price) || 0, was: form.was ? parseFloat(form.was) : null,
-      stock: parseInt(form.stock) || 10,
+      stock: (() => { const n = parseInt(form.stock); return isNaN(n) ? 10 : n; })(),
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
       material: form.material || '', note: form.note || '', hue: form.hue,
     });
@@ -1948,7 +1948,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
     const product = {
       product_id: productId, name: form.name, brand: form.brand || '', cat,
       price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
-      stock: form.stock || 5, hue: form.hue ?? Math.floor(Math.random() * 360), img: '', note: form.note || '',
+      stock: (() => { const n = parseInt(form.stock); return isNaN(n) ? 5 : n; })(), hue: form.hue ?? Math.floor(Math.random() * 360), img: '', note: form.note || '',
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '',
     };
     // Upload images if selected
@@ -1962,7 +1962,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
     }
     // Save or update
     if (editingId) {
-      const result = await updateCustomProduct(editingId, { name: form.name, brand: form.brand, cat, price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null, stock: parseInt(form.stock) || 10, sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '', note: form.note || '' });
+      const result = await updateCustomProduct(editingId, { name: form.name, brand: form.brand, cat, price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null, stock: (() => { const n = parseInt(form.stock); return isNaN(n) ? 10 : n; })(), sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '', note: form.note || '' });
       if (result) {
         setMsg(`✅ "${form.name}" updated!`);
         setEditingId(null);
