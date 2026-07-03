@@ -115,15 +115,16 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
             <Icon name="search" size={17} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && query) { e.target.blur(); setQuery(''); } }} placeholder="Search" />
             {query && (
-              <button onClick={() => setQuery('')}
-                aria-label="Clear search"
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '2px', display: 'grid', placeItems: 'center',
-                  color: 'var(--muted)', opacity: 0.7,
-                }}
-                onMouseOver={e => e.target.style.opacity = '1'}
-                onMouseOut={e => e.target.style.opacity = '0.7'}>
+            <button onClick={() => setQuery('')}
+              aria-label="Clear search"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '2px', display: 'grid', placeItems: 'center',
+                color: 'var(--muted)', opacity: 0.7,
+                transition: 'opacity 0.15s',
+              }}
+              onMouseOver={e => e.target.style.opacity = '1'}
+              onMouseOut={e => e.target.style.opacity = '0.7'}>
                 <Icon name="close" size={14} />
               </button>
             )}
