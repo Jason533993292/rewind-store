@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.153';
+const VERSION = 'V6.5.154';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -354,7 +354,13 @@ export default function App() {
     setQuery(value);
   }, [query, scrollToGrid]);
 
-  const currentBrands = cat !== 'All' ? BRANDS[cat] || [] : [];
+  const currentBrands = useMemo(() => {
+    if (cat === 'All') return [];
+    const hardcoded = BRANDS[cat] || [];
+    const actualBrands = Object.keys(brandCounts);
+    const extras = actualBrands.filter(b => !hardcoded.includes(b));
+    return [...hardcoded, ...extras];
+  }, [cat, brandCounts]);
 
   // Count products per category and brand for sidebar badges
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...customProducts], [customProducts]);
