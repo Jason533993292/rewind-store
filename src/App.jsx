@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.143';
+const VERSION = 'V6.5.144';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1001,7 +1001,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               cursor: 'pointer', fontWeight: 600, fontSize: '14px',
               transition: 'all 0.15s',
             }}
-            onMouseOver={e => { if (adminTab !== t.id) { e.target.style.background = '#d9d0c0'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOver={e => { if (adminTab !== t.id) { e.target.style.background = 'var(--line-2)'; e.target.style.transform = 'translateY(-1px)'; } }}
             onMouseOut={e => { if (adminTab !== t.id) { e.target.style.background = 'var(--line)'; e.target.style.transform = ''; } }}>
             {t.label}
           </button>
