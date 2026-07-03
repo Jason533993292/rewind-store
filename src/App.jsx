@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.129';
+const VERSION = 'V6.5.130';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1857,21 +1857,7 @@ function Survey({ onDone, onSkip }) {
   );
 }
 
-// ── Blocked email check ──
-const EMAIL_CODES = {}; // email → blocked status cache
 
-async function checkBlockedEmail(email, showToast) {
-  if (!email || EMAIL_CODES[email] === false) return false;
-  try {
-    const r = await fetch('/api/check-blocked-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-    const d = await r.json();
-    EMAIL_CODES[email] = d.blocked;
-    if (d.blocked) {
-      showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', null, 8000);
-    }
-    return d.blocked;
-  } catch { return false; }
-}
 function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProducts }) {
   const [form, setForm] = React.useState({
     name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [], hue: Math.floor(Math.random() * 360)
