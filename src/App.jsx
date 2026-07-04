@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.164';
+const VERSION = 'V6.5.165';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1779,9 +1779,17 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
             return (<>
             <select value={showCustomCat ? 'Other' : form.cat}
               onChange={e => {
-                setForm({...form, cat: e.target.value});
-                setShowCustomCat(e.target.value === 'Other');
-                if (e.target.value !== 'Other') setCatCustom('');
+                const newCat = e.target.value;
+                // Reset sizes when switching between Shoes and other categories
+                const sizesBefore = form.cat;
+                const isNowShoes = newCat === 'Shoes';
+                const wasShoes = sizesBefore === 'Shoes';
+                const sizes = (isNowShoes !== wasShoes)
+                  ? (isNowShoes ? '36,37,38,39,40,41,42,43,44,45,46,47' : 'S,M,L,XL')
+                  : form.sizes;
+                setForm({...form, cat: newCat, sizes});
+                setShowCustomCat(newCat === 'Other');
+                if (newCat !== 'Other') setCatCustom('');
               }}
               style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--bg)', fontSize: '14px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
               {catOptions.map(c => <option key={c} value={c === product.cat && isCustomCat ? 'Other' : c}>{c}</option>)}
@@ -2055,7 +2063,19 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
           <select className="rw-input"
             value={showCustomCat ? 'Other' : form.cat}
-            onChange={e => { setForm({...form, cat: e.target.value}); setShowCustomCat(e.target.value === 'Other'); }}>
+            onChange={e => {
+              const newCat = e.target.value;
+              // Reset sizes when switching between Shoes and other categories
+              // so the size picker buttons match the visible options
+              const sizesBefore = form.cat;
+              const isNowShoes = newCat === 'Shoes';
+              const wasShoes = sizesBefore === 'Shoes';
+              const sizes = (isNowShoes !== wasShoes)
+                ? (isNowShoes ? '36,37,38,39,40,41,42,43,44,45,46,47' : 'S,M,L,XL')
+                : form.sizes;
+              setForm({...form, cat: newCat, sizes});
+              setShowCustomCat(newCat === 'Other');
+            }}>
             <option value="">Select category *</option>
             {catOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
