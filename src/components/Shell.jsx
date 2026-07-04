@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCountdown, pad, money } from '../hooks/useCountdown';
 import { IMG_BASE_URL } from '../data';
 import AnimatedText from './AnimatedText';
@@ -147,11 +147,21 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
 
 /* ---------- Hero ---------- */
 export function Hero({ onShop }) {
+  // Memoize texts to prevent creating a new array on every render — the
+  // AnimatedText effect re-triggers when the `texts` reference changes,
+  // restarting the typewriter animation from the beginning on every Hero
+  // re-render (search keystroke, category click, etc.).
+  const heroTexts = useMemo(() => [
+    "Worn once. Loved again.",
+    "Curated vintage, authenticated.",
+    "Shipped in 24 hours.",
+    "One of each — gone for good.",
+  ], []);
   return (
     <section className="rw-hero">
       <Reveal><div className="rw-hero-copy">
         <div className="rw-hero-kicker"><Icon name="bolt" size={13} /> Summer '26 · Vol. 04</div>
-        <h1 className="rw-hero-title"><AnimatedText texts={["Worn once. Loved again.", "Curated vintage, authenticated.", "Shipped in 24 hours.", "One of each — gone for good."]} typingSpeed={60} pauseDuration={3000} /></h1>
+        <h1 className="rw-hero-title"><AnimatedText texts={heroTexts} typingSpeed={60} pauseDuration={3000} /></h1>
         <p className="rw-hero-sub">
           Hand-picked vintage tracksuits, retro jerseys & summer sets. Authenticated,
           cleaned, and shipped in 24 hours. One of each — when it's gone, it's gone.
