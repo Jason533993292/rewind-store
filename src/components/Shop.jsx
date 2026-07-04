@@ -414,7 +414,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       <div className="rw-checkout">
         <div className="rw-checkout-bar">
           <div className="rw-logo" style={{ cursor: 'pointer' }}
-            onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
+            onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); onPlaced(); }}>REWIND<span>.</span></div>
           <button className="rw-btn rw-btn-ghost" onClick={onPlaced}>Close</button>
         </div>
         <div className="rw-confirm">
@@ -521,7 +521,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     <div className="rw-checkout">
       <div className="rw-checkout-bar">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
+          onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); onClose(); }}>REWIND<span>.</span></div>
         <button className="rw-btn rw-btn-ghost" onClick={onClose}>Back</button>
       </div>
       <div className="rw-checkout-grid">
