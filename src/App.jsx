@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.162';
+const VERSION = 'V6.5.163';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -192,7 +192,7 @@ export default function App() {
     return allProducts.filter((p) =>
       (cat === 'All' || p.cat === cat) &&
       (!brand || p.brand === brand) &&
-      (query.trim() === '' || (p.name + ' ' + p.cat + ' ' + (p.brand || '') + ' ' + (p.note || '')).toLowerCase().includes(query.toLowerCase()))
+      (query.trim() === '' || (p.name + ' ' + p.cat + ' ' + (p.brand || '') + ' ' + (p.note || '') + ' ' + (p.material || '')).toLowerCase().includes(query.toLowerCase()))
     );
   }, [cat, brand, query, customProducts]);
 
