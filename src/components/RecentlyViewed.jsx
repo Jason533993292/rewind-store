@@ -38,7 +38,7 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
             <div
               key={pid}
               className="rw-recent-item"
-              style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animation: 'fadeUp .35s ease both', animationDelay: `${idx * 0.07}s` }}
+              style={{ animationDelay: `${idx * 0.07}s` }}
               onClick={() => {
                 const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
                 if (fresh) {

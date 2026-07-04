@@ -676,6 +676,15 @@ input:focus:not(:focus-visible) {
 .rw-recent-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
+.rw-recent-item {
+  flex-shrink: 0;
+  width: 120px;
+  cursor: pointer;
+  animation: fadeUp .35s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rw-recent-item { animation: none; }
+}
 
 /* ---- text button (muted → ink on hover) ---- */
 .rw-txt-btn {
