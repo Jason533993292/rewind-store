@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.188';
+const VERSION = 'V6.5.189';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -119,7 +119,18 @@ export default function App() {
   useEffect(() => {
     if (userEmail) {
       getWishlist(userEmail).then((ids) => {
-        if (ids.length) setWishlist(ids);
+        // Merge loaded IDs with any items already in state (e.g. a pending
+        // wishlist item added by handleSignup during the signup flow, before
+        // getWishlist resolves). Without merging, the async Supabase response
+        // overwrites locally-added items and they silently disappear.
+        setWishlist((prev) => {
+          if (!ids.length) return prev;
+          const merged = [...ids];
+          prev.forEach((id) => {
+            if (!merged.includes(id)) merged.push(id);
+          });
+          return merged;
+        });
         setWishlistReady(true);
       });
     } else {
