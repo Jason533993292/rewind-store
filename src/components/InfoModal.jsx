@@ -52,9 +52,20 @@ export default function InfoModal({ page, onClose }) {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [lookupError, setLookupError] = useState('');
 
+  // Reset order lookup state when switching between info pages — prevents
+  // stale search results from a previous "Orders" lookup persisting when
+  // the user navigates from Shipping/Returns back to Orders.
+  React.useEffect(() => {
+    setLookupEmail('');
+    setOrders(null);
+    setLookupError('');
+    setLoadingOrders(false);
+  }, [page]);
+
   if (!info) return null;
 
   const handleLookup = async () => {
+    if (loadingOrders) return;
     const trimmed = lookupEmail.trim();
     if (!trimmed) {
       setLookupError('Please enter your email address');
