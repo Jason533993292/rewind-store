@@ -533,6 +533,12 @@ a { color: inherit; cursor: pointer; }
   .rw-checkout-grid { grid-template-columns: 1fr; gap: 30px; }
   .rw-checkout-summary { position: static; order: -1; }
 }
+@media (max-width: 420px) {
+  .rw-checkout-grid { padding: 24px 16px 60px; }
+  .rw-input-row { flex-direction: column; gap: 0; }
+  .rw-pay-grid { grid-template-columns: 1fr; }
+  .rw-checkout-bar { padding: 12px 16px; }
+}
 
 /* ---- footer ---- */
 .rw-footer { background: var(--ink); color: var(--bg); padding: 60px 24px 30px; margin-top: 20px; }
