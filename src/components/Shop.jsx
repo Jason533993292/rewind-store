@@ -6,7 +6,8 @@ import { deleteCustomProduct } from '../lib/supabase';
 
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect }) {
-  const low = p.stock <= 5;
+  const low = p.stock > 0 && p.stock <= 5;
+  const soldOut = p.stock === 0;
   const [added, setAdded] = useState(false);
   return (
     <article className="rw-card">
@@ -14,7 +15,8 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
         <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={p.img} />
         <div className="rw-card-tags">
           {showCompare && discountPct(p) > 0 && <span className="rw-tag rw-tag-sale">-{discountPct(p)}%</span>}
-          {showStock && low && <span className="rw-tag rw-tag-low">Only {p.stock} left</span>}
+          {showStock && soldOut && <span className="rw-tag rw-tag-low">Sold out</span>}
+          {showStock && low && !soldOut && <span className="rw-tag rw-tag-low">Only {p.stock} left</span>}
         </div>
         <button className="rw-card-quick" onClick={(e) => { e.stopPropagation(); onQuick(p); }}>Quick view</button>
         <button className={"rw-card-fav" + (wishlisted ? ' is-wishlisted' : '')}
@@ -160,7 +162,8 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
   // to a jersey with S/M/L/XL sizes).
   useEffect(() => { setSize(null); }, [p?.id || p?.product_id]);
   if (!p) return null;
-  const low = p.stock <= 5;
+  const low = p.stock > 0 && p.stock <= 5;
+  const soldOut = p.stock === 0;
   return (
     <div className="rw-modal-wrap" onClick={onClose}>
       <div className="rw-modal" onClick={(e) => e.stopPropagation()}>
@@ -221,7 +224,8 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
             {showCompare && p.was && <span className="rw-price-was">{money(p.was)}</span>}
           </div>
           <p className="rw-modal-note">{p.note}</p>
-          {showStock && low && <div className="rw-stockline"><Icon name="bolt" size={15} /> Only {p.stock} left</div>}
+          {showStock && soldOut && <div className="rw-stockline"><Icon name="bolt" size={15} /> Sold out — check back soon</div>}
+          {showStock && low && !soldOut && <div className="rw-stockline"><Icon name="bolt" size={15} /> Only {p.stock} left</div>}
           <div className="rw-sizes">
             <div className="rw-sizes-label">Size</div>
             <div className="rw-sizes-row">
@@ -231,8 +235,8 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
               ))}
             </div>
           </div>
-          <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!size} onClick={() => onAdd(p, size)}>
-            {size ? 'Add to bag — ' + money(p.price) : 'Select a size'}
+          <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!size || soldOut} onClick={() => onAdd(p, size)}>
+            {soldOut ? 'Sold out' : size ? 'Add to bag — ' + money(p.price) : 'Select a size'}
           </button>
           <div className="rw-modal-perks">
             <span><Icon name="truck" size={15} /> Ships in 24h</span>

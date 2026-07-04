@@ -17,7 +17,8 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
   // Mock multiple images — replace with real photos
   const images = [p.img || ''];
 
-  const low = p.stock <= 5;
+  const low = p.stock > 0 && p.stock <= 5;
+  const soldOut = p.stock === 0;
 
   return (
     <div className="rw-product-page">
@@ -134,7 +135,12 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             {showCompare && p.was && <span style={{ fontSize: '18px', color: 'var(--muted)', textDecoration: 'line-through' }}>{money(p.was)}</span>}
           </div>
 
-          {showStock && low && (
+          {showStock && soldOut && (
+            <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
+              ⚡ Sold out — check back soon
+            </div>
+          )}
+          {showStock && low && !soldOut && (
             <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
               ⚡ Only {p.stock} left
             </div>
@@ -185,11 +191,13 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
           </div>
 
           <button onClick={() => { if (onAdd) onAdd(p, size, qty); setAdded(true); setTimeout(() => setAdded(false), 2000); }}
-            disabled={!size || added}
+            disabled={!size || added || soldOut}
             className="rw-btn rw-btn-pri rw-btn-full"
             style={{ marginBottom: '12px' }}>
             {added ? (
               <>✓ Added!</>
+            ) : soldOut ? (
+              'Sold out'
             ) : size ? (
               `Add ${qty > 1 ? qty + '× ' : ''}to bag — ${money(p.price * qty)}`
             ) : (

@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.190';
+const VERSION = 'V6.5.191';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -304,6 +304,11 @@ export default function App() {
   }, []);
 
   const addToCart = useCallback((p, size, qty = 1) => {
+    // Guard: don't allow adding out-of-stock items
+    if (p.stock === 0) {
+      showToast(p.name + ' is sold out');
+      return;
+    }
     const sz = size || p.sizes[0];
     const pid = p.id || p.product_id;
     const key = pid + '-' + sz;
