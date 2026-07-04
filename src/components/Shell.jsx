@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useCountdown, pad, money } from '../hooks/useCountdown';
 import { IMG_BASE_URL } from '../data';
 import AnimatedText from './AnimatedText';
+import Reveal from './Reveal';
+import AnimatedText from './AnimatedText';
 
 /* ---------- Icon ---------- */
 export function Icon({ name, size = 20 }) {
