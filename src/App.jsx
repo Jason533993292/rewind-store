@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.163';
+const VERSION = 'V6.5.164';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -585,23 +585,19 @@ export default function App() {
   }
 
   // Show product detail page instead of shop
-  if (selectedProduct) {
-    return (
-      <div className="rw-app">
-        <Header cat={cat} setCat={(c) => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollToGrid(); }} cartCount={cartCount}
-          onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
-          onWishlistOpen={() => setWishlistOpen(true)}
-          query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
-        <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
-          onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
-          onWishlist={handleWishlist}
-          wishlisted={wishlist.includes(selectedProduct?.id || selectedProduct?.product_id)} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="rw-app">
+  const viewContent = selectedProduct ? (
+    <div className="rw-app" key="product-page">
+      <Header cat={cat} setCat={(c) => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollToGrid(); }} cartCount={cartCount}
+        onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
+        onWishlistOpen={() => setWishlistOpen(true)}
+        query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
+      <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
+        onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
+        onWishlist={handleWishlist}
+        wishlisted={wishlist.includes(selectedProduct?.id || selectedProduct?.product_id)} />
+    </div>
+  ) : (
+    <div className="rw-app" key="shop">
       {t.showBanner && <Banner showCountdown={t.showCountdown} />}
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
@@ -730,13 +726,10 @@ export default function App() {
               return (
                 <div key={pid} className="rw-recent-item" style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animation: 'fadeUp .35s ease both', animationDelay: `${idx * 0.07}s` }}
                   onClick={() => {
-                    // Resolve current product data — stale sessionStorage objects
-                    // may reference edited or deleted custom products.
                     const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
                     if (fresh) {
                       setSelectedProduct(fresh);
                     } else {
-                      // Product was deleted from admin — remove from recently viewed
                       setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
                       showToast('This product is no longer available');
                     }
@@ -757,6 +750,15 @@ export default function App() {
       </main>
 
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} />
+    </div>
+  );
+
+  return (
+    <>
+      {viewContent}
+
+      {/* ── Shared overlays (rendered in BOTH product page view AND shop view) ── */}
+      {/* These must stay here so header cart/wishlist icons work on the product detail page. */}
       {showSizes && <SizeGuide onClose={() => setShowSizes(false)} />}
       {infoPage && <InfoModal page={infoPage} onClose={() => setInfoPage(null)} />}
 
@@ -771,12 +773,8 @@ export default function App() {
         onClose={() => setWishlistOpen(false)}
         onRemove={(ids) => {
           const removeIds = Array.isArray(ids) ? ids : [ids];
-          // Buffer removed IDs for undo — captures them before removal
-          // so the final toast Undo restores ALL, not just the last batch.
           pendingWishlistRestoreRef.current = [...pendingWishlistRestoreRef.current, ...removeIds];
           setWishlist((prev) => prev.filter((i) => !removeIds.includes(i)));
-          // Clear the buffer when the toast auto-dismisses (slightly after the
-          // toast duration so there's no race with a user clicking Undo in the final ms).
           if (wishlistRestoreTimerRef.current) clearTimeout(wishlistRestoreTimerRef.current);
           wishlistRestoreTimerRef.current = setTimeout(() => { pendingWishlistRestoreRef.current = []; }, 2600);
           const count = pendingWishlistRestoreRef.current.length;
@@ -807,7 +805,7 @@ export default function App() {
         </div>
       )}
 
-      {/* ── Promo code button (hidden during checkout so it doesn't overlay the payment form) ── */}
+      {/* ── Promo code button ── */}
       {!drawer && !wishlistOpen && !checkout && (
       <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
         <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); setPromoCode(''); setPromoMsg(''); } }}
@@ -826,7 +824,6 @@ export default function App() {
       </div>
       )}
 
-      {/* ── Promo code popup (always rendered so the closing animation plays) ── */}
       {(promoOpen || promoClosing) && (
         <div onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
           style={{
@@ -857,9 +854,7 @@ export default function App() {
             <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--muted)' }}>Enter it below and get a discount.</p>
             <input className="rw-input" placeholder="Enter code" value={promoCode}
               onChange={e => { setPromoCode(e.target.value); setPromoMsg(''); }}
-              onKeyDown={e => {
-                if (e.key === 'Enter') applyPromo();
-              }}
+              onKeyDown={e => { if (e.key === 'Enter') applyPromo(); }}
               disabled={promoLoading}
               style={{ marginBottom: '8px' }} />
             <button onClick={applyPromo} disabled={promoLoading}
@@ -892,7 +887,7 @@ export default function App() {
           options={['Bricolage Grotesque', 'Space Grotesk']}
           onChange={(v) => setTweak('headingFont', v)} />
       </TweaksPanel>}
-    </div>
+    </>
   );
 }
 
