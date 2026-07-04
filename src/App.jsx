@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.176';
+const VERSION = 'V6.5.177';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -97,10 +97,20 @@ export default function App() {
   const wishlistRef = useRef(wishlist);
   useEffect(() => { wishlistRef.current = wishlist; }, [wishlist]);
 
-  // Load custom products from Supabase
+  // Load custom products from Supabase & re-check URL hash for direct product links
   useEffect(() => {
     getCustomProducts().then((prods) => {
       if (prods.length) setCustomProducts(prods);
+      // Re-check the URL hash after custom products load — the hash-change
+      // handler from the other effect only fires on *changes* to the hash,
+      // so a direct navigation to #/product/<custom-id> on first page load
+      // would miss custom products that hadn't loaded from Supabase yet.
+      if (window.location.hash.startsWith('#/product/')) {
+        const pid = window.location.hash.replace('#/product/', '');
+        const allProds = [...REWIND_PRODUCTS, ...prods];
+        const p = allProds.find(x => (x.id || x.product_id) === pid);
+        if (p) setSelectedProduct(p);
+      }
     });
   }, []);
 
