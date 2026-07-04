@@ -568,7 +568,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             <h3>Promo code</h3>
             <input className="rw-input" placeholder="Enter code" value={promo} onChange={e => setPromo(e.target.value)} />
             {promoData?.valid && (
-              <span style={{color: '#00a85a', fontSize: '13px', marginTop: '6px', display: 'block'}}>
+              <span style={{color: 'var(--ink)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 600}}>
                 ✓ {promoData.type === 'percent' ? `${promoData.value}% off applied!` : 'Free shipping applied!'}
               </span>
             )}
@@ -639,7 +639,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <div className="rw-sum-rows">
             <div><span>Subtotal</span><span>{money(subtotal)}</span></div>
             {promoData?.valid && promoData.type === 'percent' && (
-              <div style={{color: '#00a85a', fontSize: '13px'}}>
+              <div style={{color: 'var(--ink)', fontSize: '13px', fontWeight: 600}}>
                 <span>{discountLabel}</span><span>-{money(subtotal - discountPrice)}</span>
               </div>
             )}
