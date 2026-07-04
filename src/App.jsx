@@ -7,6 +7,7 @@ import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, add
 import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
 import ProductPage from './components/ProductPage';
+import RecentlyViewed from './components/RecentlyViewed';
 import { money } from './hooks/useCountdown';
 
 const TWEAK_DEFAULTS = {
@@ -18,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.182';
+const VERSION = 'V6.5.183';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -621,68 +622,45 @@ export default function App() {
         wishlisted={wishlist.includes(curPid)} />
 
       {/* ── Recently viewed (on product page, excluding current product) ── */}
-      {recentlyViewed.filter(p => (p.id || p.product_id) !== curPid).length > 0 && (
-      <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
-            👁 Recently viewed
-          </h3>
-          <button onClick={() => {
-              recentlyViewedBufferRef.current = recentlyViewed;
-              setRecentlyViewed([]);
-              if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-              recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
-              showToast('Recently viewed cleared', {
-                label: 'Undo',
-                onClick: () => {
-                  setRecentlyViewed((prev) => {
-                    const saved = recentlyViewedBufferRef.current || [];
-                    const merged = [...prev];
-                    saved.forEach((item) => {
-                      const pid = item.id || item.product_id;
-                      if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
-                        merged.push(item);
-                      }
-                    });
-                    recentlyViewedBufferRef.current = [];
-                    if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-                    return merged;
-                  });
-                },
-              });
-            }}
-            style={{ fontSize: '12px' }}
-            className="rw-txt-btn">
-            Clear
-          </button>
-        </div>
-        <div className="rw-recent-scroll" style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
-          {recentlyViewed.filter(p => (p.id || p.product_id) !== curPid).map((p, idx) => {
-            const pid = p.id || p.product_id;
-            return (
-              <div key={pid} className="rw-recent-item" style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animation: 'fadeUp .35s ease both', animationDelay: `${idx * 0.07}s` }}
-                onClick={() => {
-                  const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
-                  if (fresh) {
-                    setSelectedProduct(fresh);
-                  } else {
-                    setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
-                    showToast('This product is no longer available');
+      <RecentlyViewed
+        items={recentlyViewed.filter(p => (p.id || p.product_id) !== curPid)}
+        allProducts={allProducts}
+        onSelect={(p) => {
+          const pid = p?.id || p?.product_id;
+          if (p && pid) {
+            setSelectedProduct(p);
+          } else if (pid) {
+            // Product no longer available — remove it
+            setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
+            showToast('This product is no longer available');
+          }
+        }}
+        onClear={(items) => {
+          recentlyViewedBufferRef.current = items;
+          setRecentlyViewed([]);
+          if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+          recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
+          showToast('Recently viewed cleared', {
+            label: 'Undo',
+            onClick: () => {
+              setRecentlyViewed((prev) => {
+                const saved = recentlyViewedBufferRef.current || [];
+                const merged = [...prev];
+                saved.forEach((item) => {
+                  const pid = item.id || item.product_id;
+                  if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
+                    merged.push(item);
                   }
-                }}>
-                <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
-                <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
-                  {p.name}
-                </div>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)' }}>
-                  {money(p.price)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      )}
+                });
+                recentlyViewedBufferRef.current = [];
+                if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+                return merged;
+              });
+            },
+          });
+        }}
+        showToast={showToast}
+      />
       </main>
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} />
     </div>
@@ -772,71 +750,47 @@ export default function App() {
         </div>
 
         {/* ── Recently viewed ── */}
-        {recentlyViewed.length > 0 && (
-        <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
-              👁 Recently viewed
-            </h3>
-            <button onClick={() => {
-                // Buffer the current list so Undo can restore everything
-                recentlyViewedBufferRef.current = recentlyViewed;
-                setRecentlyViewed([]);
-                if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-                recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
-                showToast('Recently viewed cleared', {
-                  label: 'Undo',
-                  onClick: () => {
-                    setRecentlyViewed((prev) => {
-                      // Only restore items not already present (e.g. if user
-                      // navigated to a new product during the window)
-                      const saved = recentlyViewedBufferRef.current || [];
-                      const merged = [...prev];
-                      saved.forEach((item) => {
-                        const pid = item.id || item.product_id;
-                        if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
-                          merged.push(item);
-                        }
-                      });
-                      recentlyViewedBufferRef.current = [];
-                      if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-                      return merged;
-                    });
-                  },
-                });
-              }}
-              style={{ fontSize: '12px' }}
-              className="rw-txt-btn">
-              Clear
-            </button>
-          </div>
-          <div className="rw-recent-scroll" style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
-            {recentlyViewed.map((p, idx) => {
-              const pid = p.id || p.product_id;
-              return (
-                <div key={pid} className="rw-recent-item" style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animation: 'fadeUp .35s ease both', animationDelay: `${idx * 0.07}s` }}
-                  onClick={() => {
-                    const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
-                    if (fresh) {
-                      setSelectedProduct(fresh);
-                    } else {
-                      setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
-                      showToast('This product is no longer available');
+        <RecentlyViewed
+          items={recentlyViewed}
+          allProducts={allProducts}
+          onSelect={(p) => {
+            const pid = p?.id || p?.product_id;
+            if (p && pid) {
+              setSelectedProduct(p);
+            } else if (pid) {
+              setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
+              showToast('This product is no longer available');
+            }
+          }}
+          onClear={(items) => {
+            // Buffer the current list so Undo can restore everything
+            recentlyViewedBufferRef.current = items;
+            setRecentlyViewed([]);
+            if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+            recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
+            showToast('Recently viewed cleared', {
+              label: 'Undo',
+              onClick: () => {
+                setRecentlyViewed((prev) => {
+                  // Only restore items not already present (e.g. if user
+                  // navigated to a new product during the window)
+                  const saved = recentlyViewedBufferRef.current || [];
+                  const merged = [...prev];
+                  saved.forEach((item) => {
+                    const pid = item.id || item.product_id;
+                    if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
+                      merged.push(item);
                     }
-                  }}>
-                  <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
-                  <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
-                    {p.name}
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)' }}>
-                    {money(p.price)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        )}
+                  });
+                  recentlyViewedBufferRef.current = [];
+                  if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+                  return merged;
+                });
+              },
+            });
+          }}
+          showToast={showToast}
+        />
       </main>
 
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} />
