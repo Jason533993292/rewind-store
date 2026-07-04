@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.180';
+const VERSION = 'V6.5.181';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -604,6 +604,8 @@ export default function App() {
     );
   }
 
+  const curPid = selectedProduct?.id || selectedProduct?.product_id;
+
   // Show product detail page instead of shop
   const viewContent = selectedProduct ? (
     <div className="rw-app" key="product-page">
@@ -611,10 +613,77 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
-      <ProductPage key={selectedProduct.id || selectedProduct.product_id} p={selectedProduct} onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
+      <main className="rw-shop">
+      <ProductPage key={curPid}
         onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
         onWishlist={handleWishlist}
-        wishlisted={wishlist.includes(selectedProduct?.id || selectedProduct?.product_id)} />
+        wishlisted={wishlist.includes(curPid)} />
+
+      {/* ── Recently viewed (on product page, excluding current product) ── */}
+      {recentlyViewed.filter(p => (p.id || p.product_id) !== curPid).length > 0 && (
+      <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
+            👁 Recently viewed
+          </h3>
+          <button onClick={() => {
+              recentlyViewedBufferRef.current = recentlyViewed;
+              setRecentlyViewed([]);
+              if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+              recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
+              showToast('Recently viewed cleared', {
+                label: 'Undo',
+                onClick: () => {
+                  setRecentlyViewed((prev) => {
+                    const saved = recentlyViewedBufferRef.current || [];
+                    const merged = [...prev];
+                    saved.forEach((item) => {
+                      const pid = item.id || item.product_id;
+                      if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
+                        merged.push(item);
+                      }
+                    });
+                    recentlyViewedBufferRef.current = [];
+                    if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+                    return merged;
+                  });
+                },
+              });
+            }}
+            style={{ fontSize: '12px' }}
+            className="rw-txt-btn">
+            Clear
+          </button>
+        </div>
+        <div className="rw-recent-scroll" style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+          {recentlyViewed.filter(p => (p.id || p.product_id) !== curPid).map((p, idx) => {
+            const pid = p.id || p.product_id;
+            return (
+              <div key={pid} className="rw-recent-item" style={{ flexShrink: 0, width: '120px', cursor: 'pointer', animation: 'fadeUp .35s ease both', animationDelay: `${idx * 0.07}s` }}
+                onClick={() => {
+                  const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
+                  if (fresh) {
+                    setSelectedProduct(fresh);
+                  } else {
+                    setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
+                    showToast('This product is no longer available');
+                  }
+                }}>
+                <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
+                <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
+                  {p.name}
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)' }}>
+                  {money(p.price)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      )}
+      </main>
+      <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} />
     </div>
   ) : (
     <div className="rw-app" key="shop">
