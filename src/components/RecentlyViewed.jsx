@@ -74,13 +74,13 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
                   backdropFilter: 'blur(4px)',
                   cursor: 'pointer', display: 'grid', placeItems: 'center',
                   color: 'var(--muted)', fontSize: '12px', fontWeight: 700,
-                  opacity: 0, transition: 'opacity 0.15s, background 0.15s, color 0.15s',
+                  opacity: 0.5, transition: 'opacity 0.15s, background 0.15s, color 0.15s',
                   padding: 0, lineHeight: 1,
                 }}
                 onMouseOver={e => { e.target.style.opacity = '1'; e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
-                onMouseOut={e => { e.target.style.opacity = '0'; e.target.style.background = 'color-mix(in oklab, var(--surface) 80%, transparent)'; e.target.style.color = 'var(--muted)'; }}
+                onMouseOut={e => { e.target.style.opacity = '0.5'; e.target.style.background = 'color-mix(in oklab, var(--surface) 80%, transparent)'; e.target.style.color = 'var(--muted)'; }}
                 onFocus={e => e.target.style.opacity = '1'}
-                onBlur={e => e.target.style.opacity = '0'}
+                onBlur={e => e.target.style.opacity = '0.5'}
               >×</button>
               <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
               <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
