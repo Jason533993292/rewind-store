@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.185';
+const VERSION = 'V6.5.186';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -615,11 +615,13 @@ export default function App() {
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
       <main className="rw-shop">
-      <ProductPage key={curPid}
+      <ProductPage key={curPid} p={selectedProduct}
         onBack={() => setSelectedProduct(null)}
         onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
         onWishlist={handleWishlist}
-        wishlisted={wishlist.includes(curPid)} />
+        wishlisted={wishlist.includes(curPid)}
+        showCompare={t.showCompare}
+        showStock={t.showStock} />
 
       {/* ── Recently viewed (on product page, excluding current product) ── */}
       <RecentlyViewed

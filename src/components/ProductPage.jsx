@@ -3,7 +3,7 @@ import { Photo, Icon } from './Shell';
 import { deleteCustomProduct } from '../lib/supabase';
 import { money } from '../hooks/useCountdown';
 
-export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }) {
+export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, showCompare = true, showStock = true }) {
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -131,10 +131,10 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted }
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
             <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--ink)' }}>{money(p.price)}</span>
-            {p.was && <span style={{ fontSize: '18px', color: 'var(--muted)', textDecoration: 'line-through' }}>{money(p.was)}</span>}
+            {showCompare && p.was && <span style={{ fontSize: '18px', color: 'var(--muted)', textDecoration: 'line-through' }}>{money(p.was)}</span>}
           </div>
 
-          {low && (
+          {showStock && low && (
             <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
               ⚡ Only {p.stock} left
             </div>
