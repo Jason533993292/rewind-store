@@ -341,6 +341,24 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [processing, setProcessing] = useState(false);
   const [orderNum, setOrderNum] = useState('');
   const [payError, setPayError] = useState('');
+  const [promo, setPromo] = useState('');
+  const [promoData, setPromoData] = useState(null);
+
+  // Validate promo code with debounce
+  useEffect(() => {
+    if (!promo.trim()) { setPromoData(null); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const r = await fetch('/api/validate-promo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: promo.trim() }),
+        });
+        setPromoData(await r.json());
+      } catch { setPromoData(null); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [promo]);
 
   // When ordernumber is passed via prop (Stripe success redirect), show confirmation immediately
   useEffect(() => {
@@ -443,7 +461,19 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
 
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
   const shipping = subtotal >= 150 ? 0 : 8;
-  const total = subtotal + shipping;
+  let discountPrice = subtotal;
+  let discountShipping = shipping;
+  let discountLabel = null;
+  if (promoData?.valid) {
+    if (promoData.type === 'percent') {
+      discountPrice = Math.round(subtotal * (100 - promoData.value)) / 100;
+      discountLabel = `${promoData.value}% off`;
+    } else if (promoData.type === 'free_shipping') {
+      discountShipping = 0;
+      discountLabel = 'Free shipping';
+    }
+  }
+  const finalTotal = discountPrice + discountShipping;
 
   async function handlePay() {
     setProcessing(true);
@@ -500,7 +530,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty })),
-          total: total,
+          total: finalTotal,
           orderNum,
           email,
           name: formFields.name,
@@ -533,6 +563,20 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <div className="rw-co-sec">
             <h3>Contact</h3>
             <input className="rw-input" type="email" placeholder="Email" value={formFields.email} onChange={setField('email')} autoComplete="email" />
+          </div>
+          <div className="rw-co-sec">
+            <h3>Promo code</h3>
+            <input className="rw-input" placeholder="Enter code" value={promo} onChange={e => setPromo(e.target.value)} />
+            {promoData?.valid && (
+              <span style={{color: '#00a85a', fontSize: '13px', marginTop: '6px', display: 'block'}}>
+                ✓ {promoData.type === 'percent' ? `${promoData.value}% off applied!` : 'Free shipping applied!'}
+              </span>
+            )}
+            {promoData && !promoData.valid && promo.trim() && (
+              <span style={{color: 'var(--accent)', fontSize: '13px', marginTop: '6px', display: 'block'}}>
+                Invalid promo code
+              </span>
+            )}
           </div>
           <div className="rw-co-sec">
             <h3>Delivery</h3>
@@ -594,10 +638,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           </div>
           <div className="rw-sum-rows">
             <div><span>Subtotal</span><span>{money(subtotal)}</span></div>
-            <div><span>Shipping</span><span>{shipping === 0 ? 'Free' : money(shipping)}</span></div>
+            {promoData?.valid && promoData.type === 'percent' && (
+              <div style={{color: '#00a85a', fontSize: '13px'}}>
+                <span>{discountLabel}</span><span>-{money(subtotal - discountPrice)}</span>
+              </div>
+            )}
+            <div><span>Shipping</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? 'Free 🎉' : 'Free') : money(discountShipping)}</span></div>
           </div>
           <div className="rw-sum-total">
-            <div><span>Total</span><b>{money(total)}</b></div>
+            <div><span>Total</span><b>{money(finalTotal)}</b></div>
           </div>
           {payError && (
             <div style={{
@@ -610,7 +659,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           )}
           <button className="rw-btn rw-btn-pri rw-btn-full" disabled={processing}
             onClick={handlePay}>
-            {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(total)}`}
+            {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(finalTotal)}`}
           </button>
           <div className="rw-co-trust">
             <Icon name="check" size={13} /> Secured with 256-bit SSL

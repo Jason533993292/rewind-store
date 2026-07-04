@@ -111,7 +111,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
           ))}
         </nav>
         <div className="rw-header-actions">
-          <div className="rw-search">
+          <div className="rw-search" style={{position:'relative'}}>
             <Icon name="search" size={17} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && query) { e.target.blur(); setQuery(''); } }} placeholder="Search" />
             {query && (

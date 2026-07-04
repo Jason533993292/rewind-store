@@ -6,7 +6,10 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({
+  limit: '50mb',
+  verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
+}));
 
 app.use(express.static(path.join(__dirname, '..', 'dist')));
 
@@ -332,10 +335,23 @@ app.post('/api/create-payment-intent', async (req, res) => {
 
 // Validate promo code
 app.post('/api/validate-promo', async (req, res) => {
-  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
   const { code } = req.body;
-  if (code === ADMIN_CODE) return res.json({ admin: true });
-  res.json({ admin: false, discount: code ? 0 : null });
+  if (!code) return res.json({ valid: false });
+
+  const PROMO_CODES = {
+    'REWIND10': { valid: true, type: 'percent', value: 10 },
+    'FREESHIP': { valid: true, type: 'free_shipping', value: 0 },
+  };
+
+  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
+  if (code.toUpperCase().trim() === ADMIN_CODE.toUpperCase().trim()) {
+    return res.json({ admin: true });
+  }
+
+  const promo = PROMO_CODES[code.toUpperCase().trim()];
+  if (promo) return res.json(promo);
+
+  res.json({ valid: false });
 });
 
 // Admin management (add/remove admins)

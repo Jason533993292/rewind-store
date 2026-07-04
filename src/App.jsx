@@ -85,7 +85,7 @@ export default function App() {
   const [orderNumber, setOrderNumber] = useState('');
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
-      const stored = sessionStorage.getItem('rw_recent');
+      const stored = localStorage.getItem('rw_recent');
       return stored ? JSON.parse(stored) : [];
     } catch { return []; }
   });
@@ -161,9 +161,9 @@ export default function App() {
     else localStorage.removeItem('rw_sort');
   }, [sortBy]);
 
-  // Persist recently viewed to sessionStorage
+  // Persist recently viewed to localStorage
   useEffect(() => {
-    sessionStorage.setItem('rw_recent', JSON.stringify(recentlyViewed));
+    localStorage.setItem('rw_recent', JSON.stringify(recentlyViewed));
   }, [recentlyViewed]);
 
   // Reset brand when category changes
@@ -625,7 +625,7 @@ export default function App() {
     if (!pid) return;
     setRecentlyViewed((prev) => {
       const filtered = prev.filter((p) => (p.id || p.product_id) !== pid);
-      return [selectedProduct, ...filtered].slice(0, 8);
+      return [selectedProduct, ...filtered].slice(0, 5);
     });
   }, [selectedProduct]);
   useEffect(() => {
