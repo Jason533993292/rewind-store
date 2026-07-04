@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.191';
+const VERSION = 'V6.5.192';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -369,8 +369,10 @@ export default function App() {
       setSignupOpen(true);
       return;
     }
-    // Read current state BEFORE the update (state updaters must be pure — no side effects inside)
-    const alreadyHeld = wishlistRef.current.includes(pid);
+    // Read current state directly — using wishlistRef (one render behind)
+    // would show the wrong toast when the user clicks rapidly
+    // (e.g. double-clicking the heart before the previous state commit).
+    const alreadyHeld = wishlist.includes(pid);
     setWishlist((prev) => {
       const exists = prev.includes(pid);
       return exists ? prev.filter((id) => id !== pid) : [...prev, pid];
@@ -387,7 +389,7 @@ export default function App() {
         onClick: () => setWishlist((inner) => inner.includes(pid) ? inner : [...inner, pid]),
       });
     }
-  }, [userEmail, showToast]);
+  }, [userEmail, showToast, wishlist]);
 
   const handleSignup = useCallback(({ email, acceptMarketing }) => {
     setUserEmail(email);
