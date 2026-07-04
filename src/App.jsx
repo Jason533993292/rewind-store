@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.172';
+const VERSION = 'V6.5.173';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -462,15 +462,15 @@ export default function App() {
     return () => window.removeEventListener('reset-store', handler);
   }, []);
 
-  // Auto-dismiss survey when any other modal/drawer opens — prevents
-  // the survey overlay from blocking interaction with signup, cart quickview, etc.
+  // Auto-dismiss survey when any other modal/drawer or product detail page opens
+  // — prevents the survey overlay from remaining visible on top of product content.
   useEffect(() => {
     // Use ref instead of raw showSurvey to prevent minifier TDZ
-    if (showSurveyRef.current && (signupOpen || quick !== null || drawer || checkout || showSizes || infoPage !== null || promoOpen || wishlistOpen)) {
+    if (showSurveyRef.current && (signupOpen || quick !== null || drawer || checkout || showSizes || infoPage !== null || promoOpen || wishlistOpen || selectedProduct !== null)) {
       localStorage.setItem('rw_survey_done', '1');
       setShowSurvey(false);
     }
-  }, [showSurvey, signupOpen, quick, drawer, checkout, showSizes, infoPage, promoOpen, wishlistOpen]);
+  }, [showSurvey, signupOpen, quick, drawer, checkout, showSizes, infoPage, promoOpen, wishlistOpen, selectedProduct]);
 
   // Auto-close promo popup with animation when any drawer/checkout opens
   useEffect(() => {
@@ -805,7 +805,7 @@ export default function App() {
         onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }}
         showToast={showToast} />
 
-      {showSurvey && !signupOpen && quick === null && !drawer && !checkout && !showSizes && infoPage === null && !promoOpen && !wishlistOpen && (
+      {showSurvey && selectedProduct === null && !signupOpen && quick === null && !drawer && !checkout && !showSizes && infoPage === null && !promoOpen && !wishlistOpen && (
         <div className="rw-survey-overlay" onClick={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }}>
           <div className="rw-survey-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '100%', padding: '32px', textAlign: 'center', background: 'var(--surface)', borderRadius: 'var(--r)', position: 'relative', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Welcome to REWIND 👋</h2>
