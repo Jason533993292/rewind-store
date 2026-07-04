@@ -415,7 +415,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         <div className="rw-checkout-bar">
           <div className="rw-logo" style={{ cursor: 'pointer' }}
             onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
-          <button className="rw-btn rw-btn-ghost" onClick={onClose}>Close</button>
+          <button className="rw-btn rw-btn-ghost" onClick={onPlaced}>Close</button>
         </div>
         <div className="rw-confirm">
           <div className="rw-confirm-mark"><Icon name="check" size={36} /></div>
