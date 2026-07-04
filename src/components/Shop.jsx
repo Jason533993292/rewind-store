@@ -10,7 +10,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
   const soldOut = p.stock === 0;
   const [added, setAdded] = useState(false);
   return (
-    <article className="rw-card">
+    <article className="rw-card" style={{ opacity: soldOut ? 0.5 : 1 }}>
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
         <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={p.img} />
         <div className="rw-card-tags">
@@ -47,9 +47,13 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           </button>
           )}
         </div>
+        {soldOut ? (
+          <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>Unavailable</div>
+        ) : (
         <div className="rw-card-ship">
           <Icon name="retrn" size={13} /> Free returns <span className="rw-price-was">€8</span>
         </div>
+        )}
       </div>
     </article>
   );
@@ -249,7 +253,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
 }
 
 /* ---------- CartDrawer ---------- */
-export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout }) {
+export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, showToast }) {
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
   const FREE_THRESHOLD = 150;
   const freeProgress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
@@ -671,11 +675,52 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
 }
 
 /* ---------- Wishlist Signup Modal ---------- */
-const POLICY_TEXT = `By creating a wishlist account you agree to the following:
-• We use your email only to manage your wishlist and send order-related notifications
-• You can delete your account and data at any time by contacting us
-• We do not share your personal data with third parties
-• Your data is stored securely and never used for purposes beyond what you consent to below`;
+const POLICY_TEXT = `REWIND Privacy Policy
+
+1. Information We Collect
+• Email address (when you create a wishlist or place an order)
+• Shipping address and name (when you place an order)
+• Payment information is processed securely by Stripe — we never store card details
+
+2. How We Use Your Data
+• To manage your wishlist and save your favorite items
+• To process and fulfill your orders
+• To send order confirmations and shipping updates
+• With your consent, to send emails about new drops and exclusive offers
+
+3. Data Storage & Security
+• Your data is stored securely in our database
+• We use industry-standard encryption for data transmission
+• You can request deletion of your data at any time by emailing orders@rewind-stores.com
+
+4. Third-Party Services
+• Stripe: Payment processing (view their privacy policy at stripe.com/privacy)
+• Supabase: Database hosting
+• Resend: Order confirmation emails
+
+5. Your Rights (GDPR)
+• Right to access your personal data
+• Right to rectification — correct inaccurate data
+• Right to erasure — delete your account and data at any time
+• Right to restrict processing
+• Right to data portability
+• To exercise any of these rights, email orders@rewind-stores.com
+
+6. Cookies
+• We use essential cookies for cart functionality
+• No tracking or advertising cookies are used
+• Stripe may set cookies during payment processing
+
+7. Marketing Emails
+• You can opt in to marketing emails when creating your wishlist
+• You can unsubscribe at any time via the link in any email
+• Opting out will not affect your orders or wishlist
+
+8. Contact
+• Email: orders@rewind-stores.com
+• Response time: within 48 hours
+
+Last updated: July 2026`;
 
 export function SignupModal({ open, onClose, onSignup }) {
   const [email, setEmail] = useState('');
