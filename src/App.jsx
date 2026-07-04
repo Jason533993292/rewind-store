@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.170';
+const VERSION = 'V6.5.171';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -778,7 +778,7 @@ export default function App() {
         onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout} />
       <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} orderNumber={orderNumber} />
       <Toast toast={toast} onDismiss={() => setToast(null)} />
-      <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} onSignup={handleSignup} />
+      <SignupModal open={signupOpen} onClose={() => { setSignupOpen(false); setPendingWishlistId(null); }} onSignup={handleSignup} />
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
         onClose={() => setWishlistOpen(false)}
         onRemove={(ids) => {
