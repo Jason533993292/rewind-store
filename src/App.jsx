@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.0.2';
+const VERSION = 'V6.8.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -241,9 +241,7 @@ export default function App() {
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
-  const toastTimer = useRef(null);
-  const promoCloseTimerRef = useRef(null);
-  // Buffered undo for cart removals — accumulates items removed in rapid
+  // ── ALL new state vars for modals/panels MUST go above this line ──
   // succession so the final toast Undo restores ALL of them, not just the last.
   const pendingRestoreRef = useRef([]);
   const restoreTimerRef = useRef(null);
@@ -251,14 +249,14 @@ export default function App() {
   const pendingWishlistRestoreRef = useRef([]);
   const wishlistRestoreTimerRef = useRef(null);
   // Buffered undo for recently-viewed "Clear" button — saves the full list so
-  // a single toast Undo restores everything the user accidentally wiped.
   const recentlyViewedBufferRef = useRef([]);
   const recentlyViewedTimerRef = useRef(null);
   // Scroll position memory — saves the Y offset before opening a product
   // detail page so that clicking "Back" restores the user exactly where they
   // were in the grid, rather than snapping them to the top of the page.
   const scrollPosRef = useRef(0);
-  // ── showToast must be defined BEFORE any useEffect that references it ──
+  // ── showToast MUST be defined before any useEffect/callback that calls it ──
+  const toastTimer = useRef(null);
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
