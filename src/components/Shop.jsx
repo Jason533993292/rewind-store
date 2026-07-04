@@ -737,7 +737,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
       setSelected([]);
       if (onCartOpen) onCartOpen();
       if (showToast) {
-        setTimeout(() => showToast(toAdd.length + ' items added — each used the first available size, tap ⊕ to pick a different size'), 50);
+        setTimeout(() => showToast(toAdd.length + ' items added — each used the first available size'), 50);
       }
     }
   };
