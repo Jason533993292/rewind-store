@@ -718,6 +718,12 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
   const [selected, setSelected] = useState([]);
   // Track which wishlist item has its inline size picker open (stored as product id)
   const [choosingSize, setChoosingSize] = useState(null);
+  // Reset size picker when drawer opens — prevents a stale open picker from a
+  // previous session (where the user opened a size picker then closed the drawer
+  // without selecting a size) from persisting when the drawer is reopened.
+  useEffect(() => {
+    if (open) setChoosingSize(null);
+  }, [open]);
 
   // Custom products (from Supabase) use product_id as their key, not id.
   // Always use getId(p) to get the canonical wishlist identifier.
