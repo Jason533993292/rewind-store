@@ -136,7 +136,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
       {sections.map((s, i) => (
         <div key={i}>
           {s.label && (
-            <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--muted)', margin: '24px 0 12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            <h3 className="rw-section-head">
               {s.label}
             </h3>
           )}

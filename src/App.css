@@ -224,6 +224,10 @@ a { color: inherit; cursor: pointer; }
 .rw-chip:hover { transform: translateY(-2px); color: var(--ink); border-color: var(--line-2); }
 .rw-chip.is-on { background: var(--ink); color: #fff; border-color: var(--ink); }
 .rw-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 22px 18px; }
+.rw-section-head {
+  font-size: 14px; font-weight: 600; color: var(--muted);
+  margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 1px;
+}
 @media (max-width: 1080px) { .rw-grid { grid-template-columns: repeat(3,1fr); } }
 @media (max-width: 760px) { .rw-grid { grid-template-columns: repeat(2,1fr); } }
 @media (max-width: 680px) { #rw-sidebar { display: none; } }
