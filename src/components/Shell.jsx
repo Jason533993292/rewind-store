@@ -90,7 +90,7 @@ export function Banner({ showCountdown }) {
       {showCountdown && (
         <div className="rw-banner-count" title="Sale ends Sunday 23:59">
           Sale ends in
-          <b>{c.d}d&nbsp;{pad(c.h)}h&nbsp;{pad(c.m)}m</b>
+          <b>{c.d}d&nbsp;{pad(c.h)}h&nbsp;{pad(c.m)}m&nbsp;{pad(c.s)}s</b>
         </div>
       )}
     </div>
