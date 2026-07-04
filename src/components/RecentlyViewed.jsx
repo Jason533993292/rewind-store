@@ -14,7 +14,7 @@ import { money } from '../hooks/useCountdown';
  *                 them for undo
  *   showToast   — (msg, action?) => void
  */
-export default function RecentlyViewed({ items, allProducts, onSelect, onClear, showToast }) {
+export default function RecentlyViewed({ items, allProducts, onSelect, onClear, onRemoveItem, showToast }) {
   if (!items || items.length === 0) return null;
 
   return (
@@ -39,11 +39,13 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
             <div
               key={pid}
               className="rw-recent-item"
-              style={{ animationDelay: `${idx * 0.07}s` }}
+              style={{ animationDelay: `${idx * 0.07}s`, position: 'relative' }}
               role="button"
               tabIndex={0}
               title={p.name}
-              onClick={() => {
+              onClick={(e) => {
+                // Ignore clicks on the remove button itself
+                if (e.target.closest('[data-remove-recent]')) return;
                 const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
                 if (fresh) {
                   onSelect(fresh);
@@ -58,6 +60,28 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
                 }
               }}
             >
+              <button
+                data-remove-recent
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onRemoveItem) onRemoveItem(pid, p.name);
+                }}
+                aria-label={`Remove ${p.name} from recently viewed`}
+                style={{
+                  position: 'absolute', top: '4px', right: '4px', zIndex: 5,
+                  width: '22px', height: '22px', borderRadius: '50%',
+                  border: 'none', background: 'color-mix(in oklab, var(--surface) 80%, transparent)',
+                  backdropFilter: 'blur(4px)',
+                  cursor: 'pointer', display: 'grid', placeItems: 'center',
+                  color: 'var(--muted)', fontSize: '12px', fontWeight: 700,
+                  opacity: 0, transition: 'opacity 0.15s, background 0.15s, color 0.15s',
+                  padding: 0, lineHeight: 1,
+                }}
+                onMouseOver={e => { e.target.style.opacity = '1'; e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                onMouseOut={e => { e.target.style.opacity = '0'; e.target.style.background = 'color-mix(in oklab, var(--surface) 80%, transparent)'; e.target.style.color = 'var(--muted)'; }}
+                onFocus={e => e.target.style.opacity = '1'}
+                onBlur={e => e.target.style.opacity = '0'}
+              >×</button>
               <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
               <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
                 {p.name}

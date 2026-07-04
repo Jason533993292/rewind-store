@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.194';
+const VERSION = 'V6.5.195';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -296,6 +296,23 @@ export default function App() {
       },
     });
   }, [showToast]);
+
+  const handleRecentlyViewedRemove = useCallback((pid, name) => {
+    // Capture the removed item's full data before removing it
+    const removedItem = recentlyViewed.find(p => (p.id || p.product_id) === pid);
+    if (!removedItem) return;
+    setRecentlyViewed((prev) => prev.filter(p => (p.id || p.product_id) !== pid));
+    showToast((name || 'Item') + ' removed', {
+      label: 'Undo',
+      onClick: () => {
+        setRecentlyViewed((prev) => {
+          // Only restore if not already present
+          if (prev.find(p => (p.id || p.product_id) === pid)) return prev;
+          return [removedItem, ...prev];
+        });
+      },
+    });
+  }, [showToast, recentlyViewed]);
 
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -686,6 +703,7 @@ export default function App() {
         allProducts={allProducts}
         onSelect={handleRecentlyViewedSelect}
         onClear={handleRecentlyViewedClear}
+        onRemoveItem={handleRecentlyViewedRemove}
         showToast={showToast}
       />
       </main>
@@ -782,6 +800,7 @@ export default function App() {
           allProducts={allProducts}
           onSelect={handleRecentlyViewedSelect}
           onClear={handleRecentlyViewedClear}
+          onRemoveItem={handleRecentlyViewedRemove}
           showToast={showToast}
         />
       </main>
