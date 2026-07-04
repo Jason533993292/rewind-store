@@ -149,7 +149,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
 export function Hero({ onShop }) {
   return (
     <section className="rw-hero">
-      <div className="rw-hero-copy">
+      <Reveal><div className="rw-hero-copy">
         <div className="rw-hero-kicker"><Icon name="bolt" size={13} /> Summer '26 · Vol. 04</div>
         <h1 className="rw-hero-title"><AnimatedText texts={["Worn once. Loved again.", "Curated vintage, authenticated.", "Shipped in 24 hours.", "One of each — gone for good."]} typingSpeed={60} pauseDuration={3000} /></h1>
         <p className="rw-hero-sub">
@@ -165,7 +165,7 @@ export function Hero({ onShop }) {
           <div><b>24h</b><span>EU dispatch</span></div>
           <div><b>14d</b><span>free returns</span></div>
         </div>
-      </div>
+      </div></Reveal>
       <div className="rw-hero-art">
         <div className="rw-hero-loop">
           <Photo id="hero-b" hue={210} label="DETAIL" h={420} />

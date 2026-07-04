@@ -300,6 +300,8 @@ a { color: inherit; cursor: pointer; }
 .rw-card:nth-child(7) { animation-delay: 0.22s; }
 .rw-card:nth-child(8) { animation-delay: 0.24s; }
 @keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rw-reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+.rw-reveal.is-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .rw-card { animation: none; }
 }
