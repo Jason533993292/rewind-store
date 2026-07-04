@@ -255,6 +255,14 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
 /* ---------- CartDrawer ---------- */
 export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, showToast }) {
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
+  const prevSubtotal = useRef(subtotal);
+  const [animateSubtotal, setAnimateSubtotal] = useState(subtotal);
+  useEffect(() => {
+    if (subtotal !== prevSubtotal.current) {
+      setAnimateSubtotal(subtotal);
+      prevSubtotal.current = subtotal;
+    }
+  }, [subtotal]);
   const FREE_THRESHOLD = 150;
   const freeProgress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
   const freeLeft = Math.max(0, FREE_THRESHOLD - subtotal);
