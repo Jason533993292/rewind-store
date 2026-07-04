@@ -18,7 +18,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.169';
+const VERSION = 'V6.5.170';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -76,7 +76,11 @@ export default function App() {
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [sortBy, setSortBy] = useState('');
+  const [sortBy, setSortBy] = useState(() => {
+    try {
+      return localStorage.getItem('rw_sort') || '';
+    } catch { return ''; }
+  });
   const [orderNumber, setOrderNumber] = useState('');
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
@@ -128,6 +132,12 @@ export default function App() {
 
   // Persist email
   useEffect(() => { if (userEmail) localStorage.setItem('rw_email', userEmail); }, [userEmail]);
+
+  // Persist sort preference to localStorage
+  useEffect(() => {
+    if (sortBy) localStorage.setItem('rw_sort', sortBy);
+    else localStorage.removeItem('rw_sort');
+  }, [sortBy]);
 
   // Persist recently viewed to sessionStorage
   useEffect(() => {
