@@ -534,7 +534,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
       // Save order to Supabase
       await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/orders`, {
         method: 'POST',
-        headers: { apikey: proces..._KEY || SUPABASE_KEY, Authorization: *** ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+        headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_num: orderNum, customer_name, email, address: address || '', items, total, status: 'paid' }),
       });
       // Decrement stock for purchased items
@@ -542,7 +542,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
         if (!it.name || !it.qty) continue;
         const productName = it.name.replace(/\s*\(.*?\)\s*$/, '').trim(); // strip size from name
         const res = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?name=eq.${encodeURIComponent(productName)}`, {
-          headers: { apikey: proces..._KEY || SUPABASE_KEY, Authorization: *** ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
+          headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
         });
         const products = await res.json();
         if (!products || products.length === 0) {
@@ -557,7 +557,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
         const newStock = Math.max(0, currentStock - it.qty);
         await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?id=eq.${p.id}`, {
           method: 'PATCH',
-          headers: { apikey: proces..._KEY || SUPABASE_KEY, Authorization: *** ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+          headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ stock: newStock }),
         });
       }
