@@ -447,6 +447,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     // Client-side field validation before hitting the API
     const missing = [];
     if (!formFields.email?.trim()) missing.push('Email');
+    else if (!/^\S+@\S+\.\S+$/.test(formFields.email.trim())) {
+      setPayError('Please enter a valid email address');
+      setProcessing(false);
+      return;
+    }
     if (!formFields.name?.trim()) missing.push('Full name');
     if (!formFields.address?.trim()) missing.push('Address');
     if (!formFields.postal?.trim()) missing.push('Postal code');
