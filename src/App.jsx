@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.186';
+const VERSION = 'V6.5.187';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -247,6 +247,45 @@ export default function App() {
   // detail page so that clicking "Back" restores the user exactly where they
   // were in the grid, rather than snapping them to the top of the page.
   const scrollPosRef = useRef(0);
+  // Extract RecentlyViewed handlers to eliminate duplication between product-page and shop views
+  const handleRecentlyViewedSelect = useCallback((p) => {
+    const pid = p?.id || p?.product_id;
+    if (p && pid) {
+      setSelectedProduct(p);
+    } else if (pid) {
+      setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
+      showToast('This product is no longer available');
+    }
+  }, [showToast]);
+
+  const handleRecentlyViewedClear = useCallback((items) => {
+    // Buffer the current list so Undo can restore everything
+    recentlyViewedBufferRef.current = items;
+    setRecentlyViewed([]);
+    if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+    recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
+    showToast('Recently viewed cleared', {
+      label: 'Undo',
+      onClick: () => {
+        setRecentlyViewed((prev) => {
+          // Only restore items not already present (e.g. if user
+          // navigated to a new product during the window)
+          const saved = recentlyViewedBufferRef.current || [];
+          const merged = [...prev];
+          saved.forEach((item) => {
+            const pid = item.id || item.product_id;
+            if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
+              merged.push(item);
+            }
+          });
+          recentlyViewedBufferRef.current = [];
+          if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
+          return merged;
+        });
+      },
+    });
+  }, [showToast]);
+
   const showToast = useCallback((msg, action, duration = 2400) => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
     setToast({ msg, k: Date.now(), action });
@@ -627,40 +666,8 @@ export default function App() {
       <RecentlyViewed
         items={recentlyViewed.filter(p => (p.id || p.product_id) !== curPid)}
         allProducts={allProducts}
-        onSelect={(p) => {
-          const pid = p?.id || p?.product_id;
-          if (p && pid) {
-            setSelectedProduct(p);
-          } else if (pid) {
-            // Product no longer available — remove it
-            setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
-            showToast('This product is no longer available');
-          }
-        }}
-        onClear={(items) => {
-          recentlyViewedBufferRef.current = items;
-          setRecentlyViewed([]);
-          if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-          recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
-          showToast('Recently viewed cleared', {
-            label: 'Undo',
-            onClick: () => {
-              setRecentlyViewed((prev) => {
-                const saved = recentlyViewedBufferRef.current || [];
-                const merged = [...prev];
-                saved.forEach((item) => {
-                  const pid = item.id || item.product_id;
-                  if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
-                    merged.push(item);
-                  }
-                });
-                recentlyViewedBufferRef.current = [];
-                if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-                return merged;
-              });
-            },
-          });
-        }}
+        onSelect={handleRecentlyViewedSelect}
+        onClear={handleRecentlyViewedClear}
         showToast={showToast}
       />
       </main>
@@ -755,42 +762,8 @@ export default function App() {
         <RecentlyViewed
           items={recentlyViewed}
           allProducts={allProducts}
-          onSelect={(p) => {
-            const pid = p?.id || p?.product_id;
-            if (p && pid) {
-              setSelectedProduct(p);
-            } else if (pid) {
-              setRecentlyViewed(prev => prev.filter(x => (x.id || x.product_id) !== pid));
-              showToast('This product is no longer available');
-            }
-          }}
-          onClear={(items) => {
-            // Buffer the current list so Undo can restore everything
-            recentlyViewedBufferRef.current = items;
-            setRecentlyViewed([]);
-            if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-            recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
-            showToast('Recently viewed cleared', {
-              label: 'Undo',
-              onClick: () => {
-                setRecentlyViewed((prev) => {
-                  // Only restore items not already present (e.g. if user
-                  // navigated to a new product during the window)
-                  const saved = recentlyViewedBufferRef.current || [];
-                  const merged = [...prev];
-                  saved.forEach((item) => {
-                    const pid = item.id || item.product_id;
-                    if (pid && !merged.find(x => (x.id || x.product_id) === pid)) {
-                      merged.push(item);
-                    }
-                  });
-                  recentlyViewedBufferRef.current = [];
-                  if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
-                  return merged;
-                });
-              },
-            });
-          }}
+          onSelect={handleRecentlyViewedSelect}
+          onClear={handleRecentlyViewedClear}
           showToast={showToast}
         />
       </main>
