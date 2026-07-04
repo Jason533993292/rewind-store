@@ -3,7 +3,7 @@ import { Photo, Icon } from './Shell';
 import { deleteCustomProduct } from '../lib/supabase';
 import { money } from '../hooks/useCountdown';
 
-export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, showCompare = true, showStock = true }) {
+export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, showCompare = true, showStock = true, onSizeGuide }) {
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const [selectedImg, setSelectedImg] = useState(0);
@@ -157,7 +157,17 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
 
           {/* ── Size selector ── */}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>Size</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600 }}>Size</div>
+              {onSizeGuide && (
+                <button onClick={onSizeGuide}
+                  style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', textDecoration: 'underline', textUnderlineOffset: '3px', transition: 'color 0.15s' }}
+                  onMouseOver={e => e.target.style.color = 'var(--accent)'}
+                  onMouseOut={e => e.target.style.color = 'var(--muted)'}>
+                  Size guide →
+                </button>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {p.sizes?.map(s => (
                 <button key={s} onClick={() => setSize(s)}

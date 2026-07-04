@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.5.196';
+const VERSION = 'V6.5.197';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -695,7 +695,8 @@ export default function App() {
         onWishlist={handleWishlist}
         wishlisted={wishlist.includes(curPid)}
         showCompare={t.showCompare}
-        showStock={t.showStock} />
+        showStock={t.showStock}
+        onSizeGuide={() => setShowSizes(true)} />
 
       {/* ── Recently viewed (on product page, excluding current product) ── */}
       <RecentlyViewed
