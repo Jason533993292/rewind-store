@@ -140,7 +140,9 @@ export default function InfoModal({ page, onClose }) {
 
         <div style={{ borderTop: '1px solid var(--line)', paddingTop: '16px', marginTop: '8px' }}>
           <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
-            Questions? Email <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)', fontWeight: 600 }}>orders@rewind-stores.com</a>
+            Questions? Email <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)', fontWeight: 600, transition: 'opacity 0.15s' }}
+            onMouseOver={e => e.target.style.opacity = '0.75'}
+            onMouseOut={e => e.target.style.opacity = '1'}>orders@rewind-stores.com</a>
           </p>
         </div>
       </div>

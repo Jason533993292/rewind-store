@@ -113,8 +113,8 @@ export default function SizeGuide({ onClose }) {
                 cursor: 'pointer', fontWeight: 600, fontSize: '14px',
                 transition: 'background 0.15s, color 0.15s, transform 0.15s',
               }}
-              onMouseOver={e => { if (cat !== c) { e.target.style.background = 'var(--line-2)'; } }}
-              onMouseOut={e => { if (cat !== c) { e.target.style.background = 'var(--line)'; } }}>
+              onMouseOver={e => { if (cat !== c) { e.target.style.background = 'var(--line-2)'; e.target.style.transform = 'translateY(-1px)'; } }}
+              onMouseOut={e => { if (cat !== c) { e.target.style.background = 'var(--line)'; e.target.style.transform = ''; } }}>
               {c}
             </button>
           ))}
