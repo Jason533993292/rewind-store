@@ -27,6 +27,7 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
           onClick={() => onClear(items)}
           style={{ fontSize: '12px' }}
           className="rw-txt-btn"
+          aria-label="Clear recently viewed items"
         >
           Clear
         </button>
@@ -39,12 +40,21 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
               key={pid}
               className="rw-recent-item"
               style={{ animationDelay: `${idx * 0.07}s` }}
+              role="button"
+              tabIndex={0}
+              title={p.name}
               onClick={() => {
                 const fresh = allProducts.find(x => (x.id || x.product_id) === pid);
                 if (fresh) {
                   onSelect(fresh);
                 } else {
                   showToast('This product is no longer available');
+                }
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.currentTarget.click();
                 }
               }}
             >
