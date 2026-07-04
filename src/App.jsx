@@ -258,6 +258,12 @@ export default function App() {
   // detail page so that clicking "Back" restores the user exactly where they
   // were in the grid, rather than snapping them to the top of the page.
   const scrollPosRef = useRef(0);
+  // ── showToast must be defined BEFORE any useEffect that references it ──
+  const showToast = useCallback((msg, action, duration = 2400) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ msg, k: Date.now(), action });
+    toastTimer.current = setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= duration - 100 ? null : cur)), duration);
+  }, []);
   // Extract RecentlyViewed handlers to eliminate duplication between product-page and shop views
   const handleRecentlyViewedSelect = useCallback((p) => {
     const pid = p?.id || p?.product_id;
@@ -313,12 +319,6 @@ export default function App() {
       },
     });
   }, [showToast, recentlyViewed]);
-
-  const showToast = useCallback((msg, action, duration = 2400) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast({ msg, k: Date.now(), action });
-    toastTimer.current = setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= duration - 100 ? null : cur)), duration);
-  }, []);
 
   const addToCart = useCallback((p, size, qty = 1) => {
     // Guard: don't allow adding out-of-stock items
