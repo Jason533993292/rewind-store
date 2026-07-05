@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, Photo } from './components/Shell';
+import { Banner, Header, Hero, Marquee, ProgressSteps, Toast, Footer, Icon, Photo } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import ClickSpark from './components/ClickSpark';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
@@ -731,7 +731,8 @@ export default function App() {
         onVersionClick={() => setShowTweaks(v => !v)} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
-
+      <ProgressSteps />
+      {/* Mobile scroll hint — shows a subtle indicator on first visit that there's more content below */}
       <main className="rw-shop">
         <div className="rw-shop-head" id={headingId}>
           <div className="rw-shop-headl">
@@ -999,6 +1000,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showRefundSteps, setShowRefundSteps] = useState(false);
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
+  const [editingEmail, setEditingEmail] = useState(false);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -1843,20 +1845,27 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               <div style={{ borderTop: '1px solid #E8E2D8', paddingTop: '14px' }}>
                 <p style={{ margin: '0 0 10px', color: '#6E665A' }}><b>To:</b> {cancelOrder.order?.email || 'customer'}</p>
                 <p style={{ margin: '0 0 10px', color: '#6E665A' }}><b>Subject:</b> Order {cancelOrder.order?.order_num || ''} cancelled — refund initiated</p>
-                <div style={{ background: '#fff', borderRadius: '8px', padding: '16px', marginTop: '8px' }}>
-                  <p style={{ margin: '0 0 8px', color: '#6E665A' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
-                  <p style={{ margin: '0 0 8px', whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.7' }}>{previewEmail}</p>
-                  <p style={{ margin: '0', color: '#6E665A', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
+                <div style={{ background: '#fff', borderRadius: '8px', padding: editingEmail ? '4px' : '16px', marginTop: '8px' }}>
+                  {editingEmail ? (
+                    <textarea value={previewEmail} onChange={e => setPreviewEmail(e.target.value)}
+                      style={{ width: '100%', minHeight: '120px', padding: '12px', borderRadius: '6px', border: '1px solid #E8E2D8', fontSize: '15px', lineHeight: '1.7', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                  ) : (
+                    <>
+                      <p style={{ margin: '0 0 8px', color: '#6E665A' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
+                      <p style={{ margin: '0 0 8px', whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.7' }}>{previewEmail}</p>
+                      <p style={{ margin: '0', color: '#6E665A', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setShowCancelConfirm(false); }}
-                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
+              <button onClick={() => { setEditingEmail(!editingEmail); }}
+                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: editingEmail ? 'var(--ink)' : 'var(--surface)', color: editingEmail ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
                 onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; }}
                 onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; }}>
-                Edit
+                {editingEmail ? '✅ Done editing' : '✏️ Edit email'}
               </button>
               <button disabled={cancelling} onClick={async () => {
                 setCancelling(true);

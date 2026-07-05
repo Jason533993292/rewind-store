@@ -232,6 +232,37 @@ export function Toast({ toast, onDismiss }) {
   );
 }
 
+/* ---------- Progress Steps (dotted line) ---------- */
+export function ProgressSteps() {
+  const steps = ["Browse", "Add to cart", "Checkout", "Shipped", "Delivered"];
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      gap: '0', padding: '24px 0 8px', maxWidth: '400px', margin: '0 auto',
+    }}>
+      {steps.map((label, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < steps.length - 1 ? 1 : 0 }}>
+          <div style={{
+            width: '28px', height: '28px', borderRadius: '50%',
+            background: 'var(--accent)', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '11px', fontWeight: 700, flexShrink: 0,
+          }}>
+            {i + 1}
+          </div>
+          {i < steps.length - 1 && (
+            <div style={{
+              flex: 1, height: 0,
+              borderTop: '2px dashed var(--line-2)',
+              margin: '0 6px', minWidth: '24px',
+            }} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ---------- Footer ---------- */
 export function Footer({ onSizes, onInfo, onSetCat }) {
   return (
