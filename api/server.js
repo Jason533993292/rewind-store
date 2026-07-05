@@ -1,6 +1,5 @@
 import express from 'express';
 import { Resend } from 'resend';
-import sharp from 'sharp';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -12,13 +11,6 @@ app.use(express.json({
 }));
 
 app.use(express.static(path.join(__dirname, '..', 'dist')));
-
-// Force root route to serve dist/index.html — prevents Railway's built-in
-// static file server from serving the Vite dev index.html (which references
-// /src/main.jsx) instead of the built dist/index.html.
-app.get('/', (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
-});
 
 // ── IP blocker middleware ──
 const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
