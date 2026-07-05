@@ -1300,7 +1300,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 const input = document.getElementById('new-admin-email');
                 const email = input.value.trim();
                 if (!email) return;
-                const r = await fetch('/api/manage-admins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', email, adminEmail }) });
+                const r = await fetch('/api/manage-admins', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') }, body: JSON.stringify({ action: 'add', email, adminEmail }) });
                 const d = await r.json();
                 alert(d.ok ? `✅ ${email} added as admin` : `❌ ${d.error}`);
                 if (d.ok) input.value = '';
@@ -1724,8 +1724,8 @@ function BlockedPanel() {
   const loadAll = async () => {
     try {
       const [re, ru] = await Promise.all([
-        fetch('/api/admin/blocked-emails').then(r => r.json()),
-        fetch('/api/admin/user-emails').then(r => r.json()),
+        fetch('/api/admin/blocked-emails', { headers: { 'x-admin-token': localStorage.getItem('rw_admin_token') } }).then(r => r.json()),
+        fetch('/api/admin/user-emails', { headers: { 'x-admin-token': localStorage.getItem('rw_admin_token') } }).then(r => r.json()),
       ]);
       setEmails(re.emails || []);
       setAllUsers(ru.emails || []);
@@ -1737,12 +1737,12 @@ function BlockedPanel() {
 
   const blockEmail = async (email) => {
     if (!email) return;
-    await fetch('/api/admin/block-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    await fetch('/api/admin/block-email', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') }, body: JSON.stringify({ email }) });
     setNewEmail(''); loadAll();
   };
 
   const unblockEmail = async (email) => {
-    await fetch('/api/admin/unblock-email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    await fetch('/api/admin/unblock-email', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') }, body: JSON.stringify({ email }) });
     loadAll();
   };
 
