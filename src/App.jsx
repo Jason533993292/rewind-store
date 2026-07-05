@@ -92,7 +92,19 @@ export default function App() {
     } catch { return []; }
   });
 
-// ── ALL new state vars for modals/panels MUST go above this line ──
+// ═══════════════════════════════════════════════════════════
+// ⚡ TDZ GUARD — ALL callback/effect declarations below this
+// line MUST reference only variables declared ABOVE this line.
+// showToast is declared FIRST so every callback can use it.
+// ═══════════════════════════════════════════════════════════
+  const toastTimer = useRef(null);
+  const showToast = useCallback((msg, action, duration = 2400) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ msg, k: Date.now(), action });
+    toastTimer.current = setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= duration - 100 ? null : cur)), duration);
+  }, []);
+  const promoCloseTimerRef = useRef(null);
+// ── ALL NEW useCallback/useEffect declarations go below ──
   // The scroll-lock useEffect (below) references these in its `anyOpen` check.
   // Adding a new state AFTER this point will break the site with a TDZ error.
   const customProductsRef = useRef(customProducts);
@@ -257,7 +269,6 @@ export default function App() {
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
-  const promoCloseTimerRef = useRef(null);
   // ── ALL new state vars for modals/panels MUST go above this line ──
   // succession so the final toast Undo restores ALL of them, not just the last.
   const pendingRestoreRef = useRef([]);
@@ -272,13 +283,7 @@ export default function App() {
   // detail page so that clicking "Back" restores the user exactly where they
   // were in the grid, rather than snapping them to the top of the page.
   const scrollPosRef = useRef(0);
-  // ── showToast MUST be defined before any useEffect/callback that calls it ──
-  const toastTimer = useRef(null);
-  const showToast = useCallback((msg, action, duration = 2400) => {
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToast({ msg, k: Date.now(), action });
-    toastTimer.current = setTimeout(() => setToast((cur) => (cur && cur.k && Date.now() - cur.k >= duration - 100 ? null : cur)), duration);
-  }, []);
+  // ── ALREADY DECLARED at top of TDZ guard — do not re-declare ──
   // Extract RecentlyViewed handlers to eliminate duplication between product-page and shop views
   const handleRecentlyViewedSelect = useCallback((p) => {
     const pid = p?.id || p?.product_id;
