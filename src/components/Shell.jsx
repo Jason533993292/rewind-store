@@ -98,7 +98,7 @@ export function Banner({ showCountdown }) {
 }
 
 /* ---------- Header ---------- */
-export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version }) {
+export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version, onVersionClick }) {
   return (
     <header className="rw-header">
       <div className="rw-header-row">
@@ -137,7 +137,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
             <Icon name="bag" />
             {cartCount > 0 && <span className="rw-badge">{cartCount}</span>}
           </button>
-          {version && <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '10px', fontWeight: 600 }}>{version}</span>}
+          {version && <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '10px', fontWeight: 600, cursor: 'pointer' }} onClick={onVersionClick} title="Toggle tweaks panel">{version}</span>}
         </div>
       </div>
     </header>

@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.5';
+const VERSION = 'V7.1.6';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -84,6 +84,7 @@ export default function App() {
     } catch { return ''; }
   });
   const [orderNumber, setOrderNumber] = useState('');
+  const [showTweaks, setShowTweaks] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const stored = localStorage.getItem('rw_recent');
@@ -705,7 +706,8 @@ export default function App() {
       <Header cat={cat} setCat={(c) => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
-        query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
+        query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
+        onVersionClick={() => setShowTweaks(v => !v)} />
       <main className="rw-shop">
       <ProductPage key={curPid} p={selectedProduct}
         onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
@@ -734,7 +736,8 @@ export default function App() {
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
-        query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION} />
+        query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
+        onVersionClick={() => setShowTweaks(v => !v)} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
 
@@ -959,7 +962,7 @@ export default function App() {
         </div>
       )}
 
-      {window.location.search.includes('tweaks') && <TweaksPanel>
+      {(showTweaks || window.location.search.includes('tweaks')) && <TweaksPanel>
         <TweakSection label="Urgency & social proof" />
         <TweakToggle label="Announcement bar" value={t.showBanner} onChange={(v) => setTweak('showBanner', v)} />
         <TweakToggle label="Live sale countdown" value={t.showCountdown} onChange={(v) => setTweak('showCountdown', v)} />
