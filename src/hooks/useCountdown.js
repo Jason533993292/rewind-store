@@ -3,7 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 function nextDeadline() {
   const now = new Date();
   const d = new Date(now);
-  d.setDate(now.getDate() + 9);
+  // Count down to the upcoming Sunday at 23:59 — aligns with the
+  // banner label "Sale ends Sunday 23:59" so the countdown timer
+  // always matches the stated deadline day.
+  const daysUntilSunday = d.getDay() === 0 ? 7 : 7 - d.getDay();
+  d.setDate(now.getDate() + daysUntilSunday);
   d.setHours(23, 59, 59, 999);
   return d;
 }
