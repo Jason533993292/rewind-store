@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.1';
+const VERSION = 'V7.5.2';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1840,20 +1840,20 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
             </p>
 
             {/* Email preview — larger, clearer */}
-            <div style={{ background: '#FAF6EF', borderRadius: '10px', padding: '20px', marginBottom: '16px', fontSize: '15px', lineHeight: '1.7', color: '#16130F' }}>
-              <div style={{ fontWeight: 700, fontSize: '13px', color: '#6E665A', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📧 Email preview</div>
-              <div style={{ borderTop: '1px solid #E8E2D8', paddingTop: '14px' }}>
-                <p style={{ margin: '0 0 10px', color: '#6E665A' }}><b>To:</b> {cancelOrder.order?.email || 'customer'}</p>
-                <p style={{ margin: '0 0 10px', color: '#6E665A' }}><b>Subject:</b> Order {cancelOrder.order?.order_num || ''} cancelled — refund initiated</p>
-                <div style={{ background: '#fff', borderRadius: '8px', padding: editingEmail ? '4px' : '16px', marginTop: '8px' }}>
+            <div style={{ background: 'var(--bg)', borderRadius: '10px', padding: '20px', marginBottom: '16px', fontSize: '15px', lineHeight: '1.7', color: 'var(--ink)' }}>
+              <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📧 Email preview</div>
+              <div style={{ borderTop: '1px solid var(--line)', paddingTop: '14px' }}>
+                <p style={{ margin: '0 0 10px', color: 'var(--muted)' }}><b>To:</b> {cancelOrder.order?.email || 'customer'}</p>
+                <p style={{ margin: '0 0 10px', color: 'var(--muted)' }}><b>Subject:</b> Order {cancelOrder.order?.order_num || ''} cancelled — refund initiated</p>
+                <div style={{ background: 'var(--surface)', borderRadius: '8px', padding: editingEmail ? '4px' : '16px', marginTop: '8px' }}>
                   {editingEmail ? (
                     <textarea value={previewEmail} onChange={e => setPreviewEmail(e.target.value)}
-                      style={{ width: '100%', minHeight: '120px', padding: '12px', borderRadius: '6px', border: '1px solid #E8E2D8', fontSize: '15px', lineHeight: '1.7', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+                      style={{ width: '100%', minHeight: '120px', padding: '12px', borderRadius: '6px', border: '1px solid var(--line)', fontSize: '15px', lineHeight: '1.7', fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
                   ) : (
                     <>
-                      <p style={{ margin: '0 0 8px', color: '#6E665A' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
+                      <p style={{ margin: '0 0 8px', color: 'var(--muted)' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
                       <p style={{ margin: '0 0 8px', whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.7' }}>{previewEmail}</p>
-                      <p style={{ margin: '0', color: '#6E665A', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
+                      <p style={{ margin: '0', color: 'var(--muted)', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
                     </>
                   )}
                 </div>
