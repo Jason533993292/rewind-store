@@ -3,7 +3,6 @@ import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import { deleteCustomProduct } from '../lib/supabase';
-import CountUp2 from './CountUp2';
 
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, onCart }) {
@@ -322,7 +321,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
           <div className="rw-drawer-foot">
             <div className="rw-subtotal">
               <span>Subtotal</span>
-              <b><CountUp2 to={subtotal} duration={0.8} separator="" /></b>
+              <b>{money(subtotal)}</b>
             </div>
             <button className="rw-btn rw-btn-pri rw-btn-full" onClick={onCheckout}>
               Checkout <Icon name="arrow" size={16} />
