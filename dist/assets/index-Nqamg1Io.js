@@ -32411,7 +32411,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 btn.textContent = "🔄 Running tests...";
                 btn.disabled = true;
                 try {
-                  const r2 = await fetch("/api/run-tests");
+                  const r2 = await fetch("/api/run-tests", {
+                    headers: { "x-admin-token": localStorage.getItem("rw_admin_token") }
+                  });
                   const d = await r2.json();
                   if (d.error) throw new Error(d.error);
                   btn.textContent = `✅ ${d.passed}/${d.total} passed`;
@@ -32472,7 +32474,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 btn.disabled = true;
                 const r2 = await fetch("/api/send-campaign", {
                   method: "POST",
-                  headers: { "Content-Type": "application/json" },
+                  headers: { "Content-Type": "application/json", "x-admin-token": localStorage.getItem("rw_admin_token") },
                   body: JSON.stringify({ emails: users.map((u2) => u2.email), subject: "", message: emailText || "" })
                 });
                 const d = await r2.json();
@@ -32509,7 +32511,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 const marketingUsers = users.filter((u2) => u2.marketing_optin);
                 const r2 = await fetch("/api/send-campaign", {
                   method: "POST",
-                  headers: { "Content-Type": "application/json" },
+                  headers: { "Content-Type": "application/json", "x-admin-token": localStorage.getItem("rw_admin_token") },
                   body: JSON.stringify({ emails: marketingUsers.map((u2) => u2.email), subject: "", message: emailText || "" })
                 });
                 const d = await r2.json();

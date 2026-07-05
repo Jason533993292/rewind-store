@@ -387,7 +387,7 @@ app.post('/api/save-order', async (req, res) => {
 });
 
 // ── Run automated tests ──
-app.get('/api/run-tests', async (_req, res) => {
+app.get('/api/run-tests', requireAdmin, async (_req, res) => {
   try {
     const { runTests } = await import('../tests/button-test.js');
     const result = await runTests();
