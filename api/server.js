@@ -447,7 +447,11 @@ app.post('/api/stripe-webhook', async (req, res) => {
       await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/orders`, {
         method: 'POST',
         headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_num: orderNum, customer_name, email, address: address || '', items, total, status: 'paid' }),
+        body: JSON.stringify({
+          order_num: orderNum, customer_name, email, address: address || '',
+          items: Array.isArray(items) ? JSON.stringify(items) : '[]',
+          total, status: 'paid',
+        }),
       });
       // Decrement stock for purchased items — use product_ids from metadata if available
       const productIds = session.metadata?.product_ids ? session.metadata.product_ids.split(',').filter(Boolean) : [];
@@ -509,6 +513,26 @@ app.post('/api/stripe-webhook', async (req, res) => {
       }
     } catch (e) { console.error('Webhook error:', e); }
   }
+
+  // Handle payment failures — mark order as failed in Supabase
+  if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
+    const session = event.data.object;
+    const orderNum = session.metadata?.orderNum;
+    if (orderNum) {
+      try {
+        const url = process.env.VITE_SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (url && key) {
+          await fetch(`${url}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}`, {
+            method: 'PATCH',
+            headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'payment_failed' }),
+          });
+        }
+      } catch {}
+    }
+  }
+
   res.json({ received: true });
 });
 
@@ -683,6 +707,41 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
   } catch {
     res.json({ users: [] });
   }
+});
+
+// ── Admin: preview cancellation email (generates text without sending) ──
+app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
+  const { reason, customReason, customerName } = req.body;
+  const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
+  const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
+  let emailBody = '';
+  try {
+    const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{
+          role: 'user',
+          content: `Write a short, professional, warm cancellation email for an order at REWIND vintage streetwear store. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Explain why it was cancelled in a friendly way, mention a full refund has been initiated (5-10 business days), and offer contact at orders@rewind-stores.com for questions. Max 4 sentences. No subject line, just the body.`
+        }],
+        max_tokens: 200,
+      }),
+    });
+    const aiData = await aiRes.json();
+    emailBody = aiData?.choices?.[0]?.message?.content || '';
+  } catch {}
+  if (!emailBody) {
+    const fallbacks = {
+      out_of_stock: "Unfortunately, the item you ordered is out of stock and we're unable to fulfill it.",
+      damaged: "Unfortunately, the item was damaged during handling and we cannot send it out.",
+      customer_request: "You requested cancellation of this order.",
+      other: "Your order has been cancelled as requested.",
+    };
+    emailBody = fallbacks[reason] || 'Your order has been cancelled.';
+    if (reason === 'other' && customReason) emailBody = customReason;
+  }
+  res.json({ emailBody, reasonText });
 });
 
 // ── Admin: cancel order ──
