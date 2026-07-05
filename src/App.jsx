@@ -1764,11 +1764,16 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
           onClick={() => { if (!cancelling) { setCancelOrder(null); setCancelReason(''); } }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Cancel order</h3>
-            <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>
-              {cancelOrder.order?.order_num || 'Order'} — why are you cancelling?
-            </p>
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', position: 'relative' }}>
+            <button onClick={() => { setCancelOrder(null); setCancelReason(''); setCustomReason(''); }}
+              style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
+              aria-label="Close">✕</button>
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '2px' }}>
+                {cancelOrder.order?.order_num || 'Order'} · {cancelOrder.order?.total ? `€${cancelOrder.order.total}` : ''}
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Cancel order</h3>
+            </div>
             {[{id:'out_of_stock',label:'Out of stock'},{id:'damaged',label:'Damaged during handling'},{id:'customer_request',label:'Customer requested'},{id:'other',label:'Other'}].map(r => (
               <button key={r.id} onClick={() => { setCancelReason(r.id); if (r.id !== 'other') setCustomReason(''); }}
                 style={{ display: 'block', width: '100%', padding: '10px 14px', marginBottom: '6px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textAlign: 'left', transition: 'all 0.15s' }}
@@ -1821,7 +1826,10 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
           onClick={() => { if (!cancelling) { setShowCancelConfirm(false); } }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '28px', maxWidth: '520px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', maxHeight: '90vh', overflowY: 'auto' }}>
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '28px', maxWidth: '520px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+            <button onClick={() => { setShowCancelConfirm(false); }}
+              style={{ position: 'absolute', top: '14px', right: '14px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
+              aria-label="Close">✕</button>
             <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Confirm cancellation</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>
               {cancelOrder.order?.order_num || 'Order'} — review the email below, then confirm
