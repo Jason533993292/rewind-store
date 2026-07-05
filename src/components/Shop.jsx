@@ -574,7 +574,25 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           </div>
           <div className="rw-co-sec">
             <h3>Promo code</h3>
-            <input className="rw-input" placeholder="Enter code" value={promo} onChange={e => setPromo(e.target.value)} />
+            <div style={{ position: 'relative' }}>
+              <input className="rw-input" placeholder="Enter code" value={promo} onChange={e => setPromo(e.target.value)}
+                style={{ paddingRight: promo ? '32px' : undefined }} />
+              {promo && (
+                <button onClick={() => setPromo('')}
+                  aria-label="Clear promo code"
+                  style={{
+                    position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '4px', display: 'grid', placeItems: 'center',
+                    color: 'var(--muted)', opacity: 0.7,
+                    transition: 'opacity 0.15s',
+                  }}
+                  onMouseOver={e => e.target.style.opacity = '1'}
+                  onMouseOut={e => e.target.style.opacity = '0.7'}>
+                  <Icon name="close" size={14} />
+                </button>
+              )}
+            </div>
             {promoValidating && (
               <span style={{color: 'var(--muted)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 500}}>
                 ⏳ Validating...
