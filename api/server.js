@@ -381,15 +381,17 @@ app.post('/api/get-orders', requireAdmin, async (req, res) => {
 app.post('/api/save-order', requireAdmin, async (req, res) => {
   const { orderNum, customer_name, email, address, items, total } = req.body;
   if (!orderNum) return res.status(400).json({ error: 'No order number' });
-  // Force status to 'pending' — never trust client-supplied status
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders`,
+      `${url}/rest/v1/orders`,
       {
         method: 'POST',
         headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'apikey': SERVICE_KEY,
+          'Authorization': `Bearer ${SERVICE_KEY}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal',
         },
