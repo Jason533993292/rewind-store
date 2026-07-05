@@ -1241,7 +1241,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                           borderRadius: '8px',
                           border: 'none',
                           background: u.blocked ? 'color-mix(in oklab, var(--accent) 30%, transparent)' : 'var(--accent)',
-                          color: '#fff',
+                          color: 'var(--surface)',
                           cursor: 'pointer',
                           fontSize: '13px',
                           fontWeight: 700,
@@ -1313,7 +1313,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 alert(d.ok ? `✅ ${email} added as admin` : `❌ ${d.error}`);
                 if (d.ok) input.value = '';
               }}
-                style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.15s' }}
+                style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.15s' }}
                 onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
                 onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
                 Add admin
@@ -1766,7 +1766,7 @@ function BlockedPanel() {
           <input className="rw-input" placeholder="user@example.com" value={newEmail} onChange={e => setNewEmail(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && newEmail.trim()) blockEmail(newEmail.trim()); }} />
           <button onClick={() => blockEmail(newEmail.trim())} disabled={!newEmail.trim()}
-            style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+            style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
             onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
             onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>Block</button>
         </div>
