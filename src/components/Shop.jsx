@@ -36,7 +36,11 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
             <span className="rw-price-now">{money(p.price)}</span>
             {showCompare && p.was && <span className="rw-price-was">{money(p.was)}</span>}
           </div>
-          {added ? (
+          {soldOut ? (
+            <span className="rw-add" style={{ opacity: 0.35, cursor: 'default', background: 'none', display: 'grid', placeItems: 'center', width: '36px', height: '36px', borderRadius: '50%', border: '1.5px solid var(--line-2)' }}>
+              <Icon name="close" size={16} />
+            </span>
+          ) : added ? (
             <button className="rw-add" style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
               onClick={onCart} aria-label="View in bag">
               <Icon name="bag" size={16} />
