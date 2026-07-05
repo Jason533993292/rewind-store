@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.12';
+const VERSION = 'V7.1.13';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -99,6 +99,8 @@ export default function App() {
   useEffect(() => { customProductsRef.current = customProducts; }, [customProducts]);
   const wishlistRef = useRef(wishlist);
   useEffect(() => { wishlistRef.current = wishlist; }, [wishlist]);
+  const recentlyViewedRef = useRef(recentlyViewed);
+  useEffect(() => { recentlyViewedRef.current = recentlyViewed; }, [recentlyViewed]);
 
   // Load custom products from Supabase & re-check URL hash for direct product links
   useEffect(() => {
@@ -321,8 +323,9 @@ export default function App() {
   }, [showToast]);
 
   const handleRecentlyViewedRemove = useCallback((pid, name) => {
-    // Capture the removed item's full data before removing it
-    const removedItem = recentlyViewed.find(p => (p.id || p.product_id) === pid);
+    // Use ref instead of raw recentlyViewed to prevent stale closure;
+    // follows the same ref pattern as showSurveyRef, customProductsRef, wishlistRef.
+    const removedItem = recentlyViewedRef.current.find(p => (p.id || p.product_id) === pid);
     if (!removedItem) return;
     setRecentlyViewed((prev) => prev.filter(p => (p.id || p.product_id) !== pid));
     showToast((name || 'Item') + ' removed', {
@@ -335,7 +338,7 @@ export default function App() {
         });
       },
     });
-  }, [showToast, recentlyViewed]);
+  }, [showToast]);
 
   const addToCart = useCallback((p, size, qty = 1) => {
     // Guard: don't allow adding out-of-stock items
