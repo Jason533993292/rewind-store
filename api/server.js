@@ -760,7 +760,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
     if (!r.ok) {
       const errBody = await r.text();
       console.error('Supabase PATCH failed:', errBody);
-      return res.status(500).json({ error: 'Failed to update order in database: ' + errBody });
+      return res.status(500).json({ error: 'Failed to update order in database. Check server logs.' });
     }
     // Fetch order details for the email
     const orderData = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
