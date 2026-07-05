@@ -289,7 +289,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
             {items.map((it) => (
               <div key={it.key} className="rw-line">
                 <div className="rw-line-media">
-                  <Photo id={it.id + "-cart"} hue={it.hue} label="" h={74} />
+                  <Photo id={it.id + "-cart"} hue={it.hue} label="" h={74} img={it.img} />
                 </div>
                 <div className="rw-line-info">
                   <div className="rw-line-top">
@@ -657,7 +657,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             {items.map((it) => (
               <div key={it.key} className="rw-sum-line">
                 <div className="rw-sum-media">
-                  <Photo id={it.id + "-sum"} hue={it.hue} label="" h={52} />
+                  <Photo id={it.id + "-sum"} hue={it.hue} label="" h={52} img={it.img} />
                   {it.qty > 1 && <span className="rw-sum-qty">{it.qty}</span>}
                 </div>
                 <div className="rw-sum-info">

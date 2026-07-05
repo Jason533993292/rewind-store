@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.0';
+const VERSION = 'V7.5.1';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -347,7 +347,7 @@ export default function App() {
     setCart((c) => {
       const found = c.find((it) => it.key === key);
       if (found) return c.map((it) => it.key === key ? { ...it, qty: it.qty + qty } : it);
-      return [...c, { key, id: pid, name: p.name, price: p.price, was: p.was, hue: p.hue, size: sz, qty: qty }];
+      return [...c, { key, id: pid, name: p.name, price: p.price, was: p.was, hue: p.hue, img: p.img || '', size: sz, qty: qty }];
     });
     showToast((qty > 1 ? qty + '× ' : '') + p.name + ' added to bag');
   }, [showToast]);
