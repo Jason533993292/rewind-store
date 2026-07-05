@@ -1,5 +1,5 @@
 import React from 'react';
-import { Photo } from './Shell';
+import { Photo, Icon } from './Shell';
 import { money } from '../hooks/useCountdown';
 
 /**
@@ -83,7 +83,7 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
                 onMouseOut={e => { e.target.style.opacity = '0.5'; e.target.style.background = 'color-mix(in oklab, var(--surface) 80%, transparent)'; e.target.style.color = 'var(--muted)'; }}
                 onFocus={e => e.target.style.opacity = '1'}
                 onBlur={e => e.target.style.opacity = '0.5'}
-              >×</button>
+                ><Icon name="close" size={12} /></button>
               <Photo id={pid + '-recent'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={150} img={p.img} />
               <div style={{ fontSize: '12px', fontWeight: 600, marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--ink)' }}>
                 {p.name}
