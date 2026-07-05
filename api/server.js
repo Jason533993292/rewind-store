@@ -723,27 +723,27 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
   const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
   let emailBody = '';
   try {
-    const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [{
-          role: 'user',
-          content: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
+        contents: [{
+          parts: [{
+            text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
 
-- Start with: "Hey fellow customer, unfortunately your order has been cancelled"
-- State the reason in a friendly way
-- Say: "if you have any questions don't be afraid to contact orders@rewind-stores.com"
-- End with: "Hope you have a nice day!"
+  - Start with: "Hey fellow customer, unfortunately your order has been cancelled"
+  - State the reason in a friendly way
+  - Say: "if you have any questions don't be afraid to contact orders@rewind-stores.com"
+  - End with: "Hope you have a nice day!"
 
-Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
+  Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
+          }]
         }],
-        max_tokens: 200,
+        generationConfig: { maxOutputTokens: 200 },
       }),
     });
     const aiData = await aiRes.json();
-    emailBody = aiData?.choices?.[0]?.message?.content || '';
+    emailBody = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   } catch {}
   if (!emailBody) {
     const fallbacks = {
@@ -788,14 +788,13 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
       let emailBody = '';
       const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
       try {
-        const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [{
-              role: 'user',
-              content: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
+            contents: [{
+              parts: [{
+                text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
 
 - Start with: "Hey fellow customer, unfortunately your order has been cancelled"
 - State the reason in a friendly way
@@ -803,12 +802,13 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
 - End with: "Hope you have a nice day!"
 
 Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
+              }]
             }],
-            max_tokens: 200,
+            generationConfig: { maxOutputTokens: 200 },
           }),
         });
         const aiData = await aiRes.json();
-        emailBody = aiData?.choices?.[0]?.message?.content || '';
+        emailBody = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
       } catch {}
       if (!emailBody) {
         // Fallback if AI fails
