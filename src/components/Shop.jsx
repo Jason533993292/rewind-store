@@ -348,10 +348,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [payError, setPayError] = useState('');
   const [promo, setPromo] = useState('');
   const [promoData, setPromoData] = useState(null);
+  const [promoValidating, setPromoValidating] = useState(false);
 
   // Validate promo code with debounce
   useEffect(() => {
-    if (!promo.trim()) { setPromoData(null); return; }
+    if (!promo.trim()) { setPromoData(null); setPromoValidating(false); return; }
+    setPromoValidating(true);
     const timer = setTimeout(async () => {
       try {
         const r = await fetch('/api/validate-promo', {
@@ -361,6 +363,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         });
         setPromoData(await r.json());
       } catch { setPromoData(null); }
+      setPromoValidating(false);
     }, 400);
     return () => clearTimeout(timer);
   }, [promo]);
@@ -572,12 +575,17 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <div className="rw-co-sec">
             <h3>Promo code</h3>
             <input className="rw-input" placeholder="Enter code" value={promo} onChange={e => setPromo(e.target.value)} />
+            {promoValidating && (
+              <span style={{color: 'var(--muted)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 500}}>
+                ⏳ Validating...
+              </span>
+            )}
             {promoData?.valid && (
               <span style={{color: 'var(--ink)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 600}}>
                 ✓ {promoData.type === 'percent' ? `${promoData.value}% off applied!` : 'Free shipping applied!'}
               </span>
             )}
-            {promoData && !promoData.valid && promo.trim() && (
+            {promoData && !promoData.valid && promo.trim() && !promoValidating && (
               <span style={{color: 'var(--accent)', fontSize: '13px', marginTop: '6px', display: 'block'}}>
                 Invalid promo code
               </span>
