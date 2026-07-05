@@ -730,7 +730,14 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
         model: 'gpt-4o-mini',
         messages: [{
           role: 'user',
-          content: `Write a short, professional, warm cancellation email for an order at REWIND vintage streetwear store. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Explain why it was cancelled in a friendly way, mention a full refund has been initiated (5-10 business days), and offer contact at orders@rewind-stores.com for questions. Max 4 sentences. No subject line, just the body.`
+          content: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
+
+- Start with: "Hey fellow customer, unfortunately your order has been cancelled"
+- State the reason in a friendly way
+- Say: "if you have any questions don't be afraid to contact orders@rewind-stores.com"
+- End with: "Hope you have a nice day!"
+
+Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
         }],
         max_tokens: 200,
       }),
@@ -788,7 +795,14 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
             model: 'gpt-4o-mini',
             messages: [{
               role: 'user',
-              content: `Write a short, professional, warm cancellation email for an order at REWIND vintage streetwear store. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Explain why it was cancelled in a friendly way, mention a full refund has been initiated (5-10 business days), and offer contact at orders@rewind-stores.com for questions. Max 4 sentences. No subject line, just the body.`
+              content: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
+
+- Start with: "Hey fellow customer, unfortunately your order has been cancelled"
+- State the reason in a friendly way
+- Say: "if you have any questions don't be afraid to contact orders@rewind-stores.com"
+- End with: "Hope you have a nice day!"
+
+Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
             }],
             max_tokens: 200,
           }),

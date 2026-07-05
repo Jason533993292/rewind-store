@@ -997,6 +997,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [previewEmail, setPreviewEmail] = useState('');
   const [previewReason, setPreviewReason] = useState('');
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showRefundSteps, setShowRefundSteps] = useState(false);
+  const [cancelledOrderNum, setCancelledOrderNum] = useState('');
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -1826,32 +1828,26 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
           onClick={() => { if (!cancelling) { setShowCancelConfirm(false); } }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '28px', maxWidth: '520px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '28px', maxWidth: '560px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
             <button onClick={() => { setShowCancelConfirm(false); }}
               style={{ position: 'absolute', top: '14px', right: '14px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
               aria-label="Close">✕</button>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Confirm cancellation</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Review email to customer</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>
-              {cancelOrder.order?.order_num || 'Order'} — review the email below, then confirm
+              {cancelOrder.order?.order_num || 'Order'} — this AI-generated email will be sent to the customer
             </p>
 
-            {/* Email preview */}
-            <div style={{ background: 'var(--bg)', borderRadius: '10px', padding: '16px', marginBottom: '16px', fontSize: '14px', lineHeight: '1.6', color: 'var(--ink)' }}>
-              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📧 Email to customer</div>
-              <p style={{ margin: '0 0 8px', color: 'var(--muted)' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
-              <p style={{ margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>{previewEmail}</p>
-              <p style={{ margin: '0', color: 'var(--muted)', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
-            </div>
-
-            {/* Refund steps */}
-            <div style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '10px', padding: '14px', marginBottom: '16px' }}>
-              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--accent)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>💰 Refund steps</div>
-              <div style={{ fontSize: '13px', color: 'var(--ink)', lineHeight: '1.6' }}>
-                1. Go to <b>Stripe Dashboard</b> → <b>Payments</b><br/>
-                2. Search for order <b>{cancelOrder.order?.order_num || ''}</b><br/>
-                3. Click the payment → <b>Refund</b><br/>
-                4. Select <b>Full refund</b> → Confirm<br/>
-                5. Customer sees the refund in 5-10 business days
+            {/* Email preview — larger, clearer */}
+            <div style={{ background: '#FAF6EF', borderRadius: '10px', padding: '20px', marginBottom: '16px', fontSize: '15px', lineHeight: '1.7', color: '#16130F' }}>
+              <div style={{ fontWeight: 700, fontSize: '13px', color: '#6E665A', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📧 Email preview</div>
+              <div style={{ borderTop: '1px solid #E8E2D8', paddingTop: '14px' }}>
+                <p style={{ margin: '0 0 10px', color: '#6E665A' }}><b>To:</b> {cancelOrder.order?.email || 'customer'}</p>
+                <p style={{ margin: '0 0 10px', color: '#6E665A' }}><b>Subject:</b> Order {cancelOrder.order?.order_num || ''} cancelled — refund initiated</p>
+                <div style={{ background: '#fff', borderRadius: '8px', padding: '16px', marginTop: '8px' }}>
+                  <p style={{ margin: '0 0 8px', color: '#6E665A' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
+                  <p style={{ margin: '0 0 8px', whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.7' }}>{previewEmail}</p>
+                  <p style={{ margin: '0', color: '#6E665A', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
+                </div>
               </div>
             </div>
 
@@ -1873,11 +1869,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                   const d = await r.json();
                   if (d.ok) {
                     setOrders(prev => prev.map(o => o.id === cancelOrder.id ? { ...o, status: 'cancelled' } : o));
-                    setCancelOrder(null);
-                    setCancelReason('');
-                    setCustomReason('');
+                    setCancelledOrderNum(cancelOrder.order?.order_num || '');
                     setShowCancelConfirm(false);
-                    setPreviewEmail('');
+                    setShowRefundSteps(true);
                   } else {
                     alert('❌ ' + (d.error || 'Failed'));
                   }
@@ -1890,6 +1884,42 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 {cancelling ? 'Sending...' : '✅ Send & cancel order'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Refund steps panel (shows after cancellation is confirmed) ── */}
+      {showRefundSteps && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+          onClick={() => { setShowRefundSteps(false); }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', position: 'relative' }}>
+            <button onClick={() => { setShowRefundSteps(false); setCancelOrder(null); setCancelReason(''); setCustomReason(''); setPreviewEmail(''); }}
+              style={{ position: 'absolute', top: '14px', right: '14px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
+              aria-label="Close">✕</button>
+            <div style={{ fontSize: '40px', marginBottom: '8px', textAlign: 'center' }}>✅</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', margin: '0 0 4px' }}>Order cancelled</h3>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 20px' }}>
+              {cancelledOrderNum} — email sent to customer
+            </p>
+            <div style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
+              <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>💰 Refund steps</div>
+              <div style={{ fontSize: '14px', color: 'var(--ink)', lineHeight: '1.8' }}>
+                1. Open <b>Stripe Dashboard</b> → <b>Payments</b><br/>
+                2. Search for <b>{cancelledOrderNum}</b><br/>
+                3. Click the payment → <b>Refund</b><br/>
+                4. Select <b>Full refund</b> → <b>Confirm</b><br/>
+                5. Customer gets the refund in <b>5-10 business days</b>
+              </div>
+            </div>
+            <button onClick={() => { window.open('https://dashboard.stripe.com/payments', '_blank'); }}
+              style={{ display: 'block', width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px', marginBottom: '10px', transition: 'all 0.15s' }}>
+              🔗 Open Stripe Dashboard
+            </button>
+            <button onClick={() => { setShowRefundSteps(false); setCancelOrder(null); setCancelReason(''); setCustomReason(''); setPreviewEmail(''); }}
+              style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
+              Done
+            </button>
           </div>
         </div>
       )}
