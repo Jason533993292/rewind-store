@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
@@ -255,6 +255,22 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
 /* ---------- CartDrawer ---------- */
 export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, showToast }) {
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
+  const [animatedTotal, setAnimatedTotal] = useState(subtotal);
+  const prevRef = useRef(subtotal);
+  useEffect(() => {
+    if (subtotal === prevRef.current) return;
+    prevRef.current = subtotal;
+    const start = animatedTotal;
+    const diff = subtotal - start;
+    const dur = 400;
+    const t0 = performance.now();
+    const frame = (now) => {
+      const p = Math.min((now - t0) / dur, 1);
+      setAnimatedTotal(Math.round(start + diff * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }, [subtotal]);
   const FREE_THRESHOLD = 150;
   const freeProgress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
   const freeLeft = Math.max(0, FREE_THRESHOLD - subtotal);
@@ -321,7 +337,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
           <div className="rw-drawer-foot">
             <div className="rw-subtotal">
               <span>Subtotal</span>
-              <b>{money(subtotal)}</b>
+              <b>{money(animatedTotal)}</b>
             </div>
             <button className="rw-btn rw-btn-pri rw-btn-full" onClick={onCheckout}>
               Checkout <Icon name="arrow" size={16} />
