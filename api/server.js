@@ -419,38 +419,57 @@ app.post('/api/stripe-webhook', async (req, res) => {
         headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_num: orderNum, customer_name, email, address: address || '', items, total, status: 'paid' }),
       });
-      // Decrement stock for purchased items — prefer product_ids from session metadata
-      const productIdsFromMeta = session.metadata?.product_ids ? session.metadata.product_ids.split(',') : [];
-      for (let i = 0; i < items.length; i++) {
-        const it = items[i];
-        if (!it.name || !it.qty) continue;
-        // Use product_id from metadata if available, otherwise try name match
-        const productId = productIdsFromMeta[i] || null;
-        let productName = it.name;
-        if (!productId) {
-          // Only strip trailing patterns that look like sizes (e.g. (M), (XL), (42)),
-          // NOT general parenthetical content like (1990s) or (retro).
-          productName = it.name.replace(/\s*\((\d{1,2}(\.\d)?|[Xx][SsXxLl]?[Ll]?|[Ss][Mm][Ll]?)\)\s*$/, '').trim();
+      // Decrement stock for purchased items — use product_ids from metadata if available
+      const productIds = session.metadata?.product_ids ? session.metadata.product_ids.split(',').filter(Boolean) : [];
+      if (productIds.length > 0 && productIds.length === items.length) {
+        for (let i = 0; i < productIds.length; i++) {
+          const pid = productIds[i];
+          const qty = items[i]?.qty || 1;
+          if (!pid) continue;
+          const res = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}`, {
+            headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
+          });
+          const products = await res.json();
+          if (!products || products.length === 0) {
+            console.warn(`Webhook: no custom_product found for product_id "${pid}" — skipping stock decrement`);
+            continue;
+          }
+          const p = products[0];
+          const currentStock = p.stock ?? 0;
+          if (qty > currentStock) {
+            console.warn(`Webhook: insufficient stock for "${pid}" (have ${currentStock}, need ${qty}) — clamping to 0`);
+          }
+          const newStock = Math.max(0, currentStock - qty);
+          await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?id=eq.${p.id}`, {
+            method: 'PATCH',
+            headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: newStock }),
+          });
         }
-        const res = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?name=eq.${encodeURIComponent(productName)}`, {
-          headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
-        });
-        const products = await res.json();
-        if (!products || products.length === 0) {
-          console.warn(`Webhook: no custom_product found for "${productName}" — skipping stock decrement`);
-          continue;
+      } else {
+        for (const it of items) {
+          if (!it.name || !it.qty) continue;
+          const productName = it.name.replace(/\s*\(.*?\)\s*$/, '').trim();
+          const res = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?name=eq.${encodeURIComponent(productName)}`, {
+            headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
+          });
+          const products = await res.json();
+          if (!products || products.length === 0) {
+            console.warn(`Webhook: no custom_product found for "${productName}" — skipping stock decrement`);
+            continue;
+          }
+          const p = products[0];
+          const currentStock = p.stock ?? 0;
+          if (it.qty > currentStock) {
+            console.warn(`Webhook: insufficient stock for "${productName}" (have ${currentStock}, need ${it.qty}) — clamping to 0`);
+          }
+          const newStock = Math.max(0, currentStock - it.qty);
+          await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?id=eq.${p.id}`, {
+            method: 'PATCH',
+            headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: newStock }),
+          });
         }
-        const p = products[0];
-        const currentStock = p.stock ?? 0;
-        if (it.qty > currentStock) {
-          console.warn(`Webhook: insufficient stock for "${productName}" (have ${currentStock}, need ${it.qty}) — clamping to 0`);
-        }
-        const newStock = Math.max(0, currentStock - it.qty);
-        await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?id=eq.${p.id}`, {
-          method: 'PATCH',
-          headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stock: newStock }),
-        });
       }
       if (process.env.RESEND_API_KEY) {
         await fetch(`http://localhost:${PORT}/api/send-order`, {
@@ -552,6 +571,101 @@ app.get('/api/admin/user-emails', async (req, res) => {
     (Array.isArray(wls) ? wls : []).forEach(w => { if (w.email) emailSet.add(w.email.toLowerCase().trim()); });
     res.json({ emails: [...emailSet].sort() });
   } catch { res.json({ emails: [] }); }
+});
+
+// ── Admin: product CRUD ──
+app.post('/api/admin/products/add', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const r = await fetch(`${url}/rest/v1/custom_products`, {
+      method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(req.body),
+    });
+    const data = await r.json();
+    res.json({ ok: r.ok, data });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/products/update', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  const { product_id, ...updates } = req.body;
+  if (!product_id) return res.status(400).json({ error: 'product_id required' });
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const r = await fetch(`${url}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(product_id)}`, {
+      method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(updates),
+    });
+    const data = await r.json();
+    res.json({ ok: r.ok, data });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'id required' });
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    await fetch(`${url}/rest/v1/custom_products?id=eq.${id}`, {
+      method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const { productId, imageBase64, ext } = req.body;
+    if (!productId || !imageBase64) return res.status(400).json({ error: 'productId and imageBase64 required' });
+    const buf = Buffer.from(imageBase64, 'base64');
+    const fileExt = ext || 'webp';
+    const filePath = `${productId}.${fileExt}`;
+    const r = await fetch(`${url}/storage/v1/object/product-images/${filePath}`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' },
+      body: buf,
+    });
+    if (!r.ok) return res.status(500).json({ error: 'Upload failed' });
+    const publicUrl = `${url}/storage/v1/object/public/product-images/${filePath}`;
+    res.json({ ok: true, url: publicUrl });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Admin: orders ──
+app.get('/api/admin/orders', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const r = await fetch(`${url}/rest/v1/orders?order=created_at.desc`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    res.json({ orders: data || [] });
+  } catch { res.json({ orders: [] }); }
+});
+
+app.post('/api/admin/orders/update-status', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  const { id, status } = req.body;
+  if (!id || !status) return res.status(400).json({ error: 'id and status required' });
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    await fetch(`${url}/rest/v1/orders?id=eq.${id}`, {
+      method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 if (!process.env.VERCEL) {
