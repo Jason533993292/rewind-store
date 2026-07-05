@@ -338,7 +338,7 @@ export default function App() {
       showToast(p.name + ' is sold out');
       return;
     }
-    const sz = size || p.sizes[0];
+    const sz = size || p.sizes?.[0] || 'One size';
     const pid = p.id || p.product_id;
     const key = pid + '-' + sz;
     setCart((c) => {
@@ -513,14 +513,11 @@ export default function App() {
   }, [allProducts]);
 
   // ── Admin mode ──
-  // Lazy initializer prevents flash: only activate admin mode if the user
-  // already has a saved admin email, not just because #admin is in the URL.
-  const [adminMode, setAdminMode] = useState(() => {
-    if (window.location.hash === '#admin') {
-      return true;
-    }
-    return false;
-  });
+  // Only activate admin mode if the user has a verified admin email saved,
+  // NOT just because #admin is in the URL (security: prevents full admin
+  // panel access by anyone who navigates to /#admin).
+  const [adminMode, setAdminMode] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [blocked, setBlocked] = useState(false);
 
   // Handle Stripe success redirect — show confirmation view instead of just a toast
@@ -644,12 +641,21 @@ export default function App() {
     const onHash = () => {
       const isAdminHash = window.location.hash === '#admin';
       if (isAdminHash) {
-        setAdminMode(true);
-        // Verify against Supabase if already authenticated
+        // Verify against server endpoint — NOT client-side Supabase query
+        // with anon key. This prevents anyone from granting themselves admin
+        // access by just typing /#admin in the URL.
         const saved = localStorage.getItem('rw_admin_email');
         if (saved) {
-          supabase?.from('admins').select('email').eq('email', saved).single()
-            .then(({ data }) => { if (!data) { setAdminMode(false); } });
+          fetch('/api/verify-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: saved })
+          }).then(r => r.json()).then(d => {
+            if (d.verified) setAdminMode(true);
+            else { setAdminMode(false); localStorage.removeItem('rw_admin_email'); }
+          }).catch(() => setAdminMode(false));
+        } else {
+          setAdminMode(false);
         }
       } else {
         setAdminMode(false);
@@ -1002,12 +1008,15 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
     const saved = localStorage.getItem('rw_admin_email');
     if (saved) {
       setAdminEmail(saved);
-      supabase.from('admins').select('email').eq('email', saved).single()
-        .then(({ data }) => {
-          if (data) setAdminAuthed(true);
-          setAdminChecking(false);
-        })
-        .catch(() => setAdminChecking(false));
+      // Verify via server endpoint — NOT direct Supabase query with anon key
+      fetch('/api/verify-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: saved })
+      }).then(r => r.json()).then(d => {
+        if (d.verified) setAdminAuthed(true);
+        setAdminChecking(false);
+      }).catch(() => setAdminChecking(false));
     } else {
       setAdminChecking(false);
     }
@@ -1094,12 +1103,21 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           <button onClick={async () => {
             if (!adminEmail) return;
             setAdminMsg('');
-            const { data } = await supabase.from('admins').select('email').eq('email', adminEmail).single();
-            if (data) {
-              localStorage.setItem('rw_admin_email', adminEmail);
-              setAdminAuthed(true);
-            } else {
-              setAdminMsg('❌ Access denied. This email is not on the admin list.');
+            try {
+              const r = await fetch('/api/verify-admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: adminEmail })
+              });
+              const d = await r.json();
+              if (d.verified) {
+                localStorage.setItem('rw_admin_email', adminEmail);
+                setAdminAuthed(true);
+              } else {
+                setAdminMsg('❌ Access denied. This email is not on the admin list.');
+              }
+            } catch {
+              setAdminMsg('❌ Could not verify — try again');
             }
           }}
             style={{ padding: '10px 24px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}

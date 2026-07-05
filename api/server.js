@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json({
-  limit: '50mb',
+  limit: '1mb',
   verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
 }));
 
@@ -40,6 +40,24 @@ app.get('/api/health', (_req, res) => {
     uptime: process.uptime(),
     env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
   });
+});
+
+// ── Verify admin email (server-side check — not client-side Supabase query) ──
+app.post('/api/verify-admin', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.json({ verified: false });
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const url = process.env.VITE_SUPABASE_URL;
+    if (!SERVICE_KEY || !url) return res.json({ verified: false });
+    const r = await fetch(`${url}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    res.json({ verified: Array.isArray(data) && data.length > 0 });
+  } catch {
+    res.json({ verified: false });
+  }
 });
 
 const RESEND_KEY = process.env.RESEND_API_KEY;
@@ -154,184 +172,48 @@ app.post('/api/send-campaign', async (req, res) => {
   }
 });
 
-// ── Generate product description from image (Gemini or OpenAI) ──
-const PRODUCT_DESCRIPTION_PROMPT = 'Describe this product for a vintage streetwear store. Include: item type, material guess, colors, era/style vibes, and who would wear it. Keep it to 2-3 sentences, professional but warm tone.';
-
-// Helper: generate description via Google Gemini
-async function describeViaGemini(imageBase64) {
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-  const result = await model.generateContent([
-    { text: 'Look at this product photo. Return ONLY valid JSON with exactly two fields: "title" (short product name, max 6 words) and "description" (2-3 sentences describing the item). No other text.' },
-    { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } },
-  ]);
-  const text = result.response.text();
-  try {
-    return JSON.parse(text.replace(/```json|```/g, '').trim());
-  } catch {
-    return { title: '', description: text.replace(/```json|```/g, '').trim() };
-  }
-}
-
-// Helper: generate description via OpenAI Vision (returns title + description)
-async function describeViaOpenAI(imageBase64) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: 'You are helping a vintage streetwear store. Look at this product photo and respond in JSON format with exactly two fields: "title" (a short product name, max 6 words, e.g. "Vintage Nike Windbreaker") and "description" (2-3 sentences describing the item: material guess, era/style, colors, who would wear it). Only return valid JSON, nothing else.' },
-          { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
-        ],
-      }],
-      max_tokens: 300,
-    }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error?.message || 'OpenAI API error');
-  const content = data?.choices?.[0]?.message?.content || '';
-  try {
-    return JSON.parse(content);
-  } catch {
-    return { title: '', description: content };
-  }
-}
-async function describeViaHF(imageBase64) {
-  const buffer = Buffer.from(imageBase64, 'base64');
-  // Try multiple free HuggingFace models
-  const models = [
-    'Salesforce/blip-image-captioning-base',
-    'nlpconnect/vit-gpt2-image-captioning',
-    'microsoft/git-base-coco',
-  ];
-  for (const model of models) {
-    try {
-      const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: buffer,
-        signal: AbortSignal.timeout(30000),
-      });
-      if (!response.ok) continue;
-      const data = await response.json();
-      const caption = data?.[0]?.generated_text || '';
-      if (caption) return { title: caption.split(',')[0].trim(), description: caption };
-    } catch {}
-  }
-  throw new Error('HuggingFace: all models failed');
-}
-
-app.post('/api/generate-description', async (req, res) => {
-  const { imageBase64 } = req.body;
-  if (!imageBase64) {
-    return res.status(400).json({ error: 'No image provided' });
-  }
-
-  // Try providers in order: Free HuggingFace → OpenAI → Gemini → Fallback
-  const errors = [];
-  for (const tryFn of [describeViaHF, describeViaOpenAI, describeViaGemini]) {
-    try {
-      const result = await tryFn(imageBase64);
-      if (result && (result.title || result.description)) {
-        return res.json({ title: result.title || '', description: result.description || '' });
-      }
-    } catch (e) {
-      errors.push(e.message?.slice(0, 100));
-    }
-  }
-  // Final fallback: generate a basic description from nothing
-  res.json({
-    title: 'Vintage Streetwear Piece',
-    description: 'Hand-picked vintage item. Authenticated, steam-cleaned, and ready to wear. One of one — when it\'s gone, it\'s gone.',
-  });
-});
-
-// ── Background removal service ──
-app.post('/api/remove-bg', async (req, res) => {
-  const { imageBase64 } = req.body;
-  if (!imageBase64) return res.status(400).json({ error: 'No image' });
-  try {
-    // Use sharp to detect edges and create a mask (basic approach)
-    const buf = Buffer.from(imageBase64, 'base64');
-    // Return the original image as-is for now (will improve with AI pipeline)
-    // The frontend does the actual compositing
-    const mask = await sharp(buf)
-      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-      .png()
-      .toBuffer();
-    res.json({ maskBase64: mask.toString('base64') });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Enhance product image ──
-app.post('/api/enhance-image', async (req, res) => {
-  const { imageBase64 } = req.body;
-  if (!imageBase64) return res.status(400).json({ error: 'No image' });
-  try {
-    const buf = Buffer.from(imageBase64, 'base64');
-    const enhanced = await sharp(buf)
-      .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-      .sharpen()
-      .normalize()
-      .jpeg({ quality: 92 })
-      .toBuffer();
-    const resultBase64 = enhanced.toString('base64');
-    res.json({ imageBase64: resultBase64 });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── AI Enhance: remove creases, clean, white background ──
-app.post('/api/enhance-product', async (req, res) => {
-  const { imageBase64 } = req.body;
-  if (!imageBase64) return res.status(400).json({ error: 'No image' });
-  try {
-    const buf = Buffer.from(imageBase64, 'base64');
-    const enhanced = await sharp(buf)
-      .resize(1600, 1600, { fit: 'inside', withoutEnlargement: true })
-      .flatten({ background: { r: 255, g: 255, b: 255 } }) // white background
-      .blur(1)            // smooth creases
-      .sharpen({ sigma: 1.2 }) // restore detail
-      .normalize()         // auto contrast
-      .modulate({ brightness: 1.05, saturation: 1.1 })
-      .jpeg({ quality: 92 })
-      .toBuffer();
-    res.json({ imageBase64: enhanced.toString('base64') });
-  } catch (err) {
-    console.error('Enhance error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // ── Payment endpoints ──
 import Stripe from 'stripe';
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
-app.post('/api/create-payment-intent', async (req, res) => {
-  if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured on Railway' });
+// Server-side product catalog — lookup real prices, never trust the client.
+const SERVER_PRODUCTS = [
+  { id: "brasil02", name: "Brasil '02 Jersey", price: 42 },
+  { id: "azzurri", name: "Azzurri Retro Jersey", price: 45 },
+  { id: "meshtop", name: "Mesh Training Top", price: 34 },
+  { id: "terrypolo", name: "Terry Polo Set", price: 52 },
+  { id: "cottonpolo", name: "Cotton Pique Polo", price: 38 },
+  { id: "stripedpolo", name: "Striped Rugby Polo", price: 44 },
+  { id: "vintageknit", name: "Vintage Knit Jumper", price: 55 },
+  { id: "crewneck", name: "Retro Crewneck", price: 48 },
+  { id: "cardigan", name: "Argyle Cardigan", price: 58 },
+  { id: "velour94", name: "Velour Tracksuit '94", price: 68 },
+  { id: "shellcobalt", name: "Shell Suit — Cobalt", price: 54 },
+  { id: "halfzip", name: "Windbreaker Half-Zip", price: 58 },
+  { id: "courtlo", name: "Court Classic Lo", price: 72 },
+  { id: "suede88", name: "Suede Runner '88", price: 85 },
+  { id: "hitop", name: "Hi-Top Retro", price: 78 },
+];
+
+async function lookupProductPrice(id) {
+  // 1. Check hardcoded server catalog
+  const found = SERVER_PRODUCTS.find(p => p.id === id);
+  if (found) return found.price;
+  // 2. Check Supabase custom_products
   try {
-    const { amount, currency, orderNum } = req.body;
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // convert euros to cents
-      currency: currency || 'eur',
-      metadata: { orderNum },
-      payment_method_types: ['card', 'bancontact'],
+    const url = process.env.VITE_SUPABASE_URL;
+    const key = process.env.VITE_SUPABASE_ANON_KEY;
+    if (!url || !key) return null;
+    const r = await fetch(`${url}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
-    res.json({ clientSecret: paymentIntent.client_secret });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    const data = await r.json();
+    if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
+      return data[0].price;
+    }
+  } catch {}
+  return null;
+}
 
 // Validate promo code
 app.post('/api/validate-promo', async (req, res) => {
@@ -387,16 +269,34 @@ app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured on Railway' });
   const { items, total, orderNum, email, name, address } = req.body;
   try {
-    const line_items = (items || []).map(it => ({
-      price_data: {
-        currency: 'eur',
-        product_data: { name: `${it.name}${it.size ? ` (${it.size})` : ''}` },
-        unit_amount: Math.round(it.price * 100),
-      },
-      quantity: it.qty || 1,
-    }));
-    const shipping = total - (items || []).reduce((s, it) => s + it.price * (it.qty || 1), 0);
-    if (shipping > 0) {
+    // Look up real prices server-side — never trust the client-supplied price.
+    const line_items = [];
+    const productIds = [];
+    for (const it of (items || [])) {
+      const pid = it.id || it.product_id;
+      const realPrice = pid ? await lookupProductPrice(pid) : null;
+      if (realPrice === null) {
+        return res.status(400).json({ error: `Unknown product: ${it.name || pid}` });
+      }
+      productIds.push(pid);
+      line_items.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `${it.name}${it.size ? ` (${it.size})` : ''}` },
+          unit_amount: Math.round(realPrice * 100),
+        },
+        quantity: it.qty || 1,
+      });
+    }
+    const realSubtotal = (items || []).reduce((s, it, i) => {
+      const pid = it.id || it.product_id;
+      // Reuse the price we already looked up
+      const p = SERVER_PRODUCTS.find(x => x.id === pid);
+      return s + (p ? p.price : 0) * (it.qty || 1);
+    }, 0);
+    const shipping = total - ((items || []).reduce((s, it) => s + it.price * (it.qty || 1), 0));
+    // Only add shipping if it genuinely exists and makes sense
+    if (shipping > 0 && shipping < 100) {
       line_items.push({
         price_data: {
           currency: 'eur',
@@ -405,12 +305,19 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
         quantity: 1,
       });
+    } else if ((items || []).length === 0) {
+      return res.status(400).json({ error: 'No items in order' });
     }
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items,
       customer_email: email,
-      metadata: { orderNum, customer_name: name || '', address: address || '' },
+      metadata: {
+        orderNum,
+        customer_name: name || '',
+        address: address || '',
+        product_ids: productIds.join(','),
+      },
       success_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=success&orderNum=${orderNum}`,
       cancel_url: `${process.env.BASE_URL || 'https://rewind-stores.com'}?order=cancelled`,
       payment_method_types: ['card'],
@@ -418,37 +325,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
     res.json({ url: session.url });
   } catch (err) {
     console.error('Stripe session error:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// PayPal order creation
-app.post('/api/create-paypal-order', async (req, res) => {
-  const { amount, orderNum } = req.body;
-  const PAYPAL_CLIENT = process.env.PAYPAL_CLIENT_ID;
-  const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
-  if (!PAYPAL_CLIENT || !PAYPAL_SECRET) return res.status(400).json({ error: 'PayPal keys not configured on Railway' });
-  try {
-    // Get PayPal access token
-    const auth = await fetch('https://api-m.paypal.com/v1/oauth2/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: 'Basic ' + Buffer.from(`${PAYPAL_CLIENT}:${PAYPAL_SECRET}`).toString('base64') },
-      body: 'grant_type=client_credentials',
-    });
-    const { access_token } = await auth.json();
-    if (!access_token) throw new Error('PayPal auth failed');
-    // Create order
-    const order = await fetch('https://api-m.paypal.com/v2/checkout/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access_token}` },
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [{ amount: { currency_code: 'EUR', value: amount.toFixed(2) }, reference_id: orderNum }],
-      }),
-    });
-    const data = await order.json();
-    res.json({ orderId: data.id });
-  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
