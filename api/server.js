@@ -142,7 +142,7 @@ app.post('/api/send-order', async (req, res) => {
 });
 
 // ── Campaign (admin panel) ──
-app.post('/api/send-campaign', async (req, res) => {
+app.post('/api/send-campaign', requireAdmin, async (req, res) => {
   const { emails, subject, message } = req.body;
   if (!resend) return res.json({ ok: false, sent: 0, total: emails?.length || 0, error: 'RESEND_API_KEY not configured on Railway' });
   if (!emails || !Array.isArray(emails) || emails.length === 0) {
@@ -236,22 +236,30 @@ app.post('/api/validate-promo', async (req, res) => {
   res.json({ valid: false });
 });
 
+// ── Admin: require admin token middleware ──
+function requireAdmin(req, res, next) {
+  const token = req.headers['x-admin-token'];
+  const secret = process.env.ADMIN_SECRET_TOKEN;
+  if (!secret) {
+    return res.status(500).json({ error: 'ADMIN_SECRET_TOKEN not configured on server' });
+  }
+  if (!token || token !== secret) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
 // Admin management (add/remove admins)
-app.post('/api/manage-admins', async (req, res) => {
+app.post('/api/manage-admins', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
-  const { action, email, adminEmail } = req.body;
-  // Verify the requester is an admin
-  const check = await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins?email=eq.${encodeURIComponent(adminEmail)}`, {
-    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-  });
-  const admins = await check.json();
-  if (!admins?.length) return res.status(403).json({ error: 'Not authorized' });
+  const { action, email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
 
   if (action === 'add') {
     await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins`, {
       method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ email, added_by: adminEmail }),
+      body: JSON.stringify({ email, added_by: 'admin' }),
     });
     res.json({ ok: true });
   } else if (action === 'remove') {
@@ -288,13 +296,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
         quantity: it.qty || 1,
       });
     }
-    const realSubtotal = (items || []).reduce((s, it, i) => {
-      const pid = it.id || it.product_id;
-      // Reuse the price we already looked up
-      const p = SERVER_PRODUCTS.find(x => x.id === pid);
-      return s + (p ? p.price : 0) * (it.qty || 1);
+    // Calculate subtotal from server-looked-up prices — never trust client-supplied prices
+    const realSubtotal = line_items.reduce((s, li) => {
+      return s + (li.price_data.unit_amount / 100) * li.quantity;
     }, 0);
-    const shipping = total - ((items || []).reduce((s, it) => s + it.price * (it.qty || 1), 0));
+    const shipping = total - realSubtotal;
     // Only add shipping if it genuinely exists and makes sense
     if (shipping > 0 && shipping < 100) {
       line_items.push({
@@ -413,10 +419,19 @@ app.post('/api/stripe-webhook', async (req, res) => {
         headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_num: orderNum, customer_name, email, address: address || '', items, total, status: 'paid' }),
       });
-      // Decrement stock for purchased items
-      for (const it of items) {
+      // Decrement stock for purchased items — prefer product_ids from session metadata
+      const productIdsFromMeta = session.metadata?.product_ids ? session.metadata.product_ids.split(',') : [];
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
         if (!it.name || !it.qty) continue;
-        const productName = it.name.replace(/\s*\(.*?\)\s*$/, '').trim(); // strip size from name
+        // Use product_id from metadata if available, otherwise try name match
+        const productId = productIdsFromMeta[i] || null;
+        let productName = it.name;
+        if (!productId) {
+          // Only strip trailing patterns that look like sizes (e.g. (M), (XL), (42)),
+          // NOT general parenthetical content like (1990s) or (retro).
+          productName = it.name.replace(/\s*\((\d{1,2}(\.\d)?|[Xx][SsXxLl]?[Ll]?|[Ss][Mm][Ll]?)\)\s*$/, '').trim();
+        }
         const res = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/custom_products?name=eq.${encodeURIComponent(productName)}`, {
           headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
         });
@@ -449,6 +464,8 @@ app.post('/api/stripe-webhook', async (req, res) => {
 });
 
 // ── Admin: manage blocked IPs ──
+app.use('/api/admin', requireAdmin);
+
 app.get('/api/admin/blocked-ips', async (req, res) => {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
