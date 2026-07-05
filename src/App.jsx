@@ -992,6 +992,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
   const [adminToken, setAdminToken] = useState('');
+  const [showToken, setShowToken] = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
   const [orders, setOrders] = useState([]);
@@ -1105,10 +1106,25 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               </button>
             )}
           </div>
-          <input className="rw-input" type="password" placeholder="Admin secret token" value={adminToken}
-            onChange={e => setAdminToken(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { document.getElementById('rw-admin-verify-btn')?.click(); } }}
-            style={{ width: '100%', marginBottom: '8px' }} />
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+            <input className="rw-input" type={showToken ? 'text' : 'password'} placeholder="Admin secret token" value={adminToken}
+              onChange={e => setAdminToken(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { document.getElementById('rw-admin-verify-btn')?.click(); } }}
+              style={{ flex: 1, marginBottom: 0 }} />
+            <button onClick={() => setShowToken(!showToken)}
+              type="button"
+              aria-label={showToken ? 'Hide token' : 'Show token'}
+              style={{
+                padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--line-2)',
+                background: 'var(--surface)', cursor: 'pointer', fontSize: '15px', lineHeight: 1,
+                color: showToken ? 'var(--accent)' : 'var(--muted)',
+                transition: 'all 0.15s', flexShrink: 0,
+              }}
+              onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; }}
+              onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; }}>
+              {showToken ? '🙈' : '👁️'}
+            </button>
+          </div>
           <button id="rw-admin-verify-btn" onClick={async () => {
             if (!adminEmail) return;
             if (!adminToken) { setAdminMsg('❌ Please enter your admin secret token.'); return; }
