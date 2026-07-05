@@ -4,8 +4,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+app.set('trust proxy', 1);
+app.use(helmet());
 app.use(express.json({
   limit: '1mb',
   verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
@@ -15,15 +18,12 @@ app.use(express.json({
 const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
 
 app.use(async (req, res, next) => {
-  // Only check non-API routes (block page load, not API calls)
-  if (!req.path.startsWith('/api/')) {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress;
-    if (BLOCKED_IPS.has(ip)) {
-      return res.status(403).send(`
-        <html><body style="background:#FAF6EF;display:grid;place-items:center;height:100vh;margin:0;font-family:sans-serif">
-        <div style="text-align:center"><h1 style="font-size:48px;color:#16130F;margin:0">403</h1>
-        <p style="color:#6E665A;margin-top:8px">You don't have access to this site.</p></div></body></html>`);
-    }
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress;
+  if (BLOCKED_IPS.has(ip)) {
+    return res.status(403).send(`
+      <html><body style="background:#FAF6EF;display:grid;place-items:center;height:100vh;margin:0;font-family:sans-serif">
+      <div style="text-align:center"><h1 style="font-size:48px;color:#16130F;margin:0">403</h1>
+      <p style="color:#6E665A;margin-top:8px">You don't have access to this site.</p></div></body></html>`);
   }
   next();
 });
@@ -48,7 +48,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── Verify admin email + token (server-side check) ──
-app.post('/api/verify-admin', async (req, res) => {
+app.post('/api/verify-admin', strictLimiter, async (req, res) => {
   const { email, token } = req.body;
   if (!email) return res.json({ verified: false });
   // Always require a valid admin API token — even for email verification.
@@ -132,6 +132,11 @@ function campaignHtml({ message }) {
 
 // ── Order confirmation ──
 app.post('/api/send-order', async (req, res) => {
+  const INTERNAL_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+  const clientToken = req.headers['x-internal-token'];
+  if (INTERNAL_TOKEN && (!clientToken || clientToken !== INTERNAL_TOKEN)) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
   const { email, name, items, total, address, orderNum } = req.body;
   if (!resend) return res.json({ ok: true, note: 'Resend not configured' });
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -230,7 +235,7 @@ async function lookupProductPrice(id) {
 }
 
 // Validate promo code
-app.post('/api/validate-promo', async (req, res) => {
+app.post('/api/validate-promo', strictLimiter, async (req, res) => {
   const { code } = req.body;
   if (!code) return res.json({ valid: false });
 
@@ -322,18 +327,18 @@ app.post('/api/create-checkout-session', async (req, res) => {
     const realSubtotal = line_items.reduce((s, li) => {
       return s + (li.price_data.unit_amount / 100) * li.quantity;
     }, 0);
-    const shipping = total - realSubtotal;
-    // Only add shipping if it genuinely exists and makes sense
-    if (shipping > 0 && shipping < 100) {
+    const shipping = realSubtotal >= 15000 ? 0 : 800; // 800 cents = €8
+    if (shipping > 0) {
       line_items.push({
         price_data: {
           currency: 'eur',
           product_data: { name: 'Shipping' },
-          unit_amount: Math.round(shipping * 100),
+          unit_amount: shipping,
         },
         quantity: 1,
       });
-    } else if ((items || []).length === 0) {
+    }
+    if ((items || []).length === 0) {
       return res.status(400).json({ error: 'No items in order' });
     }
     const session = await stripe.checkout.sessions.create({
@@ -664,9 +669,12 @@ app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
 
 // ── Admin: get all wishlist users ──
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?select=*&order=created_at.desc`, {
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+    const r = await fetch(`${url}/rest/v1/wishlists?select=*&order=created_at.desc`, {
+      headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
     });
     const data = await r.json();
     res.json({ users: Array.isArray(data) ? data : [] });
