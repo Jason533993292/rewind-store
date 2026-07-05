@@ -1002,6 +1002,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [savedVersion, setSavedVersion] = useState(0);
   const [cancelOrder, setCancelOrder] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [customReason, setCustomReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
 
   // Separated admin auth check from data loading so that expensive Supabase
@@ -1770,19 +1771,24 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
           onClick={() => { if (!cancelling) { setCancelOrder(null); setCancelReason(''); } }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '440px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)' }}>
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Cancel order</h3>
-            <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px' }}>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>
               {cancelOrder.order?.order_num || 'Order'} — why are you cancelling?
             </p>
             {[{id:'out_of_stock',label:'Out of stock'},{id:'damaged',label:'Damaged during handling'},{id:'customer_request',label:'Customer requested'},{id:'other',label:'Other'}].map(r => (
-              <button key={r.id} onClick={() => setCancelReason(r.id)}
-                style={{ display: 'block', width: '100%', padding: '12px 16px', marginBottom: '8px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'left', transition: 'all 0.15s' }}
+              <button key={r.id} onClick={() => { setCancelReason(r.id); if (r.id !== 'other') setCustomReason(''); }}
+                style={{ display: 'block', width: '100%', padding: '10px 14px', marginBottom: '6px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textAlign: 'left', transition: 'all 0.15s' }}
                 onMouseOver={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--line)'; } }}
                 onMouseOut={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.background = 'var(--surface)'; } }}>
                 {r.label}
               </button>
             ))}
+            {cancelReason === 'other' && (
+              <textarea placeholder="Describe why you're cancelling this order..."
+                value={customReason} onChange={e => setCustomReason(e.target.value)}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--line-2)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', minHeight: '60px', outline: 'none', boxSizing: 'border-box' }} />
+            )}
             <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <button onClick={() => { setCancelOrder(null); setCancelReason(''); }}
                 style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
@@ -1796,7 +1802,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                   const r = await fetch('/api/admin/cancel-order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
-                    body: JSON.stringify({ orderId: cancelOrder.id, reason: cancelReason }),
+                    body: JSON.stringify({ orderId: cancelOrder.id, reason: cancelReason, customReason: cancelReason === 'other' ? customReason : '' }),
                   });
                   const d = await r.json();
                   if (d.ok) {

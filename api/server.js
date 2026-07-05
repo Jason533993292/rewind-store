@@ -687,7 +687,7 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
 
 // ── Admin: cancel order ──
 app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
-  const { orderId, reason } = req.body;
+  const { orderId, reason, customReason } = req.body;
   if (!orderId || !reason) return res.status(400).json({ error: 'orderId and reason required' });
   try {
     // Update order status
@@ -708,6 +708,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
       const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
       // Generate AI-written email body based on reason
       let emailBody = '';
+      const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
       try {
         const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -716,7 +717,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
             model: 'gpt-4o-mini',
             messages: [{
               role: 'user',
-              content: `Write a short, professional, warm cancellation email for an order at REWIND vintage streetwear store. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonLabels[reason] || reason}". Explain why it was cancelled in a friendly way, mention a full refund has been initiated (5-10 business days), and offer contact at orders@rewind-stores.com for questions. Max 4 sentences. No subject line, just the body.`
+              content: `Write a short, professional, warm cancellation email for an order at REWIND vintage streetwear store. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Explain why it was cancelled in a friendly way, mention a full refund has been initiated (5-10 business days), and offer contact at orders@rewind-stores.com for questions. Max 4 sentences. No subject line, just the body.`
             }],
             max_tokens: 200,
           }),
@@ -733,6 +734,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
           other: "Your order has been cancelled as requested.",
         };
         emailBody = fallbacks[reason] || 'Your order has been cancelled.';
+        if (reason === 'other' && customReason) emailBody = customReason;
       }
       await resend.emails.send({
         from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
@@ -744,7 +746,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
             <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${order.customer_name || 'there'},</p>
             <p style="color:#6E665A;font-size:15px;line-height:1.6">
               ${emailBody}<br/><br/>
-              <b>Reason:</b> ${reasonLabels[reason] || reason}<br/><br/>
+              <b>Reason:</b> ${reasonText}<br/><br/>
               If you have any questions, reply to this email or contact us at orders@rewind-stores.com.
             </p>
             <p style="color:#6E665A;font-size:14px;margin-top:20px">— REWIND team</p>
