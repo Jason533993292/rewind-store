@@ -2,15 +2,14 @@ import express from 'express';
 import { Resend } from 'resend';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json({
   limit: '1mb',
   verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
 }));
-
-app.use(express.static(path.join(__dirname, '..', 'dist')));
 
 // ── IP blocker middleware ──
 const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
@@ -28,6 +27,13 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+
+app.use(express.static(path.join(__dirname, '..', 'dist')));
+
+// ── Rate limiting ──
+const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
+app.use(generalLimiter);
+const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
 
 // Load blocked IPs on startup
 
@@ -61,6 +67,11 @@ app.post('/api/verify-admin', async (req, res) => {
   } catch {
     res.json({ verified: false });
   }
+});
+
+// ── Generate product description (fallback — AI was removed for security) ──
+app.post('/api/generate-description', requireAdmin, async (req, res) => {
+  res.json({ title: 'Vintage Streetwear Piece', description: 'Hand-picked vintage item. Authenticated, steam-cleaned, and ready to wear.' });
 });
 
 const RESEND_KEY = process.env.RESEND_API_KEY;
@@ -228,8 +239,8 @@ app.post('/api/validate-promo', async (req, res) => {
     'FREESHIP': { valid: true, type: 'free_shipping', value: 0 },
   };
 
-  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE || '74421';
-  if (code.toUpperCase().trim() === ADMIN_CODE.toUpperCase().trim()) {
+  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE;
+  if (code && ADMIN_CODE && code.toUpperCase().trim() === ADMIN_CODE.toUpperCase().trim()) {
     return res.json({ admin: true });
   }
 
@@ -246,7 +257,7 @@ function requireAdmin(req, res, next) {
   if (!secret) {
     return res.status(500).json({ error: 'ADMIN_SECRET_TOKEN not configured on server' });
   }
-  if (!token || token !== secret) {
+  if (!secret || !token || token.length !== secret.length || !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret))) {
     return res.status(403).json({ error: 'Unauthorized' });
   }
   next();
@@ -279,6 +290,14 @@ app.post('/api/manage-admins', requireAdmin, async (req, res) => {
 app.post('/api/create-checkout-session', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured on Railway' });
   const { items, total, orderNum, email, name, address } = req.body;
+  // Check if email is blocked
+  try {
+    const br = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email)}`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    const bd = await br.json();
+    if (Array.isArray(bd) && bd.length > 0) return res.status(403).json({ error: 'Email is blocked' });
+  } catch {}
   try {
     // Look up real prices server-side — never trust the client-supplied price.
     const line_items = [];
@@ -339,7 +358,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 });
 
 // ── Get orders by email ──
-app.post('/api/get-orders', async (req, res) => {
+app.post('/api/get-orders', requireAdmin, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -353,10 +372,11 @@ app.post('/api/get-orders', async (req, res) => {
   }
 });
 
-// ── Save order to Supabase ──
-app.post('/api/save-order', async (req, res) => {
-  const { orderNum, customer_name, email, address, items, total, status } = req.body;
+// ── Save order to Supabase (admin only) ──
+app.post('/api/save-order', requireAdmin, async (req, res) => {
+  const { orderNum, customer_name, email, address, items, total } = req.body;
   if (!orderNum) return res.status(400).json({ error: 'No order number' });
+  // Force status to 'pending' — never trust client-supplied status
   try {
     const response = await fetch(
       `${SUPABASE_URL}/rest/v1/orders`,
@@ -375,7 +395,7 @@ app.post('/api/save-order', async (req, res) => {
           address,
           items: JSON.stringify(items),
           total,
-          status: status || 'pending',
+          status: 'pending',
         }),
       }
     );
@@ -687,6 +707,12 @@ app.post('/api/admin/orders/update-status', requireAdmin, async (req, res) => {
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 }
+
+// ── Global error handler ──
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.message);
+  res.status(500).json({ error: 'Internal error' });
+});
 
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
