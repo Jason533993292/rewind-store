@@ -144,13 +144,36 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
   );
 }
 
+/* ---------- TypingText (inline for no import breakage) ---------- */
+export function TypingText({ texts, typingSpeed = 60, pauseDuration = 3000 }) {
+  const [text, setText] = useState('');
+  const [ti, setTi] = useState(0);
+  const [ci, setCi] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  useEffect(() => {
+    if (!texts?.length) return;
+    const current = texts[ti];
+    const t = setTimeout(() => {
+      if (!deleting) {
+        if (ci < current.length) { setText(current.slice(0, ci + 1)); setCi(c => c + 1); }
+        else setTimeout(() => setDeleting(true), pauseDuration);
+      } else {
+        if (ci > 0) { setText(current.slice(0, ci - 1)); setCi(c => c - 1); }
+        else { setDeleting(false); setTi((ti + 1) % texts.length); }
+      }
+    }, deleting ? typingSpeed / 2 : typingSpeed);
+    return () => clearTimeout(t);
+  }, [ci, deleting, ti, texts, typingSpeed, pauseDuration]);
+  return <span>{text}<span className="type-cursor">|</span></span>;
+}
+
 /* ---------- Hero ---------- */
 export function Hero({ onShop }) {
   return (
     <section className="rw-hero">
       <div className="rw-hero-copy">
         <div className="rw-hero-kicker"><Icon name="bolt" size={13} /> Summer '26 · Vol. 04</div>
-        <h1 className="rw-hero-title">Worn once.<br/>Loved again.</h1>
+        <h1 className="rw-hero-title"><TypingText texts={["Worn once. Loved again.", "Curated vintage, authenticated.", "Shipped in 24 hours.", "One of each — gone for good."]} /></h1>
         <p className="rw-hero-sub">
           Hand-picked vintage tracksuits, retro jerseys & summer sets. Authenticated,
           cleaned, and shipped in 24 hours. One of each — when it's gone, it's gone.
