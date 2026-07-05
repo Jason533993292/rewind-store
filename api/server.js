@@ -258,9 +258,9 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 // ── Admin: require admin token middleware ──
 function requireAdmin(req, res, next) {
   const token = req.headers['x-admin-token'];
-  const secret = process.env.ADMIN_SECRET_TOKEN;
+  const secret = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
   if (!secret) {
-    return res.status(500).json({ error: 'ADMIN_SECRET_TOKEN not configured on server' });
+    return res.status(500).json({ error: 'Admin token not configured on server' });
   }
   if (!secret || !token || token.length !== secret.length || !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret))) {
     return res.status(403).json({ error: 'Unauthorized' });
