@@ -145,7 +145,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
 }
 
 /* ---------- TypingText (inline for no import breakage) ---------- */
-export function TypingText({ texts, typingSpeed = 60, pauseDuration = 3000 }) {
+export function TypingText({ texts, typingSpeed = 80, deleteSpeed = 40, pauseDuration = 2500 }) {
   const [text, setText] = useState('');
   const [ti, setTi] = useState(0);
   const [ci, setCi] = useState(0);
@@ -153,6 +153,7 @@ export function TypingText({ texts, typingSpeed = 60, pauseDuration = 3000 }) {
   useEffect(() => {
     if (!texts?.length) return;
     const current = texts[ti];
+    const speed = deleting ? deleteSpeed : typingSpeed;
     const t = setTimeout(() => {
       if (!deleting) {
         if (ci < current.length) { setText(current.slice(0, ci + 1)); setCi(c => c + 1); }
@@ -161,10 +162,10 @@ export function TypingText({ texts, typingSpeed = 60, pauseDuration = 3000 }) {
         if (ci > 0) { setText(current.slice(0, ci - 1)); setCi(c => c - 1); }
         else { setDeleting(false); setTi((ti + 1) % texts.length); }
       }
-    }, deleting ? typingSpeed / 2 : typingSpeed);
+    }, speed);
     return () => clearTimeout(t);
-  }, [ci, deleting, ti, texts, typingSpeed, pauseDuration]);
-  return <span>{text}<span className="type-cursor">|</span></span>;
+  }, [ci, deleting, ti, texts, typingSpeed, deleteSpeed, pauseDuration]);
+  return <span className="type-wrap">{text}<span className="type-cursor">|</span></span>;
 }
 
 /* ---------- Hero ---------- */

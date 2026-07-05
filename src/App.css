@@ -153,7 +153,10 @@ a { color: inherit; cursor: pointer; }
   font-weight: 600; font-size: 13px; text-transform: uppercase;
   letter-spacing: .12em; color: var(--accent); margin-bottom: 18px;
 }
-.rw-hero-title { font-size: clamp(46px,6.6vw,88px); font-weight: 800; letter-spacing: -.045em; }
+.rw-hero-title { font-size: clamp(46px,6.6vw,88px); font-weight: 800; letter-spacing: -.045em; min-height: 1.35em; }
+.type-wrap { display: inline-block; min-width: 1ch; }
+.type-cursor { animation: blink-cursor 0.7s step-end infinite; color: var(--accent); font-weight: 100; margin-left: 1px; }
+@keyframes blink-cursor { 50% { opacity: 0; } }
 .rw-hero-sub {
   font-size: 17.5px; color: var(--muted); max-width: 30ch;
   margin: 20px 0 28px; line-height: 1.55; text-wrap: pretty;

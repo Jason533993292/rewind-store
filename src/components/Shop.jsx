@@ -5,7 +5,7 @@ import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import { deleteCustomProduct } from '../lib/supabase';
 
 /* ---------- ProductCard ---------- */
-export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect }) {
+export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, onCart }) {
   const low = p.stock > 0 && p.stock <= 5;
   const soldOut = p.stock === 0;
   const [added, setAdded] = useState(false);
@@ -38,7 +38,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           </div>
           {added ? (
             <button className="rw-add" style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-              onClick={() => onSelect ? onSelect(p) : onQuick(p)} aria-label="View in bag">
+              onClick={onCart} aria-label="View in bag">
               <Icon name="bag" size={16} />
             </button>
           ) : (
@@ -60,7 +60,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
 }
 
 /* ---------- ProductGrid ---------- */
-export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, activeCat, activeBrand, ...rest }) {
+export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, activeCat, activeBrand, onCart, ...rest }) {
   if (products.length === 0) {
     const hasQuery = query && query.trim();
     const hasBrand = activeBrand;
@@ -109,7 +109,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
         <div className="rw-grid">
           {sorted.map((p) => (
             <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id || p.product_id)} onWishlist={onWishlist}
-              showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
+              showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} onCart={onCart} />
           ))}
         </div>
       </div>
@@ -149,7 +149,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
           <div className="rw-grid" style={{ marginBottom: '8px' }}>
             {s.items.map((p) => (
               <ProductCard key={p.id || p.product_id} p={p} wishlisted={wishlist?.includes(p.id || p.product_id)} onWishlist={onWishlist}
-                showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} />
+                showCompare={rest.showCompare} showStock={rest.showStock} onQuick={rest.onQuick} onAdd={rest.onAdd} onSelect={rest.onSelect} onCart={onCart} />
             ))}
           </div>
         </div>
