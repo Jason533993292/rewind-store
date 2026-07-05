@@ -757,6 +757,11 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled', cancel_reason: reason, cancelled_at: new Date().toISOString() }),
     });
+    if (!r.ok) {
+      const errBody = await r.text();
+      console.error('Supabase PATCH failed:', errBody);
+      return res.status(500).json({ error: 'Failed to update order in database' });
+    }
     // Fetch order details for the email
     const orderData = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
