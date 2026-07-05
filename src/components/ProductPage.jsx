@@ -8,6 +8,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
   const [qty, setQty] = useState(1);
   const [selectedImg, setSelectedImg] = useState(0);
   const [added, setAdded] = useState(false);
+  const [showAdminMenu, setShowAdminMenu] = useState(false);
 
   // Reset selected thumbnail when navigating to a different product
   useEffect(() => { setSelectedImg(0); setSize(null); setQty(1); setAdded(false); }, [p?.id || p?.product_id]);
@@ -29,15 +30,12 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
 
       {!!localStorage.getItem('rw_admin_email') && (
         <div style={{ float: 'right', marginTop: '8px', position: 'relative' }}>
-          <button onClick={(e) => {
-            const menu = e.target.nextElementSibling;
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-          }}
+          <button onClick={() => setShowAdminMenu(v => !v)}
             style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
             ⋮
           </button>
-          <div onClick={e => e.stopPropagation()}
-            style={{ display: 'none', position: 'absolute', top: '36px', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
+          {showAdminMenu && <div onClick={e => e.stopPropagation()}
+            style={{ position: 'absolute', top: '36px', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
             <button onClick={() => {
               const id = p.id || p.product_id;
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');

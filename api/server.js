@@ -704,6 +704,12 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
     // Send cancellation email
     if (order?.email && resend) {
       const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
+      const reasonMessages = {
+        out_of_stock: "Unfortunately, the item you ordered is out of stock and we're unable to fulfill it.",
+        damaged: "Unfortunately, the item was damaged during handling and we cannot send it out.",
+        customer_request: "You requested cancellation of this order.",
+        other: "Your order has been cancelled as requested.",
+      };
       await resend.emails.send({
         from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
         subject: `Order ${order.order_num} cancelled — refund initiated`,
@@ -713,9 +719,9 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
             <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Order cancelled</h2>
             <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${order.customer_name || 'there'},</p>
             <p style="color:#6E665A;font-size:15px;line-height:1.6">
-              We're sorry, but your order <b>${order.order_num}</b> has been cancelled.<br/><br/>
-              <b>Reason:</b> ${reasonLabels[reason] || reason}<br/><br/>
+              ${reasonMessages[reason] || 'Your order has been cancelled.'}<br/><br/>
               A full refund has been initiated. You will see the amount back in your account within 5-10 business days.<br/><br/>
+              <b>Reason:</b> ${reasonLabels[reason] || reason}<br/><br/>
               If you have any questions, reply to this email or contact us at orders@rewind-stores.com.
             </p>
             <p style="color:#6E665A;font-size:14px;margin-top:20px">— REWIND team</p>
