@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.0';
+const VERSION = 'V7.1.1';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -989,6 +989,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [adminTab, setAdminTab] = useState('users');
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
+  const [adminToken, setAdminToken] = useState('');
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
   const [orders, setOrders] = useState([]);
@@ -1080,7 +1081,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
       {!adminChecking && !adminAuthed && (
         <div style={{ maxWidth: '400px', margin: '60px auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>🔐 Admin Access</h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your email to access the admin panel.</p>
+          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your admin email and secret token.</p>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
             <input className="rw-input" placeholder="your@email.com" value={adminEmail}
               onChange={e => setAdminEmail(e.target.value)}
@@ -1089,6 +1090,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               <button onClick={() => {
                 localStorage.removeItem('rw_admin_email');
                 localStorage.removeItem('rw_admin_saved');
+                localStorage.removeItem('rw_admin_token');
                 setAdminEmail('');
                 setAdminMsg('✅ Stored email cleared');
               }}
@@ -1100,8 +1102,12 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               </button>
             )}
           </div>
+          <input className="rw-input" type="password" placeholder="Admin secret token" value={adminToken}
+            onChange={e => setAdminToken(e.target.value)}
+            style={{ width: '100%', marginBottom: '8px' }} />
           <button onClick={async () => {
             if (!adminEmail) return;
+            if (!adminToken) { setAdminMsg('❌ Please enter your admin secret token.'); return; }
             setAdminMsg('');
             try {
               const r = await fetch('/api/verify-admin', {
@@ -1112,6 +1118,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               const d = await r.json();
               if (d.verified) {
                 localStorage.setItem('rw_admin_email', adminEmail);
+                localStorage.setItem('rw_admin_token', adminToken);
                 setAdminAuthed(true);
               } else {
                 setAdminMsg('❌ Access denied. This email is not on the admin list.');

@@ -76,7 +76,7 @@ export async function signupUser(email, marketingOptin) {
   if (error) console.warn('Supabase signup:', error.message);
 }
 
-/* ── Custom Products API ── */
+/* ── Custom Products API (read-only public; write operations route through server API) ── */
 
 export async function getCustomProducts() {
   if (!supabase) return [];
@@ -88,68 +88,118 @@ export async function getCustomProducts() {
   return data || [];
 }
 
+/* ── Admin-only operations (route through server API with admin token) ── */
+
+function getAdminToken() {
+  try {
+    return localStorage.getItem('rw_admin_token') || '';
+  } catch { return ''; }
+}
+
 export async function addCustomProduct(product) {
-  if (!supabase) return null;
-  const { data, error } = await supabase
-    .from('custom_products')
-    .insert(product)
-    .select()
-    .single();
-  if (error) { console.warn('addCustomProduct:', error.message); return null; }
-  return data;
+  const token = getAdminToken();
+  if (!token) return null;
+  try {
+    const r = await fetch('/api/admin/products/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      body: JSON.stringify(product),
+    });
+    const d = await r.json();
+    return d.data || null;
+  } catch { return null; }
 }
 
 export async function updateCustomProduct(productId, updates) {
-  if (!supabase) return null;
-  const { data, error } = await supabase
-    .from('custom_products')
-    .update(updates)
-    .eq('product_id', productId)
-    .select()
-    .single();
-  if (error) { console.warn('updateCustomProduct:', error.message); return null; }
-  return data;
+  const token = getAdminToken();
+  if (!token) return null;
+  try {
+    const r = await fetch('/api/admin/products/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      body: JSON.stringify({ product_id: productId, ...updates }),
+    });
+    const d = await r.json();
+    return d.data || null;
+  } catch { return null; }
 }
 
 export async function deleteCustomProduct(id) {
-  if (!supabase) return false;
-  const { error } = await supabase
-    .from('custom_products')
-    .delete()
-    .eq('id', id);
-  if (error) { console.warn('deleteCustomProduct:', error.message); return false; }
-  return true;
+  const token = getAdminToken();
+  if (!token) return false;
+  try {
+    const r = await fetch('/api/admin/products/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      body: JSON.stringify({ id }),
+    });
+    const d = await r.json();
+    return d.ok === true;
+  } catch { return false; }
 }
 
 export async function uploadProductImage(file, productId) {
-  if (!supabase) return null;
-  const ext = file.name.split('.').pop() || 'webp';
-  const path = `${productId}.${ext}`;
-  const { error } = await supabase.storage
-    .from('product-images')
-    .upload(path, file, { upsert: true });
-  if (error) { console.warn('uploadProductImage:', error.message); return null; }
-  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
-  return data?.publicUrl || null;
+  const token = getAdminToken();
+  if (!token) return null;
+  try {
+    // Convert file to base64 on the client
+    const b64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        // Strip data: URL prefix if present
+        const base64 = typeof result === 'string' ? result.split(',')[1] || result : result;
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const ext = file.name.split('.').pop() || 'webp';
+    const r = await fetch('/api/admin/products/upload-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      body: JSON.stringify({ productId, imageBase64: b64, ext }),
+    });
+    const d = await r.json();
+    return d.url || null;
+  } catch { return null; }
 }
 
-/* ── Orders API ── */
+/* ── Orders API (admin-only, route through server API) ── */
 
 export async function saveOrder(order) {
-  if (!supabase) return null;
-  const { data, error } = await supabase.from('orders').insert(order).select().single();
-  if (error) { console.warn('saveOrder:', error.message); return null; }
-  return data;
+  // This is called from the checkout flow — route through server API
+  try {
+    const r = await fetch('/api/save-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const d = await r.json();
+    return d.ok ? order : null;
+  } catch { return null; }
 }
 
 export async function getOrders() {
-  if (!supabase) return [];
-  const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-  if (error) { console.warn('getOrders:', error.message); return []; }
-  return data || [];
+  const token = getAdminToken();
+  if (!token) return [];
+  try {
+    const r = await fetch('/api/admin/orders', {
+      headers: { 'x-admin-token': token },
+    });
+    const d = await r.json();
+    return d.orders || [];
+  } catch { return []; }
 }
 
 export async function updateOrderStatus(id, status) {
-  if (!supabase) return;
-  await supabase.from('orders').update({ status }).eq('id', id);
+  const token = getAdminToken();
+  if (!token) return;
+  try {
+    await fetch('/api/admin/orders/update-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      body: JSON.stringify({ id, status }),
+    });
+  } catch {}
 }
