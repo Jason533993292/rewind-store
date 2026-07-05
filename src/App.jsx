@@ -1016,7 +1016,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
       fetch('/api/verify-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: saved })
+        body: JSON.stringify({ email: saved, token: localStorage.getItem('rw_admin_token') })
       }).then(r => r.json()).then(d => {
         if (d.verified) setAdminAuthed(true);
         setAdminChecking(false);
@@ -1054,8 +1054,24 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   }, [customProducts]);
 
   async function toggleBlockUser(email, blocked) {
-    if (!supabase) return;
-    await supabase.from('wishlists').upsert({ email, blocked }, { onConflict: 'email' });
+    const msg = blocked ? 'Block this user from the store?' : 'Unblock this user?';
+    if (!window.confirm(msg)) return;
+    try {
+      if (blocked) {
+        await fetch('/api/admin/block-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
+          body: JSON.stringify({ email })
+        });
+      } else {
+        await fetch('/api/admin/unblock-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
+          body: JSON.stringify({ email })
+        });
+      }
+    } catch {}
+    // Optimistic UI update — reload data from server
     setUsers(prev => prev.map(u => u.email === email ? { ...u, blocked } : u));
   }
 
@@ -1144,7 +1160,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               const r = await fetch('/api/verify-admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: adminEmail })
+                body: JSON.stringify({ email: adminEmail, token: adminToken })
               });
               const d = await r.json();
               if (d.verified) {
@@ -1334,7 +1350,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               </button>
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '8px' }}>
-              Current admins: {users.filter(u => u.blocked !== true).length} users · Add a team member's email above to grant them admin access
+              Enter a team member's email above to grant them admin access
             </div>
           </div>
 

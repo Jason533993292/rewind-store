@@ -41,10 +41,14 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// ── Verify admin email (server-side check — not client-side Supabase query) ──
+// ── Verify admin email + token (server-side check) ──
 app.post('/api/verify-admin', async (req, res) => {
-  const { email } = req.body;
+  const { email, token } = req.body;
   if (!email) return res.json({ verified: false });
+  // Always require a valid admin API token — even for email verification.
+  // Prevents email-only enumeration/brute-forcing of admin accounts.
+  const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN;
+  if (!ADMIN_TOKEN || !token || ADMIN_TOKEN !== token) return res.json({ verified: false });
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const url = process.env.VITE_SUPABASE_URL;
