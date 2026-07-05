@@ -67,7 +67,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ✏️ Edit
             </button>
-          </div>
+          </div>}
         </div>
       )}
 

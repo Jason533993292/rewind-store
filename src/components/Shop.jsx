@@ -161,6 +161,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
 /* ---------- QuickView ---------- */
 export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
   const [size, setSize] = useState(null);
+  const [showQvMenu, setShowQvMenu] = useState(false);
   // Reset size selection when the product changes — prevents stale size
   // from a previous product (e.g. shoe size "42" persisting after switching
   // to a jersey with S/M/L/XL sizes).
@@ -174,15 +175,12 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
         <button className="rw-modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
         {!!localStorage.getItem('rw_admin_email') && (
         <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 20 }}>
-          <button onClick={(e) => { e.stopPropagation();
-            const menu = e.target.nextElementSibling;
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-          }}
+          <button onClick={(e) => { e.stopPropagation(); setShowQvMenu(v => !v); }}
             style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
             ⋮
           </button>
-          <div onClick={e => e.stopPropagation()}
-            style={{ display: 'none', position: 'absolute', top: '32px', left: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
+          {showQvMenu && <div onClick={e => e.stopPropagation()}
+            style={{ position: 'absolute', top: '32px', left: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', minWidth: '120px', zIndex: 30 }}>
             <button onClick={() => {
               const id = p.id || p.product_id;
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
@@ -214,7 +212,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
               style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ✏️ Edit
             </button>
-          </div>
+          </div>}
         </div>
         )}
         <div className="rw-modal-media">
