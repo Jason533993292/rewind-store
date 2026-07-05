@@ -24,7 +24,7 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
           👁 Recently viewed
         </h3>
         <button
-          onClick={() => onClear(items)}
+          onClick={onClear}
           style={{ fontSize: '12px' }}
           className="rw-txt-btn"
           aria-label="Clear recently viewed items"

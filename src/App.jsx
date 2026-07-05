@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.6';
+const VERSION = 'V7.1.7';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -288,10 +288,14 @@ export default function App() {
     }
   }, [showToast]);
 
-  const handleRecentlyViewedClear = useCallback((items) => {
-    // Buffer the current list so Undo can restore everything
-    recentlyViewedBufferRef.current = items;
-    setRecentlyViewed([]);
+  const handleRecentlyViewedClear = useCallback(() => {
+    setRecentlyViewed((prev) => {
+      // Buffer the ENTIRE list from state (not the child's filtered `items` arg)
+      // so Undo can restore every item including the current product when the
+      // user clicks "Clear" from the product detail page.
+      recentlyViewedBufferRef.current = [...prev];
+      return [];
+    });
     if (recentlyViewedTimerRef.current) clearTimeout(recentlyViewedTimerRef.current);
     recentlyViewedTimerRef.current = setTimeout(() => { recentlyViewedBufferRef.current = []; }, 2800);
     showToast('Recently viewed cleared', {
