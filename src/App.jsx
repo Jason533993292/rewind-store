@@ -1905,16 +1905,17 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
             <div style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
               <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>💰 Refund steps</div>
               <div style={{ fontSize: '14px', color: 'var(--ink)', lineHeight: '1.8' }}>
-                1. Open <b>Stripe Dashboard</b> → <b>Payments</b><br/>
-                2. Search for <b>{cancelledOrderNum}</b><br/>
-                3. Click the payment → <b>Refund</b><br/>
-                4. Select <b>Full refund</b> → <b>Confirm</b><br/>
-                5. Customer gets the refund in <b>5-10 business days</b>
+                1. Click <b>"Search in Stripe"</b> below (opens with order pre-filled)<br/>
+                2. Find the payment → Click <b>Refund</b><br/>
+                3. Select <b>Full refund</b> → <b>Confirm</b><br/>
+                4. Customer sees the refund in <b>5-10 business days</b>
               </div>
             </div>
-            <button onClick={() => { window.open('https://dashboard.stripe.com/payments', '_blank'); }}
-              style={{ display: 'block', width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px', marginBottom: '10px', transition: 'all 0.15s' }}>
-              🔗 Open Stripe Dashboard
+            <button onClick={() => { window.open(`https://dashboard.stripe.com/payments?query=${encodeURIComponent(cancelledOrderNum)}`, '_blank'); }}
+              style={{ display: 'block', width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px', marginBottom: '10px', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.target.style.background = '#E04400'; }}
+              onMouseOut={e => { e.target.style.background = 'var(--accent)'; }}>
+              🔍 Search &ldquo;{cancelledOrderNum}&rdquo; in Stripe
             </button>
             <button onClick={() => { setShowRefundSteps(false); setCancelOrder(null); setCancelReason(''); setCustomReason(''); setPreviewEmail(''); }}
               style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
