@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.1';
+const VERSION = 'V7.1.2';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -189,7 +189,7 @@ export default function App() {
   // Mouse-following glow
   useEffect(() => {
     const glow = document.createElement('div');
-    glow.style.cssText = 'position:fixed;top:0;left:0;width:600px;height:600px;border-radius:50%;pointer-events:none;z-index:9999;background:radial-gradient(circle,rgba(255,77,20,.06) 0%,transparent 70%);transform:translate(-50%,-50%);transition:opacity .3s';
+    glow.style.cssText = `position:fixed;top:0;left:0;width:600px;height:600px;border-radius:50%;pointer-events:none;z-index:9999;background:radial-gradient(circle,color-mix(in oklab, var(--accent) 6%, transparent) 0%,transparent 70%);transform:translate(-50%,-50%);transition:opacity .3s`;
     document.body.appendChild(glow);
     const onMove = (e) => { glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px'; glow.style.opacity = '1'; };
     const onLeave = () => { glow.style.opacity = '0'; };

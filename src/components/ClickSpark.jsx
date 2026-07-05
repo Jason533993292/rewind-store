@@ -65,7 +65,7 @@ const ClickSpark = ({
         const y1 = spark.y + distance * Math.sin(spark.angle);
         const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
         const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
-        ctx.strokeStyle = sparkColor;
+        ctx.strokeStyle = spark.color || sparkColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -86,8 +86,12 @@ const ClickSpark = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const now = performance.now();
+    // Read the current accent color from CSS custom property so click sparks
+    // respond to the Tweaks panel accent color (previously hardcoded #FF4D14).
+    const currentAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || sparkColor;
     const newSparks = Array.from({ length: sparkCount }, (_, i) => ({
-      x, y, angle: (2 * Math.PI * i) / sparkCount, startTime: now
+      x, y, angle: (2 * Math.PI * i) / sparkCount, startTime: now,
+      color: currentAccent,
     }));
     sparksRef.current.push(...newSparks);
   };
