@@ -642,7 +642,20 @@ app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Admin: orders ──
+// ── Admin: get all wishlist users ──
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?select=*&order=created_at.desc`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+    });
+    const data = await r.json();
+    res.json({ users: Array.isArray(data) ? data : [] });
+  } catch {
+    res.json({ users: [] });
+  }
+});
+
+// ── Admin: get all orders ──
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const url = process.env.VITE_SUPABASE_URL;

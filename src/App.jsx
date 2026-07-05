@@ -673,15 +673,17 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  // Check if current user is blocked
+  // Check if current user is blocked via server endpoint
   useEffect(() => {
-    if (!supabase || adminMode) return;
     const email = localStorage.getItem('rw_email');
-    if (!email) return;
-    supabase.from('wishlists').select('blocked').eq('email', email).single()
-      .then(({ data }) => {
-        if (data?.blocked) setBlocked(true);
-      });
+    if (!email || adminMode) return;
+    fetch('/api/check-blocked-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    }).then(r => r.json()).then(d => {
+      if (d.blocked) setBlocked(true);
+    }).catch(() => {});
   }, [adminMode]);
 
   if (adminMode) return <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />;
@@ -1028,13 +1030,14 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
 
   // Only load users, orders, and custom products after admin auth is confirmed
   useEffect(() => {
-    if (!adminAuthed || !supabase) return;
-    supabase.from('wishlists').select('*').order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) setUsers(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    if (!adminAuthed) return;
+    // Fetch users, products, and orders through server API (not direct Supabase)
+    fetch('/api/admin/users', {
+      headers: { 'x-admin-token': localStorage.getItem('rw_admin_token') }
+    }).then(r => r.json()).then(d => {
+      if (d.users) setUsers(d.users);
+      setLoading(false);
+    }).catch(() => setLoading(false));
     getCustomProducts().then(setCustomProducts).catch(() => {});
     getOrders().then(setOrders).catch(() => {});
   }, [adminAuthed]);

@@ -31416,11 +31416,15 @@ function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
   reactExports.useEffect(() => {
-    if (!supabase || adminMode) return;
     const email = localStorage.getItem("rw_email");
-    if (!email) return;
-    supabase.from("wishlists").select("blocked").eq("email", email).single().then(({ data }) => {
-      if (data == null ? void 0 : data.blocked) setBlocked(true);
+    if (!email || adminMode) return;
+    fetch("/api/check-blocked-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    }).then((r2) => r2.json()).then((d) => {
+      if (d.blocked) setBlocked(true);
+    }).catch(() => {
     });
   }, [adminMode]);
   if (adminMode) return /* @__PURE__ */ jsxRuntimeExports.jsx(AdminPanel, { onExit: () => {
@@ -31983,9 +31987,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
     }
   }, []);
   reactExports.useEffect(() => {
-    if (!adminAuthed || !supabase) return;
-    supabase.from("wishlists").select("*").order("created_at", { ascending: false }).then(({ data, error }) => {
-      if (!error && data) setUsers(data);
+    if (!adminAuthed) return;
+    fetch("/api/admin/users", {
+      headers: { "x-admin-token": localStorage.getItem("rw_admin_token") }
+    }).then((r2) => r2.json()).then((d) => {
+      if (d.users) setUsers(d.users);
       setLoading(false);
     }).catch(() => setLoading(false));
     getCustomProducts().then(setCustomProducts).catch(() => {
