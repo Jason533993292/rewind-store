@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.3';
+const VERSION = 'V7.1.4';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1081,11 +1081,12 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
       {!adminChecking && !adminAuthed && (
         <div style={{ maxWidth: '400px', margin: '60px auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>🔐 Admin Access</h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your admin email and secret token.</p>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
-            <input className="rw-input" placeholder="your@email.com" value={adminEmail}
-              onChange={e => setAdminEmail(e.target.value)}
-              style={{ flex: 1 }} />
+        <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your admin email and secret token.</p>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+          <input className="rw-input" placeholder="your@email.com" value={adminEmail}
+            onChange={e => setAdminEmail(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { document.getElementById('rw-admin-verify-btn')?.click(); } }}
+            style={{ flex: 1 }} />
             {localStorage.getItem('rw_admin_email') && (
               <button onClick={() => {
                 localStorage.removeItem('rw_admin_email');
@@ -1104,8 +1105,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           </div>
           <input className="rw-input" type="password" placeholder="Admin secret token" value={adminToken}
             onChange={e => setAdminToken(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { document.getElementById('rw-admin-verify-btn')?.click(); } }}
             style={{ width: '100%', marginBottom: '8px' }} />
-          <button onClick={async () => {
+          <button id="rw-admin-verify-btn" onClick={async () => {
             if (!adminEmail) return;
             if (!adminToken) { setAdminMsg('❌ Please enter your admin secret token.'); return; }
             setAdminMsg('');
