@@ -185,6 +185,18 @@ export default function App() {
     return () => { document.body.style.overflow = ''; };
   }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen]);
 
+  // Mouse-following glow
+  useEffect(() => {
+    const glow = document.createElement('div');
+    glow.style.cssText = 'position:fixed;top:0;left:0;width:600px;height:600px;border-radius:50%;pointer-events:none;z-index:9999;background:radial-gradient(circle,rgba(255,77,20,.06) 0%,transparent 70%);transform:translate(-50%,-50%);transition:opacity .3s';
+    document.body.appendChild(glow);
+    const onMove = (e) => { glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px'; glow.style.opacity = '1'; };
+    const onLeave = () => { glow.style.opacity = '0'; };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseleave', onLeave);
+    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseleave', onLeave); glow.remove(); };
+  }, []);
+
   // Close modals/drawers on Escape key
   useEffect(() => {
     const onKey = (e) => {
