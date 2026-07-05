@@ -241,6 +241,7 @@ export default function App() {
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
 
+  const promoCloseTimerRef = useRef(null);
   // ── ALL new state vars for modals/panels MUST go above this line ──
   // succession so the final toast Undo restores ALL of them, not just the last.
   const pendingRestoreRef = useRef([]);
