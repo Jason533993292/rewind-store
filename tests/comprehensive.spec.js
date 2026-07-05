@@ -497,6 +497,118 @@ test.describe('Backend API endpoints', () => {
   });
 });
 
+// ── Recently viewed ─────────────────────────────────────────────
+test.describe('Recently viewed', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(BASE, { waitUntil: 'networkidle' });
+  });
+
+  test('viewing product detail adds it to recently viewed section', async ({ page }) => {
+    const firstCard = page.locator('.rw-card').first();
+    const count = await firstCard.count();
+    if (count === 0) return;
+
+    // Navigate to product detail page by clicking the card name
+    await firstCard.scrollIntoViewIfNeeded();
+    const productName = await firstCard.locator('h3').textContent();
+    await firstCard.locator('h3').click();
+    await page.waitForTimeout(600);
+
+    // Verify on product detail page
+    await expect(page.locator('.rw-product-page')).toBeVisible({ timeout: 3000 });
+
+    // Go back to shop
+    await page.locator('button:has-text("← Back to shop")').click();
+    await page.waitForTimeout(600);
+
+    // Recently viewed section should appear
+    const recentScroll = page.locator('.rw-recent-scroll');
+    await expect(recentScroll).toBeVisible({ timeout: 3000 });
+
+    // Should contain the product we just viewed
+    await expect(recentScroll.locator('.rw-recent-item').first()).toContainText(productName || '');
+  });
+
+  test('clicking recently viewed item navigates to product detail', async ({ page }) => {
+    const firstCard = page.locator('.rw-card').first();
+    if (await firstCard.count() === 0) return;
+
+    // First, add a product to recently viewed
+    await firstCard.scrollIntoViewIfNeeded();
+    await firstCard.locator('h3').click();
+    await page.waitForTimeout(600);
+    await page.locator('button:has-text("← Back to shop")').click();
+    await page.waitForTimeout(600);
+
+    // Recently viewed should be visible
+    const recentScroll = page.locator('.rw-recent-scroll');
+    await expect(recentScroll).toBeVisible({ timeout: 3000 });
+
+    // Click the first recently viewed item
+    const firstRecent = recentScroll.locator('.rw-recent-item').first();
+    const recentName = await firstRecent.locator('div').first().textContent();
+    await firstRecent.click();
+    await page.waitForTimeout(600);
+
+    // Should navigate to product detail page
+    await expect(page.locator('.rw-product-page')).toBeVisible({ timeout: 3000 });
+    if (recentName) {
+      await expect(page.locator('.rw-product-page')).toContainText(recentName, { timeout: 3000 });
+    }
+  });
+
+  test('remove individual item from recently viewed', async ({ page }) => {
+    const firstCard = page.locator('.rw-card').first();
+    if (await firstCard.count() === 0) return;
+
+    // Add a product to recently viewed
+    await firstCard.scrollIntoViewIfNeeded();
+    await firstCard.locator('h3').click();
+    await page.waitForTimeout(600);
+    await page.locator('button:has-text("← Back to shop")').click();
+    await page.waitForTimeout(600);
+
+    // Count items before removal
+    const recentScroll = page.locator('.rw-recent-scroll');
+    await expect(recentScroll).toBeVisible({ timeout: 3000 });
+    const beforeCount = await recentScroll.locator('.rw-recent-item').count();
+    expect(beforeCount).toBeGreaterThanOrEqual(1);
+
+    // Remove the first item
+    const removeBtn = recentScroll.locator('.rw-recent-item').first().locator('[data-remove-recent]');
+    await removeBtn.click();
+    await page.waitForTimeout(400);
+
+    // Toast should appear
+    await expect(page.locator('.rw-toast')).toBeVisible({ timeout: 3000 });
+
+    // Item count should decrease
+    const afterCount = await recentScroll.locator('.rw-recent-item').count();
+    expect(afterCount).toBe(beforeCount - 1);
+  });
+
+  test('clear all recently viewed items', async ({ page }) => {
+    const firstCard = page.locator('.rw-card').first();
+    if (await firstCard.count() === 0) return;
+
+    // Add a product to recently viewed
+    await firstCard.scrollIntoViewIfNeeded();
+    await firstCard.locator('h3').click();
+    await page.waitForTimeout(600);
+    await page.locator('button:has-text("← Back to shop")').click();
+    await page.waitForTimeout(600);
+
+    // Find and click Clear button
+    const clearBtn = page.locator('button[aria-label="Clear recently viewed items"]');
+    await expect(clearBtn).toBeVisible({ timeout: 3000 });
+    await clearBtn.click();
+    await page.waitForTimeout(400);
+
+    // Recently viewed section should be gone (empty items)
+    await expect(page.locator('.rw-recent-scroll')).not.toBeVisible({ timeout: 3000 });
+  });
+});
+
 // ── Concurrent / Stress tests ──────────────────────────────────
 test.describe('Stress / concurrency', () => {
   test('multiple concurrent homepage loads', async ({ browser }) => {
@@ -628,6 +740,52 @@ export async function runTests() {
     const card = p.locator('.rw-card').first();
     await expect(card.locator('.rw-card-ship')).toBeVisible();
     await expect(card.locator('.rw-card-ship')).toContainText(/Free returns/i);
+  });
+
+  await check('Recently viewed appears after viewing product', async (p) => {
+    await p.goto(BASE, { waitUntil: 'networkidle' });
+    const card = p.locator('.rw-card').first();
+    if (await card.count() === 0) return;
+    await card.locator('h3').click();
+    await p.waitForTimeout(600);
+    await expect(p.locator('.rw-product-page')).toBeVisible({ timeout: 3000 });
+    await p.locator('button:has-text("← Back to shop")').click();
+    await p.waitForTimeout(600);
+    await expect(p.locator('.rw-recent-scroll')).toBeVisible({ timeout: 3000 });
+    const items = p.locator('.rw-recent-item');
+    expect(await items.count()).toBeGreaterThanOrEqual(1);
+  });
+
+  await check('Recently viewed remove button works', async (p) => {
+    await p.goto(BASE, { waitUntil: 'networkidle' });
+    const card = p.locator('.rw-card').first();
+    if (await card.count() === 0) return;
+    await card.locator('h3').click();
+    await p.waitForTimeout(600);
+    await p.locator('button:has-text("← Back to shop")').click();
+    await p.waitForTimeout(600);
+    await expect(p.locator('.rw-recent-scroll')).toBeVisible({ timeout: 3000 });
+    const before = await p.locator('.rw-recent-item').count();
+    expect(before).toBeGreaterThanOrEqual(1);
+    await p.locator('[data-remove-recent]').first().click();
+    await p.waitForTimeout(300);
+    await expect(p.locator('.rw-toast')).toBeVisible({ timeout: 3000 });
+    const after = await p.locator('.rw-recent-item').count();
+    expect(after).toBe(before - 1);
+  });
+
+  await check('Recently viewed clear button clears items', async (p) => {
+    await p.goto(BASE, { waitUntil: 'networkidle' });
+    const card = p.locator('.rw-card').first();
+    if (await card.count() === 0) return;
+    await card.locator('h3').click();
+    await p.waitForTimeout(600);
+    await p.locator('button:has-text("← Back to shop")').click();
+    await p.waitForTimeout(600);
+    await expect(p.locator('.rw-recent-scroll')).toBeVisible({ timeout: 3000 });
+    await p.locator('button[aria-label="Clear recently viewed items"]').click();
+    await p.waitForTimeout(400);
+    await expect(p.locator('.rw-recent-scroll')).not.toBeVisible({ timeout: 3000 });
   });
 
   await check('Backend API /api/send-order', async (p) => {
