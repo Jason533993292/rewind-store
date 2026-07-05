@@ -94,6 +94,7 @@ a { color: inherit; cursor: pointer; }
 @keyframes genieDown { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.3) translateY(30px); } }
 @keyframes confettiFall { 0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) translateX(var(--drift, 0)) rotate(var(--rotation, 720deg)); opacity: 0; } }
 @media (max-width: 720px) { .rw-banner { gap: 14px; font-size: 12px; } .rw-banner-track span { display: none; } }
+@media (max-width: 540px) { .rw-banner-count { display: none; } }
 
 /* ---- header ---- */
 .rw-header {
