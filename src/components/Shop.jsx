@@ -902,7 +902,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
               onMouseOut={e => { e.target.style.background = 'none'; e.target.style.transform = ''; }}
               onClick={() => setSelected([])}>Cancel</button>
             <button style={{ marginLeft: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--accent)', background: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--accent)', transition: 'all 0.15s' }}
-              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.transform = 'translateY(-1px)'; }}
               onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}
               onClick={() => {
                 const ids = [...selected];
@@ -948,7 +948,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                             background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600,
                             color: 'var(--ink)', transition: 'all 0.1s',
                           }}
-                          onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                          onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--ink)'; e.target.style.color = 'var(--surface)'; }}
                           onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; }}>{s}</button>
                       ))}
                       <button onClick={() => setChoosingSize(null)}
@@ -967,7 +967,7 @@ export function WishlistDrawer({ open, items, customProducts, onClose, onRemove,
                       cursor: 'pointer', display: 'grid', placeItems: 'center',
                       color: 'var(--ink)', transition: 'all 0.15s',
                     }}
-                    onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; e.target.style.borderColor = 'var(--ink)'; }}
+                    onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = 'var(--surface)'; e.target.style.borderColor = 'var(--ink)'; }}
                     onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--line-2)'; }}>
                     <Icon name="plus" size={14} />
                   </button>

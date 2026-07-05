@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.1.14';
+const VERSION = 'V7.1.15';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1169,7 +1169,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
             style={{
               padding: '10px 20px', borderRadius: '999px', border: 'none',
               background: adminTab === t.id ? 'var(--ink)' : 'var(--line)',
-              color: adminTab === t.id ? '#fff' : 'var(--ink)',
+              color: adminTab === t.id ? 'var(--surface)' : 'var(--ink)',
               cursor: 'pointer', fontWeight: 600, fontSize: '14px',
               transition: 'all 0.15s',
             }}
@@ -1522,7 +1522,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
                               style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
-                              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+                              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.transform = 'translateY(-1px)'; }}
                               onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
                               📋 Copy for supplier
                             </button>
@@ -1777,7 +1777,7 @@ function BlockedPanel() {
             <span style={{ fontSize: '13px' }}>{e.email}</span>
             <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{new Date(e.created_at).toLocaleDateString()}</span>
             <button onClick={() => unblockEmail(e.email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--accent)', transition: 'all 0.15s' }}
-              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.borderColor = 'var(--accent)'; }}
+              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.borderColor = 'var(--accent)'; }}
               onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--accent)'; e.target.style.borderColor = 'var(--line-2)'; }}>Unblock</button>
           </div>
         ))}
@@ -1789,7 +1789,7 @@ function BlockedPanel() {
             <div key={email} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
               <span style={{ fontSize: '13px' }}>{email}</span>
               <button onClick={() => blockEmail(email)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--accent)', transition: 'all 0.15s' }}
-                onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.borderColor = 'var(--accent)'; }}
+                onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.borderColor = 'var(--accent)'; }}
                 onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--accent)'; e.target.style.borderColor = 'var(--line-2)'; }}>Block</button>
             </div>
           ))}
@@ -2056,7 +2056,7 @@ function Survey({ onDone, onSkip }) {
       <>
       {options.map(o => (
         <button key={o} onClick={() => { if (o === 'Other') { setSource(o); setStep('other'); } else { submit(o); } }}
-          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center', transition: 'all 0.15s' }}
+          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? 'var(--surface)' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center', transition: 'all 0.15s' }}
           onMouseOver={e => { if (source !== o) { e.target.style.background = 'var(--line)'; e.target.style.transform = 'translateY(-1px)'; } }}
           onMouseOut={e => { if (source !== o) { e.target.style.background = 'var(--surface)'; e.target.style.transform = ''; } }}>
           {o}
@@ -2067,7 +2067,7 @@ function Survey({ onDone, onSkip }) {
           <input className="rw-input" placeholder="Tell us where..." value={otherText} onChange={e => setOtherText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(otherText.trim()); }} autoFocus />
           <button onClick={() => submit(otherText.trim())} disabled={!otherText.trim()}
-            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
+            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: 'var(--surface)', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
             onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
             onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
             Submit

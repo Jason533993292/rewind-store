@@ -79,7 +79,7 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
                   opacity: 0.5, transition: 'opacity 0.15s, background 0.15s, color 0.15s',
                   padding: 0, lineHeight: 1,
                 }}
-                onMouseOver={e => { e.target.style.opacity = '1'; e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                onMouseOver={e => { e.target.style.opacity = '1'; e.target.style.background = 'var(--ink)'; e.target.style.color = 'var(--surface)'; }}
                 onMouseOut={e => { e.target.style.opacity = '0.5'; e.target.style.background = 'color-mix(in oklab, var(--surface) 80%, transparent)'; e.target.style.color = 'var(--muted)'; }}
                 onFocus={e => e.target.style.opacity = '1'}
                 onBlur={e => e.target.style.opacity = '0.5'}
