@@ -723,7 +723,7 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
   const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
   let emailBody = '';
   try {
-    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -788,7 +788,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
       let emailBody = '';
       const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
       try {
-        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -804,7 +804,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
 Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
               }]
             }],
-            generationConfig: { maxOutputTokens: 200 },
+            generationConfig: { maxOutputTokens: 1000 },
           }),
         });
         const aiData = await aiRes.json();
