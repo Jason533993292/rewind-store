@@ -19,7 +19,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V6.8.0';
+const VERSION = 'V6.8.1';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -755,7 +755,8 @@ export default function App() {
           <div className="rw-shop-content">
             {products.length > 0 && (
             <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand)) ? '8px' : '16px', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand)) ? '8px' : '16px', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: '1 1 auto' }}>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                 aria-label="Sort products"
                 className="rw-sort">
@@ -772,6 +773,15 @@ export default function App() {
                   <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
                 ))}
               </select>
+              </div>
+              {(cat !== 'All' || brand !== null || query !== '' || sortBy !== '') && (
+                <button onClick={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); scrollToGrid(); }}
+                  aria-label="Clear all filters"
+                  className="rw-txt-btn"
+                  style={{ fontSize: '12px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  ✕ Clear all
+                </button>
+              )}
             </div>
             {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
               <select className="rw-sort rw-mobile-brand" value={brand || ''} onChange={e => { setBrand(e.target.value || null); scrollToGrid(); }}
