@@ -704,12 +704,34 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
     // Send cancellation email
     if (order?.email && resend) {
       const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
-      const reasonMessages = {
-        out_of_stock: "Unfortunately, the item you ordered is out of stock and we're unable to fulfill it.",
-        damaged: "Unfortunately, the item was damaged during handling and we cannot send it out.",
-        customer_request: "You requested cancellation of this order.",
-        other: "Your order has been cancelled as requested.",
-      };
+      // Generate AI-written email body based on reason
+      let emailBody = '';
+      try {
+        const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [{
+              role: 'user',
+              content: `Write a short, professional, warm cancellation email for an order at REWIND vintage streetwear store. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonLabels[reason] || reason}". Explain why it was cancelled in a friendly way, mention a full refund has been initiated (5-10 business days), and offer contact at orders@rewind-stores.com for questions. Max 4 sentences. No subject line, just the body.`
+            }],
+            max_tokens: 200,
+          }),
+        });
+        const aiData = await aiRes.json();
+        emailBody = aiData?.choices?.[0]?.message?.content || '';
+      } catch {}
+      if (!emailBody) {
+        // Fallback if AI fails
+        const fallbacks = {
+          out_of_stock: "Unfortunately, the item you ordered is out of stock and we're unable to fulfill it.",
+          damaged: "Unfortunately, the item was damaged during handling and we cannot send it out.",
+          customer_request: "You requested cancellation of this order.",
+          other: "Your order has been cancelled as requested.",
+        };
+        emailBody = fallbacks[reason] || 'Your order has been cancelled.';
+      }
       await resend.emails.send({
         from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
         subject: `Order ${order.order_num} cancelled — refund initiated`,
@@ -719,8 +741,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
             <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Order cancelled</h2>
             <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${order.customer_name || 'there'},</p>
             <p style="color:#6E665A;font-size:15px;line-height:1.6">
-              ${reasonMessages[reason] || 'Your order has been cancelled.'}<br/><br/>
-              A full refund has been initiated. You will see the amount back in your account within 5-10 business days.<br/><br/>
+              ${emailBody}<br/><br/>
               <b>Reason:</b> ${reasonLabels[reason] || reason}<br/><br/>
               If you have any questions, reply to this email or contact us at orders@rewind-stores.com.
             </p>
