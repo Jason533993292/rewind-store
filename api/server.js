@@ -28,7 +28,14 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, '..', 'dist')));
+app.use(express.static(path.join(__dirname, '..', 'dist'), {
+  setHeaders(res, path) {
+    // Never cache HTML — ensures users always get the latest bundle references
+    if (path.endsWith('.html')) {
+      res.set('Cache-Control', 'no-store, must-revalidate');
+    }
+  }
+}));
 
 // ── Rate limiting ──
 const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
@@ -867,6 +874,7 @@ app.use((err, req, res, next) => {
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
+  res.set('Cache-Control', 'no-store, must-revalidate');
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 
