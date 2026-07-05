@@ -220,7 +220,7 @@ export function Toast({ toast, onDismiss }) {
     <div className="rw-toast" key={toast.k}>
       <Icon name="check" size={16} /> <span>{toast.msg}</span>
       {toast.action && (
-        <button className="rw-toast-btn" onClick={() => { toast.action.onClick(); }}>
+        <button className="rw-toast-btn" onClick={() => { toast.action.onClick(); onDismiss(); }}>
           {toast.action.label}
         </button>
       )}
