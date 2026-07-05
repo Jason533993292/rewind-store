@@ -674,7 +674,7 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
   if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
   try {
     const r = await fetch(`${url}/rest/v1/wishlists?select=*&order=created_at.desc`, {
-      headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
     res.json({ users: Array.isArray(data) ? data : [] });
