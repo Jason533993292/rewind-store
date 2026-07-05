@@ -55,6 +55,8 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
               }}
               onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') {
+                  // Don't navigate if keyboard focus is on the remove button
+                  if (e.target.closest && e.target.closest('[data-remove-recent]')) return;
                   e.preventDefault();
                   e.currentTarget.click();
                 }
