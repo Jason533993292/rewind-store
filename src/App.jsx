@@ -530,7 +530,6 @@ export default function App() {
   // NOT just because #admin is in the URL (security: prevents full admin
   // panel access by anyone who navigates to /#admin).
   const [adminMode, setAdminMode] = useState(false);
-  const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [blocked, setBlocked] = useState(false);
 
   // Handle Stripe success redirect — show confirmation view instead of just a toast
@@ -654,23 +653,11 @@ export default function App() {
     const onHash = () => {
       const isAdminHash = window.location.hash === '#admin';
       if (isAdminHash) {
-        // Verify against server endpoint — NOT client-side Supabase query
-        // with anon key. This prevents anyone from granting themselves admin
-        // access by just typing /#admin in the URL.
-        const saved = localStorage.getItem('rw_admin_email');
-        if (saved) {
-          fetch('/api/verify-admin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: saved })
-          }).then(r => r.json()).then(d => {
-            if (d.verified) setAdminMode(true);
-            else { setAdminMode(false); localStorage.removeItem('rw_admin_email'); }
-          }).catch(() => setAdminMode(false));
-        } else {
-          setAdminMode(false);
-        }
-      } else {
+        // Show the AdminPanel component — it handles its own auth internally
+        // via server-verified email check + admin API token.
+        // The AdminPanel will show a login form until the user authenticates.
+        setAdminMode(true);
+      } else if (window.location.hash === '') {
         setAdminMode(false);
       }
       if (window.location.hash.startsWith('#/product/')) {
