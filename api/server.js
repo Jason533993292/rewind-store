@@ -755,7 +755,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
     const r = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
       method: 'PATCH',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'cancelled', cancel_reason: reason, cancelled_at: new Date().toISOString() }),
+      body: JSON.stringify({ status: 'cancelled' }),
     });
     if (!r.ok) {
       const errBody = await r.text();
