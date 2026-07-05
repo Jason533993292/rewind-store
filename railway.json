@@ -4,6 +4,8 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "healthcheckPath": "/api/health"
+    "startCommand": "node server.js",
+    "healthcheckPath": "/api/health",
+    "restartPolicyType": "ON_FAILURE"
   }
 }
