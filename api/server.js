@@ -683,6 +683,53 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
   }
 });
 
+// ── Admin: cancel order ──
+app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
+  const { orderId, reason } = req.body;
+  if (!orderId || !reason) return res.status(400).json({ error: 'orderId and reason required' });
+  try {
+    // Update order status
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const url = process.env.VITE_SUPABASE_URL;
+    const r = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
+      method: 'PATCH',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'cancelled', cancel_reason: reason, cancelled_at: new Date().toISOString() }),
+    });
+    // Fetch order details for the email
+    const orderData = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    }).then(r => r.json());
+    const order = Array.isArray(orderData) ? orderData[0] : null;
+    // Send cancellation email
+    if (order?.email && resend) {
+      const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
+      await resend.emails.send({
+        from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
+        subject: `Order ${order.order_num} cancelled — refund initiated`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:40px 20px;background:#FAF6EF">
+          <h1 style="font-size:24px;color:#16130F">REWIND<span style="color:#FF4D14">.</span></h1>
+          <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
+            <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Order cancelled</h2>
+            <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${order.customer_name || 'there'},</p>
+            <p style="color:#6E665A;font-size:15px;line-height:1.6">
+              We're sorry, but your order <b>${order.order_num}</b> has been cancelled.<br/><br/>
+              <b>Reason:</b> ${reasonLabels[reason] || reason}<br/><br/>
+              A full refund has been initiated. You will see the amount back in your account within 5-10 business days.<br/><br/>
+              If you have any questions, reply to this email or contact us at orders@rewind-stores.com.
+            </p>
+            <p style="color:#6E665A;font-size:14px;margin-top:20px">— REWIND team</p>
+          </div>
+        </div>`,
+      });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Cancel order error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Admin: get all orders ──
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -1000,6 +1000,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [orders, setOrders] = useState([]);
   const [adminMsg, setAdminMsg] = useState('');
   const [savedVersion, setSavedVersion] = useState(0);
+  const [cancelOrder, setCancelOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelling, setCancelling] = useState(false);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -1556,11 +1559,19 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                               navigator.clipboard.writeText(msg);
                               alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
                             }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s', marginRight: '4px' }}
                               onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.transform = 'translateY(-1px)'; }}
                               onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
                               📋 Copy for supplier
                             </button>
+                            {o.status !== 'cancelled' && o.status !== 'shipped' && (
+                            <button onClick={() => setCancelOrder({ id: o.id, order: o })}
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+                              onMouseOut={e => { e.target.style.background = 'color-mix(in oklab, var(--accent) 15%, transparent)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
+                              ✕ Cancel
+                            </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -1752,6 +1763,61 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
             customProducts={customProducts} setCustomProducts={setCustomProducts} />
           )}
         </>
+      )}
+
+      {/* ── Cancel order modal ── */}
+      {cancelOrder && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
+          onClick={() => { if (!cancelling) { setCancelOrder(null); setCancelReason(''); } }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '440px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>Cancel order</h3>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '20px' }}>
+              {cancelOrder.order?.order_num || 'Order'} — why are you cancelling?
+            </p>
+            {[{id:'out_of_stock',label:'Out of stock'},{id:'damaged',label:'Damaged during handling'},{id:'customer_request',label:'Customer requested'},{id:'other',label:'Other'}].map(r => (
+              <button key={r.id} onClick={() => setCancelReason(r.id)}
+                style={{ display: 'block', width: '100%', padding: '12px 16px', marginBottom: '8px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'left', transition: 'all 0.15s' }}
+                onMouseOver={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--line)'; } }}
+                onMouseOut={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.background = 'var(--surface)'; } }}>
+                {r.label}
+              </button>
+            ))}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <button onClick={() => { setCancelOrder(null); setCancelReason(''); }}
+                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; }}
+                onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; }}>
+                Back
+              </button>
+              <button disabled={!cancelReason || cancelling} onClick={async () => {
+                setCancelling(true);
+                try {
+                  const r = await fetch('/api/admin/cancel-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
+                    body: JSON.stringify({ orderId: cancelOrder.id, reason: cancelReason }),
+                  });
+                  const d = await r.json();
+                  if (d.ok) {
+                    alert('✅ Order cancelled. Email sent to customer.\n\nREFUND STEPS:\n1. Go to Stripe Dashboard\n2. Search for this order by order number\n3. Click \"Refund\"\n4. Select full refund\n5. Confirm\n\nThe customer has been notified by email.');
+                    setOrders(prev => prev.map(o => o.id === cancelOrder.id ? { ...o, status: 'cancelled' } : o));
+                    setCancelOrder(null);
+                    setCancelReason('');
+                  } else {
+                    alert('❌ ' + (d.error || 'Failed'));
+                  }
+                } catch (e) {
+                  alert('❌ Network error');
+                }
+                setCancelling(false);
+              }}
+                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: 'none', background: cancelReason && !cancelling ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: cancelReason && !cancelling ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
+                {cancelling ? 'Cancelling...' : cancelReason ? 'Confirm & email customer' : 'Select a reason'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
