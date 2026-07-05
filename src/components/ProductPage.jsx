@@ -136,13 +136,13 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
           </div>
 
           {showStock && soldOut && (
-            <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
-              ⚡ Sold out — check back soon
+            <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <Icon name="bolt" size={15} /> Sold out — check back soon
             </div>
           )}
           {showStock && low && !soldOut && (
-            <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px' }}>
-              ⚡ Only {p.stock} left
+            <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <Icon name="bolt" size={15} /> Only {p.stock} left
             </div>
           )}
 
