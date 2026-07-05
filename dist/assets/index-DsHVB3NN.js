@@ -30839,7 +30839,7 @@ const TWEAK_DEFAULTS = {
   showCompare: true,
   showStock: true
 };
-const VERSION = "V7.1.16";
+const VERSION = "V7.3.0";
 function SidebarBtn({ label, isOn, onClick, count }) {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "rw-sb-btn" + (isOn ? " is-on" : ""), onClick, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rw-sb-label", children: label }),
