@@ -722,7 +722,15 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
   const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
   const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
   let emailBody = '';
-  try {
+  const cannedEmails = {
+    out_of_stock: `Hi ${customerName || 'there'},\n\nWe regret to inform you that your recent REWIND order has been cancelled due to the item being out of stock. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+    damaged: `Hi ${customerName || 'there'},\n\nWe regret to inform you that your recent REWIND order has been cancelled because the item was damaged during handling. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+    customer_request: `Hi ${customerName || 'there'},\n\nAs requested, your recent REWIND order has been cancelled. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+  };
+
+  if (reason !== 'other' && cannedEmails[reason]) {
+    emailBody = cannedEmails[reason];
+  } else {
     const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -745,7 +753,7 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
     });
     const aiData = await aiRes.json();
     emailBody = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  } catch {}
+  }
   if (!emailBody) {
     const fallbacks = {
       out_of_stock: "Unfortunately, the item you ordered is out of stock and we're unable to fulfill it.",
@@ -785,33 +793,34 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
     // Send cancellation email
     if (order?.email && resend) {
       const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
-      // Generate AI-written email body based on reason
+      // Use canned emails for predefined reasons, AI for "Other"
       let emailBody = '';
       const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
-      try {
-        const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{
-                text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact structure:
-
-1. Greeting: "Hi [customer name],"
-2. One sentence stating the cancellation and the specific reason
-3. "A full refund has been initiated and will appear in your account within 5-10 business days."
-4. "If you have any questions, reply to this email or contact us at orders@rewind-stores.com."
-5. Sign-off: "— REWIND team"
-
-Keep it concise and professional. No slang, no emoji, no exclamation marks. Max 5 short sentences. No subject line.`
-              }]
-            }],
-            generationConfig: { maxOutputTokens: 2000 },
-          }),
-        });
-        const aiData = await aiRes.json();
-        emailBody = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      } catch {}
+      const cannedEmails = {
+        out_of_stock: `Hi ${order.customer_name || 'there'},\n\nWe regret to inform you that your recent REWIND order has been cancelled due to the item being out of stock. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+        damaged: `Hi ${order.customer_name || 'there'},\n\nWe regret to inform you that your recent REWIND order has been cancelled because the item was damaged during handling. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+        customer_request: `Hi ${order.customer_name || 'there'},\n\nAs requested, your recent REWIND order has been cancelled. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+      };
+      if (reason !== 'other' && cannedEmails[reason]) {
+        emailBody = cannedEmails[reason];
+      } else {
+        try {
+          const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact structure:\n\n1. Greeting: "Hi [customer name],"\n2. One sentence stating the cancellation and the specific reason\n3. "A full refund has been initiated and will appear in your account within 5-10 business days."\n4. "If you have any questions, reply to this email or contact us at orders@rewind-stores.com."\n5. Sign-off: "— REWIND team"\n\nKeep it concise and professional. No slang, no emoji, no exclamation marks. Max 5 short sentences. No subject line.`
+                }]
+              }],
+              generationConfig: { maxOutputTokens: 2000 },
+            }),
+          });
+          const aiData = await aiRes.json();
+          emailBody = aiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        } catch {}
+      }
       if (!emailBody) {
         // Fallback if AI fails
         const fallbacks = {
