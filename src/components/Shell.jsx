@@ -273,7 +273,9 @@ export function ProgressSteps() {
 }
 
 /* ---------- Footer ---------- */
-export function Footer({ onSizes, onInfo, onSetCat }) {
+export function Footer({ onSizes, onInfo, onSetCat, cats }) {
+  // Use provided categories or fall back to the main ones that always exist
+  const shopCats = cats ? cats.filter(c => c !== 'All') : [];
   return (
     <footer className="rw-footer">
       <div className="rw-footer-top">
@@ -282,7 +284,14 @@ export function Footer({ onSizes, onInfo, onSetCat }) {
           authenticated, and sent on within a day.</p>
       </div>
       <div className="rw-footer-cols">
-        <div><h4>Shop</h4><a onClick={() => onSetCat('Tracksuits')}>Tracksuits</a><a onClick={() => onSetCat('Jerseys')}>Jerseys</a><a onClick={() => onSetCat('Polos')}>Polos</a><a onClick={() => onSetCat('Shoes')}>Kicks</a></div>
+        <div><h4>Shop</h4>
+          {shopCats.length > 0
+            ? shopCats.map(c => (
+                <a key={c} onClick={() => onSetCat(c)}>{c}</a>
+              ))
+            : <><a onClick={() => onSetCat('Tracksuits')}>Tracksuits</a><a onClick={() => onSetCat('Jerseys')}>Jerseys</a><a onClick={() => onSetCat('Polos')}>Polos</a><a onClick={() => onSetCat('Shoes')}>Kicks</a></>
+          }
+        </div>
         <div><h4>Help</h4><a onClick={onSizes} style={{ cursor: 'pointer' }}>Sizing</a><a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>Shipping</a><a onClick={() => onInfo('returns')} style={{ cursor: 'pointer' }}>Returns</a><a onClick={() => onInfo('tracking')} style={{ cursor: 'pointer' }}>Track order</a><a onClick={() => onInfo('orders')} style={{ cursor: 'pointer' }}>Orders</a></div>
         <div><h4>Pay with</h4><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>PayPal</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Payconiq</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Apple Pay</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Bancontact</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Klarna</a></div>
       </div>
