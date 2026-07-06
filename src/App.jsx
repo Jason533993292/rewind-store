@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Banner, Header, Hero, Marquee, ProgressSteps, Toast, Footer, Icon, Photo } from './components/Shell';
+import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, Photo } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import ClickSpark from './components/ClickSpark';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
@@ -744,7 +744,6 @@ export default function App() {
         onVersionClick={() => setShowTweaks(v => !v)} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
-      <ProgressSteps />
       {/* Mobile scroll hint — shows a subtle indicator on first visit that there's more content below */}
       <main className="rw-shop">
         <div className="rw-shop-head" id={headingId}>
@@ -1820,8 +1819,15 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '2px' }}>
                 {cancelOrder.order?.order_num || 'Order'} · {cancelOrder.order?.total ? `€${cancelOrder.order.total}` : ''}
               </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Cancel order</h3>
-            </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 12px' }}>Cancel order</h3>
+              {/* Step indicator — step 1 of 3 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>1</div>
+                <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</div>
+                <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
+              </div>
             {[{id:'out_of_stock',label:'Out of stock'},{id:'damaged',label:'Damaged during handling'},{id:'customer_request',label:'Customer requested'},{id:'other',label:'Other'}].map(r => (
               <button key={r.id} onClick={() => { setCancelReason(r.id); if (r.id !== 'other') setCustomReason(''); }}
                 style={{ display: 'block', width: '100%', padding: '10px 14px', marginBottom: '6px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textAlign: 'left', transition: 'all 0.15s' }}
@@ -1879,9 +1885,17 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
               style={{ position: 'absolute', top: '14px', right: '14px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
               aria-label="Close">✕</button>
             <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '4px' }}>Review email to customer</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 8px' }}>
               {cancelOrder.order?.order_num || 'Order'} — this AI-generated email will be sent to the customer
             </p>
+            {/* Step indicator — step 2 of 3 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
+              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
+              <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
+              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</div>
+              <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
+              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
+            </div>
 
             {/* Email preview — larger, clearer */}
             <div style={{ background: 'var(--bg)', borderRadius: '10px', padding: '20px', marginBottom: '16px', fontSize: '15px', lineHeight: '1.7', color: 'var(--ink)' }}>
