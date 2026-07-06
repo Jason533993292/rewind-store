@@ -387,7 +387,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   }, []);
   // Controlled form fields — prevents defaultValue reset bug when payment method buttons re-render the component
   const [formFields, setFormFields] = useState(() => ({
-    email: userEmail || '',
+    email: saved.email || userEmail || '',
     name: saved.name || '',
     address: saved.address || '',
     postal: saved.postal || '',
@@ -400,7 +400,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   // Previously only saved on Pay click — users who closed checkout lost their data.
   // Also clears saved data immediately when the user unchecks "Save my info",
   // preventing stale pre-filled fields on the next checkout session.
-  const hasInfo = formFields.name || formFields.address || formFields.postal || formFields.city || formFields.country;
+  const hasInfo = formFields.email || formFields.name || formFields.address || formFields.postal || formFields.city || formFields.country;
   useEffect(() => {
     if (!saveInfo) {
       localStorage.removeItem('rw_checkout_info');
@@ -408,12 +408,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       return;
     }
     if (hasInfo) {
-      const { name, address, postal, city, country } = formFields;
-      localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
+      const { email, name, address, postal, city, country } = formFields;
+      localStorage.setItem('rw_checkout_info', JSON.stringify({ email, name, address, postal, city, country }));
     } else {
       localStorage.removeItem('rw_checkout_info');
     }
-  }, [formFields.name, formFields.address, formFields.postal, formFields.city, formFields.country, saveInfo]);
+  }, [formFields.email, formFields.name, formFields.address, formFields.postal, formFields.city, formFields.country, saveInfo]);
 
   // Launch confetti burst (CSS-based, no external lib needed)
   useEffect(() => {
@@ -524,9 +524,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     // Save delivery info to localStorage if checkbox is checked
     if (saveInfo) {
       localStorage.setItem('rw_checkout_save_info', 'true');
-      const { name, address, postal, city, country } = formFields;
-      if (name || address || postal || city || country) {
-        localStorage.setItem('rw_checkout_info', JSON.stringify({ name, address, postal, city, country }));
+      const { email, name, address, postal, city, country } = formFields;
+      if (email || name || address || postal || city || country) {
+        localStorage.setItem('rw_checkout_info', JSON.stringify({ email, name, address, postal, city, country }));
       }
     } else {
       localStorage.setItem('rw_checkout_save_info', 'false');
