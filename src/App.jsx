@@ -1225,6 +1225,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           { id: 'users', label: '📊 Users' },
           { id: 'email', label: '📧 Email' },
           { id: 'orders', label: '📦 Orders' },
+          { id: 'chats', label: '💬 Chats' },
           { id: 'saved', label: '⭐ Saved' },
           { id: 'blocked', label: '🚫 Blocked' },
           { id: 'products', label: '🛍️ Products' },
@@ -1688,6 +1689,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           {/* ── Blocked IPs ── */}
           {adminTab === 'blocked' && <BlockedPanel />}
 
+          {/* ── Chats ── */}
+          {adminTab === 'chats' && <AdminChatPanel adminToken={adminToken} />}
+
           {/* ── Saved products ── */}
           {adminTab === 'saved' && (
           <div key={savedVersion} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
@@ -1979,6 +1983,147 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/* ── Admin Chat Panel ── */
+function AdminChatPanel({ adminToken }) {
+  const [sessions, setSessions] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [reply, setReply] = useState('');
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef(null);
+
+  const loadSessions = useCallback(async () => {
+    try {
+      const r = await fetch('/api/admin/chat/sessions', {
+        headers: { 'x-admin-token': adminToken },
+      });
+      const d = await r.json();
+      setSessions(Array.isArray(d.sessions) ? d.sessions : []);
+    } catch {}
+  }, [adminToken]);
+
+  const loadMessages = useCallback(async (sessionId) => {
+    try {
+      const r = await fetch(`/api/admin/chat/messages?session_id=${encodeURIComponent(sessionId)}`, {
+        headers: { 'x-admin-token': adminToken },
+      });
+      const d = await r.json();
+      setMessages(Array.isArray(d.messages) ? d.messages : []);
+    } catch {}
+  }, [adminToken]);
+
+  useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const interval = setInterval(() => loadMessages(selectedId), 3000);
+    return () => clearInterval(interval);
+  }, [selectedId, loadMessages]);
+
+  async function handleSelect(sessionId) {
+    setSelectedId(sessionId);
+    loadMessages(sessionId);
+  }
+
+  async function handleReply() {
+    const text = reply.trim();
+    if (!text || sending) return;
+    setSending(true);
+    try {
+      const r = await fetch('/api/admin/chat/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ session_id: selectedId, message: text }),
+      });
+      const d = await r.json();
+      if (d.ok) {
+        setReply('');
+        loadMessages(selectedId);
+        loadSessions();
+      }
+    } catch {}
+    setSending(false);
+  }
+
+  async function handleClose() {
+    await fetch('/api/admin/chat/reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+      body: JSON.stringify({ session_id: selectedId, message: 'Session closed.', close: true }),
+    });
+    setSelectedId(null);
+    loadSessions();
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: '16px', maxWidth: '1000px' }}>
+      <div style={{ flex: '0 0 260px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ padding: '14px', borderBottom: '1px solid var(--line)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Sessions ({sessions.length})
+        </div>
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          {sessions.map(s => (
+            <div key={s.session_id} onClick={() => handleSelect(s.session_id)}
+              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--line)', background: selectedId === s.session_id ? 'var(--line)' : 'transparent', fontSize: '13px' }}
+              onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
+              onMouseOut={e => { e.target.style.background = selectedId === s.session_id ? 'var(--line)' : 'transparent'; }}>
+              <div style={{ fontWeight: 600 }}>{s.customer_name || s.customer_email || 'Anonymous'}</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{s.status} · {new Date(s.last_message_at).toLocaleString()}</div>
+            </div>
+          ))}
+          {sessions.length === 0 && (
+            <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>No chats yet</div>
+          )}
+        </div>
+      </div>
+      <div style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {selectedId ? (
+          <>
+            <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', maxHeight: '380px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {messages.map((m, i) => (
+                <div key={i} style={{
+                  alignSelf: m.sender === 'admin' ? 'flex-end' : 'flex-start',
+                  background: m.sender === 'admin' ? 'var(--accent)' : '#F1EEE7',
+                  color: m.sender === 'admin' ? '#fff' : '#16130F',
+                  borderRadius: '10px', padding: '8px 12px', fontSize: '13px', maxWidth: '80%',
+                  whiteSpace: 'pre-wrap',
+                }}>
+                  {m.message}
+                  <div style={{ fontSize: '10px', opacity: 0.6, marginTop: '4px' }}>{new Date(m.created_at).toLocaleTimeString()}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '8px', padding: '10px', borderTop: '1px solid var(--line)' }}>
+              <input value={reply} onChange={e => setReply(e.target.value.slice(0, 2000))}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
+                placeholder="Type your reply..."
+                style={{ flex: 1, border: '1px solid var(--line-2)', borderRadius: '8px', padding: '8px 10px', fontSize: '13px' }} />
+              <button onClick={handleReply} disabled={sending || !reply.trim()}
+                style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', opacity: sending ? 0.6 : 1 }}>
+                Send
+              </button>
+              <button onClick={handleClose}
+                style={{ padding: '8px 12px', background: 'var(--line)', color: 'var(--muted)', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                Close
+              </button>
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
+            Select a session to view messages
+          </div>
+        )}
+      </div>
     </div>
   );
 }

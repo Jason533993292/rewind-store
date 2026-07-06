@@ -100,6 +100,18 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       }
 
       res.json({ session_id });
+
+      // Auto-reply with AI for common questions
+      const GEMINI_KEY = process.env.GEMINI_API_KEY;
+      if (GEMINI_KEY) {
+        const reply = await getAiAutoReply(message, GEMINI_KEY);
+        if (reply) {
+          await sfetch('/chat_messages', {
+            method: 'POST',
+            body: JSON.stringify({ session_id, sender: 'admin', message: reply }),
+          });
+        }
+      }
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
@@ -210,4 +222,39 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   });
 
   return router;
+}
+
+// ── AI auto-reply for common questions ──
+// Used by the chat system to auto-answer FAQs about products, sizing, shipping
+export async function getAiAutoReply(messageText, GEMINI_API_KEY) {
+  try {
+    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
+
+- All product details (material, size, era, care) are listed in the product's info panel on the website
+- If the customer asks about a specific item, tell them to check the item details in the product card
+- Shipping: €8 flat rate within EU. Free shipping over €150
+- Returns: 14-day free returns
+- Each item is unique (vintage, one of one)
+- Items ship within 24 hours
+- Authenticated, steam-cleaned before shipping
+
+Customer message: "${messageText}"
+
+Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."`
+          }]
+        }],
+        generationConfig: { maxOutputTokens: 300 },
+      }),
+    });
+    const aiData = await aiRes.json();
+    return aiData?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  } catch {
+    return null;
+  }
 }
