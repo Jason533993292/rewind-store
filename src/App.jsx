@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.4';
+const VERSION = 'V7.5.5';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -91,6 +91,7 @@ export default function App() {
       return stored ? JSON.parse(stored) : [];
     } catch { return []; }
   });
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
 // ═══════════════════════════════════════════════════════════
 // ⚡ TDZ GUARD — ALL callback/effect declarations below this
@@ -459,6 +460,17 @@ export default function App() {
   const scrollToGrid = useCallback(() => {
     const el = document.getElementById(headingId);
     if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
+  }, []);
+
+  // Show/hide scroll-to-top button based on scroll position
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    // Check initial position
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   // Wrap setQuery so that the first keystroke scrolled to the product grid,
@@ -884,6 +896,28 @@ export default function App() {
             <Survey onDone={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} onSkip={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} />
           </div>
         </div>
+      )}
+
+      {/* ── Scroll to top ── */}
+      {showScrollTop && (
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll to top"
+          style={{
+            position: 'fixed', bottom: '20px', left: '20px', zIndex: 999,
+            width: '44px', height: '44px', borderRadius: '50%',
+            background: 'var(--surface)', color: 'var(--ink)',
+            border: '1.5px solid var(--line-2)',
+            cursor: 'pointer', fontSize: '18px',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+            transition: 'transform 0.15s, box-shadow 0.15s',
+            display: 'grid', placeItems: 'center',
+          }}
+          onMouseOver={e => { e.target.style.transform = 'scale(1.1)'; e.target.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; }}
+          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'; }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+          </svg>
+        </button>
       )}
 
       {/* ── Promo code button ── */}
