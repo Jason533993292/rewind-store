@@ -729,14 +729,15 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
+            text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${customerName || 'there'}. The reason is: "${reasonText}". Use this exact structure:
 
-  - Start with: "Hey fellow customer, unfortunately your order has been cancelled"
-  - State the reason in a friendly way
-  - Say: "if you have any questions don't be afraid to contact orders@rewind-stores.com"
-  - End with: "Hope you have a nice day!"
+            1. Greeting: "Hi [customer name],"
+            2. One sentence stating the cancellation and the specific reason
+            3. "A full refund has been initiated and will appear in your account within 5-10 business days."
+            4. "If you have any questions, reply to this email or contact us at orders@rewind-stores.com."
+            5. Sign-off: "— REWIND team"
 
-  Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
+            Keep it concise and professional. No slang, no emoji, no exclamation marks. Max 5 short sentences. No subject line.`
           }]
         }],
         generationConfig: { maxOutputTokens: 2000 },
@@ -794,14 +795,15 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact tone and format:
+                text: `Write a cancellation email for a REWIND vintage streetwear order. The customer's name is ${order.customer_name || 'there'}. The reason is: "${reasonText}". Use this exact structure:
 
-- Start with: "Hey fellow customer, unfortunately your order has been cancelled"
-- State the reason in a friendly way
-- Say: "if you have any questions don't be afraid to contact orders@rewind-stores.com"
-- End with: "Hope you have a nice day!"
+1. Greeting: "Hi [customer name],"
+2. One sentence stating the cancellation and the specific reason
+3. "A full refund has been initiated and will appear in your account within 5-10 business days."
+4. "If you have any questions, reply to this email or contact us at orders@rewind-stores.com."
+5. Sign-off: "— REWIND team"
 
-Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
+Keep it concise and professional. No slang, no emoji, no exclamation marks. Max 5 short sentences. No subject line.`
               }]
             }],
             generationConfig: { maxOutputTokens: 2000 },
