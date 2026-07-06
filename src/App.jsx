@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.10';
+const VERSION = 'V7.5.11';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1737,8 +1737,24 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           {adminTab === 'products' && (
           <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Product stats</h3>
-            <input placeholder="Search products..." value={productSearch} onChange={e => setProductSearch(e.target.value)}
-              style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--line-2)', borderRadius: '8px', fontSize: '14px', marginBottom: '12px' }} />
+            <div style={{ position: 'relative', marginBottom: '12px' }}>
+              <input placeholder="Search products..." value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                style={{ width: '100%', padding: '10px 14px', border: '1px solid var(--line-2)', borderRadius: '8px', fontSize: '14px', paddingRight: productSearch ? '36px' : '14px' }} />
+              {productSearch && (
+                <button onClick={() => setProductSearch('')}
+                  aria-label="Clear search"
+                  style={{
+                    position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                    display: 'grid', placeItems: 'center', color: 'var(--muted)', opacity: 0.7,
+                    transition: 'opacity 0.15s',
+                  }}
+                  onMouseOver={e => e.target.style.opacity = '1'}
+                  onMouseOut={e => e.target.style.opacity = '0.7'}>
+                  <Icon name="close" size={14} />
+                </button>
+              )}
+            </div>
             {(() => {
               // Count favorites per product from all users
               const favCounts = {};
