@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.5';
+const VERSION = 'V7.5.6';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -402,27 +402,28 @@ export default function App() {
       setSignupOpen(true);
       return;
     }
-    // Read current state directly — using wishlistRef (one render behind)
-    // would show the wrong toast when the user clicks rapidly
-    // (e.g. double-clicking the heart before the previous state commit).
-    const alreadyHeld = wishlist.includes(pid);
+    // Determine whether the item was in the wishlist INSIDE the functional
+    // setter — React executes updaters synchronously (the variable below is
+    // set before the code continues), eliminating the stale-closure bug that
+    // could show the wrong toast when users click the heart rapidly.
+    let willBeRemoved = false;
     setWishlist((prev) => {
       const exists = prev.includes(pid);
+      willBeRemoved = exists;
       return exists ? prev.filter((id) => id !== pid) : [...prev, pid];
     });
-    // Show toast outside the updater — React StrictMode invokes updaters twice in dev
-    if (!alreadyHeld) {
-      showToast(p.name + ' saved', {
-        label: 'Show',
-        onClick: () => setWishlistOpen(true),
-      });
-    } else {
+    if (willBeRemoved) {
       showToast(p.name + ' removed', {
         label: 'Undo',
         onClick: () => setWishlist((inner) => inner.includes(pid) ? inner : [...inner, pid]),
       });
+    } else {
+      showToast(p.name + ' saved', {
+        label: 'Show',
+        onClick: () => setWishlistOpen(true),
+      });
     }
-  }, [userEmail, showToast, wishlist]);
+  }, [userEmail, showToast]);
 
   const handleSignup = useCallback(({ email, acceptMarketing }) => {
     setUserEmail(email);
