@@ -306,7 +306,8 @@ a { color: inherit; cursor: pointer; }
 }
 
 /* ---- card ---- */
-.rw-card { display: flex; flex-direction: column; animation: cardIn .45s ease both; }
+.rw-card { display: flex; flex-direction: column; animation: cardIn .45s ease both;
+  content-visibility: auto; contain-intrinsic-size: 340px; }
 .rw-card:nth-child(2)  { animation-delay: 0.03s; }
 .rw-card:nth-child(3)  { animation-delay: 0.06s; }
 .rw-card:nth-child(4)  { animation-delay: 0.09s; }

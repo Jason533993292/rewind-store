@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, Photo } from './components/Shell';
+import { Banner, Header, Hero, Marquee, Toast, Footer, Icon } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
-import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, saveOrder, getOrders, updateOrderStatus } from './lib/supabase';
+import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from './lib/supabase';
 import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
 import ProductPage from './components/ProductPage';

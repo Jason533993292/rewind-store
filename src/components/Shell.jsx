@@ -70,7 +70,7 @@ export function Photo({ id, hue, label, h = 320, img }) {
   return (
     <div className="rw-photo" style={{ height: h, overflow: 'hidden', position: 'relative' }}>
       {!loaded && <div className="rw-skeleton" style={{ position: 'absolute', inset: 0 }} />}
-      <img ref={imgRef} className={`rw-img ${loaded ? 'loaded' : ''}`}
+      <img ref={imgRef} loading="lazy" className={`rw-img ${loaded ? 'loaded' : ''}`}
         alt={label}
         onLoad={() => setLoaded(true)}
         onError={() => { setErrored(true); setLoaded(true); }}
