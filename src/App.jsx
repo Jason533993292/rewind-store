@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.14';
+const VERSION = 'V7.5.15';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1113,8 +1113,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, margin: 0 }}>REWIND Admin</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, margin: 0 }}>REWIND Admin</h1>
+          <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>{VERSION}</span>
+        </div>
         <button onClick={onExit}
           style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', color: 'var(--ink)', transition: 'all 0.15s' }}
           onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.transform = 'translateY(-1px)'; }}
@@ -1122,7 +1125,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           ← Back to store
         </button>
       </div>
-      <div style={{ position: 'absolute', top: '44px', right: '24px', fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>{VERSION}</div>
 
       {/* ── Admin login ── */}
       {adminChecking && <p style={{ textAlign: 'center', color: 'var(--muted)' }}>Checking access...</p>}
