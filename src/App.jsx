@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, Photo } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import ClickSpark from './components/ClickSpark';
+import ChatBubble from './components/ChatBubble';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, saveOrder, getOrders, updateOrderStatus } from './lib/supabase';
@@ -848,6 +849,7 @@ export default function App() {
 
   return (
     <ClickSpark sparkColor="#FF4D14" sparkSize={8} sparkRadius={16} sparkCount={10}>
+      <ChatBubble />
       {viewContent}
 
       {/* ── Shared overlays (rendered in BOTH product page view AND shop view) ── */}

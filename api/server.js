@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
+import { buildChatRouter } from './chat-routes.js';
+import { requireAdmin } from './middleware/requireAdmin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.set('trust proxy', 1);
@@ -261,19 +263,6 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 
   res.json({ valid: false });
 });
-
-// ── Admin: require admin token middleware ──
-function requireAdmin(req, res, next) {
-  const token = req.headers['x-admin-token'];
-  const secret = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
-  if (!secret) {
-    return res.status(500).json({ error: 'Admin token not configured on server' });
-  }
-  if (!secret || !token || token.length !== secret.length || !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret))) {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
-  next();
-}
 
 // Admin management (add/remove admins)
 app.post('/api/manage-admins', requireAdmin, async (req, res) => {
@@ -915,6 +904,17 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
   res.status(500).json({ error: 'Internal error' });
 });
+
+// ── Chat router ──
+app.use(buildChatRouter({
+  SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  resend: resend,
+  FROM_EMAIL,
+  REPLY_TO,
+  notifyEmail: 'orders@rewind-stores.com',
+  requireAdmin,
+}));
 
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
