@@ -29,8 +29,15 @@ export function Icon({ name, size = 20 }) {
 /* ---------- Photo ---------- */
 export function Photo({ id, hue, label, h = 320, img }) {
   const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
   const imgRef = useRef(null);
   const src = img || (IMG_BASE_URL ? `${IMG_BASE_URL}/${id}.webp` : null);
+
+  useEffect(() => {
+    // Reset state when src changes (e.g. navigating between products)
+    setLoaded(false);
+    setErrored(false);
+  }, [src]);
 
   useEffect(() => {
     if (!imgRef.current || !src) return;
@@ -47,8 +54,8 @@ export function Photo({ id, hue, label, h = 320, img }) {
     return () => observer.disconnect();
   }, [src]);
 
-  if (!src) {
-    // Colour-block placeholder
+  if (!src || errored) {
+    // Colour-block placeholder (also used as error fallback when image load fails)
     const bg = `linear-gradient(150deg, oklch(0.72 0.17 ${hue}) 0%, oklch(0.55 0.2 ${(hue + 40) % 360}) 100%)`;
     return (
       <div className="rw-photo" style={{ height: h }}>
@@ -63,7 +70,9 @@ export function Photo({ id, hue, label, h = 320, img }) {
     <div className="rw-photo" style={{ height: h, overflow: 'hidden', position: 'relative' }}>
       {!loaded && <div className="rw-skeleton" style={{ position: 'absolute', inset: 0 }} />}
       <img ref={imgRef} className={`rw-img ${loaded ? 'loaded' : ''}`}
-        alt={label} onLoad={() => setLoaded(true)}
+        alt={label}
+        onLoad={() => setLoaded(true)}
+        onError={() => { setErrored(true); setLoaded(true); }}
         style={{ position: 'absolute', inset: 0 }} />
     </div>
   );
