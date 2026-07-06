@@ -1599,6 +1599,22 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                               ✕ Cancel
                             </button>
                             )}
+                            {o.status === 'cancelled' && (
+                            <button onClick={async () => {
+                              const r = await fetch('/api/admin/undo-cancel-order', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
+                                body: JSON.stringify({ orderId: o.id }),
+                              });
+                              const d = await r.json();
+                              if (d.ok) setOrders(prev => prev.map(p => p.id === o.id ? { ...p, status: 'pending' } : p));
+                            }}
+                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--ink)', background: 'var(--surface)', color: 'var(--ink)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                              onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+                              onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; e.target.style.transform = ''; }}>
+                              ↩ Undo
+                            </button>
+                            )}
                           </td>
                         </tr>
                       ))}

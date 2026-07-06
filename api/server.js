@@ -857,6 +857,26 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
   }
 });
 
+// ── Admin: undo cancellation (revert to pending) ──
+app.post('/api/admin/undo-cancel-order', requireAdmin, async (req, res) => {
+  const { orderId } = req.body;
+  if (!orderId) return res.status(400).json({ error: 'orderId required' });
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const url = process.env.VITE_SUPABASE_URL;
+    const r = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
+      method: 'PATCH',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'pending' }),
+    });
+    if (!r.ok) return res.status(500).json({ error: 'Failed to undo' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Undo cancel error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Admin: get all orders ──
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
