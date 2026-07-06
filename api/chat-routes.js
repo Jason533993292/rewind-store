@@ -101,17 +101,22 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
       res.json({ session_id });
 
-      // Auto-reply with AI for common questions
-      const GEMINI_KEY = process.env.GEMINI_API_KEY;
-      if (GEMINI_KEY) {
-        const reply = await getAiAutoReply(message, GEMINI_KEY);
-        if (reply) {
-          await sfetch('/chat_messages', {
-            method: 'POST',
-            body: JSON.stringify({ session_id, sender: 'admin', message: reply }),
-          });
+      // Auto-reply with AI (fire-and-forget, separate try/catch so it never touches res)
+      (async () => {
+        const GEMINI_KEY = process.env.GEMINI_API_KEY;
+        if (!GEMINI_KEY) return;
+        try {
+          const reply = await getAiAutoReply(message, GEMINI_KEY);
+          if (reply) {
+            await sfetch('/chat_messages', {
+              method: 'POST',
+              body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
+            });
+          }
+        } catch (e) {
+          console.warn('AI auto-reply failed:', e.message);
         }
-      }
+      })();
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });

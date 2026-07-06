@@ -141,8 +141,8 @@ export default function ChatBubble() {
             )}
             {messages.map((m, i) => (
               <div key={i} style={{
-                alignSelf: m.sender === 'admin' ? 'flex-start' : 'flex-end',
-                background: m.sender === 'admin' ? '#F1EEE7' : 'var(--accent, #FF4D14)',
+                alignSelf: m.sender === 'admin' || m.sender === 'ai' ? 'flex-start' : 'flex-end',
+                background: m.sender === 'admin' || m.sender === 'ai' ? '#F1EEE7' : 'var(--accent, #FF4D14)',
                 color: m.sender === 'admin' ? '#16130F' : '#fff',
                 borderRadius: '12px', padding: '8px 12px', fontSize: '13px', maxWidth: '80%',
                 whiteSpace: 'pre-wrap', wordBreak: 'break-word',
