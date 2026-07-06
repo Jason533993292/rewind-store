@@ -20,7 +20,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.5.11';
+const VERSION = 'V7.5.12';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -915,9 +915,7 @@ export default function App() {
           }}
           onMouseOver={e => { e.target.style.transform = 'scale(1.1)'; e.target.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; }}
           onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'; }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 15l-6-6-6 6"/>
-          </svg>
+          <Icon name="chevUp" size={18} />
         </button>
       )}
 
