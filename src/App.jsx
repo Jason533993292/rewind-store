@@ -1043,7 +1043,10 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: saved, token: localStorage.getItem('rw_admin_token') })
-      }).then(r => r.json()).then(d => {
+      }).then(r => {
+        if (!r.ok) { console.error('Verify-admin status:', r.status); return { verified: false }; }
+        return r.json();
+      }).then(d => {
         if (d.verified) setAdminAuthed(true);
         setAdminChecking(false);
       }).catch(() => setAdminChecking(false));
@@ -1191,6 +1194,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: adminEmail, token: adminToken })
               });
+              if (!r.ok) { setAdminMsg('❌ Server error (' + r.status + ') — try again'); return; }
               const d = await r.json();
               if (d.verified) {
                 localStorage.setItem('rw_admin_email', adminEmail);
