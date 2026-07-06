@@ -55,6 +55,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   const startLimited = makeLimiter();
   const sendLimited = makeLimiter();
   const readLimited = makeLimiter();
+  // Daily AI reply cap per IP (resets on server restart — fine for solo shop)
+  const aiReplyCount = new Map();
 
   function validateMessage(message) {
     if (!message || typeof message !== 'string' || !message.trim()) return 'Message required';
@@ -105,6 +107,13 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       (async () => {
         const GEMINI_KEY = process.env.GEMINI_API_KEY;
         if (!GEMINI_KEY) return;
+        // Daily AI reply cap: 15 per IP
+        const ip = getIp(req);
+        const aiKey = `ai:${ip}`;
+        const aiDay = Math.floor(Date.now() / 86400000);
+        const aiPrev = aiReplyCount.get(aiKey);
+        if (aiPrev && aiPrev.day === aiDay && aiPrev.count >= 15) return;
+        aiReplyCount.set(aiKey, { day: aiDay, count: (aiPrev?.count || 0) + 1 });
         try {
           const reply = await getAiAutoReply(message, GEMINI_KEY);
           if (reply) {

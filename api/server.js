@@ -18,6 +18,25 @@ app.use(express.json({
 
 // ── IP blocker middleware ──
 const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
+const BLOCKED_EMAILS = new Set();
+
+// Hydrate in-memory blocked lists from Supabase on boot
+(async () => {
+  try {
+    const ipRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_ips?select=ip`, {
+      headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+    });
+    const ipData = await ipRes.json();
+    if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip, true));
+  } catch (e) { console.warn('Failed to load blocked IPs:', e.message); }
+  try {
+    const emailRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
+      headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+    });
+    const emailData = await emailRes.json();
+    if (Array.isArray(emailData)) emailData.forEach(r => BLOCKED_EMAILS.add(r.email.toLowerCase()));
+  } catch (e) { console.warn('Failed to load blocked emails:', e.message); }
+})();
 
 app.use(async (req, res, next) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress;
@@ -55,6 +74,17 @@ app.get('/api/health', (_req, res) => {
     env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
   });
 });
+app.get('/api/env', requireAdmin, (_req, res) => {
+  const RESEND_KEY = process.env.RESEND_API_KEY;
+  const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
+  res.json({
+    SUPABASE_URL: SUPABASE_URL,
+    SUPABASE_ANON_KEY: (SUPABASE_KEY || '').slice(0, 8) + '…',
+    RESEND_KEY: !!RESEND_KEY,
+    STRIPE_KEY: !!STRIPE_KEY,
+    ADMIN_TOKEN: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
+});
 
 // ── Verify admin email + token (server-side check) ──
 app.post('/api/verify-admin', strictLimiter, async (req, res) => {
@@ -66,9 +96,8 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
   if (!ADMIN_TOKEN || !token || ADMIN_TOKEN !== token) return res.json({ verified: false });
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const url = process.env.VITE_SUPABASE_URL;
-    if (!SERVICE_KEY || !url) return res.json({ verified: false });
-    const r = await fetch(`${url}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
+    if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ verified: false });
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
@@ -229,10 +258,9 @@ async function lookupProductPrice(id) {
   if (found) return found.price;
   // 2. Check Supabase custom_products
   try {
-    const url = process.env.VITE_SUPABASE_URL;
     const key = process.env.VITE_SUPABASE_ANON_KEY;
-    if (!url || !key) return null;
-    const r = await fetch(`${url}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
+    if (!SUPABASE_URL || !key) return null;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
     const data = await r.json();
@@ -378,11 +406,10 @@ app.post('/api/save-order', requireAdmin, async (req, res) => {
   const { orderNum, customer_name, email, address, items, total } = req.body;
   if (!orderNum) return res.status(400).json({ error: 'No order number' });
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
     const response = await fetch(
-      `${url}/rest/v1/orders`,
+      `${SUPABASE_URL}/rest/v1/orders`,
       {
         method: 'POST',
         headers: {
@@ -516,10 +543,9 @@ app.post('/api/stripe-webhook', async (req, res) => {
     const orderNum = session.metadata?.orderNum;
     if (orderNum) {
       try {
-        const url = process.env.VITE_SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (url && key) {
-          await fetch(`${url}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}`, {
+        if (SUPABASE_URL && key) {
+          await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}`, {
             method: 'PATCH',
             headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'payment_failed' }),
@@ -626,10 +652,9 @@ app.get('/api/admin/user-emails', async (req, res) => {
 // ── Admin: product CRUD ──
 app.post('/api/admin/products/add', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    const r = await fetch(`${url}/rest/v1/custom_products`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products`, {
       method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
       body: JSON.stringify(req.body),
     });
@@ -640,12 +665,11 @@ app.post('/api/admin/products/add', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/products/update', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
   const { product_id, ...updates } = req.body;
   if (!product_id) return res.status(400).json({ error: 'product_id required' });
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    const r = await fetch(`${url}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(product_id)}`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(product_id)}`, {
       method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
       body: JSON.stringify(updates),
     });
@@ -656,12 +680,11 @@ app.post('/api/admin/products/update', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
   const { id } = req.body;
   if (!id) return res.status(400).json({ error: 'id required' });
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    await fetch(`${url}/rest/v1/custom_products?id=eq.${id}`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${id}`, {
       method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     res.json({ ok: true });
@@ -670,15 +693,14 @@ app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
     const { productId, imageBase64, ext } = req.body;
     if (!productId || !imageBase64) return res.status(400).json({ error: 'productId and imageBase64 required' });
     const buf = Buffer.from(imageBase64, 'base64');
     const fileExt = ext || 'webp';
     const filePath = `${productId}.${fileExt}`;
-    const r = await fetch(`${url}/storage/v1/object/product-images/${filePath}`, {
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/product-images/${filePath}`, {
       method: 'POST',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' },
       body: buf,
@@ -692,10 +714,9 @@ app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
 // ── Admin: get all wishlist users ──
 app.get('/api/admin/users', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    const r = await fetch(`${url}/rest/v1/wishlists?select=*&order=created_at.desc`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?select=*&order=created_at.desc`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
@@ -763,8 +784,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
   try {
     // Update order status
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const url = process.env.VITE_SUPABASE_URL;
-    const r = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
       method: 'PATCH',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled' }),
@@ -775,7 +795,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
       return res.status(500).json({ error: 'Failed to update order in database. Check server logs.' });
     }
     // Fetch order details for the email
-    const orderData = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
+    const orderData = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     }).then(r => r.json());
     const order = Array.isArray(orderData) ? orderData[0] : null;
@@ -852,8 +872,7 @@ app.post('/api/admin/undo-cancel-order', requireAdmin, async (req, res) => {
   if (!orderId) return res.status(400).json({ error: 'orderId required' });
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const url = process.env.VITE_SUPABASE_URL;
-    const r = await fetch(`${url}/rest/v1/orders?id=eq.${orderId}`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
       method: 'PATCH',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'pending' }),
@@ -869,10 +888,9 @@ app.post('/api/admin/undo-cancel-order', requireAdmin, async (req, res) => {
 // ── Admin: get all orders ──
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    const r = await fetch(`${url}/rest/v1/orders?order=created_at.desc`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
@@ -882,12 +900,11 @@ app.get('/api/admin/orders', requireAdmin, async (req, res) => {
 
 app.post('/api/admin/orders/update-status', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
   const { id, status } = req.body;
   if (!id || !status) return res.status(400).json({ error: 'id and status required' });
-  if (!SERVICE_KEY || !url) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    await fetch(`${url}/rest/v1/orders?id=eq.${id}`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`, {
       method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
@@ -907,7 +924,7 @@ app.use((err, req, res, next) => {
 
 // ── Chat router ──
 app.use(buildChatRouter({
-  SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+  SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   resend: resend,
   FROM_EMAIL,
