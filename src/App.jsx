@@ -1022,10 +1022,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [cancelling, setCancelling] = useState(false);
   const [previewEmail, setPreviewEmail] = useState('');
   const [previewReason, setPreviewReason] = useState('');
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [showRefundSteps, setShowRefundSteps] = useState(false);
+  const [cancelStep, setCancelStep] = useState(0); // 0=closed, 1=reason, 2=email preview, 3=refund
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
-  const [editingEmail, setEditingEmail] = useState(false);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -1590,7 +1588,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                               📋 Copy for supplier
                             </button>
                             {o.status !== 'cancelled' && o.status !== 'shipped' && (
-                            <button onClick={() => setCancelOrder({ id: o.id, order: o })}
+                            <button onClick={() => { setCancelOrder({ id: o.id, order: o }); setCancelStep(1); }}
                               style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
                               onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
                               onMouseOut={e => { e.target.style.background = 'color-mix(in oklab, var(--accent) 15%, transparent)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
@@ -1806,186 +1804,156 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
         </>
       )}
 
-      {/* ── Cancel order modal ── */}
-      {cancelOrder && (
+      {/* ── Cancel panel (step-based — same container, different content) ── */}
+      {cancelOrder && cancelStep > 0 && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-          onClick={() => { if (!cancelling) { setCancelOrder(null); setCancelReason(''); setCustomReason(''); } }}>
+          onClick={() => { if (!cancelling) { setCancelOrder(null); setCancelReason(''); setCustomReason(''); setCancelStep(0); setPreviewEmail(''); } }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', position: 'relative' }}>
-            <button onClick={() => { setCancelOrder(null); setCancelReason(''); setCustomReason(''); }}
+            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: cancelStep === 2 ? '520px' : '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', position: 'relative' }}>
+            <button onClick={() => { setCancelOrder(null); setCancelReason(''); setCustomReason(''); setCancelStep(0); setPreviewEmail(''); }}
               style={{ position: 'absolute', top: '16px', right: '16px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
               aria-label="Close">✕</button>
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '2px' }}>
-                {cancelOrder.order?.order_num || 'Order'} · {cancelOrder.order?.total ? `€${cancelOrder.order.total}` : ''}
-              </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 12px' }}>Cancel order</h3>
-              {/* Step indicator — step 1 of 3 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>1</div>
-                <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</div>
-                <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
-              </div>
-            </div>
-            {[{id:'out_of_stock',label:'Out of stock'},{id:'damaged',label:'Damaged during handling'},{id:'customer_request',label:'Customer requested'},{id:'other',label:'Other'}].map(r => (
-              <button key={r.id} onClick={() => { setCancelReason(r.id); if (r.id !== 'other') setCustomReason(''); }}
-                style={{ display: 'block', width: '100%', padding: '10px 14px', marginBottom: '6px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textAlign: 'left', transition: 'all 0.15s' }}
-                onMouseOver={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--line)'; } }}
-                onMouseOut={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.background = 'var(--surface)'; } }}>
-                {r.label}
-              </button>
-            ))}
-            {cancelReason === 'other' && (
-              <textarea placeholder="Describe why you're cancelling this order..."
-                value={customReason} onChange={e => setCustomReason(e.target.value)}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--line-2)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', minHeight: '60px', outline: 'none', boxSizing: 'border-box' }} />
-            )}
-            <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <button onClick={() => { setCancelOrder(null); setCancelReason(''); setCustomReason(''); }}
-                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
-                onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; }}
-                onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; }}>
-                Back
-              </button>
-              <button disabled={!cancelReason || cancelling || !(cancelReason !== 'other' || (cancelReason === 'other' && customReason.trim()))} onClick={async () => {
-                setCancelling(true);
-                try {
-                  const previewRes = await fetch('/api/admin/preview-cancel-email', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
-                    body: JSON.stringify({ reason: cancelReason, customReason: cancelReason === 'other' ? customReason : '', customerName: cancelOrder.order?.customer_name || 'there' }),
-                  });
-                  const previewData = await previewRes.json();
-                  setPreviewEmail(previewData.emailBody || '');
-                  setPreviewReason(previewData.reasonText || '');
-                  setShowCancelConfirm(true);
-                } catch {
-                  alert('❌ Could not generate email preview');
-                }
-                setCancelling(false);
-              }}
-                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: 'none', background: cancelReason && !cancelling ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: cancelReason && !cancelling ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
-                {cancelling ? 'Generating...' : cancelReason ? 'Preview email' : 'Select a reason'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* ── Cancel confirmation panel (email preview) ── */}
-      {showCancelConfirm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-          onClick={() => { if (!cancelling) { setShowCancelConfirm(false); } }}>
-          <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '28px', maxWidth: '520px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', position: 'relative' }}>
-            <button onClick={() => { setShowCancelConfirm(false); }}
-              style={{ position: 'absolute', top: '14px', right: '14px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
-              aria-label="Close">✕</button>
-
-            {/* Step indicator — step 2 of 3 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
-              <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</div>
-              <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
-            </div>
-
-            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>Review email</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>
-              {cancelOrder.order?.order_num || 'Order'} — the AI-generated email will be sent to the customer
-            </p>
-
-            {/* Email preview */}
-            <div style={{ background: 'var(--bg)', borderRadius: '10px', padding: '16px', marginBottom: '16px', fontSize: '14px', lineHeight: '1.6' }}>
-              <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📧 Email</div>
-              <p style={{ margin: '0 0 6px', color: 'var(--muted)' }}>Hi {cancelOrder.order?.customer_name || 'there'},</p>
-              <p style={{ margin: '0 0 6px', whiteSpace: 'pre-wrap' }}>{previewEmail || 'Generating...'}</p>
-              <p style={{ margin: '0', color: 'var(--muted)', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setShowCancelConfirm(false); }}
-                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
-                onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; }}
-                onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; }}>
-                Edit
-              </button>
-              <button disabled={cancelling} onClick={async () => {
-                setCancelling(true);
-                try {
-                  const r = await fetch('/api/admin/cancel-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
-                    body: JSON.stringify({ orderId: cancelOrder.id, reason: cancelReason, customReason: cancelReason === 'other' ? customReason : '' }),
-                  });
-                  const d = await r.json();
-                  if (d.ok) {
-                    setOrders(prev => prev.map(o => o.id === cancelOrder.id ? { ...o, status: 'cancelled' } : o));
-                    setCancelledOrderNum(cancelOrder.order?.order_num || '');
-                    setShowCancelConfirm(false);
-                    setShowRefundSteps(true);
-                  } else {
-                    alert('❌ ' + (d.error || 'Failed'));
+            {/* ── Step 1: Reason selection ── */}
+            {cancelStep === 1 && (
+              <>
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '2px' }}>
+                    {cancelOrder.order?.order_num || 'Order'} · {cancelOrder.order?.total ? `€${cancelOrder.order.total}` : ''}
+                  </div>
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 12px' }}>Cancel order</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>1</div>
+                    <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</div>
+                    <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
+                  </div>
+                </div>
+                {[{id:'out_of_stock',label:'Out of stock'},{id:'damaged',label:'Damaged during handling'},{id:'customer_request',label:'Customer requested'},{id:'other',label:'Other'}].map(r => (
+                  <button key={r.id} onClick={() => { setCancelReason(r.id); if (r.id !== 'other') setCustomReason(''); }}
+                    style={{ display: 'block', width: '100%', padding: '10px 14px', marginBottom: '6px', borderRadius: '10px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textAlign: 'left', transition: 'all 0.15s' }}
+                    onMouseOver={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--ink)'; e.target.style.background = 'var(--line)'; } }}
+                    onMouseOut={e => { if (cancelReason !== r.id) { e.target.style.borderColor = 'var(--line-2)'; e.target.style.background = 'var(--surface)'; } }}>
+                    {r.label}
+                  </button>
+                ))}
+                {cancelReason === 'other' && (
+                  <textarea placeholder="Describe why you're cancelling this order..."
+                    value={customReason} onChange={e => setCustomReason(e.target.value)}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--line-2)', fontSize: '13px', fontFamily: 'inherit', resize: 'vertical', minHeight: '60px', outline: 'none', boxSizing: 'border-box' }} />
+                )}
+                <button disabled={!cancelReason || cancelling || !(cancelReason !== 'other' || (cancelReason === 'other' && customReason.trim()))} onClick={async () => {
+                  setCancelling(true);
+                  try {
+                    const previewRes = await fetch('/api/admin/preview-cancel-email', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
+                      body: JSON.stringify({ reason: cancelReason, customReason: cancelReason === 'other' ? customReason : '', customerName: cancelOrder.order?.customer_name || 'there' }),
+                    });
+                    const previewData = await previewRes.json();
+                    setPreviewEmail(previewData.emailBody || '');
+                    setPreviewReason(previewData.reasonText || '');
+                    setCancelStep(2);
+                  } catch {
+                    alert('❌ Could not generate email preview');
                   }
-                } catch {
-                  alert('❌ Network error');
-                }
-                setCancelling(false);
-              }}
-                style={{ flex: 1, padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: cancelling ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
-                {cancelling ? 'Sending...' : '✅ Send & cancel order'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                  setCancelling(false);
+                }}
+                  style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '999px', border: 'none', background: cancelReason && !cancelling ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: cancelReason && !cancelling ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '14px', marginTop: '16px', transition: 'all 0.15s' }}>
+                  {cancelling ? 'Generating...' : cancelReason ? 'Preview email →' : 'Select a reason'}
+                </button>
+              </>
+            )}
 
-      {/* ── Refund steps panel ── */}
-      {showRefundSteps && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(22,19,15,0.42)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}
-          onClick={() => { setShowRefundSteps(false); setCancelOrder(null); setCancelReason(''); setCustomReason(''); setPreviewEmail(''); }}>
-          <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface)', borderRadius: '14px', padding: '32px', maxWidth: '480px', width: '100%', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)', position: 'relative' }}>
-            <button onClick={() => { setShowRefundSteps(false); setCancelOrder(null); setCancelReason(''); setCustomReason(''); setPreviewEmail(''); }}
-              style={{ position: 'absolute', top: '14px', right: '14px', width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'var(--muted)', lineHeight: 1 }}
-              aria-label="Close">✕</button>
+            {/* ── Step 2: Email preview ── */}
+            {cancelStep === 2 && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '16px' }}>
+                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
+                  <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
+                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>2</div>
+                  <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--line-2)' }} />
+                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--line)', color: 'var(--muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>Review email</h3>
+                <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>
+                  {cancelOrder.order?.order_num || 'Order'} — the AI-generated email will be sent to the customer
+                </p>
+                <div style={{ background: 'var(--bg)', borderRadius: '10px', padding: '16px', marginBottom: '16px', fontSize: '14px', lineHeight: '1.6' }}>
+                  <div style={{ fontWeight: 700, fontSize: '12px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>📧 Email</div>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{previewEmail || 'Generating...'}</div>
+                  <p style={{ margin: '8px 0 0', color: 'var(--muted)', fontSize: '13px' }}><b>Reason:</b> {previewReason}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={() => { setCancelStep(1); }}
+                    style={{ flex: 1, padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}
+                    onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; }}
+                    onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; }}>
+                    ← Back
+                  </button>
+                  <button disabled={cancelling} onClick={async () => {
+                    setCancelling(true);
+                    try {
+                      const r = await fetch('/api/admin/cancel-order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
+                        body: JSON.stringify({ orderId: cancelOrder.id, reason: cancelReason, customReason: cancelReason === 'other' ? customReason : '' }),
+                      });
+                      const d = await r.json();
+                      if (d.ok) {
+                        setOrders(prev => prev.map(o => o.id === cancelOrder.id ? { ...o, status: 'cancelled' } : o));
+                        setCancelledOrderNum(cancelOrder.order?.order_num || '');
+                        setCancelStep(3);
+                      } else {
+                        alert('❌ ' + (d.error || 'Failed'));
+                      }
+                    } catch {
+                      alert('❌ Network error');
+                    }
+                    setCancelling(false);
+                  }}
+                    style={{ flex: 1, padding: '12px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: cancelling ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
+                    {cancelling ? 'Sending...' : '✅ Send & cancel order'}
+                  </button>
+                </div>
+              </>
+            )}
 
-            {/* Step indicator — all complete */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '20px' }}>
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
-              <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
-              <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
-            </div>
-
-            <div style={{ fontSize: '40px', marginBottom: '8px', textAlign: 'center' }}>✅</div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', margin: '0 0 4px' }}>Order cancelled</h3>
-            <p style={{ fontSize: '14px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 20px' }}>
-              {cancelledOrderNum} — email sent to customer
-            </p>
-
-            <div style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
-              <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>💰 Refund steps</div>
-              <div style={{ fontSize: '14px', color: 'var(--ink)', lineHeight: '1.8' }}>
-                1. Search for <b>{cancelledOrderNum}</b> in Stripe<br/>
-                2. Find the payment → Click <b>Refund</b><br/>
-                3. Select <b>Full refund</b> → <b>Confirm</b><br/>
-                4. Customer sees refund in <b>5-10 business days</b>
-              </div>
-            </div>
-
-            <button onClick={() => { window.open('https://dashboard.stripe.com/payments?query=' + encodeURIComponent(cancelledOrderNum), '_blank'); }}
-              style={{ display: 'block', width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px', marginBottom: '10px', transition: 'all 0.15s' }}>
-              🔍 Search in Stripe
-            </button>
-            <button onClick={() => { setShowRefundSteps(false); setCancelOrder(null); setCancelReason(''); setCustomReason(''); setPreviewEmail(''); }}
-              style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
-              Done
-            </button>
+            {/* ── Step 3: Refund steps ── */}
+            {cancelStep === 3 && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '20px' }}>
+                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
+                  <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
+                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>✓</div>
+                  <div style={{ flex: 1, height: 0, borderTop: '2px dashed var(--accent)' }} />
+                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, flexShrink: 0 }}>3</div>
+                </div>
+                <div style={{ fontSize: '40px', marginBottom: '8px', textAlign: 'center' }}>✅</div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, textAlign: 'center', margin: '0 0 4px' }}>Order cancelled</h3>
+                <p style={{ fontSize: '14px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 20px' }}>
+                  {cancelledOrderNum} — email sent to customer
+                </p>
+                <div style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '12px', padding: '18px', marginBottom: '20px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--accent)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>💰 Refund steps</div>
+                  <div style={{ fontSize: '14px', color: 'var(--ink)', lineHeight: '1.8' }}>
+                    1. Search for <b>{cancelledOrderNum}</b> in Stripe<br/>
+                    2. Find the payment → Click <b>Refund</b><br/>
+                    3. Select <b>Full refund</b> → <b>Confirm</b><br/>
+                    4. Customer sees refund in <b>5-10 business days</b>
+                  </div>
+                </div>
+                <button onClick={() => { window.open('https://dashboard.stripe.com/payments?query=' + encodeURIComponent(cancelledOrderNum), '_blank'); }}
+                  style={{ display: 'block', width: '100%', padding: '14px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '14px', marginBottom: '10px', transition: 'all 0.15s' }}>
+                  🔍 Search in Stripe
+                </button>
+                <button onClick={() => { setCancelOrder(null); setCancelReason(''); setCustomReason(''); setCancelStep(0); setPreviewEmail(''); }}
+                  style={{ display: 'block', width: '100%', padding: '12px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.15s' }}>
+                  Done
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
