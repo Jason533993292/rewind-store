@@ -538,7 +538,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty })),
+          items: items.map(it => ({ id: it.id, product_id: it.product_id, name: it.name, size: it.size, price: it.price, qty: it.qty })),
           total: finalTotal,
           orderNum,
           email,
