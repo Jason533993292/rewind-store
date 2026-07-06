@@ -188,13 +188,13 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
                 disabled={qty <= 1}
                 onMouseOver={e => { if (!e.target.disabled) e.target.style.background = 'var(--line)'; }}
                 onMouseOut={e => { if (!e.target.disabled) e.target.style.background = 'var(--surface)'; }}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty <= 1 ? 'not-allowed' : 'pointer', fontSize: '16px', transition: 'background 0.15s, opacity 0.15s', opacity: qty <= 1 ? 0.35 : 1 }}>−</button>
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty <= 1 ? 'not-allowed' : 'pointer', transition: 'background 0.15s, opacity 0.15s', opacity: qty <= 1 ? 0.35 : 1, display: 'grid', placeItems: 'center' }}><Icon name="minus" size={14} /></button>
               <span style={{ fontSize: '16px', fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>{qty}</span>
               <button onClick={() => setQty(Math.min(p.stock || 99, qty + 1))}
                 disabled={qty >= (p.stock || 99)}
                 onMouseOver={e => { if (!e.target.disabled) e.target.style.background = 'var(--line)'; }}
                 onMouseOut={e => { if (!e.target.disabled) e.target.style.background = 'var(--surface)'; }}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty >= (p.stock || 99) ? 'not-allowed' : 'pointer', fontSize: '16px', transition: 'background 0.15s, opacity 0.15s', opacity: qty >= (p.stock || 99) ? 0.35 : 1 }}>+</button>
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty >= (p.stock || 99) ? 'not-allowed' : 'pointer', transition: 'background 0.15s, opacity 0.15s', opacity: qty >= (p.stock || 99) ? 0.35 : 1, display: 'grid', placeItems: 'center' }}><Icon name="plus" size={14} /></button>
             </div>
           </div>
 
