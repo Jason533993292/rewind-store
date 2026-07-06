@@ -739,7 +739,7 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
   Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
           }]
         }],
-        generationConfig: { maxOutputTokens: 200 },
+        generationConfig: { maxOutputTokens: 2000 },
       }),
     });
     const aiData = await aiRes.json();
@@ -804,7 +804,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
 Make it sound warm and personal, like a small shop owner writing to a friend. Max 5 sentences. No subject line, just the body.`
               }]
             }],
-            generationConfig: { maxOutputTokens: 1000 },
+            generationConfig: { maxOutputTokens: 2000 },
           }),
         });
         const aiData = await aiRes.json();
