@@ -965,6 +965,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [previewReason, setPreviewReason] = useState('');
   const [cancelStep, setCancelStep] = useState(0); // 0=closed, 1=reason, 2=email preview, 3=refund
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
+  const [chatUnread, setChatUnread] = useState(0);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -1164,7 +1165,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           { id: 'users', label: '📊 Users' },
           { id: 'email', label: '📧 Email' },
           { id: 'orders', label: '📦 Orders' },
-          { id: 'chats', label: '💬 Chats' },
+          { id: 'chats', label: '💬 Chats' + (chatUnread > 0 ? ` (${chatUnread})` : '') },
           { id: 'saved', label: '⭐ Saved' },
           { id: 'blocked', label: '🚫 Blocked' },
           { id: 'products', label: '🛍️ Products' },
@@ -1629,7 +1630,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           {adminTab === 'blocked' && <BlockedPanel />}
 
           {/* ── Chats ── */}
-          {adminTab === 'chats' && <AdminChatPanel adminToken={adminToken} />}
+          {adminTab === 'chats' && <AdminChatPanel adminToken={adminToken} chatUnread={chatUnread} setChatUnread={setChatUnread} />}
 
           {/* ── Saved products ── */}
           {adminTab === 'saved' && (
@@ -1927,12 +1928,21 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
 }
 
 /* ── Admin Chat Panel ── */
-function AdminChatPanel({ adminToken }) {
+function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
   const [sessions, setSessions] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [hoveredSession, setHoveredSession] = useState(null);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showBlockPanel, setShowBlockPanel] = useState(false);
+  const [blockReason, setBlockReason] = useState('');
+  const [blockCustomReason, setBlockCustomReason] = useState('');
+  const [showPromoPanel, setShowPromoPanel] = useState(false);
+  const [promoPercent, setPromoPercent] = useState(10);
+  const [promoCustomValue, setPromoCustomValue] = useState('');
+  const [generatedCode, setGeneratedCode] = useState('');
   const scrollRef = useRef(null);
 
   const loadSessions = useCallback(async () => {
@@ -1957,6 +1967,26 @@ function AdminChatPanel({ adminToken }) {
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
 
+  // Feature 6: Notification badge — poll for new sessions every 10s
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch('/api/admin/chat/sessions', {
+          headers: { 'x-admin-token': adminToken },
+        });
+        const d = await r.json();
+        const newCount = Array.isArray(d.sessions) ? d.sessions.length : 0;
+        setSessions(prev => {
+          if (prev.length > 0 && newCount > prev.length) {
+            setChatUnread(newCount - prev.length);
+          }
+          return prev;
+        });
+      } catch {}
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [adminToken, setChatUnread]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -1972,6 +2002,8 @@ function AdminChatPanel({ adminToken }) {
   async function handleSelect(sessionId) {
     setSelectedId(sessionId);
     loadMessages(sessionId);
+    // Clear unread badge when viewing chats
+    setChatUnread(0);
   }
 
   async function handleReply() {
@@ -1994,36 +2026,100 @@ function AdminChatPanel({ adminToken }) {
     setSending(false);
   }
 
-  async function handleClose() {
+  async function handleCloseConfirmed() {
     await fetch('/api/admin/chat/reply', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
       body: JSON.stringify({ session_id: selectedId, message: 'Session closed.', close: true }),
     });
     setSelectedId(null);
+    setShowCloseConfirm(false);
     loadSessions();
   }
 
+  const BLOCK_REASONS = ['Spammer', 'Troller', 'Abusive', 'Rude', 'Other'];
+
+  async function handleBlock(reason) {
+    if (!selectedId) return;
+    // Find the current session to get the customer's email
+    const session = sessions.find(s => s.session_id === selectedId);
+    const email = session?.customer_email;
+    if (!email) return;
+    const finalReason = reason === 'Other' ? blockCustomReason : reason;
+    try {
+      await fetch('/api/admin/block-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ email, reason: finalReason }),
+      });
+    } catch {}
+    setShowBlockPanel(false);
+    setBlockReason('');
+    setBlockCustomReason('');
+  }
+
+  function generatePromoCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'REWIND-';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  function handleGeneratePromo() {
+    const code = generatePromoCode();
+    setGeneratedCode(code);
+    navigator.clipboard.writeText(code).catch(() => {});
+  }
+
+  function getLastMessage(sessionId) {
+    // We don't have last_message_text from sessions, so we'll show a preview
+    const session = sessions.find(s => s.session_id === sessionId);
+    return session?.last_message_text || session?.status || 'Click to view';
+  }
+
+  const selectedSession = selectedId ? sessions.find(s => s.session_id === selectedId) : null;
+
   return (
     <div style={{ display: 'flex', gap: '16px', maxWidth: '1000px' }}>
-      <div style={{ flex: '0 0 260px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden' }}>
-        <div style={{ padding: '14px', borderBottom: '1px solid var(--line)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Sessions ({sessions.length})
+      {/* Session list */}
+      <div style={{ flex: '0 0 260px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'visible', position: 'relative' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', borderBottom: '1px solid var(--line)' }}>
+          <span style={{ fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Sessions ({sessions.length})
+          </span>
+          <button onClick={loadSessions}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px' }}
+            onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
+            onMouseOut={e => { e.target.style.background = 'transparent'; }}>
+            🔄 Refresh
+          </button>
         </div>
-        <button onClick={loadSessions}
-          style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px' }}
-          onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
-          onMouseOut={e => { e.target.style.background = 'transparent'; }}>
-          🔄 Refresh
-        </button>
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
           {sessions.map(s => (
-            <div key={s.session_id} onClick={() => handleSelect(s.session_id)}
-              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--line)', background: selectedId === s.session_id ? 'var(--line)' : 'transparent', fontSize: '13px' }}
+            <div key={s.session_id}
+              onClick={() => handleSelect(s.session_id)}
+              onMouseEnter={(e) => setHoveredSession(s.session_id)}
+              onMouseLeave={() => setHoveredSession(null)}
+              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--line)', background: selectedId === s.session_id ? 'var(--line)' : 'transparent', fontSize: '13px', position: 'relative' }}
               onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
               onMouseOut={e => { e.target.style.background = selectedId === s.session_id ? 'var(--line)' : 'transparent'; }}>
               <div style={{ fontWeight: 600 }}>{s.customer_name || s.customer_email || 'Anonymous'}</div>
               <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{s.status} · {new Date(s.last_message_at).toLocaleString()}</div>
+              {/* Feature 1: Hover tooltip with last message preview */}
+              {hoveredSession === s.session_id && (
+                <div style={{
+                  position: 'absolute', left: '100%', top: '0', zIndex: 100,
+                  background: 'var(--ink)', color: 'var(--surface)', padding: '8px 12px',
+                  borderRadius: '8px', fontSize: '12px', maxWidth: '220px',
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                  marginLeft: '8px',
+                }}>
+                  {getLastMessage(s.session_id)}
+                </div>
+              )}
             </div>
           ))}
           {sessions.length === 0 && (
@@ -2031,18 +2127,28 @@ function AdminChatPanel({ adminToken }) {
           )}
         </div>
       </div>
+      {/* Message area */}
       <div style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {selectedId ? (
           <>
             <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', maxHeight: '380px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {messages.map((m, i) => (
-                <div key={i} style={{
-                  alignSelf: m.sender === 'admin' ? 'flex-end' : 'flex-start',
-                  background: m.sender === 'admin' ? 'var(--accent)' : '#F1EEE7',
-                  color: m.sender === 'admin' ? '#fff' : '#16130F',
-                  borderRadius: '10px', padding: '8px 12px', fontSize: '13px', maxWidth: '80%',
-                  whiteSpace: 'pre-wrap',
-                }}>
+                <div key={i}
+                  className="admin-chat-msg"
+                  style={{
+                    alignSelf: m.sender === 'admin' ? 'flex-end' : 'flex-start',
+                    background: m.sender === 'admin' ? 'var(--accent)' : '#F1EEE7',
+                    color: m.sender === 'admin' ? '#fff' : '#16130F',
+                    borderRadius: '10px', padding: '8px 12px', fontSize: '13px', maxWidth: '80%',
+                    whiteSpace: 'pre-wrap',
+                    boxShadow: m.sender === 'admin' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                    transition: 'box-shadow 0.15s',
+                  }}
+                  onMouseOver={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)'; }}
+                  onMouseOut={e => { e.currentTarget.style.boxShadow = m.sender === 'admin' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none'; }}>
+                  <div style={{ fontSize: '9px', opacity: 0.6, marginBottom: '2px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                    {m.sender === 'admin' ? 'You' : m.sender === 'ai' ? 'AI' : 'Customer'}
+                  </div>
                   {m.message}
                   <div style={{ fontSize: '10px', opacity: 0.6, marginTop: '4px' }}>{new Date(m.created_at).toLocaleTimeString()}</div>
                 </div>
@@ -2057,10 +2163,97 @@ function AdminChatPanel({ adminToken }) {
                 style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', opacity: sending ? 0.6 : 1 }}>
                 Send
               </button>
-              <button onClick={handleClose}
-                style={{ padding: '8px 12px', background: 'var(--line)', color: 'var(--muted)', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
-                Close
-              </button>
+              {/* Feature 3: Close session with confirmation */}
+              {!showCloseConfirm ? (
+                <button onClick={() => setShowCloseConfirm(true)}
+                  style={{ padding: '8px 12px', background: 'var(--line)', color: 'var(--muted)', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                  Close session
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>Are you sure?</span>
+                  <button onClick={handleCloseConfirmed}
+                    style={{ padding: '6px 10px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}>
+                    Confirm
+                  </button>
+                  <button onClick={() => setShowCloseConfirm(false)}
+                    style={{ padding: '6px 10px', background: 'var(--line)', color: 'var(--ink)', border: 'none', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                </div>
+              )}
+              {/* Feature 4: Block email button */}
+              {!showBlockPanel ? (
+                <button onClick={() => setShowBlockPanel(true)}
+                  style={{ padding: '8px 12px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                  Block
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px', background: 'var(--line)', borderRadius: '8px', fontSize: '12px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '11px', color: 'var(--muted)' }}>Block reason:</div>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {BLOCK_REASONS.map(r => (
+                      <button key={r} onClick={() => setBlockReason(r)}
+                        style={{
+                          padding: '4px 8px', borderRadius: '6px', border: 'none',
+                          background: blockReason === r ? 'var(--accent)' : 'var(--surface)',
+                          color: blockReason === r ? '#fff' : 'var(--ink)',
+                          cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+                        }}>
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                  {blockReason === 'Other' && (
+                    <input value={blockCustomReason} onChange={e => setBlockCustomReason(e.target.value)}
+                      placeholder="Custom reason..." style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '11px' }} />
+                  )}
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button onClick={() => handleBlock(blockReason)} disabled={!blockReason || (blockReason === 'Other' && !blockCustomReason.trim())}
+                      style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', background: blockReason && !(blockReason === 'Other' && !blockCustomReason.trim()) ? '#e74c3c' : 'var(--line-2)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600, opacity: blockReason && !(blockReason === 'Other' && !blockCustomReason.trim()) ? 1 : 0.5 }}>
+                      Block
+                    </button>
+                    <button onClick={() => { setShowBlockPanel(false); setBlockReason(''); setBlockCustomReason(''); }}
+                      style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px' }}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              {/* Feature 5: Give promo button */}
+              {!showPromoPanel ? (
+                <button onClick={() => setShowPromoPanel(true)}
+                  style={{ padding: '8px 12px', background: '#2ecc71', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                  Give promo
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px', background: 'var(--line)', borderRadius: '8px', fontSize: '12px', minWidth: '200px' }}>
+                  <div style={{ fontWeight: 600, fontSize: '11px', color: 'var(--muted)' }}>Promo discount:</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px' }}>{promoPercent}%</span>
+                    <input type="range" min="5" max="50" value={promoPercent}
+                      onChange={e => setPromoPercent(parseInt(e.target.value))}
+                      style={{ flex: 1 }} />
+                  </div>
+                  <input value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)}
+                    placeholder="Custom value (e.g. 25%)" style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '11px' }} />
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <button onClick={handleGeneratePromo}
+                      style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: '#2ecc71', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      {generatedCode ? 'Copied!' : 'Generate & copy'}
+                    </button>
+                    <button onClick={() => { setShowPromoPanel(false); setGeneratedCode(''); setPromoCustomValue(''); }}
+                      style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px' }}>
+                      Cancel
+                    </button>
+                  </div>
+                  {generatedCode && (
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', padding: '4px 0', textAlign: 'center' }}>
+                      {generatedCode} ✓
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </>
         ) : (
