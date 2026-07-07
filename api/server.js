@@ -117,6 +117,7 @@ const FROM_EMAIL = process.env.FROM_EMAIL || 'REWIND <orders@rewind-stores.com>'
 const REPLY_TO = process.env.REPLY_TO || 'philippekojoanaman@gmail.com';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
 
 function orderHtml({ name, items, total, address, orderNum }) {
