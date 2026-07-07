@@ -21,8 +21,6 @@ function beep() {
 }
 
 export default function ChatBubble() {
-  if (typeof window !== 'undefined' && window.location.hash === '#admin') return null;
-
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
     try { return localStorage.getItem(SESSION_KEY) || null; } catch { return null; }
@@ -115,6 +113,9 @@ export default function ChatBubble() {
   }
 
   const showGreeting = messages.length === 0;
+
+  // Don't render on admin pages
+  if (typeof window !== 'undefined' && window.location.hash === '#admin') return null;
 
   return (
     <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 10000, fontFamily: 'inherit' }}>
