@@ -2068,9 +2068,19 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
   }
 
   function handleGeneratePromo() {
+    const percent = promoCustomValue || promoPercent;
     const code = generatePromoCode();
-    setGeneratedCode(code);
-    navigator.clipboard.writeText(code).catch(() => {});
+    (async () => {
+      try {
+        await fetch('/api/admin/create-promo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+          body: JSON.stringify({ discount: percent, code }),
+        });
+        setGeneratedCode(code);
+        navigator.clipboard.writeText(code).catch(() => {});
+      } catch {}
+    })();
   }
 
   function getLastMessage(sessionId) {

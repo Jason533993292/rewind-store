@@ -271,7 +271,7 @@ async function lookupProductPrice(id) {
   return null;
 }
 
-// Validate promo code
+// Validate promo code — checks static list AND database for generated codes
 app.post('/api/validate-promo', strictLimiter, async (req, res) => {
   const { code } = req.body;
   if (!code) return res.json({ valid: false });
@@ -281,15 +281,38 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
     'FREESHIP': { valid: true, type: 'free_shipping', value: 0 },
   };
 
-  const ADMIN_CODE = process.env.ADMIN_SECRET_CODE;
-  if (code && ADMIN_CODE && code.toUpperCase().trim() === ADMIN_CODE.toUpperCase().trim()) {
-    return res.json({ admin: true });
-  }
+  const upper = code.toUpperCase().trim();
+  const staticCode = PROMO_CODES[upper];
+  if (staticCode) return res.json(staticCode);
 
-  const promo = PROMO_CODES[code.toUpperCase().trim()];
-  if (promo) return res.json(promo);
+  // Check database for generated promo codes
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&used=eq.false&select=code,discount,label`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const p = data[0];
+      return res.json({ valid: true, type: 'percent', value: p.discount, label: p.label || `${p.discount}% off` });
+    }
+  } catch {}
 
   res.json({ valid: false });
+});
+
+// Admin: create a promo code (stored in DB)
+app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
+  const { discount, label, code } = req.body;
+  if (!discount || discount < 1 || discount > 100) return res.status(400).json({ error: 'Discount must be 1-100' });
+  const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: promoCode, discount, label: label || `${discount}% off`, created_by: 'admin' }),
+    });
+    res.json({ code: promoCode, discount });
+  } catch (e) { res.status(500).json({ error: 'Failed to create promo' }); }
 });
 
 // Admin management (add/remove admins)
