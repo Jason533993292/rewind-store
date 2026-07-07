@@ -2115,7 +2115,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
               style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--line)', background: selectedId === s.session_id ? 'var(--line)' : 'transparent', fontSize: '13px', position: 'relative' }}
               onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
               onMouseOut={e => { e.target.style.background = selectedId === s.session_id ? 'var(--line)' : 'transparent'; }}>
-              <div style={{ fontWeight: 600 }}>{s.customer_name || s.customer_email || 'Anonymous'}</div>
+              <div style={{ fontWeight: 600 }}>{s.customer_email || s.customer_name || 'Unknown'}</div>
               <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{s.status} · {new Date(s.last_message_at).toLocaleString()}</div>
               {/* Feature 1: Hover tooltip with last message preview */}
               {hoveredSession === s.session_id && (
@@ -2141,7 +2141,13 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
       <div style={{ flex: 1, background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {selectedId ? (
           <>
-            <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', maxHeight: '380px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--line)', fontSize: '13px', fontWeight: 600 }}>
+              <span>{selectedSession?.customer_email || selectedSession?.customer_name || 'Session'}</span>
+              <button onClick={() => setShowCloseConfirm(true)}
+                style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'var(--muted)', lineHeight: 1 }}
+                aria-label="Close session">✕</button>
+            </div>
+            <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', maxHeight: '300px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {messages.map((m, i) => (
                 <div key={i}
                   className="admin-chat-msg"
@@ -2173,98 +2179,116 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
                 style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', opacity: sending ? 0.6 : 1 }}>
                 Send
               </button>
-              {/* Feature 3: Close session with confirmation */}
-              {!showCloseConfirm ? (
-                <button onClick={() => setShowCloseConfirm(true)}
-                  style={{ padding: '8px 12px', background: 'var(--line)', color: 'var(--muted)', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
-                  Close session
-                </button>
-              ) : (
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>Are you sure?</span>
-                  <button onClick={handleCloseConfirmed}
-                    style={{ padding: '6px 10px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}>
-                    Confirm
-                  </button>
+              {/* Feature 3: Close session button */}
+              <button onClick={() => setShowCloseConfirm(true)}
+                style={{ padding: '8px 12px', background: 'var(--line)', color: 'var(--muted)', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                Close session
+              </button>
+              {/* Feature 4: Block email button */}
+              <button onClick={() => setShowBlockPanel(true)}
+                style={{ padding: '8px 12px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                Block
+              </button>
+              {/* Feature 5: Give promo button */}
+              <button onClick={() => setShowPromoPanel(true)}
+                style={{ padding: '8px 12px', background: '#2ecc71', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
+                Give promo
+              </button>
+            </div>
+          {/* ── Close session modal ── */}
+          {selectedId && selectedSession && showCloseConfirm && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => setShowCloseConfirm(false)}>
+              <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px', maxWidth: '360px', width: '90%', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}
+                onClick={e => e.stopPropagation()}>
+                <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>Close session?</div>
+                <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '4px' }}>Are you sure?</div>
+                <div style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, marginBottom: '16px' }}>{selectedSession?.customer_email}</div>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                   <button onClick={() => setShowCloseConfirm(false)}
-                    style={{ padding: '6px 10px', background: 'var(--line)', color: 'var(--ink)', border: 'none', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}>
+                    style={{ padding: '8px 16px', background: 'var(--line)', color: 'var(--ink)', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
                     Cancel
                   </button>
+                  <button onClick={handleCloseConfirmed}
+                    style={{ padding: '8px 16px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}>
+                    Confirm
+                  </button>
                 </div>
-              )}
-              {/* Feature 4: Block email button */}
-              {!showBlockPanel ? (
-                <button onClick={() => setShowBlockPanel(true)}
-                  style={{ padding: '8px 12px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
-                  Block
-                </button>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px', background: 'var(--line)', borderRadius: '8px', fontSize: '12px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '11px', color: 'var(--muted)' }}>Block reason:</div>
-                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                    {BLOCK_REASONS.map(r => (
-                      <button key={r} onClick={() => setBlockReason(r)}
-                        style={{
-                          padding: '4px 8px', borderRadius: '6px', border: 'none',
-                          background: blockReason === r ? 'var(--accent)' : 'var(--surface)',
-                          color: blockReason === r ? '#fff' : 'var(--ink)',
-                          cursor: 'pointer', fontSize: '11px', fontWeight: 600,
-                        }}>
-                        {r}
-                      </button>
-                    ))}
-                  </div>
-                  {blockReason === 'Other' && (
-                    <input value={blockCustomReason} onChange={e => setBlockCustomReason(e.target.value)}
-                      placeholder="Custom reason..." style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '11px' }} />
-                  )}
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button onClick={() => handleBlock(blockReason)} disabled={!blockReason || (blockReason === 'Other' && !blockCustomReason.trim())}
-                      style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', background: blockReason && !(blockReason === 'Other' && !blockCustomReason.trim()) ? '#e74c3c' : 'var(--line-2)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600, opacity: blockReason && !(blockReason === 'Other' && !blockCustomReason.trim()) ? 1 : 0.5 }}>
-                      Block
-                    </button>
-                    <button onClick={() => { setShowBlockPanel(false); setBlockReason(''); setBlockCustomReason(''); }}
-                      style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px' }}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {/* Feature 5: Give promo button */}
-              {!showPromoPanel ? (
-                <button onClick={() => setShowPromoPanel(true)}
-                  style={{ padding: '8px 12px', background: '#2ecc71', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}>
-                  Give promo
-                </button>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '8px', background: 'var(--line)', borderRadius: '8px', fontSize: '12px', minWidth: '200px' }}>
-                  <div style={{ fontWeight: 600, fontSize: '11px', color: 'var(--muted)' }}>Promo discount:</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px' }}>{promoPercent}%</span>
-                    <input type="range" min="5" max="50" value={promoPercent}
-                      onChange={e => setPromoPercent(parseInt(e.target.value))}
-                      style={{ flex: 1 }} />
-                  </div>
-                  <input value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)}
-                    placeholder="Custom value (e.g. 25%)" style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '11px' }} />
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <button onClick={handleGeneratePromo}
-                      style={{ padding: '6px 12px', borderRadius: '6px', border: 'none', background: '#2ecc71', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      {generatedCode ? 'Copied!' : 'Generate & copy'}
-                    </button>
-                    <button onClick={() => { setShowPromoPanel(false); setGeneratedCode(''); setPromoCustomValue(''); }}
-                      style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px' }}>
-                      Cancel
-                    </button>
-                  </div>
-                  {generatedCode && (
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', padding: '4px 0', textAlign: 'center' }}>
-                      {generatedCode} ✓
-                    </div>
-                  )}
-                </div>
-              )}
+              </div>
             </div>
+          )}
+          {/* ── Block email modal ── */}
+          {selectedId && selectedSession && showBlockPanel && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => { setShowBlockPanel(false); setBlockReason(''); setBlockCustomReason(''); }}>
+              <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px', maxWidth: '360px', width: '90%', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}
+                onClick={e => e.stopPropagation()}>
+                <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>Block customer</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '16px' }}>{selectedSession?.customer_email}</div>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                  {BLOCK_REASONS.map(r => (
+                    <button key={r} onClick={() => setBlockReason(r)}
+                      style={{
+                        padding: '6px 12px', borderRadius: '6px', border: 'none',
+                        background: blockReason === r ? 'var(--accent)' : 'var(--line)',
+                        color: blockReason === r ? '#fff' : 'var(--ink)',
+                        cursor: 'pointer', fontSize: '12px', fontWeight: 600,
+                      }}>
+                      {r}
+                    </button>
+                  ))}
+                </div>
+                {blockReason === 'Other' && (
+                  <input value={blockCustomReason} onChange={e => setBlockCustomReason(e.target.value)}
+                    placeholder="Custom reason..." style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', marginBottom: '10px', boxSizing: 'border-box' }} />
+                )}
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button onClick={() => { setShowBlockPanel(false); setBlockReason(''); setBlockCustomReason(''); }}
+                    style={{ padding: '8px 16px', background: 'var(--line)', color: 'var(--ink)', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button onClick={() => handleBlock(blockReason)} disabled={!blockReason || (blockReason === 'Other' && !blockCustomReason.trim())}
+                    style={{ padding: '8px 16px', background: blockReason && !(blockReason === 'Other' && !blockCustomReason.trim()) ? '#e74c3c' : 'var(--line-2)', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: 600, opacity: blockReason && !(blockReason === 'Other' && !blockCustomReason.trim()) ? 1 : 0.5 }}>
+                    Block
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* ── Give promo modal ── */}
+          {selectedId && selectedSession && showPromoPanel && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => { setShowPromoPanel(false); setGeneratedCode(''); setPromoCustomValue(''); }}>
+              <div style={{ background: 'var(--surface)', borderRadius: '12px', padding: '20px', maxWidth: '360px', width: '90%', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}
+                onClick={e => e.stopPropagation()}>
+                <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>Give promo code</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '16px' }}>{selectedSession?.customer_email}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, minWidth: '40px' }}>{promoPercent}%</span>
+                  <input type="range" min="5" max="50" value={promoPercent}
+                    onChange={e => setPromoPercent(parseInt(e.target.value))}
+                    style={{ flex: 1 }} />
+                </div>
+                <input value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)}
+                  placeholder="Custom value (e.g. 25%)" style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', marginBottom: '10px', boxSizing: 'border-box' }} />
+                {generatedCode && (
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', padding: '8px 0', textAlign: 'center' }}>
+                    {generatedCode} ✓
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                  <button onClick={() => { setShowPromoPanel(false); setGeneratedCode(''); setPromoCustomValue(''); }}
+                    style={{ padding: '8px 16px', background: 'var(--line)', color: 'var(--ink)', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleGeneratePromo}
+                    style={{ padding: '8px 16px', background: '#2ecc71', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', fontWeight: 600 }}>
+                    {generatedCode ? 'Copied!' : 'Generate & copy'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           </>
         ) : (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
