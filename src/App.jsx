@@ -21,7 +21,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V7.9.0';
+const VERSION = 'V8.0.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -2272,8 +2272,12 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
                 <input value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)}
                   placeholder="Custom value (e.g. 25%)" style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', marginBottom: '10px', boxSizing: 'border-box' }} />
                 {generatedCode && (
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)', padding: '8px 0', textAlign: 'center' }}>
-                    {generatedCode} ✓
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px 0' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>{generatedCode}</span>
+                    <button onClick={() => { navigator.clipboard.writeText(generatedCode).catch(() => {}); }}
+                      style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                      Copy
+                    </button>
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
