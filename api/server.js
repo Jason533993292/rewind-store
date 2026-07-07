@@ -306,13 +306,17 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
   if (!discount || discount < 1 || discount > 100) return res.status(400).json({ error: 'Discount must be 1-100' });
   const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
+    const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
       method: 'POST',
-      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ code: promoCode, discount, label: label || `${discount}% off`, created_by: 'admin' }),
     });
+    if (!promoRes.ok) {
+      const errText = await promoRes.text();
+      return res.status(500).json({ error: 'Supabase error: ' + errText });
+    }
     res.json({ code: promoCode, discount });
-  } catch (e) { res.status(500).json({ error: 'Failed to create promo' }); }
+  } catch (e) { res.status(500).json({ error: 'Failed to create promo: ' + e.message }); }
 });
 
 // Admin management (add/remove admins)
