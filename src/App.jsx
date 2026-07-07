@@ -1940,6 +1940,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
   const [blockReason, setBlockReason] = useState('');
   const [blockCustomReason, setBlockCustomReason] = useState('');
   const [showPromoPanel, setShowPromoPanel] = useState(false);
+  const [chatRefreshing, setChatRefreshing] = useState(false);
   const [promoPercent, setPromoPercent] = useState(10);
   const [promoCustomValue, setPromoCustomValue] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
@@ -2099,11 +2100,11 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
           <span style={{ fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Sessions ({sessions.length})
           </span>
-          <button onClick={loadSessions}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px' }}
+          <button onClick={() => { setChatRefreshing(true); loadSessions().finally(() => setChatRefreshing(false)); }}
+            style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px', animation: chatRefreshing ? 'spin 1s linear infinite' : 'none' }}
             onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
             onMouseOut={e => { e.target.style.background = 'transparent'; }}>
-            🔄 Refresh
+            🔄
           </button>
         </div>
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
