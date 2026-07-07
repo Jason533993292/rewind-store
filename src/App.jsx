@@ -849,7 +849,6 @@ export default function App() {
 
   return (
     <ClickSpark sparkColor="#FF4D14" sparkSize={8} sparkRadius={16} sparkCount={10}>
-      <ChatBubble />
       {viewContent}
 
       {/* ── Shared overlays (rendered in BOTH product page view AND shop view) ── */}
@@ -920,70 +919,10 @@ export default function App() {
         </button>
       )}
 
-      {/* ── Promo code button ── */}
-      {!drawer && !wishlistOpen && !checkout && (
-      <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
-        <button onClick={() => { if (promoOpen) { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); } else { setPromoOpen(true); setPromoCode(''); setPromoMsg(''); } }}
-          aria-label="Promo code"
-          style={{
-            width: '44px', height: '44px', borderRadius: '50%',
-            background: 'var(--ink)', color: '#fff', border: 'none',
-            cursor: 'pointer', fontSize: '18px', fontWeight: 700,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
-            transition: 'transform 0.15s',
-          }}
-          onMouseOver={e => e.target.style.transform = 'scale(1.1)'}
-          onMouseOut={e => e.target.style.transform = ''}>
-          💬
-        </button>
-      </div>
-      )}
-
-      {(promoOpen || promoClosing) && (
-        <div onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
-          style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            animation: promoClosing ? 'fadeOut 0.25s ease forwards' : 'fadeIn 0.15s ease',
-          }}>
-          <div onClick={e => { e.stopPropagation(); }}
-            style={{
-              pointerEvents: 'auto',
-              position: 'fixed', bottom: '80px', right: '24px',
-              background: 'var(--surface)', borderRadius: '14px', padding: '24px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-              width: '280px', zIndex: 1001,
-              animation: promoClosing ? 'genieDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'genieUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              transformOrigin: 'bottom right',
-            }}>
-            <button onClick={() => { setPromoClosing(true); setTimeout(() => { setPromoOpen(false); setPromoClosing(false); }, 300); }}
-              className="rw-modal-x"
-              style={{
-                position: 'absolute', top: '10px', right: '10px',
-                width: '28px', height: '28px',
-                background: 'color-mix(in oklab, var(--surface) 85%, transparent)', backdropFilter: 'blur(6px)',
-              }}
-              aria-label="Close">
-              <Icon name="close" size={16} />
-            </button>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)', marginBottom: '4px' }}>Got a code?</div>
-            <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--muted)' }}>Enter it below and get a discount.</p>
-            <input className="rw-input" placeholder="Enter code" value={promoCode}
-              onChange={e => { setPromoCode(e.target.value); setPromoMsg(''); }}
-              onKeyDown={e => { if (e.key === 'Enter') applyPromo(); }}
-              disabled={promoLoading}
-              style={{ marginBottom: '8px' }} />
-            <button onClick={applyPromo} disabled={promoLoading}
-              className="rw-btn rw-btn-pri rw-btn-full">
-              {promoLoading ? '⏳ Applying…' : 'Apply'}
-            </button>
-            {promoMsg && <p style={{ fontSize: '12px', marginTop: '8px', color: 'var(--accent)' }}>{promoMsg}</p>}
-          </div>
-        </div>
-      )}
+      {/* ── Chat bubble ── */}
+      <ChatBubble />
 
       {(showTweaks || window.location.search.includes('tweaks')) && <TweaksPanel>
-        <TweakSection label="Urgency & social proof" />
-        <TweakToggle label="Announcement bar" value={t.showBanner} onChange={(v) => setTweak('showBanner', v)} />
         <TweakToggle label="Live sale countdown" value={t.showCountdown} onChange={(v) => setTweak('showCountdown', v)} />
         <TweakToggle label='"Was" pricing & % off' value={t.showCompare} onChange={(v) => setTweak('showCompare', v)} />
         <TweakToggle label="Low-stock badges" value={t.showStock} onChange={(v) => setTweak('showStock', v)} />
@@ -2071,6 +2010,12 @@ function AdminChatPanel({ adminToken }) {
         <div style={{ padding: '14px', borderBottom: '1px solid var(--line)', fontWeight: 700, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Sessions ({sessions.length})
         </div>
+        <button onClick={loadSessions}
+          style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px' }}
+          onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
+          onMouseOut={e => { e.target.style.background = 'transparent'; }}>
+          🔄 Refresh
+        </button>
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
           {sessions.map(s => (
             <div key={s.session_id} onClick={() => handleSelect(s.session_id)}
