@@ -1941,6 +1941,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
   const [showBlockPanel, setShowBlockPanel] = useState(false);
   const [blockReason, setBlockReason] = useState('');
   const [blockCustomReason, setBlockCustomReason] = useState('');
+  const [blockMsg, setBlockMsg] = useState('');
   const [showPromoPanel, setShowPromoPanel] = useState(false);
   const [chatRefreshing, setChatRefreshing] = useState(false);
   const [promoPercent, setPromoPercent] = useState(10);
@@ -2044,21 +2045,23 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
 
   async function handleBlock(reason) {
     if (!selectedId) return;
-    // Find the current session to get the customer's email
     const session = sessions.find(s => s.session_id === selectedId);
     const email = session?.customer_email;
-    if (!email) return;
+    if (!email) { setBlockMsg('No email to block'); setTimeout(() => setBlockMsg(''), 2000); return; }
     const finalReason = reason === 'Other' ? blockCustomReason : reason;
     try {
-      await fetch('/api/admin/block-email', {
+      const r = await fetch('/api/admin/block-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-        body: JSON.stringify({ email, reason: finalReason }),
+        body: JSON.stringify({ email, reason: finalReason || 'Blocked via chat' }),
       });
-    } catch {}
-    setShowBlockPanel(false);
-    setBlockReason('');
-    setBlockCustomReason('');
+      if (r.ok) {
+        setBlockMsg(`✅ Blocked ${email}`);
+      } else {
+        setBlockMsg('❌ Failed to block');
+      }
+    } catch { setBlockMsg('❌ Error'); }
+    setTimeout(() => { setBlockMsg(''); setShowBlockPanel(false); setBlockReason(''); setBlockCustomReason(''); }, 1500);
   }
 
   function generatePromoCode() {
@@ -2233,6 +2236,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
                 onClick={e => e.stopPropagation()}>
                 <div style={{ fontWeight: 700, fontSize: '15px', marginBottom: '8px' }}>Block customer</div>
                 <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '16px' }}>{selectedSession?.customer_email}</div>
+                {blockMsg && <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', textAlign: 'center', color: blockMsg.startsWith('✅') ? '#2ecc71' : '#e74c3c' }}>{blockMsg}</div>}
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '10px' }}>
                   {BLOCK_REASONS.map(r => (
                     <button key={r} onClick={() => setBlockReason(r)}
