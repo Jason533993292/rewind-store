@@ -950,7 +950,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [adminTab, setAdminTab] = useState('users');
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
-  const [adminToken, setAdminToken] = useState('');
+  const [adminToken, setAdminToken] = useState(() => {
+    try { return localStorage.getItem('rw_admin_token') || ''; } catch { return ''; }
+  });
   const [showToken, setShowToken] = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
@@ -1968,7 +1970,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
 
-  // Feature 6: Notification badge — poll for new sessions every 10s
+  // Notification badge — poll for new sessions every 10s
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -1976,12 +1978,12 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
           headers: { 'x-admin-token': adminToken },
         });
         const d = await r.json();
-        const newCount = Array.isArray(d.sessions) ? d.sessions.length : 0;
+        const newSessions = Array.isArray(d.sessions) ? d.sessions : [];
         setSessions(prev => {
-          if (prev.length > 0 && newCount > prev.length) {
-            setChatUnread(newCount - prev.length);
+          if (prev.length > 0 && newSessions.length > prev.length) {
+            setChatUnread(newSessions.length - prev.length);
           }
-          return prev;
+          return newSessions;
         });
       } catch {}
     }, 10000);
