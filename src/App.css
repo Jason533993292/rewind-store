@@ -247,9 +247,17 @@ a { color: inherit; cursor: pointer; }
 
 /* ── THE GRID ── */
 .rw-grid { 
-  display: grid !important; 
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important; 
+  display: grid; 
+  grid-template-columns: repeat(3, minmax(0, 1fr)); 
   gap: 22px 18px; 
+}
+
+@media (max-width: 900px) { 
+  .rw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } 
+}
+
+@media (max-width: 500px) { 
+  .rw-grid { grid-template-columns: 1fr; gap: 8px; } 
 }
 
 @media (max-width: 680px) { #rw-sidebar { display: none; } }
