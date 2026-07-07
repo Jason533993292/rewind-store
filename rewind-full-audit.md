@@ -9,7 +9,7 @@
 
 ## CRITICAL CONTEXT
 
-- Admin token: `Phil4ever!` (stored in localStorage as `rw_admin_token`)
+- Admin token: **[REDACTED — see Railway env vars]**
 - Supabase service role key used server-side (no anon write access)
 - Chat tables: `chat_sessions`, `chat_messages` (RLS enabled, no anon policies)
 - Promo codes table: `promo_codes` (for admin-generated codes)
