@@ -253,17 +253,13 @@ a { color: inherit; cursor: pointer; }
 }
 
 @media (max-width: 768px) { 
-  .rw-grid { 
-    grid-template-columns: repeat(2, minmax(0, 1fr)); 
-  } 
+  .rw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } 
 }
 
 @media (max-width: 540px) { 
-  .rw-grid { 
-    grid-template-columns: minmax(0, 1fr); 
-    gap: 8px; 
-  } 
+  .rw-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; } 
 }
+
 @media (max-width: 680px) { #rw-sidebar { display: none; } }
 @media (min-width: 681px) { #rw-mobile-cat, .rw-mobile-brand { display: none !important; } }
 @media (max-width: 540px) { .rw-card .rw-photo { height: 160px !important; } .rw-card-body { padding: 10px 12px; } .rw-card-name { font-size: 13px; } .rw-card-price { font-size: 15px; } .rw-card-was { font-size: 11px; } }
@@ -322,7 +318,7 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- card ---- */
 .rw-card { display: flex; flex-direction: column; animation: cardIn .45s ease both;
-  content-visibility: auto; contain-intrinsic-size: 340px; }
+  content-visibility: auto; contain-intrinsic-size: 340px; min-width: 0; }
 .rw-card:nth-child(2)  { animation-delay: 0.03s; }
 .rw-card:nth-child(3)  { animation-delay: 0.06s; }
 .rw-card:nth-child(4)  { animation-delay: 0.09s; }
