@@ -305,6 +305,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
   const { discount, label, code } = req.body;
   if (!discount || discount < 1 || discount > 100) return res.status(400).json({ error: 'Discount must be 1-100' });
   const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   try {
     const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
       method: 'POST',
