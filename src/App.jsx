@@ -2121,8 +2121,8 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
               onMouseEnter={(e) => setHoveredSession(s.session_id)}
               onMouseLeave={() => setHoveredSession(null)}
               style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid var(--line)', background: selectedId === s.session_id ? 'var(--line)' : 'transparent', fontSize: '13px', position: 'relative' }}
-              onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
-              onMouseOut={e => { e.target.style.background = selectedId === s.session_id ? 'var(--line)' : 'transparent'; }}>
+              onMouseOver={e => { e.currentTarget.style.background = 'var(--line)'; }}
+              onMouseOut={e => { e.currentTarget.style.background = selectedId === s.session_id ? 'var(--line)' : 'transparent'; }}>
               <div style={{ fontWeight: 600 }}>{s.customer_email || s.customer_name || 'Unknown'}</div>
               <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>{s.status} · {new Date(s.last_message_at).toLocaleString()}</div>
               {/* Feature 1: Hover tooltip with last message preview */}
