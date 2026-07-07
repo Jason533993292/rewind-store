@@ -245,7 +245,7 @@ a { color: inherit; cursor: pointer; }
   font-size: 14px; font-weight: 600; color: var(--muted);
   margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 1px;
 }
-@media (max-width: 900px) { .rw-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .rw-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .rw-grid { grid-template-columns: 1fr; gap: 8px; } }
 @media (max-width: 680px) { #rw-sidebar { display: none; } }
 @media (min-width: 681px) { #rw-mobile-cat, .rw-mobile-brand { display: none !important; } }
