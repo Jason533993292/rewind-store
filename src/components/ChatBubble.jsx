@@ -30,6 +30,8 @@ export default function ChatBubble() {
   const [sending, setSending] = useState(false);
   const [unread, setUnread] = useState(0);
   const [sessionStatus, setSessionStatus] = useState('open');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [showEmailScreen, setShowEmailScreen] = useState(true);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
 
@@ -82,7 +84,7 @@ export default function ChatBubble() {
         const r = await fetch('/api/chat/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text }),
+          body: JSON.stringify({ message: text, customer_email: customerEmail || undefined }),
         });
         const d = await r.json();
         if (d.session_id) {
@@ -109,6 +111,7 @@ export default function ChatBubble() {
   function handleOpen() {
     setOpen(true);
     setUnread(0);
+    if (!sessionId) setShowEmailScreen(true);
     if (sessionId) fetchMessages(true);
   }
 
@@ -132,7 +135,7 @@ export default function ChatBubble() {
             <strong style={{ fontSize: '14px' }}>Chat with REWIND</strong>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {sessionId && (
-                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); }}
+                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); }}
                   style={{ background: 'none', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '11px', cursor: 'pointer', borderRadius: '6px', padding: '3px 8px' }}>
                   New
                 </button>
@@ -170,9 +173,22 @@ export default function ChatBubble() {
                 style={{ padding: '8px 16px', marginRight: '8px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px' }}>
                 Close
               </button>
-              <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); }}
+              <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); }}
                 style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '13px' }}>
                 Open a new one
+              </button>
+            </div>
+          ) : !sessionId && showEmailScreen ? (
+            <div style={{ padding: '14px' }}>
+              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 8px' }}>Enter your email to start chatting</p>
+              <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
+                placeholder="your@email.com" type="email"
+                onKeyDown={(e) => { if (e.key === 'Enter' && customerEmail.includes('@')) setShowEmailScreen(false); }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', boxSizing: 'border-box' }} />
+              <button onClick={() => { if (customerEmail.includes('@')) setShowEmailScreen(false); }}
+                disabled={!customerEmail.includes('@')}
+                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', borderRadius: '8px', border: 'none', background: customerEmail.includes('@') ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: customerEmail.includes('@') ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
+                Continue
               </button>
             </div>
           ) : (
@@ -181,7 +197,7 @@ export default function ChatBubble() {
               value={input}
               onChange={(e) => setInput(e.target.value.slice(0, 2000))}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Type a message..."
+              placeholder={sessionId ? "Type a message..." : "Type your first message..."}
               style={{ flex: 1, border: '1px solid #ddd', borderRadius: '8px', padding: '8px 10px', fontSize: '13px' }}
             />
             <button onClick={handleSend} disabled={sending || !input.trim()}
