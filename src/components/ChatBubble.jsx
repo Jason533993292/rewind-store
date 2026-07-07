@@ -120,7 +120,7 @@ export default function ChatBubble() {
     <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 10000, fontFamily: 'inherit' }}>
       {open && (
         <div style={{
-          width: '320px', height: '420px', background: '#fff', borderRadius: '16px',
+          width: '360px', height: '480px', background: '#fff', borderRadius: '16px',
           boxShadow: '0 8px 30px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column',
           marginBottom: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,.06)',
         }}>
@@ -129,10 +129,18 @@ export default function ChatBubble() {
             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
           }}>
             <strong style={{ fontSize: '14px' }}>Chat with REWIND</strong>
-            <button onClick={() => setOpen(false)} aria-label="Close chat"
-              style={{ background: 'none', border: 'none', color: '#fff', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }}>
-              &times;
-            </button>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              {sessionId && (
+                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); }}
+                  style={{ background: 'none', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '11px', cursor: 'pointer', borderRadius: '6px', padding: '3px 8px' }}>
+                  New
+                </button>
+              )}
+              <button onClick={() => setOpen(false)} aria-label="Close chat"
+                style={{ background: 'none', border: 'none', color: '#fff', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }}>
+                &times;
+              </button>
+            </div>
           </div>
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
