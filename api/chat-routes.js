@@ -238,6 +238,19 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     }
   });
 
+  // ── Admin: delete a session and all its messages ──
+  router.delete('/api/admin/chat/session', requireAdmin, async (req, res) => {
+    const { session_id } = req.body;
+    if (!session_id) return res.status(400).json({ error: 'session_id required' });
+    try {
+      await Promise.all([
+        sfetch(`/chat_messages?session_id=eq.${encodeURIComponent(session_id)}`, { method: 'DELETE' }),
+        sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}`, { method: 'DELETE' }),
+      ]);
+      res.json({ ok: true });
+    } catch (e) { res.status(500).json({ error: 'Could not delete session' }); }
+  });
+
   return router;
 }
 

@@ -21,7 +21,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V8.3.0';
+const VERSION = 'V8.4.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -2060,15 +2060,16 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
   }
 
   async function handleCloseConfirmed() {
-    await fetch('/api/admin/chat/reply', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-      body: JSON.stringify({ session_id: selectedId, message: 'Session closed.', close: true }),
-    });
+    try {
+      await fetch('/api/admin/chat/session', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ session_id: selectedId }),
+      });
+    } catch {}
     setSessions(prev => prev.filter(s => s.session_id !== selectedId));
     setSelectedId(null);
     setShowCloseConfirm(false);
-    loadSessions();
   }
 
   const BLOCK_REASONS = ['Spammer', 'Troller', 'Abusive', 'Rude', 'Other'];
