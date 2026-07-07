@@ -2036,6 +2036,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
       headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
       body: JSON.stringify({ session_id: selectedId, message: 'Session closed.', close: true }),
     });
+    setSessions(prev => prev.filter(s => s.session_id !== selectedId));
     setSelectedId(null);
     setShowCloseConfirm(false);
     loadSessions();
@@ -2154,7 +2155,7 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--line)', fontSize: '13px', fontWeight: 600 }}>
               <span>{selectedSession?.customer_email || selectedSession?.customer_name || 'Session'}</span>
-              <button onClick={() => setShowCloseConfirm(true)}
+              <button onClick={handleCloseConfirmed}
                 style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'var(--muted)', lineHeight: 1 }}
                 aria-label="Close session">✕</button>
             </div>
