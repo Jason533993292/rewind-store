@@ -247,7 +247,7 @@ a { color: inherit; cursor: pointer; }
 }
 @media (max-width: 1080px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); } }
 @media (max-width: 700px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
-@media (max-width: 440px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; } }
+@media (max-width: 440px) { .rw-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
 @media (max-width: 680px) { #rw-sidebar { display: none; } }
 @media (min-width: 681px) { #rw-mobile-cat, .rw-mobile-brand { display: none !important; } }
 @media (max-width: 540px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; } .rw-shop { padding: 24px 12px 50px; } }
