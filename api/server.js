@@ -87,7 +87,7 @@ app.get('/api/env', requireAdmin, (_req, res) => {
 });
 
 // ── Verify admin email + token (server-side check) ──
-app.post('/api/verify-admin', strictLimiter, async (req, res) => {
+app.post('/api/verify-admin', async (req, res) => {
   const { email, token } = req.body;
   if (!email) return res.json({ verified: false });
   // Always require a valid admin API token — even for email verification.
