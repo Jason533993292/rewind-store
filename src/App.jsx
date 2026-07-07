@@ -2103,10 +2103,15 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
             Sessions ({sessions.length})
           </span>
           <button onClick={() => { setChatRefreshing(true); loadSessions().finally(() => setChatRefreshing(false)); }}
-            style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px', animation: chatRefreshing ? 'spin 1s linear infinite' : 'none' }}
-            onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
-            onMouseOut={e => { e.target.style.background = 'transparent'; }}>
-            🔄
+            style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--muted)', padding: '4px 8px', borderRadius: '6px', display: 'grid', placeItems: 'center' }}>
+            {chatRefreshing ? (
+              <span style={{ display: 'inline-block', width: '16px', height: '16px', borderRadius: '50%', border: '2px solid transparent', borderTopColor: 'var(--muted)', animation: 'spin 0.6s linear infinite' }} />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" style={{ transition: 'transform 0.3s' }}>
+                <path d="M2 8a6 6 0 0 1 11.4-2.8M14 8a6 6 0 0 1-11.4 2.8" />
+                <path d="M13.5 2v3.5H10" />
+              </svg>
+            )}
           </button>
         </div>
         <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
