@@ -1,325 +1,263 @@
-# REWIND Store — Full Codebase + AI Review Prompt
+# REWIND Store — Full Codebase for Claude AI
 
-**rewind-stores.com** — Vintage streetwear e-commerce
-**Stack:** React/Vite · Express · Supabase · Stripe · Resend · Gemini AI
-**Bundle:** 544KB JS + 32KB CSS · **Version:** V8.0.0
-**Deployed:** Railway (rewind-store-production-2299.up.railway.app) + Cloudflare (rewind-stores.com)
-
----
-
-## CRITICAL CONTEXT
-
-- Admin token: **[REDACTED — see Railway env vars]**
-- Supabase service role key used server-side (no anon write access)
-- Chat tables: `chat_sessions`, `chat_messages` (RLS enabled, no anon policies)
-- Promo codes table: `promo_codes` (for admin-generated codes)
-- Blocked emails/IPs hydrated from Supabase on server boot
-- Gemini AI auto-replies in chat via `gemini-2.5-flash`
-- Stripe webhooks have signature verification
+## SITE
+**URL:** rewind-stores.com (Cloudflare → Railway)
+**Stack:** React/Vite · Express · Supabase · Stripe · Resend · Gemini
+**Version:** V8.9.0 (Restored - all features working)
+**Admin:** Visit /#admin, login with email + token
 
 ---
 
-## Recent changes (V8.0.0)
+## ALL SOURCE FILES
 
-- Live chat system (ChatBubble.jsx + chat-routes.js + admin chat panel)
-- Separate modals for Close session, Block email, Give promo in admin chat
-- Notification badge on 💬 Chats tab (polls every 10s)
-- Session closed UI for customers ("Session closed" + "Open a new one")
-- Spinning refresh button (SVG icon + CSS spinner)
-- Version restored from localStorage after page refresh
-- Admin token now reads from localStorage on mount (was lost on refresh)
-- Cancel flow with step indicators (1→2→3 in same panel)
-- Canned emails for predefined cancel reasons, AI only for "Other"
-- Removed unused deps (react-router-dom, react-select)
-- Added content-visibility + loading="lazy" optimizations
+### File: src/App.css (Full CSS)
 
----
-
-## Source files
-
-### File: src/App.jsx (3000+ lines — KEY STRUCTURE)
-
-\`\`\`jsx
-// IMPORTS
-import ChatBubble from './components/ChatBubble';
-// ... other imports ...
-
-const VERSION = 'V8.0.0';
-
-function App() {
-  // State: products, cart, wishlist, checkout, admin mode, chat, etc.
-  // Effects: auth, scroll, hash routing
-  // Returns: <ClickSpark><Header/><Hero/><Marquee/><ProductGrid/>...</ClickSpark>
+\`\`\`css
+:root {
+  --bg: #FAF6EF;
+  --surface: #FFFFFF;
+  --ink: #16130F;
+  --muted: #6E665A;
+  --line: #E8E0D2;
+  --line-2: #D9D0C0;
+  --accent: #FF4D14;
+  --font-head: "Bricolage Grotesque", sans-serif;
+  --font-body: "Space Grotesk", sans-serif;
+  --r: 14px;
+  --r-sm: 10px;
+  --shadow: 0 1px 2px rgba(22,19,15,.04), 0 10px 30px -12px rgba(22,19,15,.18);
+  --maxw: 1240px;
 }
 
-// AdminPanel (lines ~1000-1988)
-// - Tabs: users, email, orders, chats, saved, blocked, products
-// - Cancel flow with step indicators
-// - Admin chat panel integrated
-
-// AdminChatPanel (lines ~1931-2300)
-// - Session list with email, hover preview, refresh
-// - Message view with sender labels, close X button
-// - Separate modals: Close session, Block email, Give promo
-// - Notification polling every 10s
-
-// BlockedPanel (lines ~2300+)
-// Other utility components...
-\`\`\`
-
-### File: src/components/ChatBubble.jsx
-
-\`\`\`jsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-
-const SESSION_KEY = 'rw_chat_session';
-const OPEN_POLL_MS = 5000;
-const BADGE_POLL_MS = 30000;
-const WELCOME = "Hey! Ask us anything about sizing, an item, or your order.";
-
-export default function ChatBubble() {
-  const [open, setOpen] = useState(false);
-  const [sessionId, setSessionId] = useState(() => {
-    try { return localStorage.getItem(SESSION_KEY) || null; } catch { return null; }
-  });
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [unread, setUnread] = useState(0);
-  const [sessionStatus, setSessionStatus] = useState('open');
-  const scrollRef = useRef(null);
-  const lastCountRef = useRef(0);
-
-  // Fetch messages + session status
-  const fetchMessages = useCallback(async (markRead) => {
-    if (!sessionId) return;
-    try {
-      const r = await fetch(`/api/chat/messages?session_id=${sessionId}`);
-      const d = await r.json();
-      setMessages(Array.isArray(d.messages) ? d.messages : []);
-      setSessionStatus(d.status || 'open');
-      // Track unread admin messages, beep on new ones
-      const unreadAdmin = d.messages?.filter(m => m.sender === 'admin' && !m.read_by_customer).length || 0;
-      if (!open && unreadAdmin > lastCountRef.current) beep();
-      setUnread(unreadAdmin);
-      if (markRead && unreadAdmin > 0) {
-        fetch('/api/chat/mark-read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId }) }).catch(() => {});
-      }
-      lastCountRef.current = unreadAdmin;
-    } catch {}
-  }, [sessionId, open]);
-
-  // Poll: 5s when open, 30s when closed
-  useEffect(() => {
-    if (!sessionId) return;
-    const interval = setInterval(() => fetchMessages(open), open ? 5000 : 30000);
-    return () => clearInterval(interval);
-  }, [sessionId, open, fetchMessages]);
-
-  // Auto-scroll
-  useEffect(() => { if (open && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, open]);
-
-  async function handleSend() {
-    const text = input.trim();
-    if (!text || sending) return;
-    setSending(true); setInput('');
-    try {
-      if (!sessionId) {
-        const r = await fetch('/api/chat/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
-        const d = await r.json();
-        if (d.session_id) {
-          localStorage.setItem(SESSION_KEY, d.session_id);
-          setSessionId(d.session_id);
-          setMessages([{ sender: 'customer', message: text, created_at: new Date().toISOString() }]);
-        }
-      } else {
-        setMessages(prev => [...prev, { sender: 'customer', message: text, created_at: new Date().toISOString() }]);
-        await fetch('/api/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: sessionId, message: text }) });
-        fetchMessages(true);
-      }
-    } catch { setInput(text); }
-    finally { setSending(false); }
-  }
-
-  // Don't render on admin pages (after all hooks, so React hook order is consistent)
-  if (typeof window !== 'undefined' && window.location.hash === '#admin') return null;
-
-  return (
-    <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 10000 }}>
-      {open && (
-        <div style={{ width: '360px', height: '480px', background: '#fff', borderRadius: '16px', boxShadow: '0 8px 30px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column', marginBottom: '12px', overflow: 'hidden' }}>
-          {/* Header with New button + close */}
-          {/* Messages area */}
-          {/* Input: if closed show "Session closed" + Close/Open buttons, else type input */}
-        </div>
-      )}
-      <button onClick={open ? () => setOpen(false) : () => { setOpen(true); setUnread(0); if (sessionId) fetchMessages(true); }}
-        style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,.2)' }}>
-        {open ? '×' : '💬'}
-        {!open && unread > 0 && <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#16130F', color: '#fff', borderRadius: '999px', fontSize: '11px', fontWeight: 700, minWidth: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unread > 9 ? '9+' : unread}</span>}
-      </button>
-    </div>
-  );
+* { box-sizing: border-box; }
+html { overflow-x: hidden; width: 100%; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; width: 100%;
 }
-\`\`\`
+h1, h2, h3, h4 {
+  font-family: var(--font-head);
+  margin: 0;
+  letter-spacing: -.02em;
+  line-height: 1.02;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+a { color: inherit; cursor: pointer; }
+::selection { background: var(--accent); color: #fff; }
 
-### File: api/chat-routes.js (274 lines)
+/* ---- buttons ---- */
+.rw-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+  font-family: var(--font-head); font-weight: 700; font-size: 15px; letter-spacing: -.01em;
+  padding: 14px 22px; border-radius: 999px;
+  transition: transform .16s cubic-bezier(.3,1.4,.5,1), background .18s, color .18s, box-shadow .18s;
+  white-space: nowrap; position: relative; overflow: hidden;
+}
+.rw-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+  transform: translateX(-100%); transition: transform 0.5s ease; pointer-events: none; border-radius: inherit;
+}
+.rw-btn:hover::after { transform: translateX(100%); }
+.rw-btn:active::before {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0;
+  background: rgba(255,255,255,0.2); border-radius: 50%;
+  transform: translate(-50%, -50%); animation: ripple 0.6s ease-out; z-index: 1;
+}
+@keyframes ripple { to { width: 400px; height: 400px; opacity: 0; } }
+.rw-btn-pri { background: var(--ink); color: #fff; }
+.rw-btn-pri:hover {
+  background: var(--accent);
+  transform: translateY(-2px) scale(1.025);
+  box-shadow: 0 12px 24px -8px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+.rw-btn-ghost {
+  background: transparent; color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--line-2);
+}
+.rw-btn-ghost:hover { box-shadow: inset 0 0 0 1.5px var(--ink); transform: translateY(-2px) scale(1.025); }
+.rw-btn-full { width: 100%; }
+.rw-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.rw-btn:disabled .rw-spinner{display:inline-block;animation:spin .6s linear infinite;margin-right:6px;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-\`\`\`js
-import express from 'express';
-import crypto from 'crypto';
+/* ---- banner ---- */
+.rw-banner {
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center; gap: 28px;
+  padding: 9px 20px; font-size: 13.5px; font-weight: 500;
+  position: relative; overflow: hidden;
+}
+.rw-banner-track { display: flex; align-items: center; gap: 7px; animation: fadeUp .5s ease; }
+.rw-banner-track svg { opacity: .9; }
+.rw-banner-count {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px;
+  background: rgba(0,0,0,.16); padding: 5px 12px; border-radius: 999px; font-weight: 600;
+}
+.rw-banner-count b { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes genieUp { from { opacity: 0; transform: scale(0.3) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes genieDown { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.3) translateY(30px); } }
+@keyframes confettiFall { 0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) translateX(var(--drift, 0)) rotate(var(--rotation, 720deg)); opacity: 0; } }
+@media (max-width: 720px) { .rw-banner { gap: 14px; font-size: 12px; } .rw-banner-track span { display: none; } }
+@media (max-width: 540px) { .rw-banner-count { display: none; } }
 
-const MAX_MESSAGE_LEN = 2000;
-function makeLimiter() { const hits = new Map(); return (key, max, windowMs) => { const now = Date.now(); const arr = (hits.get(key) || []).filter(t => now - t < windowMs); arr.push(now); hits.set(key, arr); return arr.length > max; }; }
-function getIp(req) { return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip; }
+/* ---- header ---- */
+.rw-header {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
+}
+.rw-header-row {
+  max-width: var(--maxw); margin: 0 auto; padding: 14px 24px;
+  display: flex; align-items: center; gap: 24px;
+}
+.rw-logo { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.04em; }
+.rw-logo span { color: var(--accent); }
+.rw-logo-lg { font-size: 40px; }
+.rw-nav { display: flex; gap: 4px; margin-left: 8px; }
+.rw-navlink {
+  font-weight: 600; font-size: 14.5px; padding: 8px 12px; border-radius: 999px;
+  color: var(--muted); transition: color .15s, background .15s;
+}
+.rw-navlink:hover { color: var(--ink); }
+.rw-navlink.is-on { color: var(--ink); background: color-mix(in oklab, var(--accent) 16%, transparent); }
+.rw-header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.rw-search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+  padding: 8px 14px; color: var(--muted); transition: border-color .15s, box-shadow .15s;
+}
+.rw-search:focus-within {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.rw-search input { border: none; outline: none; background: none; width: 120px; font-size: 14px; color: var(--ink); transition: width .2s ease; }
+.rw-search:focus-within input { width: 220px; }
+.rw-iconbtn {
+  position: relative; width: 42px; height: 42px; border-radius: 999px;
+  display: grid; place-items: center;
+  background: var(--surface); border: 1px solid var(--line);
+  transition: transform .16s cubic-bezier(.3,1.4,.5,1), border-color .15s;
+}
+.rw-iconbtn:hover { transform: scale(1.08); border-color: var(--ink); }
+.rw-badge {
+  position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; padding: 0 5px;
+  background: var(--accent); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700;
+  display: grid; place-items: center; border: 2px solid var(--bg);
+}
+@media (max-width: 880px) { .rw-nav { display: none; } .rw-search input { width: 80px; } .rw-search:focus-within input { width: 160px; } }
+@media (max-width: 540px) { .rw-header-row { padding: 0 12px; gap: 6px; } .rw-search input { width: 60px; font-size: 12px; } .rw-search:focus-within input { width: 110px; } .rw-logo { font-size: 18px; } }
 
-export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resend, FROM_EMAIL, REPLY_TO, notifyEmail, requireAdmin }) {
-  const router = express.Router();
-  const sfetch = (path, opts = {}) => fetch(`${SUPABASE_URL}/rest/v1${path}`, { ...opts, headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
-
-  const startLimited = makeLimiter(); // 3 chats / 10 min / IP
-  const sendLimited = makeLimiter();  // 20 msgs / min / session
-  const readLimited = makeLimiter();  // 30 polls / min / session
-
-  // POST /api/chat/start — rate-limited, creates session, sends notification email, fires AI auto-reply (fire-and-forget)
-  // POST /api/chat/send — sends follow-up message, rate-limited per session
-  // GET /api/chat/messages — polls messages + session status (returns { messages, status })
-  // POST /api/chat/mark-read — marks admin messages as read by customer
-  // GET /api/admin/chat/sessions — admin: list all sessions (requireAdmin)
-  // GET /api/admin/chat/messages — admin: view session messages (requireAdmin)
-  // POST /api/admin/chat/reply — admin: reply + optional close (requireAdmin)
-
-  return router;
+/* ---- photo tile ---- */
+.rw-photo {
+  position: relative; width: 100%; overflow: hidden; border-radius: var(--r-sm);
+  background: var(--ink);
+}
+.rw-photo-bg { position: absolute; inset: 0; display: grid; place-items: center; }
+.rw-photo-word {
+  font-family: var(--font-head); font-weight: 800; color: rgba(255,255,255,.82);
+  font-size: clamp(13px,1.4vw,17px); letter-spacing: .02em; text-align: center;
+  padding: 0 14px; line-height: 1.05;
+  text-shadow: 0 1px 14px rgba(0,0,0,.25); mix-blend-mode: overlay;
 }
 
-// AI auto-reply (fire-and-forget, never touches res)
-export async function getAiAutoReply(messageText, GEMINI_API_KEY) {
-  try {
-    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `You are an AI assistant for REWIND vintage streetwear. Answer concisely. Knowledge: product details in item panel; shipping €8 EU, free > €150; 14-day returns; each item unique vintage; ship within 24h; authenticated/steam-cleaned. Customer: "${messageText}". If unknown: "Contact orders@rewind-stores.com"` }] }],
-        generationConfig: { maxOutputTokens: 300 },
-      }),
-    });
-    const aiData = await aiRes.json();
-    return aiData?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-  } catch { return null; }
+/* ---- hero ---- */
+.rw-hero {
+  max-width: var(--maxw); margin: 0 auto; padding: 56px 24px 30px;
+  display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center;
 }
-\`\`\`
-
-### File: api/middleware/requireAdmin.js
-
-\`\`\`js
-import crypto from 'crypto';
-
-export function requireAdmin(req, res, next) {
-  const configuredToken = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
-  if (!configuredToken) return res.status(500).json({ error: 'Admin auth is not configured' });
-  const header = req.headers['authorization'] || '';
-  const provided = header.startsWith('Bearer ') ? header.slice(7).trim() : (req.headers['x-admin-token'] || '').trim();
-  if (!provided) return res.status(401).json({ error: 'Missing admin token' });
-  const a = Buffer.from(provided);
-  const b = Buffer.from(configuredToken);
-  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(403).json({ error: 'Invalid admin token' });
-  next();
+.rw-hero-kicker {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-weight: 600; font-size: 13px; text-transform: uppercase;
+  letter-spacing: .12em; color: var(--accent); margin-bottom: 18px;
 }
-\`\`\`
+.rw-hero-title { font-size: clamp(46px,6.6vw,88px); font-weight: 800; letter-spacing: -.045em; min-height: 1.35em; }
+.type-wrap { display: inline-block; min-width: 1ch; }
+.type-cursor { animation: blink-cursor 0.7s step-end infinite; color: var(--accent); font-weight: 100; margin-left: 1px; }
+@keyframes blink-cursor { 50% { opacity: 0; } }
+.rw-hero-sub {
+  font-size: 17.5px; color: var(--muted); max-width: 30ch;
+  margin: 20px 0 28px; line-height: 1.55; text-wrap: pretty;
+}
+.rw-hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.rw-hero-stats { display: flex; gap: 32px; margin-top: 34px; }
+.rw-hero-stats div { display: flex; flex-direction: column; }
+.rw-hero-stats b { font-family: var(--font-head); font-weight: 700; font-size: 24px; }
+.rw-hero-stats span { font-size: 13px; color: var(--muted); }
+.rw-hero-art { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.rw-hero-loop { animation: heroPulse 4s ease-in-out infinite; }
+@keyframes heroPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.02); opacity: 0.9; } }
+@media (prefers-reduced-motion: reduce) { .rw-hero-loop { animation: none; } }
+.rw-hero-art .rw-photo:first-child { grid-row: 1 / span 2; }
+@media (max-width: 860px) { .rw-hero { grid-template-columns: 1fr; gap: 28px; padding-top: 36px; } .rw-hero-art { grid-template-columns: 1.2fr 1fr; } }
 
-### File: api/server.js (970 lines — KEY SECTIONS)
+/* ---- marquee ---- */
+.rw-marquee { background: var(--ink); color: var(--bg); overflow: hidden; padding: 13px 0; margin-top: 14px; }
+.rw-marquee-track { display: flex; gap: 40px; width: max-content; animation: scroll 30s linear infinite; }
+.rw-marquee-item { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-head); font-weight: 700; font-size: 15px; letter-spacing: .01em; white-space: nowrap; }
+.rw-marquee-item svg { color: var(--accent); }
+.rw-marquee-track > * { flex-shrink: 0; }
+@keyframes scroll { to { transform: translateX(-33.333%); } }
+.rw-marquee-track:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .rw-marquee-track { animation: none; } }
 
-\`\`\`js
-// Imports: express, Stripe, Resend, helmet, rateLimit, chat-routes, requireAdmin
-// Module-level consts: SUPABASE_URL, SUPABASE_KEY, SERVICE_KEY, resend, stripe
-
-// ROUTES:
-// GET /api/health
-// GET /api/env (requireAdmin)
-// POST /api/verify-admin (token + admin table check)
-// POST /api/validate-promo (static list + DB lookup)
-// POST /api/admin/create-promo (requireAdmin — writes to promo_codes table)
-// POST /api/manage-admins (requireAdmin)
-// POST /api/create-checkout-session (blocked email check, server-side pricing, Stripe session)
-// POST /api/send-order (internal token check)
-// GET /api/admin/users, /api/admin/orders, /api/admin/user-emails (requireAdmin)
-// POST /api/save-order (requireAdmin)
-// POST /api/stripe-webhook (signature verification, payment failure handling)
-// POST /api/admin/cancel-order, /api/admin/undo-cancel-order (requireAdmin)
-// POST /api/admin/preview-cancel-email (requireAdmin, Gemini for Other reasons)
-// POST /api/admin/block-ip, /api/admin/unblock-ip (requireAdmin)
-// POST /api/admin/block-email, /api/admin/unblock-email (requireAdmin)
-// POST /api/check-blocked-email
-// Chat router mounts via buildChatRouter(...)
-// SPA fallback with Cache-Control: no-store
-
-// Hydrates in-memory BLOCKED_IPS/BLOCKED_EMAILS from Supabase on boot
-\`\`\`
-
-### File: supabase-setup.sql
-
-\`\`\`sql
--- orders: order_num, customer_name, email, status, total, items, stripe_session_id
--- wishlists: email, product_ids (JSONB)
--- admins: email (unique)
--- blocked_ips: ip, reason
--- blocked_emails: email, reason
--- custom_products: name, brand, cat, price, image, sizes
--- chat_sessions: session_id (PK), customer_email, customer_name, status, last_message_at
--- chat_messages: id, session_id (FK), sender, message, read_by_customer, read_by_admin
--- promo_codes: code (unique), discount, label, used
+/* ---- shop ---- */
+.rw-shop { max-width: var(--maxw); margin: 0 auto; padding: 54px 24px 70px; }
+.rw-shop-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+.rw-shop-headl { flex: 1 1 auto; min-width: 200px; }
+.rw-shop-title { font-size: clamp(30px,3.6vw,46px); font-weight: 800; }
+.rw-shop-sub { color: var(--muted); font-size: 14.5px; margin-top: 6px; }
+.rw-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.rw-chip { font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); transition: transform .16s cubic-bezier(.3,1.4,.5,1), background .15s, color .15s, border-color .15s; }
+.rw-chip:hover { transform: translateY(-2px); color: var(--ink); border-color: var(--line-2); }
+.rw-chip.is-on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.rw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px 18px; }
+.rw-section-head { font-size: 14px; font-weight: 600; color: var(--muted); margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 1px; }
+@media (max-width: 1080px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); } }
+@media (max-width: 700px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); } }
+@media (max-width: 440px) { .rw-grid { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { #rw-sidebar { display: none; } }
+@media (min-width: 681px) { #rw-mobile-cat, .rw-mobile-brand { display: none !important; } }
+@media (max-width: 540px) { .rw-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; } .rw-shop { padding: 24px 12px 50px; } }
+@media (max-width: 540px) { .rw-card .rw-photo { height: 160px !important; } .rw-card-body { padding: 10px 12px; } .rw-card-name { font-size: 13px; } .rw-card-price { font-size: 15px; } .rw-card-was { font-size: 11px; } }
+.rw-empty { padding: 60px 0; text-align: center; color: var(--muted); font-size: 16px; }
+/* ... rest of CSS continues with modals, checkout, drawers, cart, admin, etc ... */
 \`\`\`
 
 ---
 
-## 🚨 AI Review Prompt — Copy everything above + below into Claude
+## PROMPT FOR CLAUDE
 
-I run a vintage streetwear store at **rewind-stores.com**.
+I run a vintage streetwear store at **rewind-stores.com**. Tech: React/Vite + Express + Supabase + Stripe + Resend + Gemini.
 
-**Stack:** React/Vite (544KB bundle) · Express/node · Supabase · Stripe · Resend · Gemini AI
-**Version:** V8.0.0 · **Deployed on:** Railway + Cloudflare
+**What's broken:** My grid layout keeps breaking when someone tries to fix it. The current grid uses `auto-fill` with `minmax()` which I want to keep working. Quick view buttons and like/save buttons need to be fully functional.
 
-### What's new since last review:
-- Full live chat system (customer widget + admin panel + AI auto-reply)
-- Separate popup modals for Close session, Block email, Give promo
-- Notification badge on Chats tab (polls every 10s)
-- Step-indicator cancel flow in admin (reason → preview email → refund)
-- Canned emails for predefined cancel reasons (AI only for "Other")
-- Chat session closed UI for customers
-- Promo codes now stored in DB (work in checkout)
-- Admin token reads from localStorage on mount (prevents blank tabs after refresh)
-- SVG refresh spinner, chat panel with email display, block email with preset reasons
+**Features that exist:**
+- Live chat (ChatBubble.jsx, chat-routes.js, admin Chat tab with close/block/promo)
+- Cancel orders with step indicators + reason-specific emails
+- Promo codes (static + DB-backed)
+- Admin panel with orders/users/chats/products/changelog tabs
+- Stripe payments + webhooks
+- Blocked IPs/emails
+- AI auto-reply for chat (Gemini)
+- Custom products with image uploads
 
-### Please review for:
+**Please review the entire codebase for:**
+1. Grid layout — make it 3 columns on desktop, 2 on tablet, 1 on mobile without breaking quick view/like buttons
+2. Security — any endpoint missing `requireAdmin`, Stripe webhook issues, price tampering in checkout
+3. Chat bugs — session handling, notification badge, modals for block/close/promo
+4. UI/UX — loading states, error feedback, hover states, mobile responsiveness
+5. Code quality — unused imports, duplicate code, bundle size (544KB)
 
-**1. SECURITY (CRITICAL)**
-- Any endpoint missing `requireAdmin` that should have it
-- Stripe webhook signature verification gaps
-- Price/discount tampering in checkout (client-supplied prices)
-- AI auto-reply crash risk (should be fire-and-forget)
-- Rate limiter bypass risks on chat endpoints
-- HTML/SQL injection vectors in chat/email/checkout
-- Data over-exposure in any API response
-
-**2. BUGS**
-- React hook order violations (early returns before hooks)
-- Stale closures / missing deps in useEffect/useCallback
-- Chat session localStorage persistence across tabs/devices
-- Race conditions in polling (setInterval cleanup)
-- `SERVICE_KEY is not defined` type scope errors
-- Admin token lost on refresh (already fixed in V8.0.0 — verify)
-- Any silent failures (catch{} blocks with no logging)
-
-**3. UI/UX**
-- Chat panel missing loading/error/empty states
-- Mobile responsiveness for chat bubble + admin panel
-- Accessibility: aria-labels, keyboard navigation, focus management
-- Any hardcoded text that should be configurable
-
-**4. CODE QUALITY**
-- Duplicate code patterns (server.js vs chat-routes.js)
-- Unused imports or dead code
-- CSS that could be consolidated
-- Performance: large re-renders, unnecessary useEffect runs
-- The AdminPanel component is 1000+ lines in App.jsx — should it be extracted?
-
-**Give me a PRIORITIZED list (most critical first) with exact code snippets for each fix.**
+Give me a prioritized list with exact code snippets for each fix.
