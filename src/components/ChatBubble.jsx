@@ -31,6 +31,7 @@ export default function ChatBubble() {
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [sessionStatus, setSessionStatus] = useState('open');
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
 
@@ -41,6 +42,7 @@ export default function ChatBubble() {
       const d = await r.json();
       const msgs = Array.isArray(d.messages) ? d.messages : [];
       setMessages(msgs);
+      setSessionStatus(d.status || 'open');
 
       const unreadAdmin = msgs.filter(m => m.sender === 'admin' && !m.read_by_customer).length;
       if (!open) {
@@ -152,6 +154,19 @@ export default function ChatBubble() {
             ))}
           </div>
 
+          {sessionStatus === 'closed' ? (
+            <div style={{ padding: '14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 12px' }}>💬 Session closed</p>
+              <button onClick={() => setOpen(false)}
+                style={{ padding: '8px 16px', marginRight: '8px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px' }}>
+                Close
+              </button>
+              <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); }}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '13px' }}>
+                Open a new one
+              </button>
+            </div>
+          ) : (
           <div style={{ display: 'flex', gap: '8px', padding: '10px', borderTop: '1px solid rgba(0,0,0,.06)', flexShrink: 0 }}>
             <input
               value={input}
@@ -169,6 +184,7 @@ export default function ChatBubble() {
               Send
             </button>
           </div>
+          )}
         </div>
       )}
 

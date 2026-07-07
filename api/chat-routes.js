@@ -165,11 +165,14 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       return res.status(429).json({ error: 'Polling too frequently' });
     }
     try {
-      const r = await sfetch(
-        `/chat_messages?session_id=eq.${encodeURIComponent(session_id)}&order=created_at.asc&select=sender,message,created_at,read_by_customer`
-      );
-      const messages = await r.json();
-      res.json({ messages: Array.isArray(messages) ? messages : [] });
+      const [msgRes, sessRes] = await Promise.all([
+        sfetch('/chat_messages?session_id=eq.' + encodeURIComponent(session_id) + '&order=created_at.asc&select=sender,message,created_at,read_by_customer'),
+        sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id) + '&select=status'),
+      ]);
+      const messages = await msgRes.json();
+      const sessionData = await sessRes.json();
+      const status = Array.isArray(sessionData) && sessionData.length > 0 ? sessionData[0].status : 'open';
+      res.json({ messages: Array.isArray(messages) ? messages : [], status });
     } catch (e) {
       res.status(500).json({ error: 'Could not load messages' });
     }
