@@ -467,7 +467,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
   const { items, orderNum, email, name, promoCode } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
   // Server-side price recompute — never trust client amounts
-  const { subtotal, discountPrice } = computeOrder(items, promoCode);
+  const { subtotal, discountPrice } = await computeOrder(items, promoCode);
   const finalTotal = Math.round(discountPrice * 100);
   try {
     const paymentIntent = await stripe.paymentIntents.create({
