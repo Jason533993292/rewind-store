@@ -953,40 +953,48 @@ export default function App() {
       {/* ── Bottom Dock ── */}
       <div onMouseEnter={() => setDockHover(true)} onMouseLeave={() => setDockHover(false)}
         style={{
-          position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)',
+          position: 'fixed', bottom: '24px', left: '50%', zIndex: 9999,
+          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px',
+          background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '18px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-          padding: dockHover ? '6px 8px' : '0',
-          transition: 'padding 0.25s ease, background 0.25s ease',
-          overflow: 'hidden', cursor: 'default',
+          borderRadius: '20px', boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+          padding: '6px',
+          transform: dockHover ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(0.35)',
+          transformOrigin: 'center center',
+          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease',
+          cursor: 'default',
         }}>
         <button onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: dockHover ? '8px 18px' : '10px', borderRadius: '12px',
-            background: dockHover ? 'none' : 'rgba(255,255,255,0.7)',
-            border: 'none', cursor: 'pointer', color: 'var(--ink)', fontSize: '10px', fontWeight: 600,
-            transition: 'all 0.25s ease', whiteSpace: 'nowrap',
-            boxShadow: dockHover ? 'none' : '0 2px 8px rgba(0,0,0,0.05)',
+            padding: '8px 12px', borderRadius: '14px',
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink)',
+            transition: 'all 0.2s ease', whiteSpace: 'nowrap',
           }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600 }}>Home</span>}
+          <span style={{ fontSize: '13px', fontWeight: 600, opacity: dockHover ? 1 : 0, transition: 'opacity 0.15s ease 0.15s' }}>Home</span>
         </button>
-        {dockHover && (
-          <button onClick={() => setShowReferral(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
-            <span>Referrals</span>
-          </button>
-        )}
-        {dockHover && (
-          <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'none', border: 'none', cursor: 'not-allowed', color: 'var(--muted)', fontSize: '13px', fontWeight: 600, opacity: 0.4, whiteSpace: 'nowrap' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            <span>Settings</span>
-          </button>
-        )}
+        <button onClick={() => setShowReferral(true)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px',
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
+            fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+            opacity: dockHover ? 1 : 0, transition: 'opacity 0.2s ease 0.1s',
+            pointerEvents: dockHover ? 'auto' : 'none',
+          }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
+          <span>Referrals</span>
+        </button>
+        <button style={{
+          display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 12px',
+          background: 'none', border: 'none', cursor: 'not-allowed', color: 'var(--muted)',
+          fontSize: '13px', fontWeight: 600, opacity: dockHover ? 0.35 : 0, whiteSpace: 'nowrap',
+          transition: 'opacity 0.2s ease 0.05s',
+          pointerEvents: dockHover ? 'auto' : 'none',
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </button>
       </div>
 
       {/* ── Chat bubble ── */}
