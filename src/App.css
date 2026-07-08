@@ -614,11 +614,13 @@ a { color: inherit; cursor: pointer; }
 
 /* ── Stripe Elements inputs ── */
 .rw-stripe-input {
-  width: 100%; padding: 11px 15px; border: 1.5px solid var(--line-2); border-radius: 10px;
+  width: 100%; padding: 14px 16px; border: 1.5px solid var(--line-2); border-radius: 10px;
   background: var(--surface); margin-bottom: 10px; transition: border-color .15s, box-shadow .15s;
-  min-height: 24px;
+  min-height: 28px; cursor: text;
 }
-.rw-stripe-input:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 16%, transparent); }
+.rw-stripe-input:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(255,77,20,0.14); }
+.rw-cc-group label { font-size: 12px; font-weight: 600; color: var(--muted, #6E665A); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+.rw-input-row .rw-cc-group { flex: 1; min-width: 0; }
 
 .rw-cc-loading { padding: 24px 0; text-align: center; color: var(--muted); font-size: 14px; }
 .rw-cc-processing { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--muted); }

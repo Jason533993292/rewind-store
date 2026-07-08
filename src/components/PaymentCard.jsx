@@ -199,7 +199,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     const rect = el.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 10, y: y * -10 });
+    setTilt({ x: x * -8, y: y * 8 });
   };
   const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
