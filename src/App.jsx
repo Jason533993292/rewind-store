@@ -21,7 +21,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V9.7.0';
+const VERSION = 'V9.8.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -63,6 +63,16 @@ export default function App() {
   const [showSizes, setShowSizes] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [checkoutCount, setCheckoutCount] = useState(0);
+  
+  // Lock body scroll when checkout is open (prevents double scrollbar + background peek)
+  useEffect(() => {
+    if (checkout) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [checkout]);
   const [toast, setToast] = useState(null);
   const [infoPage, setInfoPage] = useState(null);
   const [promoOpen, setPromoOpen] = useState(false);
