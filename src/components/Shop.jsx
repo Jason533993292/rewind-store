@@ -2,8 +2,43 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
-import { deleteCustomProduct } from '../lib/supabase';
-import PaymentCardPreview from './PaymentCard';
+import PaymentCard from './PaymentCard';
+
+/* ---------- LazyImage (for real product photos) ---------- */
+function LazyImage({ src, alt, className }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    if (!imgRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && imgRef.current) {
+          imgRef.current.src = src;
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(imgRef.current);
+    return () => observer.disconnect();
+  }, [src]);
+
+  return (
+    <div className="rw-photo" style={{ position: 'relative', overflow: 'hidden' }}>
+      {!loaded && !error && <div className="rw-skeleton" style={{ position: 'absolute', inset: 0 }} />}
+      {error && (
+        <div className="rw-photo-bg" style={{ background: 'var(--line)' }}>
+          <span className="rw-photo-word" style={{ color: 'var(--muted)', mixBlendMode: 'normal' }}>{alt}</span>
+        </div>
+      )}
+      <img ref={imgRef} className={`rw-img ${loaded ? 'loaded' : ''}`}
+        alt={alt} onLoad={() => setLoaded(true)} onError={() => setError(true)}
+        style={{ position: 'absolute', inset: 0 }} />
+    </div>
+  );
+}
 
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, onCart }) {
@@ -346,99 +381,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [orderNum, setOrderNum] = useState('');
-  const [payError, setPayError] = useState('');
-  const [promo, setPromo] = useState('');
-  const [promoData, setPromoData] = useState(null);
-  const [promoValidating, setPromoValidating] = useState(false);
-
-  // Validate promo code with debounce
-  useEffect(() => {
-    if (!promo.trim()) { setPromoData(null); setPromoValidating(false); return; }
-    setPromoValidating(true);
-    const timer = setTimeout(async () => {
-      try {
-        const r = await fetch('/api/validate-promo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: promo.trim() }),
-        });
-        setPromoData(await r.json());
-      } catch { setPromoData(null); }
-      setPromoValidating(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [promo]);
-
-  // When ordernumber is passed via prop (Stripe success redirect), show confirmation immediately
-  useEffect(() => {
-    if (orderNumberProp) {
-      setOrderNum(orderNumberProp);
-      setPlaced(true);
-    }
-  }, [orderNumberProp]);
-  // Save-my-info feature — persists delivery fields to localStorage
-  const [saveInfo, setSaveInfo] = useState(() => {
-    const stored = localStorage.getItem('rw_checkout_save_info');
-    return stored !== null ? stored === 'true' : true;
-  });
-  const saved = useMemo(() => {
-    try { return JSON.parse(localStorage.getItem('rw_checkout_info') || '{}'); }
-    catch { return {}; }
-  }, []);
-  // Controlled form fields — prevents defaultValue reset bug when payment method buttons re-render the component
-  const [formFields, setFormFields] = useState(() => ({
-    email: saved.email || userEmail || '',
-    name: saved.name || '',
-    address: saved.address || '',
-    postal: saved.postal || '',
-    city: saved.city || '',
-    country: saved.country || '',
-  }));
-  const setField = (field) => (e) => setFormFields(prev => ({ ...prev, [field]: e.target.value }));
-
-  // Auto-save delivery fields to localStorage as user types (when saveInfo is enabled)
-  // Previously only saved on Pay click — users who closed checkout lost their data.
-  // Also clears saved data immediately when the user unchecks "Save my info",
-  // preventing stale pre-filled fields on the next checkout session.
-  const hasInfo = formFields.email || formFields.name || formFields.address || formFields.postal || formFields.city || formFields.country;
-  useEffect(() => {
-    if (!saveInfo) {
-      localStorage.removeItem('rw_checkout_info');
-      localStorage.setItem('rw_checkout_save_info', 'false');
-      return;
-    }
-    if (hasInfo) {
-      const { email, name, address, postal, city, country } = formFields;
-      localStorage.setItem('rw_checkout_info', JSON.stringify({ email, name, address, postal, city, country }));
-    } else {
-      localStorage.removeItem('rw_checkout_info');
-    }
-  }, [formFields.email, formFields.name, formFields.address, formFields.postal, formFields.city, formFields.country, saveInfo]);
-
-  // Launch confetti burst (CSS-based, no external lib needed)
-  useEffect(() => {
-    if (!orderNum) return;
-    const colors = [getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#FF4D14', '#FF6B8A', '#FFD700', '#00C853', '#2979FF', '#E040FB'];
-    const container = document.createElement('div');
-    container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999';
-    document.body.appendChild(container);
-    for (let i = 0; i < 150; i++) {
-      const c = document.createElement('div');
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      const left = Math.random() * 100;
-      const delay = Math.random() * 1.5;
-      const size = 4 + Math.random() * 10;
-      const drift = (Math.random() - 0.5) * 200;
-      c.style.cssText = `position:absolute;top:-10px;left:${left}%;width:${size}px;height:${size * 0.6}px;background:${color};border-radius:2px;animation:confettiFall 5s ${delay}s ease-out forwards;--drift:${drift}px`;
-      container.appendChild(c);
-    }
-    const timer = setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 8000);
-    return () => {
-      clearTimeout(timer);
-      if (container.parentNode) container.parentNode.removeChild(container);
-    };
-  }, [orderNum]);
+  const [cardValid, setCardValid] = useState(false);
 
   if (!open) return null;
   if (placed) {
@@ -636,7 +579,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               ))}
             </div>
             {payment === 'card' && (
-              <PaymentCardPreview />
+              <div className="rw-card-fields">
+                <PaymentCard amount={money(total)} onChange={({ valid }) => setCardValid(valid)} />
+              </div>
             )}
             <div className="rw-co-config">
               {payment === 'payconiq' && 'Scan the QR code with Payconiq to complete payment.'}
@@ -679,16 +624,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <div className="rw-sum-total">
             <div><span>Total</span><b>{money(finalTotal)}</b></div>
           </div>
-          {payError && (
-            <div style={{
-              fontSize: '13px', color: 'var(--accent)', marginBottom: '10px',
-              padding: '10px 12px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)',
-              borderRadius: '8px', lineHeight: '1.4', textAlign: 'center',
-            }}>
-              {payError}
-            </div>
-          )}
-          <button className="rw-btn rw-btn-pri rw-btn-full" disabled={processing}
+          <button className="rw-btn rw-btn-pri rw-btn-full"
+            disabled={processing || (payment === 'card' && !cardValid)}
             onClick={handlePay}>
             {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(finalTotal)}`}
           </button>

@@ -531,6 +531,89 @@ a { color: inherit; cursor: pointer; }
 .rw-pay-label { display: flex; flex-direction: column; font-family: var(--font-head); font-weight: 700; font-size: 14.5px; }
 .rw-pay-label small { font-family: var(--font-body); font-weight: 400; font-size: 11.5px; color: var(--muted); }
 .rw-card-fields { margin-top: 12px; }
+
+/* ---- interactive payment card ---- */
+.rw-cc-wrap { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: start; margin-top: 14px; }
+.rw-cc-scene { perspective: 1200px; width: 100%; }
+.rw-cc {
+  position: relative; width: 100%; aspect-ratio: 1.586; border-radius: 16px;
+  transform-style: preserve-3d; transition: transform .65s cubic-bezier(.4,0,.2,1);
+}
+.rw-cc.is-flipped { transform: rotateY(180deg); }
+.rw-cc-face {
+  position: absolute; inset: 0; border-radius: 16px; overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  padding: 20px 22px; display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 24px 48px -16px rgba(22,19,15,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  color: #fff;
+}
+.rw-cc-back { transform: rotateY(180deg); justify-content: flex-start; }
+.rw-cc-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #16130F 0%, #322c22 100%); z-index: 0; }
+.rw-cc-tint { position: absolute; inset: 0; z-index: 1; opacity: 0; transition: opacity .5s ease; }
+.rw-cc-tint.is-on { opacity: 1; }
+.rw-cc-tint-visa { background: linear-gradient(135deg, #17224a 0%, #2c3f8a 100%); }
+.rw-cc-tint-mastercard { background: linear-gradient(135deg, #201a15 0%, #3a2a1c 100%); }
+.rw-cc-tint-amex { background: linear-gradient(135deg, #0b3d45 0%, #16707f 100%); }
+.rw-cc-tint-discover { background: linear-gradient(135deg, #2b2116 0%, #6b4318 100%); }
+.rw-cc-gloss {
+  position: absolute; top: 0; left: -160%; width: 55%; height: 100%; z-index: 2; pointer-events: none;
+  background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.2) 50%, rgba(255,255,255,.10) 55%, transparent 100%);
+  transform: skewX(-20deg); animation: ccGloss 5s ease-in-out infinite;
+}
+@keyframes ccGloss { 0%, 25% { left: -160%; } 55%, 100% { left: 160%; } }
+.rw-cc-row { position: relative; z-index: 3; display: flex; align-items: center; gap: 10px; }
+.rw-cc-row-top { justify-content: space-between; }
+.rw-cc-chip {
+  width: 36px; height: 27px; border-radius: 5px; margin-right: auto;
+  background: linear-gradient(135deg, #E8CB70 0%, #B98F3B 50%, #E8CB70 100%);
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.rw-cc-chip span { width: 1px; height: 60%; background: rgba(0,0,0,.28); }
+.rw-cc-wave { color: rgba(255,255,255,.7); margin-left: -2px; }
+.rw-cc-brand { font-family: var(--font-head); font-weight: 800; font-size: 16px; letter-spacing: .01em; color: rgba(255,255,255,.85); }
+.rw-cc-brand-generic { font-size: 15px; }
+.rw-cc-brand-amex, .rw-cc-brand-discover { font-style: normal; }
+.rw-cc-brand-mc { display: inline-flex; align-items: center; width: 40px; height: 24px; position: relative; }
+.rw-cc-mc-circle { position: absolute; width: 24px; height: 24px; border-radius: 999px; top: 0; }
+.rw-cc-mc-circle-a { left: 0; background: #eb5b2f; opacity: .9; }
+.rw-cc-mc-circle-b { left: 15px; background: #f2b100; opacity: .75; mix-blend-mode: screen; }
+.rw-cc-number {
+  position: relative; z-index: 3; font-family: 'Space Grotesk', monospace; font-weight: 700;
+  font-size: clamp(14px, 1.7vw, 18px); letter-spacing: 1.5px; padding: 3px 6px; margin: 0 -6px;
+  border-radius: 7px; width: fit-content; max-width: 100%; white-space: nowrap; overflow: hidden;
+  transition: box-shadow .2s, background .2s;
+}
+.rw-cc-number .rw-cc-placeholder { color: rgba(255,255,255,.45); }
+.rw-cc-number.is-active { box-shadow: 0 0 0 2px rgba(255,255,255,.25); background: rgba(255,255,255,.06); }
+.rw-cc-row-bottom { justify-content: space-between; align-items: flex-end; }
+.rw-cc-field {
+  position: relative; z-index: 3; display: flex; flex-direction: column; gap: 3px;
+  padding: 3px 6px; margin: 0 -6px; border-radius: 7px; transition: box-shadow .2s, background .2s; min-width: 0;
+}
+.rw-cc-field small { font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.45); }
+.rw-cc-field span { font-size: 13px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rw-cc-field-exp { align-items: flex-end; }
+.rw-cc-field.is-active { box-shadow: 0 0 0 2px rgba(255,255,255,.25); background: rgba(255,255,255,.06); }
+.rw-cc-stripe { position: relative; z-index: 3; width: 100%; height: 40px; background: rgba(0,0,0,.35); margin-top: 20px; }
+.rw-cc-signature { position: relative; z-index: 3; margin: 18px 22px 0; display: flex; align-items: center; gap: 10px; }
+.rw-cc-signature-line { flex: 1; height: 32px; background: repeating-linear-gradient(135deg, rgba(255,255,255,.12) 0 6px, transparent 6px 12px); border-radius: 4px; }
+.rw-cc-cvv-box {
+  min-width: 46px; padding: 7px 9px; background: #fff; color: var(--ink); border-radius: 4px;
+  font-family: monospace; font-weight: 700; font-size: 14px; text-align: center; letter-spacing: 2px;
+  transition: box-shadow .2s;
+}
+.rw-cc-cvv-box.is-active { box-shadow: 0 0 0 2px var(--accent); }
+.rw-cc-row-back-bottom { position: absolute; left: 22px; right: 22px; bottom: 18px; justify-content: space-between; align-items: center; }
+.rw-cc-back-note { font-size: 9px; font-style: italic; color: rgba(255,255,255,.4); }
+.rw-cc-form { min-width: 0; }
+.rw-cc-group { margin-bottom: 4px; }
+.rw-cc-group label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+.rw-cc-amount { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+.rw-cc-amount b { font-family: var(--font-head); font-size: 17px; color: var(--ink); }
+@media (max-width: 560px) {
+  .rw-cc-wrap { grid-template-columns: 1fr; }
+  .rw-cc-scene { max-width: 340px; margin: 0 auto; }
+}
 .rw-co-config { font-size: 12.5px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
 .rw-checkout-summary {
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
