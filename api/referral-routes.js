@@ -383,6 +383,35 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         flaggedReason = 'Same IP as referrer';
       }
 
+      // ── FRAUD CHECK: block if same IP or self-referral ──
+      if (sameIp || refCode.email === normalizedReferee) {
+        // Still record the attempt for admin visibility
+        await fetchSupabase('referral_redemptions', {
+          method: 'POST',
+          body: {
+            code_id: refCode.id,
+            referrer_email: refCode.email,
+            referee_email: normalizedReferee,
+            order_num: orderNum || '',
+            status: 'flagged',
+            referee_ip: refereeIp,
+            referee_user_agent: refereeUa,
+            referrer_ip: refCode.created_ip || '',
+            same_ip: sameIp,
+            flagged_reason: flaggedReason || 'Self-referral',
+          },
+        });
+        return res.json({ applied: false, error: flaggedReason || 'Self-referral not allowed', flagged: true });
+      }
+
+      // ── FRAUD CHECK: IP rate limit — max 2 redemptions per IP per day ──
+      const today = new Date().toISOString().slice(0, 10);
+      const ipKey = `${refereeIp}:${today}`;
+      const redeemCount = ipGenRate.get(ipKey) || 0;
+      if (redeemCount >= 2) {
+        flaggedReason = 'IP rate limit exceeded';
+      }
+
       // Record the redemption
       await fetchSupabase('referral_redemptions', {
         method: 'POST',
@@ -408,11 +437,11 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         body: { used_count: (refCode.used_count || 0) + 1 },
       });
 
-      res.json({
-        applied: true,
-        flagged: !!flaggedReason,
-        flaggedReason: flaggedReason || null,
-      });
+      // Track IP for rate limiting
+      ipGenRate.set(ipKey, (ipGenRate.get(ipKey) || 0) + 1);
+
+      // Return success
+      return res.json({ applied: true, discount: parseInt(refCode.reward_discount || REFERRAL_DISCOUNT), type: refCode.reward_type || 'percent', flagged: !!flaggedReason, flaggedReason: flaggedReason || null });
     } catch (err) {
       console.error('Referral apply error:', err);
       res.status(500).json({ error: 'Failed to apply referral: ' + err.message });
