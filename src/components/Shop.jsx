@@ -805,7 +805,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
 /* ---------- Wishlist Signup Modal ---------- */
 const POLICY_TEXT = `REWIND Privacy Policy
 
-Controller: REWIND (sole trader), Romeinsesteenweg 193, 1800 Vilvoorde, Belgium
+Controller: REWIND (sole trader), 1800 Vilvoorde, Belgium
 Contact: orders@rewind-stores.com
 
 Data retention:
