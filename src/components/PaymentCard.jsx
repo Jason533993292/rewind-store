@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 /* ---------- card brand detection & formatting ---------- */
 const CARD_BRANDS = {
@@ -20,30 +22,6 @@ function formatCardNumber(digits, brand) {
   return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
 }
 
-function formatExpiry(raw) {
-  let digits = raw.replace(/\D/g, '').slice(0, 4);
-  if (digits.length === 1 && Number(digits) > 1) digits = '0' + digits;
-  if (digits.length >= 2) {
-    let mm = Number(digits.slice(0, 2));
-    if (mm === 0) mm = 1;
-    if (mm > 12) mm = 12;
-    digits = String(mm).padStart(2, '0') + digits.slice(2);
-  }
-  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
-}
-
-function isExpiryValid(expiry) {
-  if (!/^\d{2}\/\d{2}$/.test(expiry)) return false;
-  const [mm, yy] = expiry.split('/').map(Number);
-  if (mm < 1 || mm > 12) return false;
-  const now = new Date();
-  const curYY = now.getFullYear() % 100;
-  const curMM = now.getMonth() + 1;
-  if (yy < curYY) return false;
-  if (yy === curYY && mm < curMM) return false;
-  return true;
-}
-
 /* ---------- BrandMark ---------- */
 function BrandMark({ brand }) {
   if (brand === 'mastercard') {
@@ -60,42 +38,219 @@ function BrandMark({ brand }) {
   return <span className={`rw-cc-brand rw-cc-brand-${brand}`}>{CARD_BRANDS[brand].label}</span>;
 }
 
-/* ---------- PaymentCard ---------- */
-export default function PaymentCard({ amount, onChange }) {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [focused, setFocused] = useState(null);
+/* ---------- Stripe Elements base styles ---------- */
+const ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: '16px',
+      fontFamily: 'var(--font-mono, "SF Mono", monospace)',
+      color: '#16130F',
+      '::placeholder': { color: '#6E665A' },
+      padding: '10px 0',
+    },
+    invalid: { color: '#FF4D14' },
+  },
+};
 
-  const brand = useMemo(() => detectBrand(number), [number]);
+/* ---------- CardFormInner — lives inside <Elements>, handles Stripe hooks ---------- */
+function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayReady, onFocusChange }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [error, setError] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [firstDigits, setFirstDigits] = useState('');
+
+  const brand = useMemo(() => detectBrand(firstDigits), [firstDigits]);
   const cvvLen = CARD_BRANDS[brand].cvvLen;
-  const displayNumber = useMemo(() => formatCardNumber(number, brand), [number, brand]);
 
-  const valid = useMemo(() => (
-    name.trim().length > 1 &&
-    number.length === CARD_BRANDS[brand].digits &&
-    isExpiryValid(expiry) &&
-    cvv.length === cvvLen
-  ), [name, number, brand, expiry, cvv, cvvLen]);
+  // Notify parent when Stripe Elements are ready
+  const isValid = ready && !!clientSecret;
+  useEffect(() => {
+    onValidChange?.({ valid: isValid, clientSecret });
+  }, [isValid, clientSecret, onValidChange]);
 
   useEffect(() => {
-    onChange?.({ name, number, expiry, cvv, brand, valid });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, number, expiry, cvv, brand, valid]);
+    if (error) onError?.(error);
+  }, [error, onError]);
 
-  const handleNumberChange = (e) => {
-    const rawDigits = e.target.value.replace(/\D/g, '');
-    const nextBrand = detectBrand(rawDigits);
-    setNumber(rawDigits.slice(0, CARD_BRANDS[nextBrand].digits));
-  };
+  const handleCardNumberChange = useCallback((event) => {
+    const elBrand = event?.brand || '';
+    setFirstDigits(
+      elBrand === 'visa' ? '4'
+      : elBrand === 'mastercard' ? '5'
+      : elBrand === 'amex' ? '3'
+      : elBrand === 'discover' ? '6'
+      : ''
+    );
+  }, []);
 
-  const handleCvvChange = (e) => {
-    setCvv(e.target.value.replace(/\D/g, '').slice(0, cvvLen));
-  };
+  // Expose pay function to parent via onPayReady
+  const pay = useCallback(async (overrideDetails = {}) => {
+    if (!stripe || !elements || !clientSecret) {
+      const msg = 'Payment not ready — please try again';
+      setError(msg);
+      return { error: msg };
+    }
+
+    setProcessing(true);
+    setError('');
+
+    const cardElement = elements.getElement(CardNumberElement);
+    if (!cardElement) {
+      setProcessing(false);
+      return { error: 'Card element not found' };
+    }
+
+    const details = overrideDetails || {};
+
+    const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: {
+          name: details.name || '',
+          email: details.email || '',
+          address: details.address ? {
+            line1: details.address,
+            city: details.city || '',
+            postal_code: details.postal || '',
+            country: details.country || '',
+          } : undefined,
+        },
+      },
+    });
+
+    setProcessing(false);
+
+    if (confirmError) {
+      setError(confirmError.message);
+      return { error: confirmError.message };
+    }
+
+    if (paymentIntent.status === 'succeeded') {
+      return { success: true, paymentIntent };
+    }
+
+    const msg = `Payment ${paymentIntent.status} — please try again`;
+    setError(msg);
+    return { error: msg };
+  }, [stripe, elements, clientSecret]);
+
+  // Register the pay function with parent
+  useEffect(() => {
+    onPayReady?.({ pay });
+  }, [pay, onPayReady]);
+
+  return (
+    <div className="rw-cc-form">
+      <div className="rw-cc-group">
+        <label>Card Number</label>
+        <div className="rw-stripe-input">
+          <CardNumberElement
+            options={{ ...ELEMENT_OPTIONS, showIcon: true }}
+            onChange={handleCardNumberChange}
+            onFocus={() => onFocusChange?.('number')}
+            onBlur={() => onFocusChange?.(null)}
+            onReady={() => setReady(true)}
+          />
+        </div>
+      </div>
+      <div className="rw-input-row">
+        <div className="rw-cc-group">
+          <label>Expiry Date</label>
+          <div className="rw-stripe-input">
+            <CardExpiryElement
+              options={ELEMENT_OPTIONS}
+              onFocus={() => onFocusChange?.('expiry')}
+              onBlur={() => onFocusChange?.(null)}
+            />
+          </div>
+        </div>
+        <div className="rw-cc-group">
+          <label>CVV</label>
+          <div className="rw-stripe-input">
+            <CardCvcElement
+              options={{ ...ELEMENT_OPTIONS, placeholder: '•'.repeat(cvvLen) }}
+              onFocus={() => onFocusChange?.('cvv')}
+              onBlur={() => onFocusChange?.(null)}
+            />
+          </div>
+        </div>
+      </div>
+      {amount && <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>}
+      {processing && <div className="rw-cc-processing"><i className="rw-spinner" /> Processing…</div>}
+      {error && <div className="rw-cc-error">{error}</div>}
+    </div>
+  );
+}
+
+/* ---------- PaymentCard (main export) ---------- */
+const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name }, ref) {
+  const [clientSecret, setClientSecret] = useState(null);
+  const [cardValid, setCardValid] = useState(false);
+  const [focused, setFocused] = useState(null);
+  const [firstDigits, setFirstDigits] = useState('');
+
+  const brand = useMemo(() => detectBrand(firstDigits), [firstDigits]);
+
+  const stripePromise = useMemo(() => {
+    const key = stripeKey || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    if (!key) {
+      console.warn('No Stripe publishable key provided. Set VITE_STRIPE_PUBLISHABLE_KEY or pass stripeKey prop.');
+      return null;
+    }
+    return loadStripe(key);
+  }, [stripeKey]);
+
+  // Fetch PaymentIntent clientSecret when enough info is available
+  useEffect(() => {
+    if (!amount || !orderNum || !email) return;
+    const numAmount = typeof amount === 'string'
+      ? parseFloat(amount.replace(/[^0-9.,]/g, '').replace(',', '.'))
+      : amount;
+    if (!numAmount || numAmount <= 0) return;
+
+    fetch('/api/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: numAmount, orderNum, email, name: name || '' }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.clientSecret) {
+          setClientSecret(data.clientSecret);
+        } else {
+          console.warn('PaymentIntent fetch failed:', data.error);
+        }
+      })
+      .catch((e) => console.warn('PaymentIntent fetch error:', e));
+  }, [amount, orderNum, email, name]);
+
+  // Store the pay function from inside Elements so the ref can call it
+  const [payFn, setPayFn] = useState(null);
+
+  useImperativeHandle(ref, () => ({
+    pay: async (overrideDetails) => {
+      if (!payFn) return { error: 'Payment not ready yet' };
+      return payFn(overrideDetails);
+    },
+    isValid: cardValid && !!clientSecret,
+    clientSecret,
+  }), [payFn, cardValid, clientSecret]);
+
+  if (!stripePromise) {
+    return (
+      <div className="rw-cc-wrap">
+        <div className="rw-cc-form">
+          <p className="rw-cc-error">Stripe not configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your environment.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rw-cc-wrap">
+      {/* ── Animated card preview (unchanged) ── */}
       <div className="rw-cc-scene">
         <div className={`rw-cc ${focused === 'cvv' ? 'is-flipped' : ''}`}>
           <div className="rw-cc-face rw-cc-front">
@@ -115,18 +270,14 @@ export default function PaymentCard({ amount, onChange }) {
               <BrandMark brand={brand} />
             </div>
             <div className={`rw-cc-number ${focused === 'number' ? 'is-active' : ''}`}>
-              <span className={displayNumber ? '' : 'rw-cc-placeholder'}>
-                {displayNumber || '•••• •••• •••• ••••'}
+              <span className="rw-cc-placeholder">
+                {'•••• •••• •••• ••••'}
               </span>
             </div>
             <div className="rw-cc-row rw-cc-row-bottom">
-              <div className={`rw-cc-field ${focused === 'name' ? 'is-active' : ''}`}>
-                <small>Card Holder</small>
-                <span>{name || 'YOUR NAME'}</span>
-              </div>
-              <div className={`rw-cc-field rw-cc-field-exp ${focused === 'expiry' ? 'is-active' : ''}`}>
+              <div className="rw-cc-field rw-cc-field-exp">
                 <small>Expires</small>
-                <span>{expiry || 'MM/YY'}</span>
+                <span>MM/YY</span>
               </div>
             </div>
           </div>
@@ -137,7 +288,7 @@ export default function PaymentCard({ amount, onChange }) {
             <div className="rw-cc-signature">
               <div className="rw-cc-signature-line" />
               <div className={`rw-cc-cvv-box ${focused === 'cvv' ? 'is-active' : ''}`}>
-                {cvv.padEnd(cvvLen, '•')}
+                {'•••'}
               </div>
             </div>
             <div className="rw-cc-row rw-cc-row-back-bottom">
@@ -148,47 +299,29 @@ export default function PaymentCard({ amount, onChange }) {
         </div>
       </div>
 
-      <div className="rw-cc-form">
-        <div className="rw-cc-group">
-          <label htmlFor="cc-name">Cardholder Name</label>
-          <input
-            id="cc-name" className="rw-input" type="text" autoComplete="cc-name"
-            placeholder="Jane Doe" value={name}
-            onChange={(e) => setName(e.target.value.slice(0, 26))}
-            onFocus={() => setFocused('name')} onBlur={() => setFocused(null)}
+      {/* ── Stripe Elements form ── */}
+      {clientSecret ? (
+        <Elements stripe={stripePromise} options={{ clientSecret }}>
+          <CardFormInner
+            clientSecret={clientSecret}
+            amount={amount}
+            onValidChange={({ valid }) => {
+              setCardValid(valid);
+              onChange?.({ clientSecret, valid });
+            }}
+            onError={(err) => console.warn('Card error:', err)}
+            onPayReady={({ pay }) => setPayFn(() => pay)}
+            onFocusChange={(field) => setFocused(field)}
           />
+        </Elements>
+      ) : (
+        <div className="rw-cc-form">
+          <div className="rw-cc-loading">Loading payment form…</div>
+          {amount && <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>}
         </div>
-        <div className="rw-cc-group">
-          <label htmlFor="cc-number">Card Number</label>
-          <input
-            id="cc-number" className="rw-input" type="text" inputMode="numeric" autoComplete="cc-number"
-            placeholder="4242 4242 4242 4242" value={displayNumber} maxLength={19}
-            onChange={handleNumberChange}
-            onFocus={() => setFocused('number')} onBlur={() => setFocused(null)}
-          />
-        </div>
-        <div className="rw-input-row">
-          <div className="rw-cc-group">
-            <label htmlFor="cc-expiry">Expiry Date</label>
-            <input
-              id="cc-expiry" className="rw-input" type="text" inputMode="numeric" autoComplete="cc-exp"
-              placeholder="MM/YY" value={expiry} maxLength={5}
-              onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-              onFocus={() => setFocused('expiry')} onBlur={() => setFocused(null)}
-            />
-          </div>
-          <div className="rw-cc-group">
-            <label htmlFor="cc-cvv">CVV</label>
-            <input
-              id="cc-cvv" className="rw-input" type="text" inputMode="numeric" autoComplete="cc-csc"
-              placeholder={'•'.repeat(cvvLen)} value={cvv} maxLength={cvvLen}
-              onChange={handleCvvChange}
-              onFocus={() => setFocused('cvv')} onBlur={() => setFocused(null)}
-            />
-          </div>
-        </div>
-        {amount && <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>}
-      </div>
+      )}
     </div>
   );
-}
+});
+
+export default PaymentCard;

@@ -425,6 +425,25 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// ── Stripe Payment Intent (for Elements) ──
+app.post('/api/create-payment-intent', async (req, res) => {
+  if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
+  const { amount, orderNum, email, name } = req.body;
+  if (!amount || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
+  try {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: 'eur',
+      metadata: { orderNum, email, name: name || '' },
+      automatic_payment_methods: { enabled: true },
+    });
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (e) {
+    console.error('PaymentIntent error:', e);
+    res.status(500).json({ error: 'Could not create payment' });
+  }
+});
+
 // ── Get orders by email ──
 app.post('/api/get-orders', requireAdmin, async (req, res) => {
   const { email } = req.body;

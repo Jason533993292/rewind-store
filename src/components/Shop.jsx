@@ -387,8 +387,16 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [promo, setPromo] = useState('');
   const [payError, setPayError] = useState('');
   const [orderNum, setOrderNum] = useState('');
+  const paymentRef = useRef(null);
   const [saveInfo, setSaveInfo] = useState(false);
   const [formFields, setFormFields] = useState({ email: '', name: '', address: '', postal: '', city: '', country: '' });
+
+  // Generate order number when checkout opens
+  useEffect(() => {
+    if (open) {
+      setOrderNum('RW-' + String(Date.now()).slice(-8));
+    }
+  }, [open]);
   const setField = (key) => (e) => setFormFields((prev) => ({ ...prev, [key]: e.target.value }));
 
   if (!open) return null;
@@ -484,25 +492,66 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       localStorage.setItem('rw_checkout_save_info', 'false');
       localStorage.removeItem('rw_checkout_info');
     }
-    const orderNum = 'RW-' + String(Date.now()).slice(-8);
+    // Use the orderNum already set in state (generated when checkout opened)
+    const currentOrderNum = orderNum;
     try {
-      const r = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map(it => ({ id: it.id, product_id: it.product_id, name: it.name, size: it.size, price: it.price, qty: it.qty })),
-          total: finalTotal,
-          orderNum,
-          email,
-          name: formFields.name,
-          address: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
-        }),
+      // Process payment via Stripe Elements inline
+      const payResult = await paymentRef.current?.pay({
+        name: formFields.name,
+        email: formFields.email,
+        address: formFields.address,
+        city: formFields.city,
+        postal: formFields.postal,
+        country: formFields.country,
       });
-      const d = await r.json();
-      if (d.url) {
-        window.location.href = d.url;
+
+      if (!payResult || payResult.error) {
+        setPayError(payResult?.error || 'Payment failed — please try again');
+        setProcessing(false);
+        return;
+      }
+
+      if (payResult.success) {
+        // Payment succeeded — save order to Supabase and send confirmation
+        setOrderNum(currentOrderNum);
+        setCardValid(false);
+
+        // Save order to Supabase
+        const saveBody = {
+          orderNum: currentOrderNum,
+          customer_name: formFields.name,
+          email: formFields.email,
+          address: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
+          items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty, id: it.id, product_id: it.product_id })),
+          total: finalTotal,
+        };
+
+        // Save order (fire-and-forget — don't block confirmation on it)
+        fetch('/api/save-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(saveBody),
+        }).catch(e => console.warn('Save order failed:', e));
+
+        // Send confirmation email
+        fetch('/api/send-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formFields.email,
+            name: formFields.name,
+            items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty, id: it.id, product_id: it.product_id })),
+            total: finalTotal,
+            address: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
+            orderNum: currentOrderNum,
+          }),
+        }).catch(e => console.warn('Email failed:', e));
+
+        // Show confirmation
+        setProcessing(false);
+        setPlaced(true);
       } else {
-        setPayError(d.error || 'Checkout failed — please try again');
+        setPayError('Payment could not be completed. Please try again.');
         setProcessing(false);
       }
     } catch (e) {
@@ -628,7 +677,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         </div>
         {payment === 'card' && (
           <div className="rw-card-fields">
-            <PaymentCard amount={money(finalTotal)} onChange={({ valid }) => setCardValid(valid)} />
+            <PaymentCard
+              ref={paymentRef}
+              amount={money(finalTotal)}
+              stripeKey={import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY}
+              orderNum={orderNum}
+              email={formFields.email}
+              name={formFields.name}
+              onChange={({ valid }) => setCardValid(valid)}
+            />
           </div>
         )}
         <div className="rw-co-config">
