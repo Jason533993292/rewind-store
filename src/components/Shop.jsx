@@ -805,6 +805,14 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
 /* ---------- Wishlist Signup Modal ---------- */
 const POLICY_TEXT = `REWIND Privacy Policy
 
+Controller: REWIND (sole trader), Romeinsesteenweg 193, 1800 Vilvoorde, Belgium
+Contact: orders@rewind-stores.com
+
+Data retention:
+• Order data: 7 years (tax compliance)
+• Inactive account/wishlist data: 24 months after last activity
+• Marketing data: until you withdraw consent
+
 1. Information We Collect
 • Email address (when you create a wishlist or place an order)
 • Shipping address and name (when you place an order)
@@ -815,17 +823,20 @@ const POLICY_TEXT = `REWIND Privacy Policy
 • To manage your wishlist and save your favorite items
 • To process and fulfill your orders
 • To send order confirmations and shipping updates
+• To detect and prevent fraud (including IP-based blocking)
 • With your consent, to send emails about new drops and exclusive offers
 
 3. Data Storage & Security
-• Your data is stored securely in our database
+• Your data is stored securely in our database (Supabase, EU-hosted)
 • We use industry-standard encryption for data transmission
 • You can request deletion of your data at any time by emailing orders@rewind-stores.com
 
 4. Third-Party Services
-• Stripe: Payment processing (view their privacy policy at stripe.com/privacy)
-• Supabase: Database hosting
-• Resend: Order confirmation emails
+• Stripe (US): Payment processing — view their privacy policy at stripe.com/privacy
+• Supabase (US): Database hosting
+• Resend (US): Order confirmation emails
+• Google Gemini (US): AI-powered chat auto-replies
+• These services may process your data outside the EU/EEA under Standard Contractual Clauses
 
 5. Your Rights (GDPR)
 • Right to access your personal data
@@ -833,6 +844,7 @@ const POLICY_TEXT = `REWIND Privacy Policy
 • Right to erasure — delete your account and data at any time
 • Right to restrict processing
 • Right to data portability
+• Right to object to processing
 • To exercise any of these rights, email orders@rewind-stores.com
 
 6. Cookies
