@@ -3,6 +3,7 @@ import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import { deleteCustomProduct } from '../lib/supabase';
+import PaymentCardPreview from './PaymentCard';
 
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, onCart }) {
@@ -635,9 +636,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               ))}
             </div>
             {payment === 'card' && (
-              <div className="rw-card-fields" style={{ fontSize: '13px', color: 'var(--muted)', padding: '12px 0', lineHeight: '1.6' }}>
-                <Icon name="check" size={14} /> Payment handled securely by <strong>Stripe</strong> — you'll complete card entry on their checkout page.
-              </div>
+              <PaymentCardPreview />
             )}
             <div className="rw-co-config">
               {payment === 'payconiq' && 'Scan the QR code with Payconiq to complete payment.'}
