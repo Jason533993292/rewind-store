@@ -651,8 +651,10 @@ a { color: inherit; cursor: pointer; }
 .rw-sum-rows { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 9px; }
 .rw-sum-rows div { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
 .rw-sum-rows b { color: var(--ink); }
-.rw-sum-total { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
-.rw-sum-total span, .rw-sum-total b { font-family: var(--font-head); font-size: 19px; font-weight: 700; color: var(--ink) !important; }
+.rw-sum-total { margin-top: 16px; padding-top: 16px; border-top: 2px solid var(--ink); }
+.rw-sum-total > div { display: flex; justify-content: space-between; align-items: center; }
+.rw-sum-total span { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.rw-sum-total b { font-size: 22px; }
 .rw-checkout-summary .rw-btn { margin-top: 18px; }
 .rw-checkout-payment { max-width: 1000px; margin: 0 auto; padding: 0 28px 40px; }
 .rw-co-trust { display: flex; align-items: center; gap: 7px; justify-content: center; margin-top: 14px; font-size: 12.5px; color: var(--muted); }
