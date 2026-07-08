@@ -190,6 +190,18 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
   const [cardValid, setCardValid] = useState(false);
   const [focused, setFocused] = useState(null);
   const [firstDigits, setFirstDigits] = useState('');
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const cardSceneRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    const el = cardSceneRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: x * 10, y: y * -10 });
+  };
+  const handleMouseLeave = () => setTilt({ x: 0, y: 0 });
 
   const brand = useMemo(() => detectBrand(firstDigits), [firstDigits]);
 
@@ -252,7 +264,11 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
   return (
     <div className="rw-cc-wrap">
       {/* ── Animated card preview (unchanged) ── */}
-      <div className="rw-cc-scene">
+      <div className="rw-cc-scene"
+        ref={cardSceneRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{ transform: `rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)` }}>
         <div className={`rw-cc ${focused === 'cvv' ? 'is-flipped' : ''}`}>
           <div className="rw-cc-face rw-cc-front">
             <div className="rw-cc-bg" />
