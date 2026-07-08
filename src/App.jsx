@@ -21,7 +21,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V10.10.0';
+const VERSION = 'V10.11.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -366,7 +366,22 @@ export default function App() {
 
   const quickAdd = useCallback((p) => { addToCart(p); setDrawer(true); }, [addToCart]);
   const addFromQuick = useCallback((p, size) => { addToCart(p, size); setQuick(null); setDrawer(true); }, [addToCart]);
-  const changeQty = useCallback((key, d) => { setCart((c) => c.map((it) => it.key === key ? { ...it, qty: Math.max(1, it.qty + d) } : it)); }, []);
+  const changeQty = useCallback((key, d) => { 
+    setCart((c) => {
+      const item = c.find(it => it.key === key);
+      if (!item) return c;
+      const newQty = item.qty + d;
+      if (newQty <= 0) {
+        if (d < 0) {
+          setPendingRemove({ key, name: item.name });
+          return c.map(it => it.key === key ? { ...it, qty: 1 } : it);
+        }
+        return c;
+      }
+      return c.map((it) => it.key === key ? { ...it, qty: newQty } : it); 
+    }); 
+  }, []);
+  const [pendingRemove, setPendingRemove] = useState(null);
   const removeItem = useCallback((key, name) => { 
     // Capture the removed item so Undo always restores the right data,
     // regardless of subsequent cart changes before the user clicks Undo.
@@ -869,7 +884,8 @@ export default function App() {
       <QuickView p={quick} showCompare={t.showCompare} showStock={t.showStock}
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
       <CartDrawer open={drawer} items={cart} onClose={() => setDrawer(false)}
-        onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout} />
+        onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout}
+        pendingRemove={pendingRemove} onCancelRemove={() => setPendingRemove(null)} />
       <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} orderNumber={orderNumber} />
       <Toast toast={toast} onDismiss={() => setToast(null)} />
       <SignupModal open={signupOpen} onClose={() => { setSignupOpen(false); setPendingWishlistId(null); }} onSignup={handleSignup} />

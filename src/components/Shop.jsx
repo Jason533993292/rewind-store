@@ -291,7 +291,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
 }
 
 /* ---------- CartDrawer ---------- */
-export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, showToast }) {
+export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, showToast, pendingRemove, onCancelRemove }) {
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
   const FREE_THRESHOLD = 150;
   const freeProgress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
@@ -372,6 +372,18 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
           </div>
         )}
       </div>
+      {pendingRemove && (
+        <div className="rw-scrim is-on" onClick={onCancelRemove} />
+      )}
+      {pendingRemove && (
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 52, background: 'var(--bg)', borderRadius: '12px', padding: '24px', maxWidth: '340px', width: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', textAlign: 'center' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 16px', color: 'var(--ink)' }}>Remove "{pendingRemove.name}" from your bag?</p>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button onClick={() => { onRemove(pendingRemove.key, pendingRemove.name); onCancelRemove(); }} style={{ padding: '10px 24px', borderRadius: '10px', border: 'none', background: 'var(--accent, #FF4D14)', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Remove</button>
+            <button onClick={onCancelRemove} style={{ padding: '10px 24px', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--muted)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
