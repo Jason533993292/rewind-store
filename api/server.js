@@ -428,13 +428,16 @@ app.post('/api/create-checkout-session', async (req, res) => {
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
-  const { amount, orderNum, email, name } = req.body;
-  if (!amount || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
+  const { items, orderNum, email, name, promoCode } = req.body;
+  if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
+  // Server-side price recompute — never trust client amounts
+  const { subtotal, discountPrice } = computeOrder(items, promoCode);
+  const finalTotal = Math.round(discountPrice * 100);
   try {
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
+      amount: finalTotal,
       currency: 'eur',
-      metadata: { orderNum, email, name: name || '' },
+      metadata: { orderNum, email, name: name || '', itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty, price: i.price }))), promoCode: promoCode || '' },
       payment_method_types: ['card'],
     });
     res.json({ clientSecret: paymentIntent.client_secret });
