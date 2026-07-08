@@ -185,7 +185,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 }
 
 /* ---------- PaymentCard (main export) ---------- */
-const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name }, ref) {
+const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, items, promoCode: promoProp }, ref) {
   const [clientSecret, setClientSecret] = useState(null);
   const [cardValid, setCardValid] = useState(false);
   const [focused, setFocused] = useState(null);
@@ -223,10 +223,13 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     if (!numAmount || numAmount <= 0) return;
     const currentEmail = email || 'checkout@rewind-stores.com';
 
+    // Strip price data from items for server-side pricing
+    const cleanItems = (itemsProp || []).map(it => ({ id: it.id || it.product_id, qty: it.qty }));
+
     fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: numAmount, orderNum, email: currentEmail, name: name || '' }),
+      body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', promoCode: promoProp || '' }),
     })
       .then((r) => r.json())
       .then((data) => {
@@ -237,7 +240,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
         }
       })
       .catch((e) => console.warn('PaymentIntent fetch error:', e));
-  }, [amount, orderNum, email, name]);
+  }, [amount, orderNum, email, name, items, promoProp]);
 
   // Store the pay function from inside Elements so the ref can call it
   const [payFn, setPayFn] = useState(null);

@@ -425,6 +425,42 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// Compute real order total server-side — never trust the client
+async function computeOrder(items, promoCode) {
+  let subtotal = 0;
+  for (const it of (items || [])) {
+    const pid = it.id || it.product_id;
+    const realPrice = pid ? await lookupProductPrice(pid) : null;
+    subtotal += (realPrice ?? it.price ?? 0) * (it.qty || 1);
+  }
+  const shipping = subtotal >= 150 ? 0 : 8;
+  let discountPrice = subtotal;
+  let discountLabel = null;
+  // Validate promo code against DB
+  if (promoCode) {
+    try {
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const r = await fetch(`${process.env.SUPABASE_URL || 'https://luiqimsfvllgsmzedncw.supabase.co'}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=discount,discount_type,label,uses,max_uses`, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const promo = data[0];
+        if (promo.max_uses == null || (promo.uses || 0) < promo.max_uses) {
+          if (promo.discount_type === 'free_shipping') {
+            discountPrice = subtotal;
+            discountLabel = 'Free shipping';
+          } else {
+            discountPrice = Math.round(subtotal * (100 - promo.discount)) / 100;
+            discountLabel = `${promo.discount}% off`;
+          }
+        }
+      }
+    } catch {}
+  }
+  return { subtotal, shipping, discountPrice, discountLabel };
+}
+
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
@@ -599,6 +635,23 @@ app.post('/api/stripe-webhook', async (req, res) => {
   }
 
   // Handle payment failures — mark order as failed in Supabase
+  if (event.type === 'payment_intent.succeeded') {
+    const pi = event.data.object;
+    const { orderNum, email, name, itemsJson, promoCode } = pi.metadata || {};
+    if (orderNum && email) {
+      try {
+        const items = itemsJson ? JSON.parse(itemsJson) : [];
+        const { subtotal, shipping, discountPrice } = await computeOrder(items, promoCode);
+        const total = discountPrice + shipping;
+        await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+          method: 'POST',
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_num: orderNum, email, name: name || '', items: items, total, shipping, status: 'confirmed', created_at: new Date().toISOString() }),
+        });
+        console.log('Order saved from PaymentIntent:', orderNum);
+      } catch (e) { console.error('Failed to fulfill from PaymentIntent:', e); }
+    }
+  }
   if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
     const session = event.data.object;
     const orderNum = session.metadata?.orderNum;

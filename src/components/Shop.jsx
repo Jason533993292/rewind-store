@@ -694,6 +694,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               orderNum={orderNum}
               email={formFields.email}
               name={formFields.name}
+              items={items}
+              promoCode={promo}
               onChange={({ valid }) => setCardValid(valid)}
             />
           </div>
