@@ -385,6 +385,10 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [promoData, setPromoData] = useState(null);
   const [promoValidating, setPromoValidating] = useState(false);
   const [promo, setPromo] = useState('');
+  const [payError, setPayError] = useState('');
+  const [orderNum, setOrderNum] = useState('');
+  const [saveInfo, setSaveInfo] = useState(false);
+  const [formFields, setFormFields] = useState({ email: '', name: '', address: '', postal: '', city: '', country: '' });
 
   if (!open) return null;
   if (placed) {
