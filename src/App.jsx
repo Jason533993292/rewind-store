@@ -87,7 +87,6 @@ export default function App() {
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem('rw_email') || '');
   const [wishlist, setWishlist] = useState([]);
   const [pendingWishlistId, setPendingWishlistId] = useState(null);
-  const [showReferral, setShowReferral] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
