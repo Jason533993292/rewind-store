@@ -435,7 +435,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
       amount: Math.round(amount * 100),
       currency: 'eur',
       metadata: { orderNum, email, name: name || '' },
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ['card'],
     });
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
