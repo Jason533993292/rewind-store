@@ -46,8 +46,9 @@ export default function App() {
   useEffect(() => { showSurveyRef.current = showSurvey; }, [showSurvey]);
 
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [cat, setCat] = useState('All');
-  const [query, setQuery] = useState('');
+  const [cat, setCat] = useState(() => { try { return localStorage.getItem('rw_cat') || 'All'; } catch { return 'All'; } });
+  const [query, setQuery] = useState(() => { try { return localStorage.getItem('rw_query') || ''; } catch { return ''; } });
+  const [brand, setBrand] = useState(() => { try { const b = localStorage.getItem('rw_brand'); return b ? JSON.parse(b) : null; } catch { return null; } });
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('rw_cart');
@@ -80,7 +81,6 @@ export default function App() {
   const [promoCode, setPromoCode] = useState('');
   const [promoMsg, setPromoMsg] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
-  const [brand, setBrand] = useState(null);
   const [signupOpen, setSignupOpen] = useState(false);
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem('rw_email') || '');
   const [wishlist, setWishlist] = useState([]);
