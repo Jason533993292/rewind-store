@@ -751,6 +751,71 @@ app.post('/api/admin/block-email', express.json(), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Admin: block a chat customer (email + IP) ──
+app.post('/api/admin/block-customer', express.json(), async (req, res) => {
+  const { session_id, email, ip } = req.body;
+  if (!session_id && !email) return res.status(400).json({ error: 'session_id or email required' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ error: 'Supabase not configured' });
+
+  // If session_id given, look up the session to get email and IP
+  let targetEmail = email;
+  let targetIp = ip;
+  if (session_id && (!targetEmail || !targetIp)) {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}&select=customer_email,customer_ip`, {
+        headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0) {
+        if (!targetEmail && data[0].customer_email) targetEmail = data[0].customer_email;
+        if (!targetIp && data[0].customer_ip) targetIp = data[0].customer_ip;
+      }
+    } catch (e) { console.warn('Failed to look up session for blocking:', e.message); }
+  }
+
+  const results = { emailBlocked: false, ipBlocked: false };
+  const errors = [];
+
+  // Block email
+  if (targetEmail) {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, {
+        method: 'POST',
+        headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail.toLowerCase().trim(), created_at: new Date().toISOString() }),
+      });
+      if (r.ok) {
+        BLOCKED_EMAILS.add(targetEmail.toLowerCase().trim());
+        results.emailBlocked = true;
+      } else {
+        const e = await r.json();
+        if (e.error && !e.error.includes('duplicate')) errors.push('Email: ' + e.error);
+      }
+    } catch (e) { errors.push('Email: ' + e.message); }
+  }
+
+  // Block IP
+  if (targetIp) {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, {
+        method: 'POST',
+        headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip_address: targetIp, created_at: new Date().toISOString() }),
+      });
+      if (r.ok) {
+        BLOCKED_IPS.set(targetIp, true);
+        results.ipBlocked = true;
+      } else {
+        const e = await r.json();
+        if (e.error && !e.error.includes('duplicate')) errors.push('IP: ' + e.error);
+      }
+    } catch (e) { errors.push('IP: ' + e.message); }
+  }
+
+  res.json({ ok: results.emailBlocked || results.ipBlocked, ...results, errors: errors.length > 0 ? errors : undefined });
+});
+
 app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });

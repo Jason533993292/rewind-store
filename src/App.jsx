@@ -2107,16 +2107,22 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
     if (!selectedId) return;
     const session = sessions.find(s => s.session_id === selectedId);
     const email = session?.customer_email;
-    if (!email) { setBlockMsg('No email to block'); setTimeout(() => setBlockMsg(''), 2000); return; }
     const finalReason = reason === 'Other' ? blockCustomReason : reason;
     try {
-      const r = await fetch('/api/admin/block-email', {
+      const r = await fetch('/api/admin/block-customer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-        body: JSON.stringify({ email, reason: finalReason || 'Blocked via chat' }),
+        body: JSON.stringify({ session_id: selectedId, email, reason: finalReason || 'Blocked via chat' }),
       });
-      if (r.ok) {
-        setBlockMsg(`✅ Blocked ${email}`);
+      const d = await r.json();
+      if (d.ok) {
+        const parts = [];
+        if (d.emailBlocked) parts.push('email');
+        if (d.ipBlocked) parts.push('IP');
+        setBlockMsg(`✅ Blocked ${parts.join(' + ')} for ${email}`);
+        if (!d.emailBlocked && !d.ipBlocked) {
+          setBlockMsg('❌ Nothing was blocked — no email or IP found');
+        }
       } else {
         setBlockMsg('❌ Failed to block');
       }
@@ -2376,20 +2382,24 @@ function AdminChatPanel({ adminToken, chatUnread, setChatUnread }) {
   );
 }
 
-/* ── Blocked Emails Panel ── */
+/* ── Blocked Emails & IPs Panel ── */
 function BlockedPanel() {
   const [emails, setEmails] = useState([]);
+  const [ips, setIps] = useState([]);
   const [newEmail, setNewEmail] = useState('');
+  const [newIp, setNewIp] = useState('');
   const [loading, setLoading] = useState(true);
   const [allUsers, setAllUsers] = useState([]);
 
   const loadAll = async () => {
     try {
-      const [re, ru] = await Promise.all([
+      const [re, ri, ru] = await Promise.all([
         fetch('/api/admin/blocked-emails', { headers: { 'x-admin-token': localStorage.getItem('rw_admin_token') } }).then(r => r.json()),
+        fetch('/api/admin/blocked-ips', { headers: { 'x-admin-token': localStorage.getItem('rw_admin_token') } }).then(r => r.json()),
         fetch('/api/admin/user-emails', { headers: { 'x-admin-token': localStorage.getItem('rw_admin_token') } }).then(r => r.json()),
       ]);
       setEmails(re.emails || []);
+      setIps(ri.ips || []);
       setAllUsers(ru.emails || []);
     } catch {}
     setLoading(false);
@@ -2405,6 +2415,17 @@ function BlockedPanel() {
 
   const unblockEmail = async (email) => {
     await fetch('/api/admin/unblock-email', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') }, body: JSON.stringify({ email }) });
+    loadAll();
+  };
+
+  const blockIp = async (ip) => {
+    if (!ip) return;
+    await fetch('/api/admin/block-ip', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') }, body: JSON.stringify({ ip }) });
+    setNewIp(''); loadAll();
+  };
+
+  const unblockIp = async (ip) => {
+    await fetch('/api/admin/unblock-ip', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') }, body: JSON.stringify({ ip }) });
     loadAll();
   };
 
@@ -2436,6 +2457,32 @@ function BlockedPanel() {
           </div>
         ))}
       </div>
+
+      {/* ── Blocked IPs ── */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>🚫 Blocked IPs</h3>
+        <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>Blocked IPs will see a 403 page when accessing the site.</p>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+          <input className="rw-input" placeholder="192.168.1.1" value={newIp} onChange={e => setNewIp(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && newIp.trim()) blockIp(newIp.trim()); }} />
+          <button onClick={() => blockIp(newIp.trim())} disabled={!newIp.trim()}
+            style={{ padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--accent)', color: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+            onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>Block IP</button>
+        </div>
+        {loading ? <p style={{ fontSize: '13px', color: 'var(--muted)' }}>Loading...</p> : ips.length === 0 ? (
+          <p style={{ fontSize: '13px', color: 'var(--muted)' }}>No blocked IPs.</p>
+        ) : ips.map(ip => (
+          <div key={ip.id || ip.ip_address} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
+            <span style={{ fontSize: '13px', fontFamily: 'monospace' }}>{ip.ip_address}</span>
+            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>{ip.created_at ? new Date(ip.created_at).toLocaleDateString() : ''}</span>
+            <button onClick={() => unblockIp(ip.ip_address)} style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--accent)', transition: 'all 0.15s' }}
+              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.borderColor = 'var(--accent)'; }}
+              onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--accent)'; e.target.style.borderColor = 'var(--line-2)'; }}>Unblock</button>
+          </div>
+        ))}
+      </div>
+
       {unblockedUsers.length > 0 && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>👥 All Users</h3>

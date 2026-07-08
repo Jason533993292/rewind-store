@@ -74,6 +74,26 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     const err = validateMessage(message);
     if (err) return res.status(400).json({ error: err });
 
+    // Check if email is blocked
+    if (customer_email) {
+      try {
+        const emailCheck = await sfetch(`/blocked_emails?email=eq.${encodeURIComponent(customer_email.toLowerCase().trim())}`);
+        const blockedData = await emailCheck.json();
+        if (Array.isArray(blockedData) && blockedData.length > 0) {
+          return res.status(403).json({ error: 'This email has been blocked.' });
+        }
+      } catch {}
+    }
+
+    // Check if IP is blocked
+    try {
+      const ipCheck = await sfetch(`/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`);
+      const blockedIpData = await ipCheck.json();
+      if (Array.isArray(blockedIpData) && blockedIpData.length > 0) {
+        return res.status(403).json({ error: 'Access denied.' });
+      }
+    } catch {}
+
     const session_id = crypto.randomUUID();
     try {
       await sfetch('/chat_sessions', {
@@ -82,6 +102,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
           session_id,
           customer_email: customer_email ? String(customer_email).slice(0, 200) : null,
           customer_name: customer_name ? String(customer_name).slice(0, 200) : null,
+          customer_ip: ip,
           status: 'open',
         }),
       });

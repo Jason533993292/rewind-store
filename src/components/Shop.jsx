@@ -809,6 +809,7 @@ const POLICY_TEXT = `REWIND Privacy Policy
 • Email address (when you create a wishlist or place an order)
 • Shipping address and name (when you place an order)
 • Payment information is processed securely by Stripe — we never store card details
+• IP address and browser/device information (for fraud prevention, analytics, and site security)
 
 2. How We Use Your Data
 • To manage your wishlist and save your favorite items
