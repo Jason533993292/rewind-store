@@ -537,8 +537,9 @@ a { color: inherit; cursor: pointer; }
 .rw-cc-scene { perspective: 1200px; width: 100%; }
 .rw-cc {
   position: relative; width: 100%; aspect-ratio: 1.586; border-radius: 16px;
-  transform-style: preserve-3d; transition: transform .65s cubic-bezier(.4,0,.2,1);
+  transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
+.rw-cc:hover { transform: rotateY(0deg) scale(1.02); transition: transform 0.3s ease; }
 .rw-cc.is-flipped { transform: rotateY(180deg); }
 .rw-cc-face {
   position: absolute; inset: 0; border-radius: 16px; overflow: hidden;
