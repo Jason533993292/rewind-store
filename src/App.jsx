@@ -87,6 +87,7 @@ export default function App() {
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem('rw_email') || '');
   const [wishlist, setWishlist] = useState([]);
   const [pendingWishlistId, setPendingWishlistId] = useState(null);
+  const [showReferral, setShowReferral] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [wishlistReady, setWishlistReady] = useState(false);
   const [customProducts, setCustomProducts] = useState([]);
@@ -948,6 +949,30 @@ export default function App() {
           <Icon name="chevUp" size={18} />
         </button>
       )}
+
+      {/* ── Bottom Dock ── */}
+      <div style={{
+        position: 'fixed', bottom: '0', left: '0', right: '0', zIndex: 9999,
+        display: 'flex', justifyContent: 'center', gap: '0',
+        background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--line)',
+        padding: '6px 0', paddingBottom: 'calc(6px + env(safe-area-inset-bottom, 0px))',
+      }}>
+        <button onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '8px 24px', background: 'none', border: 'none', cursor: 'pointer', color: window.location.hash === '#admin' ? 'var(--muted)' : 'var(--ink)', fontSize: '10px', fontWeight: 600 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Home</span>
+        </button>
+        <button onClick={() => setShowReferral(true)}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '8px 24px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '10px', fontWeight: 600 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
+          <span>Referrals</span>
+        </button>
+        <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '8px 24px', background: 'none', border: 'none', cursor: 'not-allowed', color: 'var(--muted)', fontSize: '10px', fontWeight: 600, opacity: 0.4 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </button>
+      </div>
 
       {/* ── Chat bubble ── */}
       <ChatBubble />
