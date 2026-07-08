@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
+import { buildReferralRouter } from './referral-routes.js';
 import { requireAdmin } from './middleware/requireAdmin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -649,6 +650,18 @@ app.post('/api/stripe-webhook', async (req, res) => {
           body: JSON.stringify({ order_num: orderNum, email, name: name || '', items: items, total, shipping, status: 'confirmed', created_at: new Date().toISOString() }),
         });
         console.log('Order saved from PaymentIntent:', orderNum);
+        // Check for pending referral redemption and fulfill it
+        try {
+          const refUrl = `http://localhost:${PORT}/api/referral/fulfill`;
+          const INTERNAL_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+          await fetch(refUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-internal-token': INTERNAL_TOKEN || '' },
+            body: JSON.stringify({ orderNum }),
+          });
+        } catch (refErr) {
+          console.warn('Referral fulfill failed:', refErr.message);
+        }
       } catch (e) { console.error('Failed to fulfill from PaymentIntent:', e); }
     }
   }
@@ -1036,6 +1049,15 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
   res.status(500).json({ error: 'Internal error' });
 });
+
+// ── Referral routes ──
+app.use('/api/referral', buildReferralRouter({
+  SUPABASE_URL,
+  SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  resend: resend,
+  FROM_EMAIL,
+  REPLY_TO,
+}));
 
 // ── Chat router ──
 app.use(buildChatRouter({

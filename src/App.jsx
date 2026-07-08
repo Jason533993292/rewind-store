@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Banner, Header, Hero, Marquee, Toast, Footer, Icon } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
+import { ReferralDialog } from './components/Referral';
 import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
@@ -76,6 +77,7 @@ export default function App() {
   }, [checkout]);
   const [toast, setToast] = useState(null);
   const [infoPage, setInfoPage] = useState(null);
+  const [showReferral, setShowReferral] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoClosing, setPromoClosing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -208,10 +210,10 @@ export default function App() {
   // showSurvey is deliberately excluded from this effect.
   // The survey overlay uses pointer-events: none (clicks pass through).
   useEffect(() => {
-    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen;
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen]);
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral]);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 
@@ -230,6 +232,7 @@ export default function App() {
       if (showSizes)        setShowSizes(false);
       if (infoPage !== null) setInfoPage(null);
       if (wishlistOpen)     setWishlistOpen(false);
+      if (showReferral)    setShowReferral(false);
       // Dismiss survey on Escape only when it's actually visible — prevents
       // permanently hiding the first-visit survey for new users who press
       // Escape to close a modal/popup/drawer before the survey was dismissed.
@@ -247,7 +250,7 @@ export default function App() {
       window.removeEventListener('keydown', onKey);
       if (promoCloseTimerRef.current) { clearTimeout(promoCloseTimerRef.current); promoCloseTimerRef.current = null; }
     };
-  }, [promoOpen, quick, drawer, checkout, signupOpen, showSizes, infoPage, wishlistOpen, selectedProduct]);
+  }, [promoOpen, quick, drawer, checkout, signupOpen, showSizes, infoPage, wishlistOpen, showReferral, selectedProduct]);
 
   const products = useMemo(() => {
     const allProducts = [...REWIND_PRODUCTS, ...customProducts];
@@ -737,7 +740,7 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
-        onVersionClick={() => setShowTweaks(v => !v)} />
+        onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)} />
       <main className="rw-shop">
       <ProductPage key={curPid} p={selectedProduct}
         onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
@@ -767,7 +770,7 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
-        onVersionClick={() => setShowTweaks(v => !v)} />
+        onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
       {/* Mobile scroll hint — shows a subtle indicator on first visit that there's more content below */}
@@ -889,6 +892,7 @@ export default function App() {
       <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} orderNumber={orderNumber} />
       <Toast toast={toast} onDismiss={() => setToast(null)} />
       <SignupModal open={signupOpen} onClose={() => { setSignupOpen(false); setPendingWishlistId(null); }} onSignup={handleSignup} />
+      <ReferralDialog open={showReferral} onClose={() => setShowReferral(false)} userEmail={userEmail} showToast={showToast} />
       <WishlistDrawer open={wishlistOpen} items={wishlist} customProducts={customProducts}
         onClose={() => setWishlistOpen(false)}
         onRemove={(ids) => {

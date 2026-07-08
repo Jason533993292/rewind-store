@@ -3,6 +3,7 @@ import { money, discountPct } from '../hooks/useCountdown';
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import PaymentCard from './PaymentCard';
+import { ReferralInput } from './Referral';
 
 /* ---------- LazyImage (for real product photos) ---------- */
 function LazyImage({ src, alt, className }) {
@@ -399,6 +400,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [promo, setPromo] = useState('');
   const [payError, setPayError] = useState('');
   const [orderNum, setOrderNum] = useState('');
+  // Referral state
+  const [referralCode, setReferralCode] = useState('');
+  const [appliedReferral, setAppliedReferral] = useState(null);
+  const [referralLoading, setReferralLoading] = useState(false);
+  const [referralError, setReferralError] = useState('');
   const paymentRef = useRef(null);
   const [saveInfo, setSaveInfo] = useState(false);
   const [formFields, setFormFields] = useState({ email: '', name: '', address: '', postal: '', city: '', country: '' });
@@ -464,7 +470,52 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       discountLabel = 'Free shipping';
     }
   }
+  // Apply referral discount on top of promo (if any)
+  let referralDiscountLabel = null;
+  let referralDiscountAmount = 0;
+  if (appliedReferral?.discount) {
+    referralDiscountAmount = Math.round(discountPrice * (appliedReferral.discount / 100) * 100) / 100;
+    discountPrice = Math.round((discountPrice - referralDiscountAmount) * 100) / 100;
+    referralDiscountLabel = `${appliedReferral.discount}% off (referral)`;
+  }
   const finalTotal = discountPrice + discountShipping;
+
+  // Referral code handler
+  async function handleReferralApply(code) {
+    if (!code) {
+      // Remove referral
+      setAppliedReferral(null);
+      setReferralCode('');
+      setReferralError('');
+      return;
+    }
+    if (!formFields.email?.trim()) {
+      setReferralError('Please enter your email first');
+      return;
+    }
+    setReferralLoading(true);
+    setReferralError('');
+    try {
+      const r = await fetch('/api/referral/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, email: formFields.email.trim() }),
+      });
+      const d = await r.json();
+      if (d.valid) {
+        setAppliedReferral({ code: code.toUpperCase(), discount: d.discount });
+        setReferralCode(code);
+        setReferralError('');
+      } else {
+        setAppliedReferral(null);
+        setReferralError(d.error || 'Invalid referral code');
+      }
+    } catch {
+      setReferralError('Network error — try again');
+      setAppliedReferral(null);
+    }
+    setReferralLoading(false);
+  }
 
   async function handlePay() {
     setProcessing(true);
@@ -569,6 +620,19 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           }),
         }).catch(e => console.warn('Email failed:', e));
 
+        // Record referral redemption (if a referral code was applied)
+        if (referralCode) {
+          fetch('/api/referral/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code: referralCode,
+              refereeEmail: formFields.email,
+              orderNum: currentOrderNum,
+            }),
+          }).catch(e => console.warn('Referral apply failed:', e));
+        }
+
         // Show confirmation
         setProcessing(false);
         setPlaced(true);
@@ -633,6 +697,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               </span>
             )}
           </div>
+          <ReferralInput
+            onApply={handleReferralApply}
+            appliedReferral={appliedReferral}
+            referralDiscount={appliedReferral?.discount || 0}
+            referralLoading={referralLoading}
+            referralError={referralError} />
           <div className="rw-co-sec">
             <h3>Delivery</h3>
             <input className="rw-input" type="text" placeholder="Full name" value={formFields.name} onChange={setField('name')} autoComplete="name" />
@@ -666,6 +736,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             {promoData?.valid && promoData.type === 'percent' && (
               <div style={{color: 'var(--ink)', fontSize: '13px', fontWeight: 600}}>
                 <span>{discountLabel}</span><span>-{money(subtotal - discountPrice)}</span>
+              </div>
+            )}
+            {referralDiscountLabel && (
+              <div style={{color: '#0E9F6E', fontSize: '13px', fontWeight: 600}}>
+                <span>{referralDiscountLabel}</span><span>-{money(referralDiscountAmount)}</span>
               </div>
             )}
             <div><span>Shipping</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? 'Free 🎉' : 'Free') : money(discountShipping)}</span></div>
