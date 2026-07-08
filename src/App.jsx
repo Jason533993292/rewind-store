@@ -22,7 +22,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V11.2.0';
+const VERSION = 'V11.3.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -952,11 +952,12 @@ export default function App() {
 
       {/* ── Bottom Dock ── */}
       <div style={{
-        position: 'fixed', bottom: '0', left: '0', right: '0', zIndex: 9999,
+        position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999,
         display: 'flex', justifyContent: 'center', gap: '0',
-        background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)', borderTop: '1px solid var(--line)',
-        padding: '6px 0', paddingBottom: 'calc(6px + env(safe-area-inset-bottom, 0px))',
+        background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: '16px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        padding: '4px 6px',
       }}>
         <button onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', padding: '8px 24px', background: 'none', border: 'none', cursor: 'pointer', color: window.location.hash === '#admin' ? 'var(--muted)' : 'var(--ink)', fontSize: '10px', fontWeight: 600 }}>
