@@ -389,6 +389,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [orderNum, setOrderNum] = useState('');
   const [saveInfo, setSaveInfo] = useState(false);
   const [formFields, setFormFields] = useState({ email: '', name: '', address: '', postal: '', city: '', country: '' });
+  const setField = (key) => (e) => setFormFields((prev) => ({ ...prev, [key]: e.target.value }));
 
   if (!open) return null;
   if (placed) {
