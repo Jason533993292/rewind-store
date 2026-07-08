@@ -402,8 +402,20 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   if (!open) return null;
   if (placed) {
     return (
-      <div className="rw-checkout">
-        <div className="rw-checkout-bar">
+      <div className="rw-checkout" style={{ position: 'relative', overflow: 'hidden' }}>
+        {Array.from({ length: 60 }).map((_, i) => (
+          <div key={i} style={{
+            position: 'absolute', top: '-10px', left: `${Math.random() * 100}%`,
+            width: `${Math.random() * 8 + 4}px`, height: `${Math.random() * 8 + 4}px`,
+            borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            background: ['#FF4D14','#D4AF37','#FF6B35','#FFB800','#FF4081','#00C853'][i % 6],
+            animation: `confettiFall ${Math.random() * 2 + 2}s ease-in ${Math.random() * 0.5}s infinite`,
+            zIndex: 0, pointerEvents: 'none',
+            '--drift': `${(Math.random() - 0.5) * 200}px`,
+            '--rotation': `${Math.random() * 720}deg`,
+          } }}
+        />
+        <div className="rw-checkout-bar" style={{ position: 'relative', zIndex: 1 }}>
           <div className="rw-logo" style={{ cursor: 'pointer' }}
             onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); onPlaced(); }}>REWIND<span>.</span></div>
           <button className="rw-btn rw-btn-ghost" onClick={onPlaced}>Close</button>
