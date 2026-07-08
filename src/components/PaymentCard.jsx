@@ -224,7 +224,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     const currentEmail = email || 'checkout@rewind-stores.com';
 
     // Strip price data from items for server-side pricing
-    const cleanItems = (itemsProp || []).map(it => ({ id: it.id || it.product_id, qty: it.qty }));
+    const cleanItems = (items || []).map(it => ({ id: it.id || it.product_id, qty: it.qty }));
 
     fetch('/api/create-payment-intent', {
       method: 'POST',
