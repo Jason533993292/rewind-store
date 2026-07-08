@@ -382,6 +382,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [cardValid, setCardValid] = useState(false);
+  const [promoData, setPromoData] = useState(null);
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promo, setPromo] = useState('');
 
   if (!open) return null;
   if (placed) {

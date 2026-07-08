@@ -10,7 +10,17 @@ import { requireAdmin } from './middleware/requireAdmin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.set('trust proxy', 1);
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "https://luiqimsfvllgsmzedncw.supabase.co", "https://api.stripe.com", "https://api.resend.com", "https://generativelanguage.googleapis.com"],
+      imgSrc: ["'self'", "data:", "https://*.supabase.co"],
+      scriptSrc: ["'self'", "https://js.stripe.com"],
+      frameSrc: ["'self'", "https://js.stripe.com"],
+    },
+  },
+}));
 app.use(express.json({
   limit: '1mb',
   verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
