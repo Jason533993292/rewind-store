@@ -202,18 +202,19 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     return loadStripe(key);
   }, [stripeKey]);
 
-  // Fetch PaymentIntent clientSecret when enough info is available
+  // Fetch PaymentIntent clientSecret when amount changes
   useEffect(() => {
-    if (!amount || !orderNum || !email) return;
+    if (!amount) return;
     const numAmount = typeof amount === 'string'
       ? parseFloat(amount.replace(/[^0-9.,]/g, '').replace(',', '.'))
       : amount;
     if (!numAmount || numAmount <= 0) return;
+    const currentEmail = email || 'checkout@rewind-stores.com';
 
     fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: numAmount, orderNum, email, name: name || '' }),
+      body: JSON.stringify({ amount: numAmount, orderNum, email: currentEmail, name: name || '' }),
     })
       .then((r) => r.json())
       .then((data) => {
