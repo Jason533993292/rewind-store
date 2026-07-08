@@ -572,36 +572,6 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             </div>
             <input className="rw-input" type="text" placeholder="Country" value={formFields.country} onChange={setField('country')} autoComplete="country-name" />
           </div>
-          <div className="rw-co-sec">
-            <h3>Payment</h3>
-            <div className="rw-pay-grid">
-              {REWIND_PAYMENTS.map((pm) => (
-                <button key={pm.id} className={"rw-pay" + (payment === pm.id ? " is-on" : "")}
-                  onClick={() => setPayment(pm.id)}>
-                  <div className="rw-pay-radio">{payment === pm.id && <Icon name="check" size={13} />}</div>
-                  <div className="rw-pay-label">
-                    {pm.label}
-                    <small>{pm.sub}</small>
-                  </div>
-                </button>
-              ))}
-            </div>
-            {payment === 'card' && (
-              <div className="rw-card-fields">
-                <PaymentCard amount={money(finalTotal)} onChange={({ valid }) => setCardValid(valid)} />
-              </div>
-            )}
-            <div className="rw-co-config">
-              {payment === 'payconiq' && 'Scan the QR code with Payconiq to complete payment.'}
-              {payment === 'applepay' && 'Complete payment with Face ID or Touch ID.'}
-              {payment === 'klarna' && 'Pay in 3 interest-free instalments.'}
-              {payment === 'bancontact' && 'You will be redirected to your bank to confirm.'}
-              {payment === 'paypal' && 'You will be redirected to PayPal to complete your purchase.'}
-            </div>
-            <label className="rw-check">
-              <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} /> Save my info for next time
-            </label>
-          </div>
         </div>
         <div className="rw-checkout-summary">
           <h3>Order summary</h3>
@@ -641,6 +611,36 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             <Icon name="check" size={13} /> Secured with 256-bit SSL
           </div>
         </div>
+      </div>
+      <div className="rw-checkout-payment">
+        <h3 style={{ fontSize: '19px', fontWeight: 700, marginBottom: '14px' }}>Payment</h3>
+        <div className="rw-pay-grid">
+          {REWIND_PAYMENTS.map((pm) => (
+            <button key={pm.id} className={"rw-pay" + (payment === pm.id ? " is-on" : "")}
+              onClick={() => setPayment(pm.id)}>
+              <div className="rw-pay-radio">{payment === pm.id && <Icon name="check" size={13} />}</div>
+              <div className="rw-pay-label">
+                {pm.label}
+                <small>{pm.sub}</small>
+              </div>
+            </button>
+          ))}
+        </div>
+        {payment === 'card' && (
+          <div className="rw-card-fields">
+            <PaymentCard amount={money(finalTotal)} onChange={({ valid }) => setCardValid(valid)} />
+          </div>
+        )}
+        <div className="rw-co-config">
+          {payment === 'payconiq' && 'Scan the QR code with Payconiq to complete payment.'}
+          {payment === 'applepay' && 'Complete payment with Face ID or Touch ID.'}
+          {payment === 'klarna' && 'Pay in 3 interest-free instalments.'}
+          {payment === 'bancontact' && 'You will be redirected to your bank to confirm.'}
+          {payment === 'paypal' && 'You will be redirected to PayPal to complete your purchase.'}
+        </div>
+        <label className="rw-check">
+          <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} /> Save my info for next time
+        </label>
       </div>
     </div>
   );
