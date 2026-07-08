@@ -580,7 +580,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             </div>
             {payment === 'card' && (
               <div className="rw-card-fields">
-                <PaymentCard amount={money(total)} onChange={({ valid }) => setCardValid(valid)} />
+                <PaymentCard amount={money(finalTotal)} onChange={({ valid }) => setCardValid(valid)} />
               </div>
             )}
             <div className="rw-co-config">
