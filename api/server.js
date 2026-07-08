@@ -752,14 +752,15 @@ app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
+app.post('/api/admin/products/upload-image', requireAdmin, express.json({ limit: '10mb' }), async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
     const { productId, imageBase64, ext } = req.body;
     if (!productId || !imageBase64) return res.status(400).json({ error: 'productId and imageBase64 required' });
     const buf = Buffer.from(imageBase64, 'base64');
-    const fileExt = ext || 'webp';
+    const allowed = ['jpg','jpeg','png','webp'];
+    const fileExt = ext && allowed.includes(ext) ? ext : 'webp';
     const filePath = `${productId}.${fileExt}`;
     const r = await fetch(`${SUPABASE_URL}/storage/v1/object/product-images/${filePath}`, {
       method: 'POST',
@@ -767,7 +768,7 @@ app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
       body: buf,
     });
     if (!r.ok) return res.status(500).json({ error: 'Upload failed' });
-    const publicUrl = `${url}/storage/v1/object/public/product-images/${filePath}`;
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${filePath}`;
     res.json({ ok: true, url: publicUrl });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

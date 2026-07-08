@@ -1363,13 +1363,12 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
                 // Show results inline
                 const resultsDiv = document.getElementById('test-results');
                 if (resultsDiv) {
-                  resultsDiv.innerHTML = d.results.map(r =>
-                    `<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:13px">
-                      <span>${r.status}</span>
-                      <span style="font-weight:600;margin:0 8px">${r.name}</span>
-                      <span style="color:var(--muted);font-size:12px">${r.detail}</span>
-                    </div>`
-                  ).join('');
+                  resultsDiv.textContent = '';
+                  d.results.forEach(r => {
+                    const row = Object.assign(document.createElement('div'), { style: 'padding:6px 0;border-bottom:1px solid var(--line);font-size:13px' });
+                    row.textContent = r.status + ' ' + r.endpoint;
+                    resultsDiv.appendChild(row);
+                  });
                 }
               } catch (e) {
                 btn.textContent = '❌ Tests failed';
