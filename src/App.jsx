@@ -85,12 +85,7 @@ export default function App() {
   const [showReferral, setShowReferral] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('rw_theme') === 'dark');
-  const [hoveredBtn, setHoveredBtn] = useState(-1);
-  const [glarePos, setGlarePos] = useState({ x: 50, y: 50 });
   const dockRef = useRef(null);
-  const pillRef = useRef(null);
-  const btnRefs = useRef([]);
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoClosing, setPromoClosing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -132,17 +127,7 @@ export default function App() {
   }, []);
   const promoCloseTimerRef = useRef(null);
 // ── ALL NEW useCallback/useEffect declarations go below ──
-  // Dark mode sync
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('rw_theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-
-  // The scroll-lock useEffect (below) references these in its `anyOpen` check.
+  // The survey overlay uses pointer-events: none (clicks pass through).
   // Adding a new state AFTER this point will break the site with a TDZ error.
   const customProductsRef = useRef(customProducts);
   useEffect(() => { customProductsRef.current = customProducts; }, [customProducts]);
@@ -980,107 +965,50 @@ export default function App() {
 
       {/* ── Bottom Dock (Liquid Glass) ── */}
       <div ref={dockRef}
-        className="rw-dock"
+        className={`rw-dock ${dockHover ? 'is-hovered' : ''}`}
         onMouseEnter={() => setDockHover(true)}
-        onMouseLeave={() => { setDockHover(false); setHoveredBtn(-1); }}
-        onMouseMove={(e) => {
-          if (!dockRef.current) return;
-          const rect = dockRef.current.getBoundingClientRect();
-          setGlarePos({
-            x: ((e.clientX - rect.left) / rect.width) * 100,
-            y: ((e.clientY - rect.top) / rect.height) * 100,
-          });
-        }}
-        style={{
-          transform: dockHover ? 'translateX(-50%) translateY(-2px)' : 'translateX(-50%) translateY(0)',
-          transition: 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
-          willChange: 'max-width, transform',
-          maxWidth: dockHover ? '420px' : '54px',
-        }}
+        onMouseLeave={() => setDockHover(false)}
       >
-        {/* Liquid glass layers */}
+        {/* Glass layers */}
         <div className="rw-dock-glass">
           <div className="rw-dock-glass-bg" />
           <div className="rw-dock-shadows" />
-          {/* Mouse-following glare */}
-          <div className="rw-dock-glare"
-            style={{
-              background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,0.25) 0%, transparent 70%)`,
-            }}
-          />
         </div>
 
-        {/* Sliding active pill */}
-        <div ref={pillRef} className="rw-dock-pill" style={{
-          width: hoveredBtn === -1 ? '0px' : 'auto',
-          transform: hoveredBtn === 0 ? 'translateX(0px)' : hoveredBtn === 1 ? 'translateX(calc(50% - 18px))' : hoveredBtn === 2 ? 'translateX(calc(100% - 36px))' : 'translateX(0)',
-          opacity: hoveredBtn !== -1 && dockHover ? 1 : 0,
-        }} />
-
         {/* Referrals */}
-        <button ref={(el) => { btnRefs.current[0] = el; }}
-          onClick={() => setShowReferral(true)}
-          onMouseEnter={() => setHoveredBtn(0)}
-          onMouseLeave={() => setHoveredBtn(-1)}
+        <button onClick={() => setShowReferral(true)}
           className="rw-dock-btn"
           style={{
             padding: dockHover ? '8px 12px' : '8px 0',
-            color: hoveredBtn === 0 ? 'var(--ink)' : 'var(--muted)',
             opacity: dockHover ? 1 : 0,
             pointerEvents: dockHover ? 'auto' : 'none',
             maxWidth: dockHover ? '120px' : '0',
-          }}
-        >
+          }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
-          <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Referrals</span>
+          <span>Referrals</span>
         </button>
 
         {/* Home */}
-        <button ref={(el) => { btnRefs.current[1] = el; }}
-          onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
-          onMouseEnter={() => setHoveredBtn(1)}
-          onMouseLeave={() => setHoveredBtn(-1)}
+        <button onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
           className="rw-dock-home"
-          style={{
-            color: hoveredBtn === 1 ? 'var(--accent)' : 'var(--ink)',
-          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
+          {dockHover && <span>Home</span>}
         </button>
 
         {/* Settings */}
-        <button ref={(el) => { btnRefs.current[2] = el; }}
-          onClick={() => setShowSettings(true)}
-          onMouseEnter={() => setHoveredBtn(2)}
-          onMouseLeave={() => setHoveredBtn(-1)}
+        <button onClick={() => setShowSettings(true)}
           className="rw-dock-btn"
           style={{
             padding: dockHover ? '8px 12px' : '8px 0',
-            color: hoveredBtn === 2 ? 'var(--ink)' : 'var(--muted)',
             opacity: dockHover ? 1 : 0,
             pointerEvents: dockHover ? 'auto' : 'none',
             maxWidth: dockHover ? '110px' : '0',
-          }}
-        >
+          }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>
         </button>
       </div>
-
-      {/* Dark mode toggle */}
-      <button className={`rw-dock-theme${dockHover ? ' is-visible' : ''}`}
-        onClick={() => setIsDark(prev => !prev)}
-        aria-label="Toggle dark mode"
-        title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      >
-        {isDark ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
           </svg>
         )}
       </button>
