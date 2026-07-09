@@ -242,7 +242,7 @@ a { color: inherit; cursor: pointer; }
 .rw-chip.is-on { background: var(--ink); color: #fff; border-color: var(--ink); }
 
 /* ── THE GRID ── */
-.rw-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 18px; }
+.rw-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px 18px; min-width: 0; overflow: hidden; }
 .rw-section-head {
   font-size: 14px; font-weight: 600; color: var(--muted);
   margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 1px;
