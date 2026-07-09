@@ -41,8 +41,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
   const router = express.Router();
 
-  const sfetch = (path, opts = {}) =>
-    fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+  const sfetch = async (path, opts = {}) => {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
       ...opts,
       headers: {
         apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -51,6 +51,12 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         ...(opts.headers || {}),
       },
     });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      throw new Error(`Supabase ${opts.method || 'GET'} ${path} returned ${res.status}: ${body.slice(0, 200)}`);
+    }
+    return res;
+  };
 
   const startLimited = makeLimiter();
   const sendLimited = makeLimiter();
