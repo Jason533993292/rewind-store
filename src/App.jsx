@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Banner, Header, Hero, Marquee, Toast, Footer, Icon } from './components/Shell';
+import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, TruckLoader } from './components/Shell';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { ReferralDialog } from './components/Referral';
 import ClickSpark from './components/ClickSpark';
@@ -724,7 +724,7 @@ export default function App() {
   }, [adminMode]);
 
   if (adminMode) return (
-    <React.Suspense fallback={<div style={{ padding: '80px', textAlign: 'center', color: 'var(--muted)' }}>Loading admin panel…</div>}>
+    <React.Suspense fallback={<div className="rw-loading-wrap"><TruckLoader /></div>}>
       <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />
     </React.Suspense>
   );

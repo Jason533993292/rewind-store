@@ -304,3 +304,50 @@ export function Footer({ onSizes, onInfo, onSetCat, cats }) {
     </footer>
   );
 }
+
+/* ---------- Truck Loader ---------- */
+export function TruckLoader() {
+  return (
+    <div className="loader">
+      <div className="truckWrapper">
+        <div className="truckBody">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 198 93" width="130" height="70">
+            <path strokeWidth="3" stroke="#282828" fill="#F83D3D" d="M135 22.5H177.264C178.295 22.5 179.22 23.114 179.594 24.0624L192.256 56.0618C192.598 56.9273 192 57.9 191.062 57.9H155.5C154.668 57.9 154 57.2289 154 56.3937V27.5C154 26.6716 153.328 26 152.5 26H135C134.172 26 133.5 25.3284 133.5 24.5C133.5 23.6716 134.172 23 135 23Z"/>
+            <path strokeWidth="3" stroke="#282828" fill="#282828" d="M71 22.5H134.5C135.328 22.5 136 23.1716 136 24V27.5C136 28.3284 135.328 29 134.5 29H71C70.1716 29 69.5 28.3284 69.5 27.5V24C69.5 23.1716 70.1716 22.5 71 22.5Z"/>
+            <path strokeWidth="3" stroke="#282828" fill="#282828" d="M66.5 44H87.5C88.3284 44 89 44.6716 89 45.5V51.5C89 52.3284 88.3284 53 87.5 53H66.5C65.6716 53 65 52.3284 65 51.5V45.5C65 44.6716 65.6716 44 66.5 44Z"/>
+            <path strokeWidth="3" stroke="#282828" fill="#282828" d="M86 22.5H126.5C127.328 22.5 128 23.1716 128 24V27C128 27.8284 127.328 28.5 126.5 28.5H86C85.1716 28.5 84.5 27.8284 84.5 27V24C84.5 23.1716 85.1716 22.5 86 22.5Z"/>
+            <path strokeWidth="3" stroke="#282828" fill="#282828" d="M95 29.5H105.5C106.328 29.5 107 30.1716 107 31V38.5C107 39.3284 106.328 40 105.5 40H95C94.1716 40 93.5 39.3284 93.5 38.5V31C93.5 30.1716 94.1716 29.5 95 29.5Z"/>
+            <path strokeWidth="3" stroke="#282828" fill="#282828" d="M117.5 29.5H131C131.828 29.5 132.5 30.1716 132.5 31V38.5C132.5 39.3284 131.828 40 131 40H117.5C116.672 40 116 39.3284 116 38.5V31C116 30.1716 116.672 29.5 117.5 29.5Z"/>
+            <rect strokeWidth="0" fill="#FFD500" rx="4" height="18" width="54" y="70" x="6"/>
+            <rect strokeWidth="0" fill="#282828" rx="4" height="10" width="22" y="74" x="41"/>
+            <rect strokeWidth="0" fill="#282828" rx="4" height="10" width="22" y="74" x="11"/>
+            <rect strokeWidth="0" fill="#FFD500" rx="4" height="15" width="64" y="70" x="64"/>
+            <rect strokeWidth="0" fill="#282828" rx="4" height="8" width="56" y="73.5" x="68"/>
+            <circle cx="22" cy="84" r="8" fill="#282828" strokeWidth="0"/>
+            <circle cx="118" cy="84" r="8" fill="#282828" strokeWidth="0"/>
+            <circle cx="22" cy="84" r="4" fill="#fff"/>
+            <circle cx="118" cy="84" r="4" fill="#fff"/>
+          </svg>
+        </div>
+        <div className="truckTires">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 30 30" width="24" height="24">
+            <circle cx="15" cy="15" r="13" stroke="#282828" strokeWidth="3" fill="#fff"/>
+            <circle cx="15" cy="15" r="8" fill="#282828"/>
+            <circle cx="15" cy="15" r="4" fill="#fff"/>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 30 30" width="24" height="24">
+            <circle cx="15" cy="15" r="13" stroke="#282828" strokeWidth="3" fill="#fff"/>
+            <circle cx="15" cy="15" r="8" fill="#282828"/>
+            <circle cx="15" cy="15" r="4" fill="#fff"/>
+          </svg>
+        </div>
+        <div className="road"/>
+        <svg className="lampPost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 90" width="20" height="90">
+          <path stroke="#282828" strokeWidth="3" d="M10 90V30"/>
+          <circle cx="10" cy="15" r="6" fill="#FFD500" stroke="#282828" strokeWidth="2"/>
+          <rect x="7" y="28" width="6" height="4" fill="#333"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
