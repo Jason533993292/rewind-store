@@ -337,20 +337,23 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
 
       // ── FRAUD CHECK: already used by this referee? ──
       if (normalizedReferee) {
-        const existingUse = await fetchSupabase('referral_redemptions', {
-          params: `?referee_email=eq.${encodeURIComponent(normalizedReferee)}&code_id=eq.${refCode.id}&select=id`,
+        const existing = await fetchSupabase('referral_redemptions', {
+          params: `?referee_email=eq.${encodeURIComponent(normalizedReferee)}&code_id=eq.${refCode.id}&limit=1`,
         });
-        if (Array.isArray(existingUse) && existingUse.length > 0) {
-          return res.json({ valid: false, error: 'You have already used this referral code' });
+        if (Array.isArray(existing) && existing.length > 0) {
+          return res.json({ valid: true, alreadyRedeemed: true, discount: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT });
         }
       }
 
-      res.json({
+      // ── FRAUD CHECK: same IP as referrer ──
+      const refereeIp = getClientIp(req);
+      if (refCode.created_ip && refereeIp && refCode.created_ip === refereeIp) {
+        return res.json({ valid: false, error: 'Cannot use a referral code from the same device/network', flagged: true });
+      }
+
+      return res.json({
         valid: true,
-        referrerEmail: refCode.email,
-        codeId: refCode.id,
         discount: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT,
-        discountType: refCode.reward_type || 'percent',
         label: `${refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT}% off (referral)`,
       });
     } catch (err) {
