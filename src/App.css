@@ -391,6 +391,7 @@ a { color: inherit; cursor: pointer; }
   position: fixed; inset: 0; z-index: 840;
   background: rgba(22,19,15,.42); backdrop-filter: blur(3px);
   display: grid; place-items: center; padding: 24px; animation: fadeUp .2s ease;
+  overflow: hidden;
 }
 /* Survey overlay */
 .rw-survey-overlay {
