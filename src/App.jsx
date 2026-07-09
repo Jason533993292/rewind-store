@@ -976,6 +976,8 @@ export default function App() {
           whiteSpace: 'nowrap',
         }}>
         <button onClick={() => setShowReferral(true)}
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.color = 'var(--ink)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
@@ -1001,6 +1003,8 @@ export default function App() {
           {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
         </button>
         <button
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.color = 'var(--ink)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}
           style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: dockHover ? '8px 12px' : '8px 0',
