@@ -27,7 +27,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V11.3.0';
+const VERSION = 'V11.9.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -1009,9 +1009,6 @@ export default function App() {
           <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>
         </button>
       </div>
-          </svg>
-        )}
-      </button>
 
       {/* ── Chat bubble ── */}
       <ChatBubble />
