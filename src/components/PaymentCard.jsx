@@ -185,7 +185,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 }
 
 /* ---------- PaymentCard (main export) ---------- */
-const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, items, promoCode: promoProp }, ref) {
+const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp }, ref) {
   const [clientSecret, setClientSecret] = useState(null);
   const [cardValid, setCardValid] = useState(false);
   const [focused, setFocused] = useState(null);
@@ -229,7 +229,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', promoCode: promoProp || '' }),
+      body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '' }),
     })
       .then((r) => r.json())
       .then((data) => {
@@ -240,7 +240,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
         }
       })
       .catch((e) => console.warn('PaymentIntent fetch error:', e));
-  }, [amount, orderNum, email, name, items, promoProp]);
+  }, [amount, orderNum, email, name, address, items, promoProp]);
 
   // Store the pay function from inside Elements so the ref can call it
   const [payFn, setPayFn] = useState(null);

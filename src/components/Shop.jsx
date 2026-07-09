@@ -589,36 +589,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         setOrderNum(currentOrderNum);
         setCardValid(false);
 
-        // Save order to Supabase
-        const saveBody = {
-          orderNum: currentOrderNum,
-          customer_name: formFields.name,
-          email: formFields.email,
-          address: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
-          items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty, id: it.id, product_id: it.product_id })),
-          total: finalTotal,
-        };
-
-        // Save order (fire-and-forget — don't block confirmation on it)
-        fetch('/api/save-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(saveBody),
-        }).catch(e => console.warn('Save order failed:', e));
-
-        // Send confirmation email
-        fetch('/api/send-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: formFields.email,
-            name: formFields.name,
-            items: items.map(it => ({ name: it.name, size: it.size, price: it.price, qty: it.qty, id: it.id, product_id: it.product_id })),
-            total: finalTotal,
-            address: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
-            orderNum: currentOrderNum,
-          }),
-        }).catch(e => console.warn('Email failed:', e));
+        // Order save + confirmation email are handled server-side by the
+        // Stripe webhook (payment_intent.succeeded) once payment is verified —
+        // never trust the client's own "success" signal for fulfillment.
 
         // Record referral redemption (if a referral code was applied)
         if (referralCode) {
@@ -629,6 +602,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               code: referralCode,
               refereeEmail: formFields.email,
               orderNum: currentOrderNum,
+              refereeName: formFields.name,
+              refereeAddress: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
             }),
           }).catch(e => console.warn('Referral apply failed:', e));
         }
@@ -781,6 +756,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               orderNum={orderNum}
               email={formFields.email}
               name={formFields.name}
+              address={[formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', ')}
               items={items}
               promoCode={promo}
               onChange={({ valid }) => setCardValid(valid)}

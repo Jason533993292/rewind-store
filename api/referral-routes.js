@@ -30,7 +30,7 @@ const FRAUD = {
 // In-memory rate limit bucket for code generation per IP
 const ipGenRate = new Map();
 
-export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EMAIL, REPLY_TO }) {
+export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EMAIL, REPLY_TO, requireAdmin }) {
 
   const router = express.Router();
   const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
@@ -43,6 +43,33 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
 
   function getUserAgent(req) {
     return req.headers['user-agent'] || '';
+  }
+
+  // ── Shipping-address similarity (Sørensen–Dice on character bigrams) ──
+  // Used to catch the most common abuse pattern: a customer "referring"
+  // themselves with a second email but the same shipping address.
+  function normalizeAddr(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+  }
+  function bigrams(s) {
+    const arr = [];
+    for (let i = 0; i < s.length - 1; i++) arr.push(s.slice(i, i + 2));
+    return arr;
+  }
+  function addressSimilarity(a, b) {
+    const na = normalizeAddr(a), nb = normalizeAddr(b);
+    if (!na || !nb) return 0;
+    if (na === nb) return 1;
+    const bigA = bigrams(na), bigB = bigrams(nb);
+    if (bigA.length === 0 || bigB.length === 0) return 0;
+    const counts = new Map();
+    for (const bg of bigB) counts.set(bg, (counts.get(bg) || 0) + 1);
+    let matches = 0;
+    for (const bg of bigA) {
+      const count = counts.get(bg) || 0;
+      if (count > 0) { matches++; counts.set(bg, count - 1); }
+    }
+    return (2 * matches) / (bigA.length + bigB.length);
   }
 
   function generateCode(email) {
@@ -338,7 +365,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   // ─────────────────────────────────────────────
   router.post('/apply', async (req, res) => {
     try {
-      const { code, refereeEmail, orderNum } = req.body;
+      const { code, refereeEmail, orderNum, refereeName, refereeAddress } = req.body;
       if (!code || !refereeEmail || !orderNum) {
         return res.status(400).json({ error: 'Code, email, and order number required' });
       }
@@ -383,8 +410,31 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         flaggedReason = 'Same IP as referrer';
       }
 
-      // ── FRAUD CHECK: block if same IP or self-referral ──
-      if (sameIp || refCode.email === normalizedReferee) {
+      // ── FRAUD CHECK: shipping address matches referrer's past orders (>80%) ──
+      let addressMatch = false;
+      if (!flaggedReason && refereeAddress) {
+        try {
+          const pastOrders = await fetchSupabase('orders', {
+            params: `?email=eq.${encodeURIComponent(refCode.email)}&select=customer_name,address&order=created_at.desc&limit=20`,
+          });
+          if (Array.isArray(pastOrders)) {
+            const refereeCombined = `${refereeName || ''} ${refereeAddress}`;
+            for (const order of pastOrders) {
+              const pastCombined = `${order.customer_name || ''} ${order.address || ''}`;
+              if (addressSimilarity(refereeCombined, pastCombined) > 0.8) {
+                addressMatch = true;
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Referral address fraud check failed:', e.message);
+        }
+        if (addressMatch) flaggedReason = 'Shipping address matches referrer\'s past order';
+      }
+
+      // ── FRAUD CHECK: block if same IP, self-referral, or address match ──
+      if (sameIp || addressMatch || refCode.email === normalizedReferee) {
         // Still record the attempt for admin visibility
         await fetchSupabase('referral_redemptions', {
           method: 'POST',
@@ -441,7 +491,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       ipGenRate.set(ipKey, (ipGenRate.get(ipKey) || 0) + 1);
 
       // Return success
-      return res.json({ applied: true, discount: parseInt(refCode.reward_discount || REFERRAL_DISCOUNT), type: refCode.reward_type || 'percent', flagged: !!flaggedReason, flaggedReason: flaggedReason || null });
+      return res.json({ applied: true, discount: parseInt(refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT), type: refCode.reward_type || 'percent', flagged: !!flaggedReason, flaggedReason: flaggedReason || null });
     } catch (err) {
       console.error('Referral apply error:', err);
       res.status(500).json({ error: 'Failed to apply referral: ' + err.message });
@@ -544,7 +594,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   // ─────────────────────────────────────────────
   // ADMIN: List all referral codes and redemptions
   // ─────────────────────────────────────────────
-  router.get('/admin/list', async (req, res) => {
+  router.get('/admin/list', requireAdmin, async (req, res) => {
     try {
       const codes = await fetchSupabase('referral_codes', {
         params: '?order=created_at.desc&limit=100',
@@ -569,7 +619,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   // ─────────────────────────────────────────────
   // ADMIN: Disable a referral code (fraud)
   // ─────────────────────────────────────────────
-  router.post('/admin/disable', async (req, res) => {
+  router.post('/admin/disable', requireAdmin, async (req, res) => {
     try {
       const { codeId } = req.body;
       if (!codeId) return res.status(400).json({ error: 'codeId required' });
@@ -587,7 +637,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   // ─────────────────────────────────────────────
   // ADMIN: Flag a redemption as fraud
   // ─────────────────────────────────────────────
-  router.post('/admin/flag', async (req, res) => {
+  router.post('/admin/flag', requireAdmin, async (req, res) => {
     try {
       const { redemptionId, reason } = req.body;
       if (!redemptionId) return res.status(400).json({ error: 'redemptionId required' });
@@ -609,7 +659,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   // ─────────────────────────────────────────────
   // ADMIN: Unflag a redemption (undo fraud flag)
   // ─────────────────────────────────────────────
-  router.post('/admin/unflag', async (req, res) => {
+  router.post('/admin/unflag', requireAdmin, async (req, res) => {
     try {
       const { redemptionId } = req.body;
       if (!redemptionId) return res.status(400).json({ error: 'redemptionId required' });

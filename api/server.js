@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
 import { buildReferralRouter } from './referral-routes.js';
-import { requireAdmin } from './middleware/requireAdmin.js';
+import { requireAdmin, signAdminSession, verifyAdminSession } from './middleware/requireAdmin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.set('trust proxy', 1);
@@ -21,6 +21,13 @@ app.use(helmet({
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
     },
   },
+}));
+// Larger body limit for the image-upload route only, registered before the
+// global 1mb parser so it claims the request first (body-parser skips
+// re-parsing once req._body is set).
+app.use('/api/admin/products/upload-image', express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
 }));
 app.use(express.json({
   limit: '1mb',
@@ -98,13 +105,18 @@ app.get('/api/env', requireAdmin, (_req, res) => {
 });
 
 // ── Verify admin email + token (server-side check) ──
+// `token` is either the master secret (first login, typed by the admin) or a
+// previously-issued session token (silent re-check on page load). Either way,
+// the response hands back a fresh signed session token — that's what the
+// client stores and replays, never the master secret itself.
 app.post('/api/verify-admin', async (req, res) => {
   const { email, token } = req.body;
-  if (!email) return res.json({ verified: false });
-  // Always require a valid admin API token — even for email verification.
-  // Prevents email-only enumeration/brute-forcing of admin accounts.
-  const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN;
-  if (!ADMIN_TOKEN || !token || ADMIN_TOKEN !== token) return res.json({ verified: false });
+  if (!email || !token) return res.json({ verified: false });
+  const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+  const isMasterToken = ADMIN_TOKEN && token.length === ADMIN_TOKEN.length &&
+    crypto.timingSafeEqual(Buffer.from(token), Buffer.from(ADMIN_TOKEN));
+  const isValidSession = verifyAdminSession(token, email);
+  if (!isMasterToken && !isValidSession) return res.json({ verified: false });
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ verified: false });
@@ -112,7 +124,9 @@ app.post('/api/verify-admin', async (req, res) => {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
-    res.json({ verified: Array.isArray(data) && data.length > 0 });
+    const verified = Array.isArray(data) && data.length > 0;
+    if (!verified) return res.json({ verified: false });
+    res.json({ verified: true, sessionToken: signAdminSession(email) });
   } catch {
     res.json({ verified: false });
   }
@@ -462,10 +476,41 @@ async function computeOrder(items, promoCode) {
   return { subtotal, shipping, discountPrice, discountLabel };
 }
 
+// Decrement custom_products.stock for a paid order's line items (by product id).
+// Shared by both the legacy checkout.session.completed path and the live
+// payment_intent.succeeded path so stock actually depletes on real orders.
+async function decrementStockByIds(items) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL || SUPABASE_URL;
+  if (!key || !url) return;
+  for (const it of (items || [])) {
+    const pid = it.id || it.product_id;
+    const qty = it.qty || 1;
+    if (!pid) continue;
+    try {
+      const r = await fetch(`${url}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}`, {
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
+      });
+      const products = await r.json();
+      if (!Array.isArray(products) || products.length === 0) continue;
+      const p = products[0];
+      const currentStock = p.stock ?? 0;
+      const newStock = Math.max(0, currentStock - qty);
+      await fetch(`${url}/rest/v1/custom_products?id=eq.${p.id}`, {
+        method: 'PATCH',
+        headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: newStock }),
+      });
+    } catch (e) {
+      console.warn(`Stock decrement failed for "${pid}":`, e.message);
+    }
+  }
+}
+
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
-  const { items, orderNum, email, name, promoCode } = req.body;
+  const { items, orderNum, email, name, address, promoCode } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
   // Server-side price recompute — never trust client amounts
   const { subtotal, discountPrice } = await computeOrder(items, promoCode);
@@ -474,7 +519,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalTotal,
       currency: 'eur',
-      metadata: { orderNum, email, name: name || '', itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty, price: i.price }))), promoCode: promoCode || '' },
+      metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty, price: i.price }))), promoCode: promoCode || '' },
       payment_method_types: ['card'],
     });
     res.json({ clientSecret: paymentIntent.client_secret });
@@ -638,7 +683,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
   // Handle payment failures — mark order as failed in Supabase
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
-    const { orderNum, email, name, itemsJson, promoCode } = pi.metadata || {};
+    const { orderNum, email, name, address, itemsJson, promoCode } = pi.metadata || {};
     if (orderNum && email) {
       try {
         const items = itemsJson ? JSON.parse(itemsJson) : [];
@@ -647,9 +692,26 @@ app.post('/api/stripe-webhook', async (req, res) => {
         await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
           method: 'POST',
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_num: orderNum, email, name: name || '', items: items, total, shipping, status: 'confirmed', created_at: new Date().toISOString() }),
+          body: JSON.stringify({ order_num: orderNum, email, customer_name: name || '', address: address || '', items: JSON.stringify(items), total, shipping, status: 'confirmed', created_at: new Date().toISOString() }),
         });
         console.log('Order saved from PaymentIntent:', orderNum);
+
+        // Decrement stock — this is the live checkout path, so this is the
+        // only place real orders actually deplete inventory.
+        await decrementStockByIds(items);
+
+        // Send the customer's order-confirmation email (previously only the
+        // legacy checkout.session.completed path did this — the live
+        // Stripe Elements flow silently never emailed customers).
+        if (process.env.RESEND_API_KEY) {
+          const internalToken = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN || '';
+          fetch(`http://localhost:${PORT}/api/send-order`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-internal-token': internalToken },
+            body: JSON.stringify({ email, name, items, total, address, orderNum }),
+          }).catch((e) => console.warn('send-order call failed:', e.message));
+        }
+
         // Check for pending referral redemption and fulfill it
         try {
           const refUrl = `http://localhost:${PORT}/api/referral/fulfill`;
@@ -883,7 +945,7 @@ app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/products/upload-image', requireAdmin, express.json({ limit: '10mb' }), async (req, res) => {
+app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
@@ -1122,6 +1184,7 @@ app.use('/api/referral', buildReferralRouter({
   resend: resend,
   FROM_EMAIL,
   REPLY_TO,
+  requireAdmin,
 }));
 
 // ── Chat router ──
