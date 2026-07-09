@@ -993,13 +993,13 @@ export default function App() {
           onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.12)'; }}
           onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '7px 8px', borderRadius: '16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '6px', borderRadius: '16px', flexShrink: 0,
             background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink)',
             fontSize: '13px', fontWeight: 700, transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1) 0.16s', fontSize: '13px', fontWeight: 600 }}>Home</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
         </button>
         {dockHover && (<button
           onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
