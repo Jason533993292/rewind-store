@@ -219,7 +219,8 @@ export default function App() {
   useEffect(() => {
     const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.documentElement.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; document.documentElement.style.overflow = ''; };
   }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
