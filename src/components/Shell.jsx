@@ -298,6 +298,7 @@ export function Footer({ onSizes, onInfo, onSetCat, cats }) {
         </div>
         <div><h4>Help</h4><a onClick={onSizes} style={{ cursor: 'pointer' }}>Sizing</a><a onClick={() => onInfo('shipping')} style={{ cursor: 'pointer' }}>Shipping</a><a onClick={() => onInfo('returns')} style={{ cursor: 'pointer' }}>Returns</a><a onClick={() => onInfo('tracking')} style={{ cursor: 'pointer' }}>Track order</a><a onClick={() => onInfo('orders')} style={{ cursor: 'pointer' }}>Orders</a></div>
         <div><h4>Pay with</h4><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>PayPal</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Payconiq</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Apple Pay</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Bancontact</a><a onClick={() => onInfo('payments')} style={{ cursor: 'pointer' }}>Klarna</a></div>
+        <div><h4>Legal</h4><a onClick={() => onInfo('privacy')} style={{ cursor: 'pointer' }}>Privacy Policy</a></div>
       </div>
       <div className="rw-footer-base">© 2026 REWIND. Vintage streetwear — curated, authenticated, shipped in 24h.</div>
     </footer>

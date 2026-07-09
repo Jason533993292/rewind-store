@@ -113,33 +113,35 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
   const activeRewardCount = unclaimedRewards.length;
 
   return (
-    <div className="rw-modal-wrap" onClick={onClose}>
-      <div className="rw-modal rw-modal--referral" onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '520px', gridTemplateColumns: '1fr' }}>
-        <button className="rw-modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
-
+    <div className="rw-ref-page">
+      <div className="rw-ref-page-header">
+        <button className="rw-btn rw-btn-ghost" onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Icon name="arrow" size={16} /> Back
+        </button>
+      </div>
+      <div className="rw-ref-page-body">
         {step === 'loading' && (
-          <div className="rw-modal-info" style={{ textAlign: 'center', padding: '60px 32px' }}>
+          <div style={{ textAlign: 'center', padding: '80px 32px' }}>
             <div className="rw-spinner" style={{ margin: '0 auto 16px', width: '32px', height: '32px', border: '3px solid var(--line)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
             <p style={{ color: 'var(--muted)' }}>Loading your referral info…</p>
           </div>
         )}
 
         {step === 'generate' && (
-          <div className="rw-modal-info" style={{ textAlign: 'center', padding: '40px 32px' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🎁</div>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px' }}>Give {REFERRAL_DISCOUNT}% off, get {REFERRAL_DISCOUNT}% off</h2>
-            <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: '1.6', marginBottom: '20px', maxWidth: '380px', margin: '0 auto 20px' }}>
+          <div style={{ textAlign: 'center', padding: '60px 32px', maxWidth: '480px', margin: '0 auto' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎁</div>
+            <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '12px' }}>Give {REFERRAL_DISCOUNT}% off, get {REFERRAL_DISCOUNT}% off</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '15px', lineHeight: '1.7', marginBottom: '28px', maxWidth: '420px', margin: '0 auto 28px' }}>
               Share your personal referral code with friends. They get <strong>{REFERRAL_DISCOUNT}% off</strong> their first order,
               and you get <strong>{REFERRAL_DISCOUNT}% off</strong> your next order for every friend who buys.
             </p>
             {!userEmail ? (
-              <p style={{ color: 'var(--accent)', fontSize: '13px' }}>
+              <p style={{ color: 'var(--accent)', fontSize: '14px' }}>
                 Sign up with your email to get a referral code.
               </p>
             ) : (
               <button className="rw-btn rw-btn-pri" onClick={handleGenerate} disabled={generateLoading}
-                style={{ minWidth: '200px' }}>
+                style={{ minWidth: '220px', padding: '16px 32px', fontSize: '16px' }}>
                 {generateLoading ? <><i className="rw-spinner" /> Generating…</> : 'Generate my referral code'}
               </button>
             )}
@@ -148,39 +150,41 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
         )}
 
         {step === 'ready' && (
-          <div className="rw-modal-info" style={{ padding: '36px 32px' }}>
+          <div style={{ maxWidth: '560px', margin: '0 auto', padding: '40px 24px' }}>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '28px' }}>🎁</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '32px' }}>
+              <div style={{ fontSize: '36px' }}>🎁</div>
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>Your referral program</h2>
-                <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '2px 0 0' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 800, margin: 0 }}>Your referral program</h2>
+                <p style={{ color: 'var(--muted)', fontSize: '14px', margin: '4px 0 0' }}>
                   Give {REFERRAL_DISCOUNT}% off &bull; Earn {REFERRAL_DISCOUNT}% off
                 </p>
               </div>
             </div>
 
             {/* Code display */}
-            <div className="rw-ref-code-box">
+            <div className="rw-ref-code-box" style={{ background: 'var(--surface)', borderRadius: '12px', padding: '16px 20px', border: '1px solid var(--line)' }}>
               <div className="rw-ref-code-label">Your code</div>
-              <div className="rw-ref-code">{code}</div>
-              <button className="rw-ref-copy-btn" onClick={() => handleCopy(code, 'Code copied!')}
-                aria-label="Copy referral code">
-                {copyFeedback === 'Code copied!' ? '✓' : <Icon name="plus" size={14} />}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div className="rw-ref-code" style={{ flex: 1, fontSize: '26px' }}>{code}</div>
+                <button className="rw-ref-copy-btn" onClick={() => handleCopy(code, 'Code copied!')}
+                  aria-label="Copy referral code" style={{ width: '38px', height: '38px' }}>
+                  {copyFeedback === 'Code copied!' ? '✓' : <Icon name="plus" size={16} />}
+                </button>
+              </div>
             </div>
 
-            {/* Share button */}
-            <button className="rw-btn rw-btn-pri rw-btn-full" style={{ marginTop: '12px' }}
+            {/* Share link */}
+            <button className="rw-btn rw-btn-pri rw-btn-full" style={{ marginTop: '14px', padding: '14px', fontSize: '15px' }}
               onClick={() => handleCopy(shareUrl, 'Link copied!')}>
               {copyFeedback === 'Link copied!' ? '✓ Link copied!' : '📋 Copy share link'}
             </button>
 
             {/* Stats summary */}
-            <div className="rw-ref-stats">
+            <div className="rw-ref-stats" style={{ marginTop: '28px' }}>
               <div className="rw-ref-stat">
                 <span className="rw-ref-stat-num">{usedCount}/{maxUses}</span>
-                <span className="rw-ref-stat-label">Used</span>
+                <span className="rw-ref-stat-label">Referred</span>
               </div>
               <div className="rw-ref-stat">
                 <span className="rw-ref-stat-num">{qualifiedRedemptions.length}</span>
@@ -200,24 +204,28 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
 
             {/* Rewards section */}
             {unclaimedRewards.length > 0 && (
-              <div style={{ marginTop: '20px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px' }}>
+              <div style={{ marginTop: '32px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
                   Your rewards ({unclaimedRewards.length})
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {unclaimedRewards.map(r => (
-                    <div key={r.id} className="rw-ref-reward-card">
+                    <div key={r.id} className="rw-ref-reward-card" style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '14px 16px', borderRadius: '12px', background: 'var(--surface)',
+                      border: '1px solid var(--line)',
+                    }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '15px', letterSpacing: '2px' }}>
+                        <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '16px', letterSpacing: '2px' }}>
                           {r.promoCode}
                         </div>
-                        <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '3px' }}>
                           {r.rewardValue}% off &bull; Expires {r.expiresAt ? new Date(r.expiresAt).toLocaleDateString() : 'in 90 days'}
                         </div>
                       </div>
                       <button className="rw-ref-copy-btn" onClick={() => handleCopy(r.promoCode, 'Promo copied!')}
-                        aria-label="Copy promo code">
-                        {copyFeedback === 'Promo copied!' ? '✓' : <Icon name="plus" size={13} />}
+                        aria-label="Copy promo code" style={{ width: '36px', height: '36px' }}>
+                        {copyFeedback === 'Promo copied!' ? '✓' : <Icon name="plus" size={14} />}
                       </button>
                     </div>
                   ))}
@@ -227,16 +235,16 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
 
             {/* Recent activity */}
             {redemptions.length > 0 && (
-              <div style={{ marginTop: '20px' }}>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px' }}>
+              <div style={{ marginTop: '32px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
                   Recent activity ({redemptions.length})
                 </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {redemptions.slice(0, 5).map(r => (
                     <div key={r.id} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      padding: '8px 10px', borderRadius: '8px', background: 'var(--bg)',
-                      fontSize: '12px',
+                      padding: '12px 16px', borderRadius: '10px', background: 'var(--surface)',
+                      border: '1px solid var(--line)', fontSize: '13px',
                     }}>
                       <span style={{ color: 'var(--muted)', fontWeight: 500 }}>
                         {r.refereeEmail?.split('@')[0]}…@{r.refereeEmail?.split('@')[1]}
@@ -254,8 +262,8 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
             )}
 
             {/* How it works */}
-            <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg)', borderRadius: '12px', fontSize: '12.5px', color: 'var(--muted)', lineHeight: '1.6' }}>
-              <strong style={{ color: 'var(--ink)', display: 'block', marginBottom: '6px' }}>How it works</strong>
+            <div style={{ marginTop: '36px', padding: '20px', background: 'var(--bg)', borderRadius: '14px', fontSize: '13px', color: 'var(--muted)', lineHeight: '1.7' }}>
+              <strong style={{ color: 'var(--ink)', display: 'block', marginBottom: '8px' }}>How it works</strong>
               1. Share your code with a friend<br />
               2. They get {REFERRAL_DISCOUNT}% off their first order<br />
               3. After their order ships, you get {REFERRAL_DISCOUNT}% off your next order<br />

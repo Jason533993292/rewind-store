@@ -390,7 +390,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
 }
 
 /* ---------- Checkout ---------- */
-export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast, orderNumber: orderNumberProp }) {
+export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast, orderNumber: orderNumberProp, onInfo }) {
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -773,6 +773,10 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         <label className="rw-check">
           <input type="checkbox" checked={saveInfo} onChange={(e) => setSaveInfo(e.target.checked)} /> Save my info for next time
         </label>
+        <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '12px', lineHeight: '1.5' }}>
+          By proceeding, you agree to our <button type="button" onClick={() => onInfo && onInfo('privacy')}
+          style={{ textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none', color: 'var(--muted)', fontWeight: 600, padding: 0, fontSize: 'inherit' }}>Privacy Policy</button>.
+        </p>
       </div>
     </div>
   );

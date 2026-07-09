@@ -3,6 +3,16 @@ import { Icon } from './Shell';
 import { money } from '../hooks/useCountdown';
 
 const PAGES = {
+  privacy: {
+    title: 'Privacy Policy',
+    sections: [
+      { heading: 'Information We Collect', text: 'We collect information you provide directly, such as your name and email address when you sign up or place an order. We also collect order details to process and fulfill your purchases.' },
+      { heading: 'How We Use Your Information', text: 'Your information is used to process orders, send order confirmations, provide customer support, and — with your consent — send marketing communications about new drops and exclusive offers. We never sell your personal data to third parties.' },
+      { heading: 'Data Storage & Security', text: 'Your data is stored securely in our database (Supabase, EU-hosted). We use industry-standard encryption for data transmission. You can request deletion of your data at any time by emailing orders@rewind-stores.com.' },
+      { heading: 'Third-Party Services', text: 'Stripe (US): Payment processing — view their privacy policy at stripe.com/privacy. Supabase (US): Database hosting. Resend (US): Order confirmation emails. Google Gemini (US): AI-powered chat auto-replies. These services may process your data outside the EU/EEA under Standard Contractual Clauses.' },
+      { heading: 'Your Rights', text: 'Under GDPR, you have the right to access, rectify, or delete your personal data. You can also withdraw marketing consent at any time. To exercise any of these rights, email orders@rewind-stores.com.' },
+    ]
+  },
   shipping: {
     title: 'Shipping',
     sections: [

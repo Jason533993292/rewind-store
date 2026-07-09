@@ -859,6 +859,29 @@ image-slot { --x: 0; }
     letter-spacing: 2px;
   }
 }
+
+/* ── Full-page referral view (takeover overlay) ── */
+.rw-ref-page {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: var(--bg);
+  overflow-y: auto;
+  animation: pageIn .35s ease;
+}
+.rw-ref-page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.rw-ref-page-body {
+  padding: 0 0 60px;
+}
 button:focus:not(:focus-visible),
 input:focus:not(:focus-visible) {
   outline: none;

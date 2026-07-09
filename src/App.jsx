@@ -898,7 +898,7 @@ export default function App() {
       <CartDrawer open={drawer} items={cart} onClose={() => setDrawer(false)}
         onQty={changeQty} onRemove={removeItem} onCheckout={goCheckout}
         pendingRemove={pendingRemove} onCancelRemove={() => setPendingRemove(null)} />
-      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} orderNumber={orderNumber} />
+      <Checkout key={checkoutCount} open={checkout} items={cart} onClose={() => setCheckout(false)} onPlaced={orderPlaced} userEmail={userEmail} showToast={showToast} orderNumber={orderNumber} onInfo={(p) => setInfoPage(p)} />
       <Toast toast={toast} onDismiss={() => setToast(null)} />
       <SignupModal open={signupOpen} onClose={() => { setSignupOpen(false); setPendingWishlistId(null); }} onSignup={handleSignup} />
       <ReferralDialog open={showReferral} onClose={() => setShowReferral(false)} userEmail={userEmail} showToast={showToast} />
