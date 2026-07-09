@@ -86,7 +86,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         const emailCheck = await sfetch(`/blocked_emails?email=eq.${encodeURIComponent(customer_email.toLowerCase().trim())}`);
         const blockedData = await emailCheck.json();
         if (Array.isArray(blockedData) && blockedData.length > 0) {
-          return res.status(403).json({ error: 'This email has been blocked.' });
+          const reason = blockedData[0].reason || 'Blocked by admin';
+          return res.status(403).json({ error: `This email has been blocked. Reason: ${reason}` });
         }
       } catch {}
     }
@@ -96,7 +97,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       const ipCheck = await sfetch(`/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`);
       const blockedIpData = await ipCheck.json();
       if (Array.isArray(blockedIpData) && blockedIpData.length > 0) {
-        return res.status(403).json({ error: 'Access denied.' });
+        const reason = blockedIpData[0].reason || 'Blocked by admin';
+        return res.status(403).json({ error: `Access denied. Reason: ${reason}` });
       }
     } catch {}
 
