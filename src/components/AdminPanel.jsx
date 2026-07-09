@@ -2086,7 +2086,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
             <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '12px' }}>📱 Storefront preview</p>
             <div style={{ background: 'var(--surface)', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
               <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : 'var(--line)', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                <img src={previewUrl} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
+                {previewUrl ? <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} /> : <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Upload a photo</span>}
               </div>
               <div style={{ padding: '14px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>{form.cat?.toUpperCase() || 'CATEGORY'}</span>
@@ -2113,7 +2113,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
             color: msg.includes('✅') ? 'var(--ink)' : 'var(--accent)',
           }}>
             {msg}
-          {showProduct && <button onClick={() => { window.location.hash = '/product/' + showProduct; }}
+          {showProduct && <button onClick={() => { window.location.hash = '#/product/' + showProduct; window.location.reload(); }}
             style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}
             onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
             onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
