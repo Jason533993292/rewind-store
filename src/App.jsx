@@ -27,7 +27,7 @@ const TWEAK_DEFAULTS = {
   showStock: true,
 };
 
-const VERSION = 'V11.9.0';
+const VERSION = 'V11.10.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
@@ -86,7 +86,6 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
   const dockRef = useRef(null);
-  const [splashDone, setSplashDone] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoClosing, setPromoClosing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -214,12 +213,6 @@ export default function App() {
     r.style.setProperty('--accent', t.accent);
     r.style.setProperty('--font-head', `"${t.headingFont}", sans-serif`);
   }, [t.accent, t.headingFont]);
-
-  // Splash screen timer
-  useEffect(() => {
-    const t = setTimeout(() => setSplashDone(true), 1800);
-    return () => clearTimeout(t);
-  }, []);
 
   // Lock body scroll when any modal/drawer is open
   // showSurvey is deliberately excluded from this effect.
@@ -734,12 +727,6 @@ export default function App() {
       if (d.blocked) setBlocked(true);
     }).catch(() => {});
   }, [adminMode]);
-
-  if (!splashDone) return (
-    <div className="rw-loading-wrap">
-      <TruckLoader />
-    </div>
-  );
 
   if (adminMode) return (
     <React.Suspense fallback={<div className="rw-loading-wrap"><TruckLoader /></div>}>
