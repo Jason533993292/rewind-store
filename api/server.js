@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
 import { buildReferralRouter } from './referral-routes.js';
+import { buildSettingsRouter } from './settings-routes.js';
 import { requireAdmin, signAdminSession, verifyAdminSession } from './middleware/requireAdmin.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -1195,6 +1196,13 @@ app.use(buildChatRouter({
   FROM_EMAIL,
   REPLY_TO,
   notifyEmail: 'orders@rewind-stores.com',
+  requireAdmin,
+}));
+
+// ── Settings router ──
+app.use('/api/settings', buildSettingsRouter({
+  SUPABASE_URL,
+  SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   requireAdmin,
 }));
 

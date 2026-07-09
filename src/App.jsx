@@ -16,6 +16,7 @@ import { money } from './hooks/useCountdown';
 // Code-split — the admin panel (users/orders/products CRUD) is only ever
 // needed behind #admin, so anonymous shoppers shouldn't download it.
 const AdminPanel = React.lazy(() => import('./components/AdminPanel.jsx'));
+const SettingsPanel = React.lazy(() => import('./components/SettingsPanel.jsx'));
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -82,6 +83,7 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [infoPage, setInfoPage] = useState(null);
   const [showReferral, setShowReferral] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoClosing, setPromoClosing] = useState(false);
@@ -215,10 +217,10 @@ export default function App() {
   // showSurvey is deliberately excluded from this effect.
   // The survey overlay uses pointer-events: none (clicks pass through).
   useEffect(() => {
-    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral;
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral]);
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 
@@ -238,6 +240,7 @@ export default function App() {
       if (infoPage !== null) setInfoPage(null);
       if (wishlistOpen)     setWishlistOpen(false);
       if (showReferral)    setShowReferral(false);
+      if (showSettings)    setShowSettings(false);
       // Dismiss survey on Escape only when it's actually visible — prevents
       // permanently hiding the first-visit survey for new users who press
       // Escape to close a modal/popup/drawer before the survey was dismissed.
@@ -255,7 +258,7 @@ export default function App() {
       window.removeEventListener('keydown', onKey);
       if (promoCloseTimerRef.current) { clearTimeout(promoCloseTimerRef.current); promoCloseTimerRef.current = null; }
     };
-  }, [promoOpen, quick, drawer, checkout, signupOpen, showSizes, infoPage, wishlistOpen, showReferral, selectedProduct]);
+  }, [promoOpen, quick, drawer, checkout, signupOpen, showSizes, infoPage, wishlistOpen, showReferral, showSettings, selectedProduct]);
 
   const products = useMemo(() => {
     const allProducts = [...REWIND_PRODUCTS, ...customProducts];
@@ -1002,15 +1005,15 @@ export default function App() {
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
         </button>
-        <button
+        <button onClick={() => setShowSettings(true)}
           onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.color = 'var(--ink)'; }}
           onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}
           style={{
           display: 'flex', alignItems: 'center', gap: '6px',
           padding: dockHover ? '8px 12px' : '8px 0',
-          background: 'none', border: 'none', cursor: 'not-allowed', color: 'var(--muted)',
+          background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
           fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-          opacity: dockHover ? 0.35 : 0, overflow: 'hidden',
+          opacity: dockHover ? 1 : 0, overflow: 'hidden',
           transition: 'opacity 0.8s ease 0.1s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1)',
           pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '110px' : '0',
         }}>
@@ -1021,6 +1024,12 @@ export default function App() {
 
       {/* ── Chat bubble ── */}
       <ChatBubble />
+
+      {showSettings && (
+        <React.Suspense fallback={null}>
+          <SettingsPanel onClose={() => setShowSettings(false)} showToast={showToast} />
+        </React.Suspense>
+      )}
 
       {(showTweaks || window.location.search.includes('tweaks')) && <TweaksPanel>
         <TweakToggle label="Live sale countdown" value={t.showCountdown} onChange={(v) => setTweak('showCountdown', v)} />
