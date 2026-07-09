@@ -963,26 +963,36 @@ export default function App() {
         </button>
       )}
 
-      {/* ── Bottom Dock (Liquid Glass) ── */}
+      {/* ── Bottom Dock ── */}
       <div ref={dockRef}
-        className={`rw-dock ${dockHover ? 'is-hovered' : ''}`}
         onMouseEnter={() => setDockHover(true)}
         onMouseLeave={() => setDockHover(false)}
+        style={{
+          position: 'fixed', bottom: '28px', left: '50%', zIndex: 9999,
+          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
+          background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 2px 12px rgba(0,0,0,0.08)',
+          padding: '7px',
+          transform: 'translateX(-50%)',
+          transition: 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
+          willChange: 'max-width, transform',
+          cursor: 'default',
+          maxWidth: dockHover ? '420px' : '54px',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+        }}
       >
-        {/* Glass layers */}
-        <div className="rw-dock-glass">
-          <div className="rw-dock-glass-bg" />
-          <div className="rw-dock-shadows" />
-        </div>
-
         {/* Referrals */}
         <button onClick={() => setShowReferral(true)}
-          className="rw-dock-btn"
           style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
-            opacity: dockHover ? 1 : 0,
-            pointerEvents: dockHover ? 'auto' : 'none',
-            maxWidth: dockHover ? '120px' : '0',
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
+            fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+            opacity: dockHover ? 1 : 0, overflow: 'hidden',
+            transition: 'opacity 0.8s ease 0.12s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1)',
+            pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '120px' : '0',
           }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
           <span>Referrals</span>
@@ -990,20 +1000,26 @@ export default function App() {
 
         {/* Home */}
         <button onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
-          className="rw-dock-home"
-        >
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '6px', borderRadius: '16px', flexShrink: 0,
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink)',
+            fontSize: '13px', fontWeight: 700,
+          }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          {dockHover && <span>Home</span>}
+          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
         </button>
 
         {/* Settings */}
         <button onClick={() => setShowSettings(true)}
-          className="rw-dock-btn"
           style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
-            opacity: dockHover ? 1 : 0,
-            pointerEvents: dockHover ? 'auto' : 'none',
-            maxWidth: dockHover ? '110px' : '0',
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
+            fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+            opacity: dockHover ? 0.35 : 0, overflow: 'hidden',
+            transition: 'opacity 0.8s ease 0.1s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1)',
+            pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '110px' : '0',
           }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>
