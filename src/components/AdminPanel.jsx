@@ -1823,7 +1823,7 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
       product_id: productId, name: form.name, brand: form.brand || '', cat,
       price: parseFloat(form.price), was: form.was ? parseFloat(form.was) : null,
       stock: (() => { const n = parseInt(form.stock); return isNaN(n) ? 5 : n; })(), hue: form.hue ?? Math.floor(Math.random() * 360), img: '', note: form.note || '',
-      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean), material: form.material || '',
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
     };
     // Upload images if selected
     if (form.files?.length) {
