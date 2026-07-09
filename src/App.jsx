@@ -981,7 +981,7 @@ export default function App() {
         onMouseEnter={() => setDockHover(true)}
         onMouseLeave={() => setDockHover(false)}
         style={{
-          position: 'fixed', bottom: '28px', left: '50%', zIndex: 9999,
+          position: 'fixed', bottom: '28px', left: '50%', zIndex: 99999,
           display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
@@ -997,7 +997,7 @@ export default function App() {
         }}
       >
         {/* Referrals */}
-        <button onClick={() => setShowReferral(true)}
+        <button onClick={() => { setShowSettings(false); setShowReferral(true); }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
@@ -1015,7 +1015,7 @@ export default function App() {
         </button>
 
         {/* Home */}
-        <button onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
+        <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: '16px', flexShrink: 0,
@@ -1030,7 +1030,7 @@ export default function App() {
         </button>
 
         {/* Settings */}
-        <button onClick={() => setShowSettings(true)}
+        <button onClick={() => { setShowReferral(false); setShowSettings(true); }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',

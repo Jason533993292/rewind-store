@@ -712,7 +712,7 @@ a { color: inherit; cursor: pointer; }
 
 /* ---- toast ---- */
 .rw-toast {
-  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 9000;
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 99999;
   background: var(--ink); color: #fff; padding: 13px 20px; border-radius: 999px;
   font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 9px;
   box-shadow: 0 14px 40px -12px rgba(0,0,0,.5);
