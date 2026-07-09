@@ -41,11 +41,11 @@ const BLOCKED_EMAILS = new Set();
 // Hydrate in-memory blocked lists from Supabase on boot
 (async () => {
   try {
-    const ipRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_ips?select=ip`, {
+    const ipRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_ips?select=ip_address`, {
       headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
     });
     const ipData = await ipRes.json();
-    if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip, true));
+    if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip_address, true));
   } catch (e) { console.warn('Failed to load blocked IPs:', e.message); }
   try {
     const emailRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
