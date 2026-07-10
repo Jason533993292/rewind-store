@@ -242,10 +242,8 @@ a { color: inherit; cursor: pointer; }
 .rw-chip.is-on { background: var(--ink); color: #fff; border-color: var(--ink); }
 
 /* ── THE GRID ── */
-.rw-grid { display: flex; flex-wrap: wrap; gap: 22px 18px; }
-.rw-grid > * { flex: 0 0 calc((100% - 36px) / 3); min-width: 0; max-width: calc((100% - 36px) / 3); }
-@media (max-width: 600px) { .rw-grid > * { flex: 0 0 calc((100% - 18px) / 2); max-width: calc((100% - 18px) / 2); } }
-@media (max-width: 380px) { .rw-grid > * { width: 100%; } }
+.rw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 22px 18px; width: 100%; }
+.rw-grid > * { min-width: 0; }
 .rw-section-head {
   font-size: 14px; font-weight: 600; color: var(--muted);
   margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 1px;
