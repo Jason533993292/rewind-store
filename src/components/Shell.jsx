@@ -59,7 +59,7 @@ export function Photo({ id, hue, label, h = 320, img }) {
     // Colour-block placeholder (also used as error fallback when image load fails)
     const bg = `linear-gradient(150deg, oklch(0.72 0.17 ${hue}) 0%, oklch(0.55 0.2 ${(hue + 40) % 360}) 100%)`;
     return (
-      <div className="rw-photo" style={{ height: h }}>
+      <div className="rw-photo" style={{ height: h, position: 'relative' }}>
         <div className="rw-photo-bg" style={{ background: bg }}>
           <span className="rw-photo-word">{label}</span>
         </div>
