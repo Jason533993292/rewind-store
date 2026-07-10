@@ -17,7 +17,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       connectSrc: ["'self'", "https://luiqimsfvllgsmzedncw.supabase.co", "https://api.stripe.com", "https://api.resend.com", "https://generativelanguage.googleapis.com", "https://*.stripe.com"],
-      imgSrc: ["'self'", "data:", "https://*.supabase.co", "https://*.stripe.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co", "https://*.stripe.com"],
       scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
     },
