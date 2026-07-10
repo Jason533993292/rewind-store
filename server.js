@@ -1,3 +1,6 @@
+// Load env vars from .env for local development (Railway/Prod set them in the environment).
+import 'dotenv/config';
+
 // Local development entry point — delegates to api/server.js
 // For Vercel deployment, api/server.js is used directly.
 import app from './api/server.js';
