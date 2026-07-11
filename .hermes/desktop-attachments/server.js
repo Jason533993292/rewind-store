@@ -403,6 +403,7 @@ app.post('/api/manage-admins', requireAdmin, async (req, res) => {
   }
 });
 
+
 // Compute real order total server-side — never trust the client
 async function computeOrder(items, promoCode) {
   let subtotal = 0;
@@ -566,7 +567,6 @@ app.post('/api/stripe-webhook', async (req, res) => {
   }
 
   // Payment succeeded — this is the live checkout path (Stripe Elements)
-  if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
     const { orderNum, email, name, address, itemsJson, promoCode } = pi.metadata || {};
     if (orderNum && email) {
@@ -1085,3 +1085,5 @@ app.use((req, res) => {
 
 // Export for Vercel serverless
 export default app;
+
+
