@@ -108,7 +108,48 @@ export function Banner({ showCountdown }) {
 }
 
 /* ---------- Header ---------- */
-export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version, onVersionClick, onReferral }) {
+export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version, onVersionClick, onReferral, isAdmin, searchSuggestions }) {
+  const [focusedIdx, setFocusedIdx] = useState(-1);
+  const suggestRef = useRef(null);
+
+  useEffect(() => {
+    if (query) setFocusedIdx(-1);
+  }, [query]);
+
+  useEffect(() => {
+    const onClick = (e) => {
+      if (suggestRef.current && !suggestRef.current.contains(e.target)) {
+        setFocusedIdx(-1);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  const hasSuggestions = query && searchSuggestions?.length > 0;
+
+  const handleKeyDown = (e) => {
+    if (!hasSuggestions) {
+      if (e.key === 'Escape' && query) { e.target.blur(); setQuery(''); }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedIdx(i => Math.min(i + 1, searchSuggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedIdx(i => Math.max(i - 1, 0));
+    } else if (e.key === 'Enter' && focusedIdx >= 0) {
+      e.preventDefault();
+      setQuery(searchSuggestions[focusedIdx].name);
+      setFocusedIdx(-1);
+    } else if (e.key === 'Escape') {
+      setFocusedIdx(-1);
+      e.target.blur();
+      setQuery('');
+    }
+  };
+
   return (
     <header className="rw-header">
       <div className="rw-header-row">
@@ -121,9 +162,9 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
           ))}
         </nav>
         <div className="rw-header-actions">
-          <div className="rw-search" style={{position:'relative'}}>
+          <div className="rw-search" ref={suggestRef} style={{position:'relative'}}>
             <Icon name="search" size={17} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && query) { e.target.blur(); setQuery(''); } }} placeholder="Search" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" />
             {query && (
             <button onClick={() => setQuery('')}
               aria-label="Clear search"
@@ -138,6 +179,28 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
                 <Icon name="close" size={14} />
               </button>
             )}
+            {hasSuggestions && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                background: 'var(--surface)', borderRadius: '10px', marginTop: '4px',
+                boxShadow: '0 8px 24px rgba(0,0,0,.1)', overflow: 'hidden',
+              }}>
+                {searchSuggestions.map((s, i) => (
+                  <button key={s.name} onClick={() => { setQuery(s.name); setFocusedIdx(-1); }}
+                    onMouseOver={() => setFocusedIdx(i)}
+                    style={{
+                      display: 'block', width: '100%', padding: '8px 14px',
+                      textAlign: 'left', border: 'none', cursor: 'pointer',
+                      background: focusedIdx === i ? 'var(--line)' : 'transparent',
+                      color: 'var(--ink)', fontSize: '13px', fontWeight: 600,
+                      transition: 'background 0.1s',
+                    }}>
+                    <span>{s.name}</span>
+                    <span style={{ float: 'right', fontSize: '11px', color: 'var(--muted)', fontWeight: 500 }}>{s.cat}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <button className="rw-iconbtn" onClick={onReferral} aria-label="Refer a friend" title="Refer a friend — get 10% off">
             <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -150,7 +213,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
             <Icon name="bag" />
             {cartCount > 0 && <span className="rw-badge">{cartCount}</span>}
           </button>
-          {version && <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '10px', fontWeight: 600, cursor: 'pointer' }} onClick={onVersionClick} title="Toggle tweaks panel">{version}</span>}
+          {isAdmin && version && <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: '10px', fontWeight: 600, cursor: 'pointer' }} onClick={onVersionClick} title="Toggle tweaks panel">{version}</span>}
         </div>
       </div>
     </header>

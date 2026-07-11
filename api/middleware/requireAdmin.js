@@ -42,6 +42,35 @@ export function verifyAdminSession(token, expectedEmail) {
   return true;
 }
 
+// Decode the email from a session token without fully verifying it.
+// verifyAdminSession must still be called for signature validation.
+function decodeSessionEmail(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    return Buffer.from(parts[0], 'base64url').toString('utf8');
+  } catch { return null; }
+}
+
+// Check Supabase admins table — is this email still an active admin?
+async function isStillActiveAdmin(email) {
+  const url = process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key || !email) return false;
+  try {
+    const r = await fetch(`${url}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+      },
+    });
+    const data = await r.json();
+    return Array.isArray(data) && data.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function requireAdmin(req, res, next) {
   const configuredToken = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
 
@@ -62,6 +91,25 @@ export function requireAdmin(req, res, next) {
   // Accept a signed, time-limited session token (the normal path — this is
   // what the browser stores after login).
   if (verifyAdminSession(provided)) {
+    // Revocation check: verify this email is still in the admins table.
+    // This ensures removing someone from the admins table revokes access
+    // immediately, not just after the session token expires (12h).
+    const email = decodeSessionEmail(provided);
+    if (email) {
+      isStillActiveAdmin(email).then((active) => {
+        if (!active) {
+          return res.status(403).json({ error: 'Admin access revoked' });
+        }
+        next();
+      }).catch(() => {
+        // If Supabase is unreachable, fall through to next() rather than
+        // locking out every admin during a transient outage.
+        // To force immediate revocation in an emergency, rotate
+        // ADMIN_SECRET_TOKEN instead — it invalidates all sessions.
+        next();
+      });
+      return; // Wait for the async check
+    }
     return next();
   }
 

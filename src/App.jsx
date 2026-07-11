@@ -86,6 +86,9 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
   const dockRef = useRef(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem('rw_theme') === 'dark'; } catch { return false; }
+  });
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoClosing, setPromoClosing] = useState(false);
   const [promoCode, setPromoCode] = useState('');
@@ -283,6 +286,13 @@ export default function App() {
   }, [customProducts]);
 
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
+
+  // Apply dark mode on mount and when it changes
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+    localStorage.setItem('rw_theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
 
   // ── ALL new state vars for modals/panels MUST go above this line ──
   // succession so the final toast Undo restores ALL of them, not just the last.
@@ -567,7 +577,18 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allProducts]);
 
-  // ── Admin mode ──
+  // Search suggestions for autocomplete dropdown — top 5 matches
+  const searchSuggestions = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return [...REWIND_PRODUCTS, ...customProducts]
+      .filter(p => (p.name + ' ' + p.cat + ' ' + (p.brand || '')).toLowerCase().includes(q))
+      .slice(0, 5)
+      .map(p => ({ name: p.name, cat: p.cat }));
+  }, [query, customProducts]);
+
+  // Admin check — used to gate admin-only UI elements
+  const isAdmin = !!localStorage.getItem('rw_admin_email');
   // Only activate admin mode if the user has a verified admin email saved,
   // NOT just because #admin is in the URL (security: prevents full admin
   // panel access by anyone who navigates to /#admin).
@@ -754,7 +775,8 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
-        onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)} />
+        onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
+        isAdmin={isAdmin} searchSuggestions={searchSuggestions} />
       <main className="rw-shop">
       <ProductPage key={curPid} p={selectedProduct}
         onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
@@ -784,7 +806,8 @@ export default function App() {
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
-        onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)} />
+        onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
+        isAdmin={isAdmin} searchSuggestions={searchSuggestions} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
       {/* Mobile scroll hint — shows a subtle indicator on first visit that there's more content below */}
@@ -798,23 +821,23 @@ export default function App() {
 
         <div className="rw-shop-layout">
           <aside id="rw-sidebar" style={{
-            width: '200px',
+            width: '480px',
             flexShrink: 0,
             background: 'var(--bg)',
             borderRadius: '12px',
-            padding: '20px 16px',
+            padding: '28px 28px',
             position: 'sticky',
             top: '20px',
             alignSelf: 'flex-start',
           }}>
-            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
+            <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {availableCats.map((c) => (
               <SidebarBtn key={c} label={c === 'All' ? 'All' : c} count={catCounts[c] || 0} isOn={cat === c} onClick={() => { setCat(c); scrollToGrid(); }} />
             ))}
 
             {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
               <>
-                <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
+                <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', margin: '22px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
                 <SidebarBtn label="All" isOn={!brand} count={catCounts[cat] || 0} onClick={() => { setBrand(null); scrollToGrid(); }} />
                 {currentBrands.map((b) => (
                   <SidebarBtn key={b} label={b} isOn={brand === b} count={brandCounts[b] || 0} onClick={() => { setBrand(b); scrollToGrid(); }} />
@@ -870,6 +893,7 @@ export default function App() {
               wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct}
               activeCat={cat} activeBrand={brand}
               onCart={() => setDrawer(true)}
+              cats={availableCats} onSetCat={(c) => { setCat(c); scrollToGrid(); }}
               onClearSearch={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); scrollToGrid(); }} />
           </div>
         </div>
@@ -1023,7 +1047,7 @@ export default function App() {
             padding: dockHover ? '8px 12px' : '8px 0',
             background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
             fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-            opacity: dockHover ? 0.35 : 0, overflow: 'hidden',
+            opacity: dockHover ? 1 : 0, overflow: 'hidden',
             transition: 'opacity 0.8s ease 0.1s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.2s ease',
             pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '110px' : '0',
             transform: 'scale(1)',
@@ -1032,6 +1056,24 @@ export default function App() {
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
           <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>
+        </button>
+
+        {/* Dark mode toggle */}
+        <button onClick={() => setDarkMode(v => !v)}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            padding: dockHover ? '8px 12px' : '8px 0',
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
+            fontSize: '14px', whiteSpace: 'nowrap',
+            opacity: dockHover ? 1 : 0, overflow: 'hidden',
+            transition: 'opacity 0.8s ease 0.08s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.2s ease',
+            pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '60px' : '0',
+            transform: 'scale(1)',
+          }}
+          onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.color = 'var(--ink)'; }}
+          onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}
+          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <span style={{ fontSize: '18px', lineHeight: 1 }}>{darkMode ? '☀️' : '🌙'}</span>
         </button>
       </div>
 

@@ -101,7 +101,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
 }
 
 /* ---------- ProductGrid ---------- */
-export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, activeCat, activeBrand, onCart, cats, ...rest }) {
+export function ProductGrid({ products, wishlist, onWishlist, sort, query, onClearSearch, activeCat, activeBrand, onCart, ...rest }) {
   if (products.length === 0) {
     const hasQuery = query && query.trim();
     const hasBrand = activeBrand;
@@ -132,25 +132,6 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
             </button>
           </div>
         )}
-        {hasQuery && cats && cats.filter(c => c !== 'All').length > 0 && (
-          <div style={{ marginTop: '20px' }}>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '8px' }}>Browse categories:</p>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'center' }}>
-              {cats.filter(c => c !== 'All').slice(0, 6).map(c => (
-                <button key={c} onClick={() => { if (rest.onSetCat) rest.onSetCat(c); }}
-                  style={{
-                    padding: '6px 14px', borderRadius: '999px', border: '1px solid var(--line-2)',
-                    background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600,
-                    color: 'var(--muted)', transition: 'all 0.15s',
-                  }}
-                  onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.color = 'var(--ink)'; }}
-                  onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; e.target.style.color = 'var(--muted)'; }}>
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -176,20 +157,25 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
     );
   }
 
-  // Group products by category, then flatten with headers (Featured view)
+  // Group products by brand → category, then flatten with headers (Featured view)
   const grouped = {};
   sorted.forEach(p => {
+    const brand = p.brand || '';
     const cat = p.cat || 'Other';
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(p);
+    if (!grouped[brand]) grouped[brand] = {};
+    if (!grouped[brand][cat]) grouped[brand][cat] = [];
+    grouped[brand][cat].push(p);
   });
 
-  const sections = Object.entries(grouped).map(([cat, items]) => {
-    // When browsing a specific category (not "All"), the category is already
-    // shown in the page title — omit it from section headers to reduce noise.
-    const isCurrentCat = activeCat && activeCat !== 'All' && cat === activeCat;
-    const label = isCurrentCat ? '' : cat;
-    return { label, items };
+  const sections = [];
+  Object.entries(grouped).forEach(([brand, cats]) => {
+    Object.entries(cats).forEach(([cat, items]) => {
+      // When browsing a specific category (not "All"), the category is already
+      // shown in the page title — omit it from section headers to reduce noise.
+      const isCurrentCat = activeCat && activeCat !== 'All' && cat === activeCat;
+      const label = isCurrentCat ? brand : [brand, cat].filter(Boolean).join(' — ');
+      sections.push({ label, items });
+    });
   });
 
   return (
