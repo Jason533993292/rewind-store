@@ -825,23 +825,23 @@ export default function App() {
 
         <div className="rw-shop-layout">
           <aside id="rw-sidebar" style={{
-            width: '480px',
+            width: '260px',
             flexShrink: 0,
             background: 'var(--bg)',
             borderRadius: '12px',
-            padding: '28px 28px',
+            padding: '20px 16px',
             position: 'sticky',
             top: '20px',
             alignSelf: 'flex-start',
           }}>
-            <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
+            <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {availableCats.map((c) => (
               <SidebarBtn key={c} label={c === 'All' ? 'All' : c} count={catCounts[c] || 0} isOn={cat === c} onClick={() => { setCat(c); scrollToGrid(); }} />
             ))}
 
             {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
               <>
-                <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', margin: '22px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
+                <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', margin: '20px 0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Brands</h3>
                 <SidebarBtn label="All" isOn={!brand} count={catCounts[cat] || 0} onClick={() => { setBrand(null); scrollToGrid(); }} />
                 {currentBrands.map((b) => (
                   <SidebarBtn key={b} label={b} isOn={brand === b} count={brandCounts[b] || 0} onClick={() => { setBrand(b); scrollToGrid(); }} />
