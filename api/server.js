@@ -1080,6 +1080,19 @@ app.post('/api/admin/orders/update-status', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Admin: audit log ──
+app.get('/api/admin/audit-log', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ entries: [] });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/audit_log?order=created_at.desc&limit=100`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    res.json({ entries: Array.isArray(data) ? data : [] });
+  } catch { res.json({ entries: [] }); }
+});
+
 if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
 }

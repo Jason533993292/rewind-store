@@ -243,6 +243,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           { id: 'blocked', label: '🚫 Blocked' },
           { id: 'products', label: '🛍️ Products' },
           { id: 'changelog', label: '📋 Changelog' },
+          { id: 'audit', label: '📜 Audit Log' },
           { id: 'edit', label: editProduct ? '✏️ ' + editProduct.name : null },
         ].filter(t => t.label).map((t) => (
           <button key={t.id} onClick={() => setAdminTab(t.id)}
@@ -729,6 +730,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
             ))}
           </div>
           )}
+
+          {/* ── Audit Log ── */}
+          {adminTab === 'audit' && <AuditLogPanel adminToken={adminToken} />}
 
           {/* ── Chats ── */}
           {adminTab === 'chats' && <AdminChatPanel adminToken={adminToken} chatUnread={chatUnread} setChatUnread={setChatUnread} />}
@@ -2133,6 +2137,71 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
         </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/* ── Audit Log Panel ── */
+function AuditLogPanel({ adminToken }) {
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/admin/audit-log', { headers: { 'x-admin-token': adminToken } });
+        const d = await r.json();
+        setEntries(Array.isArray(d.entries) ? d.entries : []);
+      } catch {}
+      setLoading(false);
+    })();
+  }, [adminToken]);
+
+  const actionLabels = {
+    block_email: '🚫 Blocked email',
+    unblock_email: '✅ Unblocked email',
+    block_ip: '🚫 Blocked IP',
+    unblock_ip: '✅ Unblocked IP',
+    cancel_order: '✕ Cancelled order',
+    create_promo: '🎁 Created promo code',
+  };
+
+  return (
+    <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📜 Admin audit trail</h3>
+        <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{entries.length} entries</span>
+      </div>
+      {loading ? (
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Loading...</p>
+      ) : entries.length === 0 ? (
+        <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No audit entries yet. They appear after admin actions (blocks, cancels, promo codes).</p>
+      ) : (
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead><tr style={{ background: 'var(--line)', textAlign: 'left' }}>
+              <th style={{ padding: '8px 12px' }}>When</th>
+              <th style={{ padding: '8px 12px' }}>Admin</th>
+              <th style={{ padding: '8px 12px' }}>Action</th>
+              <th style={{ padding: '8px 12px' }}>Details</th>
+            </tr></thead>
+            <tbody>
+              {entries.map(e => (
+                <tr key={e.id} style={{ borderTop: '1px solid var(--line)' }}>
+                  <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: 'var(--muted)', fontSize: '12px' }}>
+                    {new Date(e.created_at).toLocaleString()}
+                  </td>
+                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>{e.admin_email}</td>
+                  <td style={{ padding: '8px 12px' }}>{actionLabels[e.action] || e.action}</td>
+                  <td style={{ padding: '8px 12px', color: 'var(--muted)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {e.details || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
