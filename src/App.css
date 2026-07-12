@@ -334,9 +334,9 @@ a { color: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .rw-card { animation: none; }
 }
-.rw-card-media { position: relative; overflow: hidden; }
-.rw-card-media .rw-photo { transition: transform .3s ease, box-shadow .3s ease; }
-.rw-card:hover .rw-photo { transform: translateY(-4px); box-shadow: var(--shadow); }
+.rw-card-media { position: relative; overflow: hidden; border-radius: var(--r-sm); }
+.rw-card-media .rw-photo { border-radius: 0; transition: transform .3s ease, box-shadow .3s ease; }
+.rw-card:hover .rw-photo { transform: scale(1.03); box-shadow: var(--shadow); }
 .rw-card-tags {
   position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column;
   gap: 6px; z-index: 3; pointer-events: none;
