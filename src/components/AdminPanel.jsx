@@ -2145,17 +2145,18 @@ function ProductForm({ editProduct, onClearEdit, customProducts, setCustomProduc
 function AuditLogPanel({ adminToken }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState('');
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch('/api/admin/audit-log', { headers: { 'x-admin-token': adminToken } });
-        const d = await r.json();
-        setEntries(Array.isArray(d.entries) ? d.entries : []);
-      } catch {}
-      setLoading(false);
-    })();
-  }, [adminToken]);
+  const load = async () => {
+    try {
+      const r = await fetch('/api/admin/audit-log', { headers: { 'x-admin-token': adminToken } });
+      const d = await r.json();
+      setEntries(Array.isArray(d.entries) ? d.entries : []);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [adminToken]);
 
   const actionLabels = {
     block_email: '🚫 Blocked email',
@@ -2166,12 +2167,51 @@ function AuditLogPanel({ adminToken }) {
     create_promo: '🎁 Created promo code',
   };
 
+  async function blockEmail(email) {
+    if (!window.confirm(`Block ${email} from the store?`)) return;
+    await fetch('/api/admin/block-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+      body: JSON.stringify({ email }),
+    });
+    setMsg(`🚫 ${email} blocked`);
+    setTimeout(() => setMsg(''), 3000);
+  }
+
+  async function unblockEmail(email) {
+    if (!window.confirm(`Unblock ${email}?`)) return;
+    await fetch('/api/admin/unblock-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+      body: JSON.stringify({ email }),
+    });
+    setMsg(`✅ ${email} unblocked`);
+    setTimeout(() => setMsg(''), 3000);
+  }
+
+  async function blockIp(ip) {
+    if (!window.confirm(`Block IP ${ip}?`)) return;
+    await fetch('/api/admin/block-ip', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+      body: JSON.stringify({ ip }),
+    });
+    setMsg(`🚫 IP ${ip} blocked`);
+    setTimeout(() => setMsg(''), 3000);
+  }
+
+  // Guess what type of detail this is — email or IP
+  function isEmail(v) { return /^\S+@\S+\.\S+$/.test(v); }
+  function isIp(v) { return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v); }
+
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📜 Admin audit trail</h3>
         <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{entries.length} entries</span>
       </div>
+      {msg && (
+        <div style={{ padding: '8px 12px', borderRadius: '8px', marginBottom: '12px', fontSize: '13px', fontWeight: 600, background: 'color-mix(in oklab, var(--ink) 12%, transparent)', color: 'var(--ink)' }}>
+          {msg}
+        </div>
+      )}
       {loading ? (
         <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Loading...</p>
       ) : entries.length === 0 ? (
@@ -2181,23 +2221,57 @@ function AuditLogPanel({ adminToken }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
             <thead><tr style={{ background: 'var(--line)', textAlign: 'left' }}>
               <th style={{ padding: '8px 12px' }}>When</th>
-              <th style={{ padding: '8px 12px' }}>Admin</th>
               <th style={{ padding: '8px 12px' }}>Action</th>
               <th style={{ padding: '8px 12px' }}>Details</th>
+              <th style={{ padding: '8px 12px' }}></th>
             </tr></thead>
             <tbody>
-              {entries.map(e => (
+              {entries.map(e => {
+                const detail = e.details || '';
+                const showBlockEmail = isEmail(detail) && e.action !== 'block_email' && e.action !== 'unblock_email';
+                const showBlockIp = isIp(detail) && e.action !== 'block_ip' && e.action !== 'unblock_ip';
+                const showUnblockEmail = e.action === 'block_email' && isEmail(detail);
+                const isAlreadyBlockedAction = e.action === 'block_email' || e.action === 'block_ip';
+                return (
                 <tr key={e.id} style={{ borderTop: '1px solid var(--line)' }}>
                   <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: 'var(--muted)', fontSize: '12px' }}>
                     {new Date(e.created_at).toLocaleString()}
                   </td>
-                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>{e.admin_email}</td>
                   <td style={{ padding: '8px 12px' }}>{actionLabels[e.action] || e.action}</td>
-                  <td style={{ padding: '8px 12px', color: 'var(--muted)', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {e.details || '—'}
+                  <td style={{ padding: '8px 12px', color: 'var(--muted)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {detail || '—'}
+                  </td>
+                  <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>
+                    {showBlockEmail && (
+                      <button onClick={() => blockEmail(detail)}
+                        style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}
+                        onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; }}
+                        onMouseOut={e => { e.target.style.background = 'color-mix(in oklab, var(--accent) 15%, transparent)'; e.target.style.color = 'var(--accent)'; }}>
+                        🚫 Block
+                      </button>
+                    )}
+                    {showBlockIp && (
+                      <button onClick={() => blockIp(detail)}
+                        style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}
+                        onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; }}
+                        onMouseOut={e => { e.target.style.background = 'color-mix(in oklab, var(--accent) 15%, transparent)'; e.target.style.color = 'var(--accent)'; }}>
+                        🚫 Block IP
+                      </button>
+                    )}
+                    {showUnblockEmail && (
+                      <button onClick={() => unblockEmail(detail)}
+                        style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--ink)', background: 'var(--surface)', color: 'var(--ink)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}
+                        onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                        onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; }}>
+                        ✅ Unblock
+                      </button>
+                    )}
+                    {!showBlockEmail && !showBlockIp && !showUnblockEmail && isAlreadyBlockedAction && (
+                      <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Done</span>
+                    )}
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
