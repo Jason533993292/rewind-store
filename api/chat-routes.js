@@ -397,6 +397,16 @@ Reply helpfully but briefly. If you don't know the answer, say "Contact the owne
       results.euroPromptTest = { error: e.message };
     }
 
+    // Also call getAiAutoReply directly to test the exact function
+    try {
+      // Import as dynamic ESM import
+      const mod = await import(/* webpackIgnore: true */ './chat-routes.js');
+      const autoReply = await mod.getAiAutoReply('What material is the polo set made of?');
+      results.getAiAutoReplyResult = autoReply || 'NULL';
+    } catch (e) {
+      results.getAiAutoReplyResult = 'IMPORT_ERROR: ' + e.message;
+    }
+
     results.finalHealthCheck = 'ok';
     res.json(results);
   });
