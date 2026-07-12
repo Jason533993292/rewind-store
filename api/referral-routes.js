@@ -335,7 +335,9 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
               fromPromoTable: true,
             });
           }
-        } catch {}
+        } catch (e) {
+          console.warn('Promo fallback error:', e.message);
+        }
         return res.json({ valid: false, error: 'Referral code not found' });
       }
 
