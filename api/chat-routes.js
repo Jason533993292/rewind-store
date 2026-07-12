@@ -132,27 +132,21 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
       res.json({ session_id });
 
-      // Auto-reply with AI (fire-and-forget, separate try/catch so it never touches res)
-      (async () => {
-        // Daily AI reply cap: 15 per IP
-        const ip = getIp(req);
-        const aiKey = `ai:${ip}`;
-        const aiDay = Math.floor(Date.now() / 86400000);
-        const aiPrev = aiReplyCount.get(aiKey);
-        if (aiPrev && aiPrev.day === aiDay && aiPrev.count >= 15) return;
-        aiReplyCount.set(aiKey, { day: aiDay, count: (aiPrev?.count || 0) + 1 });
-        try {
-          const reply = await getAiAutoReply(message);
-          if (reply) {
-            await sfetch('/chat_messages', {
-              method: 'POST',
-              body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
-            });
-          }
-        } catch (e) {
-          console.warn('AI auto-reply failed:', e.message);
+      // Auto-reply with AI — call synchronously so errors are visible
+      try {
+        const reply = await getAiAutoReply(message.trim());
+        if (reply) {
+          await sfetch('/chat_messages', {
+            method: 'POST',
+            body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
+          });
+          console.log('AI reply saved for', session_id);
+        } else {
+          console.warn('AI returned null reply for', session_id);
         }
-      })();
+      } catch (e) {
+        console.error('AI auto-reply failed:', e.message);
+      }
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
