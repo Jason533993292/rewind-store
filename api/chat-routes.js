@@ -142,7 +142,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
             });
             aiDebug = 'SAVED_OK';
           } catch (saveErr) {
-            aiDebug = 'SAVE_FAILED: ' + saveErr.message.slice(0, 60);
+            aiDebug = 'SAVE_FAILED: ' + saveErr.message.slice(0, 300);
           }
         } else {
           aiDebug = 'AI_NULL';
