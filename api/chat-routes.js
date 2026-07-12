@@ -362,6 +362,39 @@ Reply helpfully but briefly. If you don't know, say "Contact orders@rewind-store
         results.geminiFullPrompt = { error: e.message };
       }
     }
+    // Test the actual getAiAutoReply function by replicating its logic inline
+    try {
+      const OPENAI_KEY = process.env.OPENAI_API_KEY;
+      const GEMINI_KEY = process.env.GEMINI_API_KEY;
+      let aiReply = null;
+
+      // Try OpenAI (same logic as getAiAutoReply)
+      if (OPENAI_KEY) {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${OPENAI_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: 'You help REWIND customers.' }, { role: 'user', content: 'How long does EU shipping take?' }], max_tokens: 100 }),
+        });
+        if (r.ok) { const d = await r.json(); aiReply = d?.choices?.[0]?.message?.content; }
+        else results.openaiChatAttempt = { status: r.status, error: (await r.text()).slice(0, 100) };
+      }
+
+      // Fallback to Gemini if OpenAI failed
+      if (!aiReply && GEMINI_KEY) {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'You are an AI assistant for REWIND vintage streetwear. Answer concisely. Shipping: EUR 8 flat within EU, free over EUR 150. Returns: 14-day free. Reply helpfully. Customer: "How long does EU shipping take?"' }] }], generationConfig: { maxOutputTokens: 100 } }),
+        });
+        if (r.ok) { const d = await r.json(); aiReply = d?.candidates?.[0]?.content?.parts?.[0]?.text; }
+        else results.geminiChatAttempt = { status: r.status, error: (await r.text()).slice(0, 100) };
+      }
+
+      results.actualAiFunction = aiReply || 'NULL';
+    } catch (e) {
+      results.actualAiFunction = 'ERROR: ' + e.message;
+    }
+
+    results.finalHealthCheck = 'ok';
     res.json(results);
   });
 
