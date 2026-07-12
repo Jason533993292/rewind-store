@@ -57,6 +57,37 @@ const BLOCKED_EMAILS = new Set();
   } catch (e) { console.warn('Failed to load blocked emails:', e.message); }
 })();
 
+// ── Admin audit logging ──
+// Logs every admin action to Supabase audit_log table for forensic traceability.
+async function auditLog(adminEmail, action, details) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!key || !url || !adminEmail) return;
+  try {
+    await fetch(`${url}/rest/v1/audit_log`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        admin_email: adminEmail,
+        action,
+        details: typeof details === 'string' ? details : JSON.stringify(details),
+        ip: '',
+        created_at: new Date().toISOString(),
+      }),
+    }).catch(() => {});
+  } catch {}
+}
+// Extract admin email from x-admin-token for audit logging
+function getAdminEmailFromToken(req) {
+  const token = (req.headers['x-admin-token'] || '').trim();
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length === 3) return Buffer.from(parts[0], 'base64url').toString('utf8');
+  } catch {}
+  return null;
+}
+
 app.use(async (req, res, next) => {
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress;
   if (BLOCKED_IPS.has(ip)) {
@@ -376,6 +407,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
       const errText = await promoRes.text();
       return res.status(500).json({ error: 'Supabase error: ' + errText });
     }
+    auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${discount}% off)`);
     res.json({ code: promoCode, discount });
   } catch (e) { res.status(500).json({ error: 'Failed to create promo: ' + e.message }); }
 });
@@ -640,6 +672,7 @@ app.post('/api/admin/block-ip', requireAdmin, express.json(), async (req, res) =
   if (!ip) return res.status(400).json({ error: 'IP required' });
   await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ip_address: ip }) });
   BLOCKED_IPS.set(ip, true);
+  auditLog(getAdminEmailFromToken(req), 'block_ip', ip);
   res.json({ ok: true });
 });
 
@@ -648,6 +681,7 @@ app.post('/api/admin/unblock-ip', requireAdmin, express.json(), async (req, res)
   if (!ip) return res.status(400).json({ error: 'IP required' });
   await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
   BLOCKED_IPS.delete(ip);
+  auditLog(getAdminEmailFromToken(req), 'unblock_ip', ip);
   res.json({ ok: true });
 });
 
@@ -687,6 +721,7 @@ app.post('/api/admin/block-email', requireAdmin, express.json(), async (req, res
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { method: 'POST', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }) });
     const d = await r.json();
     if (d.error) return res.status(500).json({ error: d.error });
+    auditLog(getAdminEmailFromToken(req), 'block_email', email);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -760,9 +795,8 @@ app.post('/api/admin/unblock-email', requireAdmin, express.json(), async (req, r
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
-    const d = await r.json();
-    if (d.error) return res.status(500).json({ error: d.error });
+    await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
+    auditLog(getAdminEmailFromToken(req), 'unblock_email', email);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -992,6 +1026,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
         </div>`,
       });
     }
+    auditLog(getAdminEmailFromToken(req), 'cancel_order', orderNum || orderId);
     res.json({ ok: true });
   } catch (err) {
     console.error('Cancel order error:', err);

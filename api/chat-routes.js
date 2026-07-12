@@ -178,6 +178,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   });
 
   // ── Customer: poll messages ──
+  // Protected: only the customer who owns the session (by IP) can read messages.
+  // Admin can read via /api/admin/chat/messages (requireAdmin-gated).
   router.get('/api/chat/messages', async (req, res) => {
     const { session_id } = req.query;
     if (!session_id) return res.status(400).json({ error: 'session_id required' });
@@ -185,6 +187,21 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       return res.status(429).json({ error: 'Polling too frequently' });
     }
     try {
+      // Verify the requesting IP owns this session
+      const reqIp = getIp(req);
+      let sessionOwnerIp = null;
+      try {
+        const ownerRes = await sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}&select=customer_ip`);
+        const ownerData = await ownerRes.json();
+        sessionOwnerIp = Array.isArray(ownerData) && ownerData.length > 0 ? ownerData[0].customer_ip : null;
+      } catch {}
+
+      // If the requesting IP doesn't match the session owner, reject
+      // (admin uses /api/admin/chat/messages instead — already requireAdmin-gated)
+      if (sessionOwnerIp && sessionOwnerIp !== reqIp) {
+        return res.json({ messages: [], status: 'unknown' });
+      }
+
       const [msgRes, sessRes] = await Promise.all([
         sfetch('/chat_messages?session_id=eq.' + encodeURIComponent(session_id) + '&order=created_at.asc&select=sender,message,created_at,read_by_customer'),
         sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id) + '&select=status'),
