@@ -333,6 +333,34 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         results.geminiTest = { error: e.message };
       }
     }
+    // Test Gemini with the full REWIND prompt (same as getAiAutoReply uses)
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const fullPrompt = `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
+
+- Shipping: EUR 8 flat rate within EU. Free shipping over EUR 150
+- Returns: 14-day free returns
+- Each item is unique (vintage, one of one)
+
+Customer message: "What is your return policy?"
+
+Reply helpfully but briefly. If you don't know, say "Contact orders@rewind-stores.com"`;
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { maxOutputTokens: 100 } }),
+        });
+        results.geminiFullPrompt = { status: r.status };
+        if (r.ok) {
+          const d = await r.json();
+          results.geminiFullPrompt.reply = d?.candidates?.[0]?.content?.parts?.[0]?.text?.slice(0, 200);
+        } else {
+          results.geminiFullPrompt.error = (await r.text()).slice(0, 200);
+        }
+      } catch (e) {
+        results.geminiFullPrompt = { error: e.message };
+      }
+    }
     res.json(results);
   });
 
