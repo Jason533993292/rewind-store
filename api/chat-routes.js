@@ -314,8 +314,13 @@ Reply helpfully but briefly. If you don't know the answer, say "Contact the owne
           max_tokens: 300,
         }),
       });
-      const data = await res.json();
-      return data?.choices?.[0]?.message?.content || null;
+      if (res.ok) {
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content;
+        if (reply) return reply;
+      } else {
+        console.warn('OpenAI API returned', res.status, (await res.text()).slice(0, 100));
+      }
     } catch (e) {
       console.warn('OpenAI reply failed:', e.message);
     }
@@ -345,8 +350,13 @@ Reply helpfully but briefly. If you don't know the answer, say "Contact the owne
           generationConfig: { maxOutputTokens: 300 },
         }),
       });
-      const data = await res.json();
-      return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+      if (res.ok) {
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) return reply;
+      } else {
+        console.warn('Gemini API returned', res.status);
+      }
     } catch (e) {
       console.warn('Gemini reply failed:', e.message);
     }
