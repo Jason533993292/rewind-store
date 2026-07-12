@@ -132,22 +132,21 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
       // Generate AI reply BEFORE sending response (Railway may close connection after res.json)
       let aiReply = null;
+      let aiDebug = null;
       try {
         aiReply = await getAiAutoReply(message.trim());
+        aiDebug = aiReply ? 'GOT_REPLY' : 'NULL_REPLY';
         if (aiReply) {
           await sfetch('/chat_messages', {
             method: 'POST',
             body: JSON.stringify({ session_id, sender: 'ai', message: aiReply }),
           });
-          console.log('AI reply saved for', session_id);
-        } else {
-          console.warn('AI returned null reply for', session_id);
         }
       } catch (e) {
-        console.error('AI auto-reply failed:', e.message);
+        aiDebug = 'ERROR: ' + e.message;
       }
 
-      res.json({ session_id });
+      res.json({ session_id, _aiDebug: aiDebug, _aiMsgLen: aiReply ? aiReply.length : 0 });
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
