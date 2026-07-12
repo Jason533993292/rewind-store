@@ -278,10 +278,28 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     } catch (e) { res.status(500).json({ error: 'Could not delete session' }); }
   });
 
+  // ── Diagnostic endpoint to check AI configuration ──
+  router.get('/api/chat/ai-status', async (req, res) => {
+    res.json({
+      openaiKeyPresent: !!process.env.OPENAI_API_KEY,
+      geminiKeyPresent: !!process.env.GEMINI_API_KEY,
+      nodeVersion: process.version,
+      hasFetch: typeof fetch !== 'undefined',
+    });
+  });
+
   return router;
 }
 
 // ── AI auto-reply for common questions ──
+// Used by the chat system to auto-answer FAQs about products, sizing, shipping
+// Falls back from OpenAI to Gemini so either works
+
+/**
+ * Try to get an AI reply from OpenAI, Gemini, or null if both fail.
+ * OpenAI is tried first; if it fails (key missing, error response, etc.)
+ * the function falls through to Gemini automatically.
+ */
 // Used by the chat system to auto-answer FAQs about products, sizing, shipping
 // Uses OpenAI API (Gemini key is available as fallback)
 export async function getAiAutoReply(messageText) {
