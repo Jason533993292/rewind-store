@@ -628,14 +628,14 @@ app.post('/api/stripe-webhook', async (req, res) => {
 // ── Admin: manage blocked IPs ──
 app.use('/api/admin', requireAdmin);
 
-app.get('/api/admin/blocked-ips', async (req, res) => {
+app.get('/api/admin/blocked-ips', requireAdmin, async (req, res) => {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
     res.json({ ips: await r.json() || [] });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/block-ip', express.json(), async (req, res) => {
+app.post('/api/admin/block-ip', requireAdmin, express.json(), async (req, res) => {
   const { ip } = req.body;
   if (!ip) return res.status(400).json({ error: 'IP required' });
   await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ip_address: ip }) });
@@ -643,7 +643,7 @@ app.post('/api/admin/block-ip', express.json(), async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/admin/unblock-ip', express.json(), async (req, res) => {
+app.post('/api/admin/unblock-ip', requireAdmin, express.json(), async (req, res) => {
   const { ip } = req.body;
   if (!ip) return res.status(400).json({ error: 'IP required' });
   await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
@@ -673,14 +673,14 @@ app.post('/api/check-blocked-email', express.json(), async (req, res) => {
 });
 
 // ── Admin: manage blocked emails ──
-app.get('/api/admin/blocked-emails', async (req, res) => {
+app.get('/api/admin/blocked-emails', requireAdmin, async (req, res) => {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
     res.json({ emails: await r.json() || [] });
   } catch { res.json({ emails: [] }); }
 });
 
-app.post('/api/admin/block-email', express.json(), async (req, res) => {
+app.post('/api/admin/block-email', requireAdmin, express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -692,7 +692,7 @@ app.post('/api/admin/block-email', express.json(), async (req, res) => {
 });
 
 // ── Admin: block a chat customer (email + IP) ──
-app.post('/api/admin/block-customer', express.json(), async (req, res) => {
+app.post('/api/admin/block-customer', requireAdmin, express.json(), async (req, res) => {
   const { session_id, email, ip } = req.body;
   if (!session_id && !email) return res.status(400).json({ error: 'session_id or email required' });
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -756,7 +756,7 @@ app.post('/api/admin/block-customer', express.json(), async (req, res) => {
   res.json({ ok: results.emailBlocked || results.ipBlocked, ...results, errors: errors.length > 0 ? errors : undefined });
 });
 
-app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
+app.post('/api/admin/unblock-email', requireAdmin, express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -768,7 +768,7 @@ app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
 });
 
 // ── Admin: list all user emails from orders + wishlists ──
-app.get('/api/admin/user-emails', async (req, res) => {
+app.get('/api/admin/user-emails', requireAdmin, async (req, res) => {
   try {
     const [ords, wls] = await Promise.all([
       fetch(`${SUPABASE_URL}/rest/v1/orders?select=email`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }).then(r => r.json()),

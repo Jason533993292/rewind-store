@@ -134,8 +134,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
       // Auto-reply with AI (fire-and-forget, separate try/catch so it never touches res)
       (async () => {
-        const GEMINI_KEY = process.env.GEMINI_API_KEY;
-        if (!GEMINI_KEY) return;
         // Daily AI reply cap: 15 per IP
         const ip = getIp(req);
         const aiKey = `ai:${ip}`;
@@ -144,7 +142,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         if (aiPrev && aiPrev.day === aiDay && aiPrev.count >= 15) return;
         aiReplyCount.set(aiKey, { day: aiDay, count: (aiPrev?.count || 0) + 1 });
         try {
-          const reply = await getAiAutoReply(message, GEMINI_KEY);
+          const reply = await getAiAutoReply(message);
           if (reply) {
             await sfetch('/chat_messages', {
               method: 'POST',
@@ -285,15 +283,53 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
 // ── AI auto-reply for common questions ──
 // Used by the chat system to auto-answer FAQs about products, sizing, shipping
-export async function getAiAutoReply(messageText, GEMINI_API_KEY) {
-  try {
-    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
+// Uses OpenAI API (Gemini key is available as fallback)
+export async function getAiAutoReply(messageText) {
+  // Try OpenAI first (already set in Railway env)
+  const OPENAI_KEY = process.env.OPENAI_API_KEY;
+  if (OPENAI_KEY) {
+    try {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
+
+- All product details (material, size, era, care) are listed in the product's info panel on the website
+- If the customer asks about a specific item, tell them to check the item details in the product card
+- Shipping: €8 flat rate within EU. Free shipping over €150
+- Returns: 14-day free returns
+- Each item is unique (vintage, one of one)
+- Items ship within 24 hours
+- Authenticated, steam-cleaned before shipping
+
+Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."` },
+            { role: 'user', content: messageText },
+          ],
+          max_tokens: 300,
+        }),
+      });
+      const data = await res.json();
+      return data?.choices?.[0]?.message?.content || null;
+    } catch (e) {
+      console.warn('OpenAI reply failed:', e.message);
+    }
+  }
+
+  // Fallback: try Gemini
+  const GEMINI_KEY = process.env.GEMINI_API_KEY;
+  if (GEMINI_KEY) {
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
 
 - All product details (material, size, era, care) are listed in the product's info panel on the website
 - If the customer asks about a specific item, tell them to check the item details in the product card
@@ -305,15 +341,16 @@ export async function getAiAutoReply(messageText, GEMINI_API_KEY) {
 
 Customer message: "${messageText}"
 
-Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."`
-          }]
-        }],
-        generationConfig: { maxOutputTokens: 300 },
-      }),
-    });
-    const aiData = await aiRes.json();
-    return aiData?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-  } catch {
-    return null;
+Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."` }] }],
+          generationConfig: { maxOutputTokens: 300 },
+        }),
+      });
+      const data = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    } catch (e) {
+      console.warn('Gemini reply failed:', e.message);
+    }
   }
+
+  return null;
 }

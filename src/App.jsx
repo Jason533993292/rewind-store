@@ -588,7 +588,11 @@ export default function App() {
   }, [query, customProducts]);
 
   // Admin check — used to gate admin-only UI elements
-  const isAdmin = !!localStorage.getItem('rw_admin_email');
+  // Checks for the actual session token, not just the email (which is
+  // trivially spoofable in localStorage). If the token is missing, admin
+  // UI buttons won't render — and even if they did, the server would
+  // reject any action since the real auth comes from the token.
+  const isAdmin = !!localStorage.getItem('rw_admin_email') && !!localStorage.getItem('rw_admin_token');
   // Only activate admin mode if the user has a verified admin email saved,
   // NOT just because #admin is in the URL (security: prevents full admin
   // panel access by anyone who navigates to /#admin).
@@ -1086,7 +1090,7 @@ export default function App() {
         </React.Suspense>
       )}
 
-      {(showTweaks || window.location.search.includes('tweaks')) && <TweaksPanel>
+      {isAdmin && (showTweaks || window.location.search.includes('tweaks')) && <TweaksPanel>
         <TweakToggle label="Live sale countdown" value={t.showCountdown} onChange={(v) => setTweak('showCountdown', v)} />
         <TweakToggle label='"Was" pricing & % off' value={t.showCompare} onChange={(v) => setTweak('showCompare', v)} />
         <TweakToggle label="Low-stock badges" value={t.showStock} onChange={(v) => setTweak('showStock', v)} />

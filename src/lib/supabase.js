@@ -167,19 +167,6 @@ export async function uploadProductImage(file, productId) {
 
 /* ── Orders API (admin-only, route through server API) ── */
 
-export async function saveOrder(order) {
-  // This is called from the checkout flow — route through server API
-  try {
-    const r = await fetch('/api/save-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(order),
-    });
-    const d = await r.json();
-    return d.ok ? order : null;
-  } catch { return null; }
-}
-
 export async function getOrders() {
   const token = getAdminToken();
   if (!token) return [];

@@ -44,7 +44,7 @@ export default function ChatBubble() {
       setMessages(msgs);
       setSessionStatus(d.status || 'open');
 
-      const unreadAdmin = msgs.filter(m => m.sender === 'admin' && !m.read_by_customer).length;
+      const unreadAdmin = msgs.filter(m => (m.sender === 'admin' || m.sender === 'ai') && !m.read_by_customer).length;
       if (!open) {
         if (unreadAdmin > lastCountRef.current) beep();
         setUnread(unreadAdmin);
@@ -157,7 +157,7 @@ export default function ChatBubble() {
               <div key={i} style={{
                 alignSelf: m.sender === 'admin' || m.sender === 'ai' ? 'flex-start' : 'flex-end',
                 background: m.sender === 'admin' || m.sender === 'ai' ? '#F1EEE7' : 'var(--accent, #FF4D14)',
-                color: m.sender === 'admin' ? '#16130F' : '#fff',
+                color: m.sender === 'admin' || m.sender === 'ai' ? '#16130F' : '#fff',
                 borderRadius: '12px', padding: '8px 12px', fontSize: '13px', maxWidth: '80%',
                 whiteSpace: 'pre-wrap', wordBreak: 'break-word',
               }}>
