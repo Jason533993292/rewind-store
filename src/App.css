@@ -334,9 +334,10 @@ a { color: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .rw-card { animation: none; }
 }
+.rw-card { transition: transform .25s ease, box-shadow .25s ease; border-radius: var(--r-sm); }
+.rw-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
 .rw-card-media { position: relative; overflow: hidden; border-radius: var(--r-sm); }
-.rw-card-media .rw-photo { border-radius: 0; transition: transform .3s ease, box-shadow .3s ease; }
-.rw-card:hover .rw-photo { transform: scale(1.03); box-shadow: var(--shadow); }
+.rw-card-media .rw-photo { transition: transform .3s ease, box-shadow .3s ease; }
 .rw-card-tags {
   position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column;
   gap: 6px; z-index: 3; pointer-events: none;
