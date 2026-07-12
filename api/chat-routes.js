@@ -130,28 +130,22 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      // Generate AI reply and save before responding
-      let aiDebug = 'SKIPPED';
-      try {
-        const reply = await getAiAutoReply(message.trim());
-        if (reply) {
-          try {
+      // Auto-reply with AI (fire-and-forget so the response is not delayed)
+      (async () => {
+        try {
+          const reply = await getAiAutoReply(message.trim());
+          if (reply) {
             await sfetch('/chat_messages', {
               method: 'POST',
               body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
             });
-            aiDebug = 'SAVED_OK';
-          } catch (saveErr) {
-            aiDebug = 'SAVE_FAILED: ' + saveErr.message.slice(0, 300);
           }
-        } else {
-          aiDebug = 'AI_NULL';
+        } catch (e) {
+          console.warn('AI auto-reply failed:', e.message);
         }
-      } catch (e) {
-        aiDebug = 'AI_ERROR: ' + e.message.slice(0, 60);
-      }
+      })();
 
-      res.json({ session_id, _aiDebug: aiDebug });
+      res.json({ session_id });
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
