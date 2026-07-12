@@ -282,7 +282,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       openaiTest: null,
       geminiTest: null,
     };
-    // Actually test the OpenAI key with a minimal call
+    // Actually test the OpenAI key with a minimal call AND a chat completion
     if (process.env.OPENAI_API_KEY) {
       try {
         const r = await fetch('https://api.openai.com/v1/models', {
@@ -295,6 +295,19 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         } else {
           const text = await r.text();
           results.openaiTest.error = text.slice(0, 150);
+        }
+        // Also test a real chat completion
+        const chatR = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'Say hi' }], max_tokens: 5 }),
+        });
+        results.openaiChat = { status: chatR.status };
+        if (chatR.ok) {
+          const d = await chatR.json();
+          results.openaiChat.reply = d?.choices?.[0]?.message?.content;
+        } else {
+          results.openaiChat.error = (await chatR.text()).slice(0, 200);
         }
       } catch (e) {
         results.openaiTest = { error: e.message };
