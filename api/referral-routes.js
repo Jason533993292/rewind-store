@@ -320,12 +320,12 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         // (admin-generated promo codes from settings panel live there)
         try {
           const promoRes = await fetchSupabase('promo_codes', {
-            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,uses,max_uses`,
+            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,used`,
           });
           if (Array.isArray(promoRes) && promoRes.length > 0) {
             const p = promoRes[0];
-            if (p.max_uses != null && (p.uses || 0) >= p.max_uses) {
-              return res.json({ valid: false, error: 'This promo code has reached its maximum uses' });
+            if (p.used) {
+              return res.json({ valid: false, error: 'This promo code has already been used' });
             }
             return res.json({
               valid: true,
