@@ -130,20 +130,21 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      // Auto-reply with AI (fire-and-forget so the response is not delayed)
-      (async () => {
-        try {
-          const reply = await getAiAutoReply(message.trim());
-          if (reply) {
-            await sfetch('/chat_messages', {
-              method: 'POST',
-              body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
-            });
-          }
-        } catch (e) {
-          console.warn('AI auto-reply failed:', e.message);
+      // Generate AI reply (with timeout) and save before responding
+      try {
+        const reply = await Promise.race([
+          getAiAutoReply(message.trim()),
+          new Promise(resolve => setTimeout(() => resolve(null), 15000)),
+        ]);
+        if (reply) {
+          await sfetch('/chat_messages', {
+            method: 'POST',
+            body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
+          });
         }
-      })();
+      } catch (e) {
+        console.warn('AI auto-reply error:', e.message);
+      }
 
       res.json({ session_id });
     } catch (e) {
