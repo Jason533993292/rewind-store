@@ -280,12 +280,53 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
   // ── Diagnostic endpoint to check AI configuration ──
   router.get('/api/chat/ai-status', async (req, res) => {
-    res.json({
+    const results = {
       openaiKeyPresent: !!process.env.OPENAI_API_KEY,
       geminiKeyPresent: !!process.env.GEMINI_API_KEY,
       nodeVersion: process.version,
       hasFetch: typeof fetch !== 'undefined',
-    });
+      openaiTest: null,
+      geminiTest: null,
+    };
+    // Actually test the OpenAI key with a minimal call
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        const r = await fetch('https://api.openai.com/v1/models', {
+          headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        });
+        results.openaiTest = { status: r.status };
+        if (r.ok) {
+          const data = await r.json();
+          results.openaiTest.modelCount = data?.data?.length || 0;
+        } else {
+          const text = await r.text();
+          results.openaiTest.error = text.slice(0, 150);
+        }
+      } catch (e) {
+        results.openaiTest = { error: e.message };
+      }
+    }
+    // Actually test the Gemini key with a minimal call
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Say hi' }] }], generationConfig: { maxOutputTokens: 5 } }),
+        });
+        results.geminiTest = { status: r.status };
+        if (r.ok) {
+          const data = await r.json();
+          results.geminiTest.reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        } else {
+          const text = await r.text();
+          results.geminiTest.error = text.slice(0, 150);
+        }
+      } catch (e) {
+        results.geminiTest = { error: e.message };
+      }
+    }
+    res.json(results);
   });
 
   return router;
