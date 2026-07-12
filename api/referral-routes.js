@@ -336,7 +336,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
             });
           }
         } catch (e) {
-          console.warn('Promo fallback error:', e.message);
+          return res.json({ valid: false, error: 'Fallback error: ' + e.message.slice(0, 100) });
         }
         return res.json({ valid: false, error: 'Referral code not found' });
       }
