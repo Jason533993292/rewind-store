@@ -130,15 +130,14 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      res.json({ session_id });
-
-      // Auto-reply with AI — call synchronously so errors are visible
+      // Generate AI reply BEFORE sending response (Railway may close connection after res.json)
+      let aiReply = null;
       try {
-        const reply = await getAiAutoReply(message.trim());
-        if (reply) {
+        aiReply = await getAiAutoReply(message.trim());
+        if (aiReply) {
           await sfetch('/chat_messages', {
             method: 'POST',
-            body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
+            body: JSON.stringify({ session_id, sender: 'ai', message: aiReply }),
           });
           console.log('AI reply saved for', session_id);
         } else {
@@ -147,6 +146,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       } catch (e) {
         console.error('AI auto-reply failed:', e.message);
       }
+
+      res.json({ session_id });
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
