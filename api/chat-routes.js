@@ -130,17 +130,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      // Generate AI reply — quick test: just check if the function works
-      let aiDebug = null;
-      try {
-        // Call getAiAutoReply with a short timeout
-        const result = await getAiAutoReply(message.trim());
-        aiDebug = result ? `OK: ${result.slice(0, 50)}...` : 'NULL';
-      } catch (e) {
-        aiDebug = 'ERROR: ' + e.message;
-      }
-
-      res.json({ session_id, _aiDebug: aiDebug });
+      // Temporarily skip AI call — just test if the handler works without it
+      res.json({ session_id, _aiDebug: 'SKIPPED' });
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
