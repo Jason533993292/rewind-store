@@ -130,12 +130,15 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      // Generate AI reply BEFORE sending response (Railway may close connection after res.json)
+      // Generate AI reply BEFORE sending response — with timeout so it never hangs
       let aiReply = null;
       let aiDebug = null;
       try {
-        aiReply = await getAiAutoReply(message.trim());
-        aiDebug = aiReply ? 'GOT_REPLY' : 'NULL_REPLY';
+        aiReply = await Promise.race([
+          getAiAutoReply(message.trim()),
+          new Promise(resolve => setTimeout(() => resolve(null), 8000)), // 8s timeout
+        ]);
+        aiDebug = aiReply ? 'GOT_REPLY' : 'NULL_OR_TIMEOUT';
         if (aiReply) {
           await sfetch('/chat_messages', {
             method: 'POST',
