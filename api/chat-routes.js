@@ -130,8 +130,22 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      // Temporarily skip AI call — just test if the handler works without it
-      res.json({ session_id, _aiDebug: 'SKIPPED' });
+      // Auto-reply with AI (fire-and-forget so the response is not delayed)
+      (async () => {
+        try {
+          const reply = await getAiAutoReply(message.trim());
+          if (reply) {
+            await sfetch('/chat_messages', {
+              method: 'POST',
+              body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
+            });
+          }
+        } catch (e) {
+          console.warn('AI auto-reply failed:', e.message);
+        }
+      })();
+
+      res.json({ session_id });
     } catch (e) {
       console.error('chat/start error:', e);
       res.status(500).json({ error: 'Could not start chat' });
@@ -264,134 +278,30 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       geminiKeyPresent: !!process.env.GEMINI_API_KEY,
       nodeVersion: process.version,
       hasFetch: typeof fetch !== 'undefined',
-      openaiTest: null,
-      geminiTest: null,
     };
-    // Actually test the OpenAI key with a minimal call AND a chat completion
+    // Quick test: call OpenAI models list
     if (process.env.OPENAI_API_KEY) {
       try {
         const r = await fetch('https://api.openai.com/v1/models', {
           headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
         });
-        results.openaiTest = { status: r.status };
-        if (r.ok) {
-          const data = await r.json();
-          results.openaiTest.modelCount = data?.data?.length || 0;
-        } else {
-          const text = await r.text();
-          results.openaiTest.error = text.slice(0, 150);
-        }
-        // Also test a real chat completion
-        const chatR = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'Say hi' }], max_tokens: 5 }),
-        });
-        results.openaiChat = { status: chatR.status };
-        if (chatR.ok) {
-          const d = await chatR.json();
-          results.openaiChat.reply = d?.choices?.[0]?.message?.content;
-        } else {
-          results.openaiChat.error = (await chatR.text()).slice(0, 200);
-        }
+        results.openaiModels = r.ok ? 'OK' : 'FAIL';
       } catch (e) {
-        results.openaiTest = { error: e.message };
+        results.openaiModels = 'ERROR';
       }
     }
-    // Actually test the Gemini key with a minimal call
+    // Quick test: call Gemini
     if (process.env.GEMINI_API_KEY) {
       try {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'Say hi' }] }], generationConfig: { maxOutputTokens: 5 } }),
-        });
-        results.geminiTest = { status: r.status };
-        if (r.ok) {
-          const data = await r.json();
-          results.geminiTest.reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        } else {
-          const text = await r.text();
-          results.geminiTest.error = text.slice(0, 150);
-        }
-      } catch (e) {
-        results.geminiTest = { error: e.message };
-      }
-    }
-    // Test Gemini with the full REWIND prompt (same as getAiAutoReply uses)
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        const fullPrompt = `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
-
-- Shipping: EUR 8 flat rate within EU. Free shipping over EUR 150
-- Returns: 14-day free returns
-- Each item is unique (vintage, one of one)
-
-Customer message: "What is your return policy?"
-
-Reply helpfully but briefly. If you don't know, say "Contact orders@rewind-stores.com"`;
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { maxOutputTokens: 100 } }),
-        });
-        results.geminiFullPrompt = { status: r.status };
-        if (r.ok) {
-          const d = await r.json();
-          results.geminiFullPrompt.reply = d?.candidates?.[0]?.content?.parts?.[0]?.text?.slice(0, 200);
-        } else {
-          results.geminiFullPrompt.error = (await r.text()).slice(0, 200);
-        }
-      } catch (e) {
-        results.geminiFullPrompt = { error: e.message };
-      }
-    }
-    // Also test with euro sign (€) instead of EUR — this is what getAiAutoReply uses
-    try {
-      const GEMINI_KEY = process.env.GEMINI_API_KEY;
-      if (GEMINI_KEY) {
-        const euroPrompt = `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
-
-- All product details (material, size, era, care) are listed in the product's info panel on the website
-- If the customer asks about a specific item, tell them to check the item details in the product card
-- Shipping: \u20AC8 flat rate within EU. Free shipping over \u20AC150
-- Returns: 14-day free returns
-- Each item is unique (vintage, one of one)
-- Items ship within 24 hours
-- Authenticated, steam-cleaned before shipping
-
-Customer message: "How long does EU shipping take?"
-
-Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."`;
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: euroPrompt }] }], generationConfig: { maxOutputTokens: 300 } }),
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with just: OK' }] }], generationConfig: { maxOutputTokens: 5 } }),
         });
-        results.euroPromptTest = { status: r.status };
-        if (r.ok) {
-          const d = await r.json();
-          const reply = d?.candidates?.[0]?.content?.parts?.[0]?.text;
-          results.euroPromptTest.reply = reply ? reply.slice(0, 200) : 'EMPTY';
-          results.euroPromptTest.replyLength = reply ? reply.length : 0;
-        } else {
-          results.euroPromptTest.error = (await r.text()).slice(0, 200);
-        }
+        results.geminiStatus = r.ok ? 'OK' : 'FAIL';
+      } catch (e) {
+        results.geminiStatus = 'ERROR';
       }
-    } catch (e) {
-      results.euroPromptTest = { error: e.message };
     }
-
-    // Also call getAiAutoReply directly to test the exact function
-    try {
-      // Import as dynamic ESM import
-      const mod = await import(/* webpackIgnore: true */ './chat-routes.js');
-      const autoReply = await mod.getAiAutoReply('What material is the polo set made of?');
-      results.getAiAutoReplyResult = autoReply || 'NULL';
-    } catch (e) {
-      results.getAiAutoReplyResult = 'IMPORT_ERROR: ' + e.message;
-    }
-
-    results.finalHealthCheck = 'ok';
     res.json(results);
   });
 
