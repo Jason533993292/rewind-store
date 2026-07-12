@@ -301,6 +301,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
 
   // ─────────────────────────────────────────────
   // 3. Validate a referral code (used during checkout)
+  //    Falls back to promo_codes table if not found in referral_codes
   // ─────────────────────────────────────────────
   router.post('/validate', strictLimiter, async (req, res) => {
     try {
@@ -315,6 +316,26 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
 
       if (!Array.isArray(codes) || codes.length === 0) {
+        // Not found in referral_codes — check promo_codes as fallback
+        // (admin-generated promo codes from settings panel live there)
+        try {
+          const promoRes = await fetchSupabase('promo_codes', {
+            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,uses,max_uses`,
+          });
+          if (Array.isArray(promoRes) && promoRes.length > 0) {
+            const p = promoRes[0];
+            if (p.max_uses != null && (p.uses || 0) >= p.max_uses) {
+              return res.json({ valid: false, error: 'This promo code has reached its maximum uses' });
+            }
+            return res.json({
+              valid: true,
+              discount: p.discount,
+              type: 'percent',
+              label: p.label || `${p.discount}% off`,
+              fromPromoTable: true,
+            });
+          }
+        } catch {}
         return res.json({ valid: false, error: 'Referral code not found' });
       }
 

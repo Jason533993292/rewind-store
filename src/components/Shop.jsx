@@ -427,6 +427,26 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       setOrderNum('RW-' + String(Date.now()).slice(-8));
     }
   }, [open]);
+
+  // Validate promo code with debounce — checks /api/referral/validate which
+  // also falls back to promo_codes table for admin-generated codes
+  useEffect(() => {
+    if (!promo.trim()) { setPromoData(null); setPromoValidating(false); return; }
+    const timer = setTimeout(async () => {
+      setPromoValidating(true);
+      try {
+        const r = await fetch('/api/referral/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: promo.trim() }),
+        });
+        const d = await r.json();
+        setPromoData(d);
+      } catch { setPromoData(null); }
+      setPromoValidating(false);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [promo]);
   const setField = (key) => (e) => setFormFields((prev) => ({ ...prev, [key]: e.target.value }));
 
   if (!open) return null;
