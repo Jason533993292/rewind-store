@@ -362,15 +362,15 @@ Reply helpfully but briefly. If you don't know, say "Contact orders@rewind-store
         results.geminiFullPrompt = { error: e.message };
       }
     }
-    // Test with the EXACT same prompt as getAiAutoReply
+    // Also test with euro sign (€) instead of EUR — this is what getAiAutoReply uses
     try {
       const GEMINI_KEY = process.env.GEMINI_API_KEY;
       if (GEMINI_KEY) {
-        const exactPrompt = `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
+        const euroPrompt = `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
 
 - All product details (material, size, era, care) are listed in the product's info panel on the website
 - If the customer asks about a specific item, tell them to check the item details in the product card
-- Shipping: EUR 8 flat rate within EU. Free shipping over EUR 150
+- Shipping: \u20AC8 flat rate within EU. Free shipping over \u20AC150
 - Returns: 14-day free returns
 - Each item is unique (vintage, one of one)
 - Items ship within 24 hours
@@ -381,21 +381,20 @@ Customer message: "How long does EU shipping take?"
 Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."`;
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: exactPrompt }] }], generationConfig: { maxOutputTokens: 300 } }),
+          body: JSON.stringify({ contents: [{ parts: [{ text: euroPrompt }] }], generationConfig: { maxOutputTokens: 300 } }),
         });
-        results.exactPromptTest = { status: r.status };
+        results.euroPromptTest = { status: r.status };
         if (r.ok) {
           const d = await r.json();
           const reply = d?.candidates?.[0]?.content?.parts?.[0]?.text;
-          results.exactPromptTest.reply = reply ? reply.slice(0, 200) : 'EMPTY';
-          results.exactPromptTest.hasCandidates = !!d?.candidates;
-          results.exactPromptTest.candidateCount = d?.candidates?.length || 0;
+          results.euroPromptTest.reply = reply ? reply.slice(0, 200) : 'EMPTY';
+          results.euroPromptTest.replyLength = reply ? reply.length : 0;
         } else {
-          results.exactPromptTest.error = (await r.text()).slice(0, 200);
+          results.euroPromptTest.error = (await r.text()).slice(0, 200);
         }
       }
     } catch (e) {
-      results.exactPromptTest = { error: e.message };
+      results.euroPromptTest = { error: e.message };
     }
 
     results.finalHealthCheck = 'ok';
