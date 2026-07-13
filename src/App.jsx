@@ -776,6 +776,7 @@ export default function App() {
 
   // Show product detail page instead of shop
   const viewContent = selectedProduct ? (
+    <>
     {/* Per-product JSON-LD for SEO */}
     {selectedProduct && (
       <script type="application/ld+json">
@@ -826,7 +827,8 @@ export default function App() {
       />
       </main>
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} cats={availableCats} />
-    </div>
+      </div>
+    </>
   ) : (
     <div className="rw-app" key="shop">
       {t.showBanner && <Banner showCountdown={t.showCountdown} />}

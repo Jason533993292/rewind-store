@@ -14,10 +14,31 @@
   <meta property="og:image" content="https://rewind-stores.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://rewind-stores.com" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="REWIND — Curated Vintage & Retro Sportswear" />
   <meta name="twitter:description" content="Worn once. Loved again. Hand-picked vintage, authenticated & shipped in 24h." />
   <meta name="twitter:image" content="https://rewind-stores.com/og-image.png" />
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "REWIND",
+    "url": "https://rewind-stores.com",
+    "description": "Hand-picked vintage tracksuits, retro jerseys & summer sets. Each item authenticated, steam-cleaned, and shipped within 24 hours.",
+    "image": "https://rewind-stores.com/og-image.png",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "BE"
+    },
+    "sameAs": [],
+    "currenciesAccepted": "EUR",
+    "paymentAccepted": ["Credit Card"],
+    "priceRange": "€34-€85"
+  }
+  </script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,8 +48,15 @@
   <!-- Icon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%23FF4D14'>↻</text></svg>" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='%23FF4D14'>↻</text></svg>" />
-  <script type="module" crossorigin src="/assets/index-BTAYZvlm.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DxKF99Nl.css">
+
+  <!-- Preconnect for faster API calls -->
+  <link rel="dns-prefetch" href="https://luiqimsfvllgsmzedncw.supabase.co" />
+  <link rel="dns-prefetch" href="https://api.stripe.com" />
+
+  <!-- PWA manifest hint -->
+  <link rel="manifest" href="/manifest.json" />
+  <script type="module" crossorigin src="/assets/index-C9Q-mP9A.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Cta5t2ug.css">
 </head>
 <body>
   <div id="root"></div>
