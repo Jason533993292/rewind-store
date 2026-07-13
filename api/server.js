@@ -525,6 +525,33 @@ app.post('/api/create-payment-intent', async (req, res) => {
 });
 
 // ── Get orders by email ──
+// ── Customer order lookup by email + order number ──
+app.post('/api/lookup-order', async (req, res) => {
+  const { email, orderNum } = req.body;
+  if (!email || !orderNum) return res.status(400).json({ error: 'Email and order number required' });
+  try {
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const r = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&email=eq.${encodeURIComponent(email)}&select=order_num,status,total,items,shipping,customer_name,created_at`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    const data = await r.json();
+    const order = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    if (!order) return res.json({ found: false });
+    res.json({
+      found: true,
+      order: {
+        order_num: order.order_num,
+        status: order.status,
+        total: order.total,
+        shipping: order.shipping,
+        customer_name: order.customer_name,
+        items: typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []),
+        created_at: order.created_at,
+      }
+    });
+  } catch { res.json({ found: false }); }
+});
+
 app.post('/api/get-orders', requireAdmin, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });

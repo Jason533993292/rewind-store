@@ -37,6 +37,19 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
   const [chatUnread, setChatUnread] = useState(0);
 
+  // Keyboard shortcuts: 1-9 for tabs
+  useEffect(() => {
+    const handler = (e) => {
+      const n = parseInt(e.key);
+      if (n >= 1 && n <= 9 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tabs = ['users', 'email', 'orders', 'chats', 'saved', 'blocked', 'products', 'changelog', 'audit'];
+        if (tabs[n - 1]) { setAdminTab(tabs[n - 1]); }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
   // is confirmed — prevents unnecessary API calls and potential data exposure
@@ -244,7 +257,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           { id: 'products', label: '🛍️ Products' },
           { id: 'changelog', label: '📋 Changelog' },
           { id: 'audit', label: '📜 Audit Log' },
-          { id: 'edit', label: editProduct ? '✏️ ' + editProduct.name : null },
         ].filter(t => t.label).map((t) => (
           <button key={t.id} onClick={() => setAdminTab(t.id)}
             style={{
@@ -259,6 +271,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
             {t.label}
           </button>
         ))}
+      </div>
+
+      {/* Keyboard shortcuts hint */}
+      <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '-16px', marginBottom: '24px', textAlign: 'center' }}>
+        Shortcuts: 1 Users · 2 Email · 3 Orders · 4 Chats · 5 Saved · 6 Blocked · 7 Products · 8 Changelog · 9 Audit
       </div>
 
       {!supabase && (

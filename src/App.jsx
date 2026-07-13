@@ -17,6 +17,7 @@ import { money } from './hooks/useCountdown';
 // needed behind #admin, so anonymous shoppers shouldn't download it.
 const AdminPanel = React.lazy(() => import('./components/AdminPanel.jsx'));
 const SettingsPanel = React.lazy(() => import('./components/SettingsPanel.jsx'));
+const Shop = React.lazy(() => import('./components/Shop.jsx'));
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -109,6 +110,7 @@ export default function App() {
   });
   const [orderNumber, setOrderNumber] = useState('');
   const [showTweaks, setShowTweaks] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const stored = localStorage.getItem('rw_recent');
@@ -774,7 +776,29 @@ export default function App() {
 
   // Show product detail page instead of shop
   const viewContent = selectedProduct ? (
-    <div className="rw-app" key="product-page">
+    {/* Per-product JSON-LD for SEO */}
+    {selectedProduct && (
+      <script type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": selectedProduct.name,
+          "description": (selectedProduct.note || selectedProduct.material || selectedProduct.name),
+          "image": selectedProduct.img || undefined,
+          "brand": { "@type": "Brand", "name": selectedProduct.brand || "REWIND" },
+          "offers": {
+            "@type": "Offer",
+            "price": selectedProduct.price,
+            "priceCurrency": "EUR",
+            "availability": (selectedProduct.stock && selectedProduct.stock > 0)
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            "url": `https://rewind-stores.com/#/product/${selectedProduct.id || selectedProduct.product_id}`
+          }
+        }, null, 2)}
+      </script>
+    )}
+    <div className="rw-product-page" id="rw-product-page">
       <Header cat={cat} setCat={(c) => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollPosRef.current = 0; scrollToGrid(); }} cartCount={cartCount}
         onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
         onWishlistOpen={() => setWishlistOpen(true)}
@@ -849,6 +873,40 @@ export default function App() {
               </>
             )}
           </aside>
+
+          {/* Mobile nav slide-out */}
+          <div className={"rw-mobile-nav-overlay" + (showMobileNav ? ' open' : '')} onClick={() => setShowMobileNav(false)} />
+          <div className={"rw-mobile-nav-sheet" + (showMobileNav ? ' open' : '')}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <strong style={{ fontSize: '16px' }}>Filters</strong>
+              <button onClick={() => setShowMobileNav(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', fontSize: '16px', display: 'grid', placeItems: 'center', color: 'var(--muted)' }} aria-label="Close filters">&times;</button>
+            </div>
+            <h3>Category</h3>
+            {availableCats.map((c) => (
+              <button key={c} onClick={() => { setCat(c); setShowMobileNav(false); scrollToGrid(); }}
+                style={{ fontWeight: cat === c ? 700 : 400, color: cat === c ? 'var(--surface)' : 'var(--ink)', background: cat === c ? 'var(--ink)' : 'transparent' }}>
+                {c === 'All' ? 'All' : c}
+              </button>
+            ))}
+            {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
+              <>
+                <h3>Brand</h3>
+                <button onClick={() => { setBrand(null); setShowMobileNav(false); scrollToGrid(); }}
+                  style={{ fontWeight: !brand ? 700 : 400, color: !brand ? 'var(--surface)' : 'var(--ink)', background: !brand ? 'var(--ink)' : 'transparent' }}>All</button>
+                {currentBrands.map((b) => (
+                  <button key={b} onClick={() => { setBrand(b); setShowMobileNav(false); scrollToGrid(); }}
+                    style={{ fontWeight: brand === b ? 700 : 400, color: brand === b ? 'var(--surface)' : 'var(--ink)', background: brand === b ? 'var(--ink)' : 'transparent' }}>{b}</button>
+                ))}
+              </>
+            )}
+            {(cat !== 'All' || brand !== null || query !== '' || sortBy !== '') && (
+              <button onClick={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); setShowMobileNav(false); scrollToGrid(); }}
+                style={{ marginTop: '12px', padding: '10px', borderRadius: '8px', border: '1px solid var(--accent)', background: 'transparent', color: 'var(--accent)', textAlign: 'center', fontWeight: 600, fontSize: '13px', width: '100%', cursor: 'pointer' }}>
+                Clear filters
+              </button>
+            )}
+          </div>
+
           <div className="rw-shop-content">
             {products.length > 0 && (
             <>
@@ -863,13 +921,13 @@ export default function App() {
                 <option value="price-asc">Price: Low → High</option>
                 <option value="price-desc">Price: High → Low</option>
               </select>
-              <select id="rw-mobile-cat" value={cat} onChange={e => { setCat(e.target.value); scrollToGrid(); }}
-                aria-label="Select category"
-                className="rw-sort">
-                {availableCats.map((c) => (
-                  <option key={c} value={c}>{c === 'All' ? 'All categories' : c}</option>
-                ))}
-              </select>
+              <button id="rw-mobile-filter-btn" onClick={() => setShowMobileNav(true)}
+                aria-label="Filter products"
+                style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', display: 'none', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+                className="rw-mobile-filter-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M2 4h12M4 8h8M6 12h4"/></svg>
+                Filter
+              </button>
               </div>
               {(cat !== 'All' || brand !== null || query !== '' || sortBy !== '') && (
                 <button onClick={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); scrollToGrid(); }}
