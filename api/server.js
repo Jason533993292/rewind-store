@@ -1151,6 +1151,13 @@ app.use('/api/settings', buildSettingsRouter({
   requireAdmin,
 }));
 
+// ── Customer locations (world map) ──
+const { buildLocationsRouter } = await import('./routes/orders-locations.js');
+app.use('/api/orders', buildLocationsRouter({
+  SUPABASE_URL,
+  SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+}));
+
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });

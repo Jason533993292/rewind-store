@@ -11,6 +11,7 @@ import SizeGuide from './components/SizeGuide';
 import InfoModal from './components/InfoModal';
 import ProductPage from './components/ProductPage';
 import RecentlyViewed from './components/RecentlyViewed';
+import CustomerMap from './components/CustomerMap';
 import { money } from './hooks/useCountdown';
 
 // Code-split — the admin panel (users/orders/products CRUD) is only ever
@@ -840,7 +841,8 @@ export default function App() {
         isAdmin={isAdmin} searchSuggestions={searchSuggestions} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
-      {/* Mobile scroll hint — shows a subtle indicator on first visit that there's more content below */}
+      <CustomerMap />
+      {/* Mobile scroll hint */}
       <main className="rw-shop">
         <div className="rw-shop-head" id={headingId}>
           <div className="rw-shop-headl">
