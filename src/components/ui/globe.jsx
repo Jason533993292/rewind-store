@@ -51,7 +51,7 @@ function Starfield({ radius, count = 2000 }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.6} color="#ffffff" sizeAttenuation transparent opacity={0.8} />
+      <pointsMaterial size={0.6} color="#ffffff" sizeAttenuation transparent opacity={0.9} depthTest={false} />
     </points>
   );
 }
@@ -161,9 +161,9 @@ export function Globe({ globeConfig, data }) {
     material.color = new Color('#020d24');
     material.emissive = new Color('#010812');
     material.emissiveIntensity = 0.05;
-    material.shininess = 0.4;
+    material.shininess = 0.3;
     material.transparent = true;
-    material.opacity = 0.92;
+    material.opacity = 0.85;
   }, [isInitialized, globeConfig.globeColor, globeConfig.emissive, globeConfig.emissiveIntensity, globeConfig.shininess]);
 
   useEffect(() => {
