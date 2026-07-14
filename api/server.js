@@ -1172,3 +1172,4 @@ app.use((req, res) => {
 
 // Export for Vercel serverless
 export default app;
+
