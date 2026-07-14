@@ -32,7 +32,8 @@
     "resend": "^6.17.1",
     "stripe": "^22.3.0",
     "three": "^0.185.1",
-    "three-globe": "^2.45.2"
+    "three-globe": "^2.45.2",
+    "topojson-client": "^3.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
