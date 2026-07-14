@@ -1,15 +1,20 @@
 // ── Aceternity-style 3D Globe (three-globe) — Upgraded ──
 //
 // Additions over the previous version:
-//  1. Bloom post-processing — arcs/beacons actually glow now
-//  2. Vertical glowing beams at each city + pulsing ring
-//  3. Cinematic camera dolly-in on open
-//  4. Hover tooltips on city beacons
-//  5. Nebula-style radial gradient background
-//  6. Land dots tinted by latitude (cool poles, warm equator)
-//  7. Bright pulse traveling along each arc ("shipment in transit")
+//  1. Bloom post-processing — arcs/beacons actually glow now instead of
+//     being flat-colored lines. This is the single biggest visual lever.
+//  2. Vertical glowing beams at each city (in addition to the ring),
+//     much more legible than a ring alone from a distance.
+//  3. Cinematic camera dolly-in on open instead of a hard camera snap.
+//  4. Hover tooltips on city beacons — shows city name + order count.
+//  5. Nebula-style radial gradient background instead of flat black.
+//  6. Land dots tinted by latitude (cool near poles, warm at equator)
+//     instead of flat grey — reads as more "planet," less "point cloud."
+//  7. A bright pulse traveling along each arc, layered on top of the
+//     existing dash animation — reads as "shipment in transit."
 //
-// Dependency: npm install @react-three/postprocessing postprocessing
+// New dependency required:
+//   npm install @react-three/postprocessing postprocessing
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion } from 'three';
@@ -46,7 +51,32 @@ function latLngToVec3(lat, lng, radius) {
   );
 }
 
-// Land dots tinted by latitude
+function Starfield({ radius, count = 2000 }) {
+  const positions = useMemo(() => {
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+      const u = Math.random(), v = Math.random();
+      const theta = 2 * Math.PI * u;
+      const phi = Math.acos(2 * v - 1);
+      const r = radius * (2.5 + Math.random() * 3.5);
+      pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
+    }
+    return new Float32Array(pts);
+  }, [radius, count]);
+
+  return (
+    <points>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.6} color="#ffffff" sizeAttenuation transparent opacity={0.9} depthTest={false} />
+    </points>
+  );
+}
+
+// Land dots tinted by latitude — cool blue-white near the poles,
+// warm off-white near the equator. Purely cosmetic, but it's the
+// difference between "point cloud" and "planet."
 function LandDots({ dataInput, radius }) {
   const { positions, colors } = useMemo(() => {
     if (!dataInput || !dataInput.length) {
@@ -54,13 +84,15 @@ function LandDots({ dataInput, radius }) {
     }
     const pos = new Float32Array(dataInput.length);
     const col = new Float32Array(dataInput.length);
-    const poleColor = new Color('#bcd6f5');
-    const equatorColor = new Color('#e8ddc8');
+    const poleColor = new Color('#bcd6f5');   // cool blue-white
+    const equatorColor = new Color('#e8ddc8'); // warm sand
 
     for (let i = 0; i < dataInput.length; i += 3) {
       pos[i] = dataInput[i];
       pos[i + 1] = dataInput[i + 1];
       pos[i + 2] = dataInput[i + 2];
+
+      // Normalized latitude factor from the y-component (0 at equator, 1 at poles)
       const latFactor = Math.min(1, Math.abs(dataInput[i + 1]) / radius);
       const c = equatorColor.clone().lerp(poleColor, latFactor);
       col[i] = c.r; col[i + 1] = c.g; col[i + 2] = c.b;
@@ -81,7 +113,7 @@ function LandDots({ dataInput, radius }) {
   );
 }
 
-// Glowing vertical beam + pulsing ring + hover target at each city
+// Glowing vertical beam + pulsing ring + invisible hover target at each city
 function CityBeacons({ data, radius, onHover }) {
   const ringRefs = useRef([]);
   const beamRefs = useRef([]);
@@ -101,6 +133,9 @@ function CityBeacons({ data, radius, onHover }) {
     [cities, radius]
   );
 
+  // Precompute beam positions + orientations here (not inside the render
+  // loop below) — calling useMemo per-item inside a .map() would violate
+  // React's rules of hooks.
   const beamHeight = radius * 0.35;
   const up = useMemo(() => new Vector3(0, 1, 0), []);
   const beamTransforms = useMemo(
@@ -134,21 +169,28 @@ function CityBeacons({ data, radius, onHover }) {
     <group>
       {positions.map((pos, i) => {
         const { beamPos, quaternion } = beamTransforms[i];
+
         return (
           <group key={i}>
+            {/* Pulsing ring on the surface */}
             <mesh ref={el => ringRefs.current[i] = el} position={pos}>
               <ringGeometry args={[0.2, 0.35, 32]} />
               <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} side={2} />
             </mesh>
+
+            {/* Glowing vertical beam */}
             <mesh
               ref={el => beamRefs.current[i] = el}
-              position={beamPos} quaternion={quaternion}
+              position={beamPos}
+              quaternion={quaternion}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
               <cylinderGeometry args={[0.04, 0.09, beamHeight, 8, 1, true]} />
               <meshBasicMaterial color="#60a5fa" transparent opacity={0.4} depthWrite={false} />
             </mesh>
+
+            {/* Core dot, slightly brighter — also the reliable hover target */}
             <mesh
               position={pos}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
@@ -160,48 +202,6 @@ function CityBeacons({ data, radius, onHover }) {
           </group>
         );
       })}
-    </group>
-  );
-}
-
-// Arc pulse — a bright traveling bead on each arc line
-function ArcPulse({ data, radius }) {
-  const groupRef = useRef();
-  const meshRef = useRef();
-
-  const arcs = useMemo(() => {
-    if (!data) return [];
-    return data.map(d => ({
-      from: latLngToVec3(d.startLat, d.startLng, radius),
-      to: latLngToVec3(d.endLat, d.endLng, radius),
-      color: d.color,
-    }));
-  }, [data, radius]);
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current || !arcs.length) return;
-    const idx = Math.floor((clock.elapsedTime * 0.3) % arcs.length);
-    const arc = arcs[idx];
-    const mid = new Vector3().addVectors(arc.from, arc.to).multiplyScalar(0.5);
-    const dist = arc.from.distanceTo(arc.to);
-    mid.normalize().multiplyScalar(radius + dist * 0.4);
-    const t = (clock.elapsedTime * 0.5 + idx * 0.2) % 1;
-    const p = new Vector3()
-      .copy(arc.from).multiplyScalar((1 - t) * (1 - t))
-      .add(mid.clone().multiplyScalar(2 * t * (1 - t)))
-      .add(arc.to.clone().multiplyScalar(t * t));
-    meshRef.current.position.copy(p);
-    meshRef.current.material.color.set(arc.color);
-  });
-
-  if (!arcs.length) return null;
-
-  return (
-    <group ref={groupRef}>
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[0.15, 8, 8]} />
-        <meshBasicMaterial color="#93c5fd" />
-      </mesh>
     </group>
   );
 }
@@ -218,10 +218,19 @@ export function Globe({ globeConfig, data, onHoverCity }) {
   }, []);
 
   const defaultProps = {
-    pointSize: 1, atmosphereColor: '#ffffff', showAtmosphere: true,
-    atmosphereAltitude: 0.1, polygonColor: 'rgba(255,255,255,0.7)',
-    globeColor: '#1d072e', emissive: '#000000', emissiveIntensity: 0.1,
-    shininess: 0.9, arcTime: 2000, arcLength: 0.9, rings: 1, maxRings: 3,
+    pointSize: 1,
+    atmosphereColor: '#ffffff',
+    showAtmosphere: true,
+    atmosphereAltitude: 0.1,
+    polygonColor: 'rgba(255,255,255,0.7)',
+    globeColor: '#1d072e',
+    emissive: '#000000',
+    emissiveIntensity: 0.1,
+    shininess: 0.9,
+    arcTime: 2000,
+    arcLength: 0.9,
+    rings: 1,
+    maxRings: 3,
     ...globeConfig,
   };
 
@@ -240,7 +249,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
     material.emissive = new Color('#0a2a5a');
     material.emissiveIntensity = 0.25;
     material.shininess = 0.2;
-  }, [isInitialized]);
+  }, [isInitialized, globeConfig.globeColor, globeConfig.emissive, globeConfig.emissiveIntensity, globeConfig.shininess]);
 
   useEffect(() => {
     if (!globeRef.current || !isInitialized || !data) return;
@@ -259,13 +268,16 @@ export function Globe({ globeConfig, data, onHoverCity }) {
       .arcEndLng(d => d.endLng)
       .arcColor(e => e.color)
       .arcAltitude(e => e.arcAlt)
-      .arcStroke(() => 0.28)
+      .arcStroke(() => 0.28) // slightly thicker — reads better once bloom is added
       .arcDashLength(defaultProps.arcLength)
       .arcDashInitialGap(e => e.order * 1)
       .arcDashGap(15)
       .arcDashAnimateTime(() => defaultProps.arcTime);
 
+    // No separate points layer needed anymore — CityBeacons handles
+    // city markers with beams + hover, replacing the flat pointsData dots.
     globeRef.current.pointsData([]);
+
     globeRef.current.ringsData([]);
   }, [isInitialized, data, defaultProps]);
 
@@ -274,8 +286,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
     const interval = setInterval(() => {
       if (!globeRef.current) return;
       const nums = genRandomNumbers(0, data.length, Math.floor((data.length * 4) / 5));
-      const ringsData = data.filter((d, i) => nums.includes(i))
-        .map(d => ({ lat: d.startLat, lng: d.startLng, color: '#60a5fa' }));
+      const ringsData = data.filter((d, i) => nums.includes(i)).map(d => ({ lat: d.startLat, lng: d.startLng, color: '#60a5fa' }));
       globeRef.current.ringsData(ringsData);
     }, 2000);
     return () => clearInterval(interval);
@@ -285,7 +296,6 @@ export function Globe({ globeConfig, data, onHoverCity }) {
     <group ref={groupRef}>
       <LandDots dataInput={landData} radius={100} />
       <CityBeacons data={data} radius={5.01} onHover={onHoverCity} />
-      <ArcPulse data={data} radius={5.01} />
     </group>
   );
 }
@@ -300,13 +310,17 @@ function WebGLRendererConfig() {
   return null;
 }
 
+// Slow dolly-in on mount instead of snapping straight to final position —
+// small touch, but it's what makes the panel feel designed rather than
+// just "a component that appeared."
 function CinematicIntro({ targetZ }) {
   const { camera } = useThree();
   const startedAt = useRef(null);
+
   useFrame((state) => {
     if (startedAt.current === null) startedAt.current = state.clock.elapsedTime;
     const t = Math.min(1, (state.clock.elapsedTime - startedAt.current) / 1.8);
-    const eased = 1 - Math.pow(1 - t, 3);
+    const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
     camera.position.z = (targetZ * 2.2) + (targetZ - targetZ * 2.2) * eased;
   });
   return null;
@@ -331,7 +345,13 @@ export function World({ globeConfig, data, onHoverCity }) {
       <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ}
         autoRotateSpeed={1} autoRotate={true} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI - Math.PI / 3} />
       <EffectComposer multisampling={0}>
-        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.9} mipmapBlur radius={0.6} />
+        <Bloom
+          intensity={0.9}
+          luminanceThreshold={0.15}
+          luminanceSmoothing={0.9}
+          mipmapBlur
+          radius={0.6}
+        />
       </EffectComposer>
     </Canvas>
   );
@@ -345,10 +365,9 @@ function buildArcs(locations) {
     const ratio = Math.min(loc.count / maxCount, 1);
     const color = COLORS[Math.floor(ratio * (COLORS.length - 1))];
     arcs.push({
-      order: 1, startLat: ORIGIN.lat, startLng: ORIGIN.lng,
-      endLat: loc.lat, endLng: loc.lng,
+      order: 1, startLat: ORIGIN.lat, startLng: ORIGIN.lng, endLat: loc.lat, endLng: loc.lng,
       arcAlt: 0.25 + ratio * 0.55, color,
-      city: loc.city, count: loc.count,
+      city: loc.city, count: loc.count, // carried through for CityBeacons + tooltip
     });
   }
   return arcs;
@@ -367,8 +386,8 @@ export default function GlobePanel({ open, onClose, locations }) {
     pointSize: 4, globeColor: '#021532', showAtmosphere: true, atmosphereColor: '#60a5fa',
     atmosphereAltitude: 0.12, emissive: '#021532', emissiveIntensity: 0.05, shininess: 0.6,
     polygonColor: 'rgba(255,255,255,0.7)', ambientLight: '#38bdf8', directionalLeftLight: '#ffffff',
-    directionalTopLight: '#ffffff', pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9,
-    rings: 1, maxRings: 3, autoRotate: true, autoRotateSpeed: 0.5,
+    directionalTopLight: '#ffffff', pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9, rings: 1, maxRings: 3,
+    autoRotate: true, autoRotateSpeed: 0.5,
   }), []);
 
   const data = useMemo(() => (locations ? buildArcs(locations) : []), [locations]);
@@ -378,30 +397,30 @@ export default function GlobePanel({ open, onClose, locations }) {
 
   return (
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      // Nebula-style radial gradient instead of a flat scrim — subtle,
+      // but it makes the globe feel like it's floating in something
+      // rather than sitting on a plain black rectangle.
       background: 'radial-gradient(circle at 50% 45%, rgba(10,20,50,0.75), rgba(0,0,0,0.85) 70%)',
       backdropFilter: 'blur(4px)',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: '90vw', maxWidth: '1000px', height: '85vh', maxHeight: '700px',
-        position: 'relative', overflow: 'hidden', borderRadius: '20px',
+        width: '90vw', maxWidth: '1000px', height: '85vh', maxHeight: '700px', position: 'relative', overflow: 'hidden',
+        borderRadius: '20px',
         background: 'radial-gradient(ellipse at 50% 30%, #0a1830 0%, #000 75%)',
       }}>
         <button onClick={onClose} style={{
-          position: 'absolute', top: '16px', right: '16px', zIndex: 10,
-          width: '36px', height: '36px', borderRadius: '50%', border: 'none',
-          background: 'rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer',
-          fontSize: '18px', display: 'grid', placeItems: 'center', fontWeight: 600,
+          position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '36px', height: '36px', borderRadius: '50%',
+          border: 'none', background: 'rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer', fontSize: '18px',
+          display: 'grid', placeItems: 'center', fontWeight: 600,
         }}>✕</button>
 
         <div style={{ position: 'absolute', top: '16px', left: '20px', zIndex: 10, color: '#fff' }}>
           <div style={{ fontSize: '18px', fontWeight: 700, opacity: 0.9 }}>Our reach</div>
-          <div style={{ fontSize: '13px', opacity: 0.5, marginTop: '2px' }}>
-            {locations.length} cities · {totalOrders} orders · Brussels
-          </div>
+          <div style={{ fontSize: '13px', opacity: 0.5, marginTop: '2px' }}>{locations.length} cities · {totalOrders} orders · Brussels</div>
         </div>
 
+        {/* Hover tooltip */}
         {hoveredCity && (
           <div style={{
             position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',

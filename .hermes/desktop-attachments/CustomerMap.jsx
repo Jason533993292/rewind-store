@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 const GLOBE_OPEN_EVENT = 'globe-panel-open';
-const COLORS = ['#06b6d4', '#3b82f6', '#6366f1'];
+const COLORS = ['#06b6d4', '#3b82f6', '#6366f1']; // same tier colors as the 3D globe's arcs
 
 function supportsWebGL() {
   try {
@@ -17,7 +17,7 @@ function supportsWebGL() {
 export default function CustomerMap() {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null);
+  const [modal, setModal] = useState(null); // null | 'loading' | 'globe' | 'map' | 'error'
   const [GlobePanel, setGlobePanel] = useState(null);
 
   useEffect(() => {
@@ -99,17 +99,21 @@ export default function CustomerMap() {
       </div>
 
       {modal === 'globe' && GlobePanel && (
-        <GlobePanel open={true} onClose={handleClose} locations={locations} />
+        <GlobePanel open={true} onClose={() => { setModal(null); setGlobePanel(null); }} locations={locations} />
       )}
 
       {modal === 'map' && (
-        <FullscreenMap locations={locations} onClose={handleClose} />
+        <FullscreenMap locations={locations} onClose={() => setModal(null)} />
       )}
     </>
   );
 }
 
 // ── Upgraded 2D fallback map ──
+// Same visual language as the 3D globe: glow via SVG filters, arc color
+// tiered by order count (same COLORS as the globe), pulsing destination
+// beacons, and tap-to-reveal tooltips (hover doesn't exist on the touch
+// devices this fallback mostly serves).
 function FullscreenMap({ locations, onClose }) {
   const total = useMemo(() => locations.reduce((s, l) => s + l.count, 0), [locations]);
   const maxCount = useMemo(() => Math.max(1, ...locations.map(l => l.count)), [locations]);
@@ -148,8 +152,8 @@ function FullscreenMap({ locations, onClose }) {
       backdropFilter: 'blur(4px)', padding: '16px',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: '90vw', maxWidth: '800px', borderRadius: '20px', padding: '24px',
-        position: 'relative', background: 'radial-gradient(ellipse at 50% 20%, #0a1830 0%, #05070d 75%)',
+        width: '90vw', maxWidth: '800px', borderRadius: '20px', padding: '24px', position: 'relative',
+        background: 'radial-gradient(ellipse at 50% 20%, #0a1830 0%, #05070d 75%)',
         boxShadow: '0 20px 60px rgba(0,0,0,0.5)', color: '#fff',
       }}>
         <button onClick={onClose} style={{
@@ -168,6 +172,8 @@ function FullscreenMap({ locations, onClose }) {
 
         <svg viewBox="0 0 800 450" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
           <defs>
+            {/* Soft glow used by both arcs and beacons — same visual
+                language as the bloom effect on the 3D globe */}
             <filter id="rw-glow" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="3.2" result="blur" />
               <feMerge>
@@ -183,6 +189,8 @@ function FullscreenMap({ locations, onClose }) {
 
           <rect width="800" height="450" rx="12" fill="#05070d" />
 
+          {/* Faint dotted world texture — subtler than before so the glowing
+              arcs/beacons read as the clear focal point */}
           {Array.from({ length: 800 / 26 }).flatMap((_, xi) =>
             Array.from({ length: 450 / 26 }).map((_, yi) => (
               <circle key={`${xi}-${yi}`} cx={13 + xi * 26} cy={13 + yi * 26} r={0.8}
@@ -190,6 +198,7 @@ function FullscreenMap({ locations, onClose }) {
             ))
           )}
 
+          {/* Warehouse origin — soft glow halo + solid core */}
           <circle cx={400} cy={225} r={22} fill="url(#rw-origin-glow)" />
           <circle cx={400} cy={225} r={4} fill="#FF7A3D" filter="url(#rw-glow)" />
 
@@ -205,19 +214,26 @@ function FullscreenMap({ locations, onClose }) {
 
             return (
               <g key={`${loc.city}-${loc.country}`}>
+                {/* Glowing arc */}
                 <path d={path} fill="none" stroke={color} strokeWidth={1.4} opacity={0.55} filter="url(#rw-glow)" />
+                {/* Crisp dashed line on top for definition */}
                 <path d={path} fill="none" stroke={color} strokeWidth={1} strokeDasharray="3 4" opacity={0.5}>
                   <animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.2s" repeatCount="indefinite" />
                 </path>
+
+                {/* Pulsing beacon ring */}
                 <circle cx={x} cy={y} r={r} fill="none" stroke={color} strokeWidth={1.5} opacity={0.6}>
                   <animate attributeName="r" values={`${r};${r + 10};${r}`} dur="2.4s" begin={`${i * 0.15}s`} repeatCount="indefinite" />
                   <animate attributeName="opacity" values="0.6;0;0.6" dur="2.4s" begin={`${i * 0.15}s`} repeatCount="indefinite" />
                 </circle>
+
+                {/* Core dot — also the tap target */}
                 <circle
                   cx={x} cy={y} r={r} fill={color} opacity={0.9} filter="url(#rw-glow)"
                   style={{ cursor: 'pointer' }}
                   onClick={(e) => { e.stopPropagation(); handleTap(loc); }}
                 />
+
                 {isActive && (() => {
                   const tooltipY = Math.max(y - 46, 4);
                   return (
