@@ -120,8 +120,8 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
       locations.sort((a, b) => b.count - a.count);
       res.json({ locations });
     } catch (e) {
-      console.error('Locations error:', e.message);
-      res.json({ locations: [] });
+      console.error('Locations error:', e.message, e.stack?.slice(0, 300));
+      res.json({ locations: [], _error: e.message, _debug: global.__locDebug || '' });
     }
   });
 
