@@ -100,13 +100,11 @@ app.use(async (req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, '..', 'dist'), {
-  setHeaders(res, path) {
-    // Never cache HTML — ensures users always get the latest bundle references
-    if (path.endsWith('.html')) {
-      res.set('Cache-Control', 'no-store, must-revalidate');
-    }
+  setHeaders(res, p) {
+    if (p.endsWith('.html')) res.set('Cache-Control', 'no-store, must-revalidate');
   }
 }));
+console.log('[static]', path.join(__dirname, '..', 'dist'));
 
 // ── Rate limiting ──
 const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
