@@ -4,7 +4,7 @@
     "buildCommand": "npm run build"
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "node -e \"require('fs').existsSync('dist/assets')||require('child_process').execSync('npm run build',{stdio:'inherit'})\" && node server.js",
     "healthcheckPath": "/api/health",
     "restartPolicyType": "ON_FAILURE"
   }
