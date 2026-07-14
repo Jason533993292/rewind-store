@@ -268,7 +268,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
   return (
     <group ref={groupRef}>
       <AtmosphereGlow radius={100} color="#6fb8ff" power={2.4} intensity={0.85} />
-      <CityBeacons data={data} radius={5.01} onHover={onHoverCity} />
+      <CityBeacons data={data} radius={100} onHover={onHoverCity} />
     </group>
   );
 }
