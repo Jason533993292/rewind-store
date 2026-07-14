@@ -4,10 +4,13 @@
 // Falls back to live geocode for any uncached city and writes result.
 
 import { Router } from 'express';
-import { geocodeWithRetry } from '../utils/geocode.js';
+import rateLimit from 'express-rate-limit';
 
 export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
   const router = Router();
+
+  const locationsLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
+  router.use(locationsLimiter);
 
   // Parse address like "Street 123, 1000, Brussels, Belgium" or "1000 Brussels, Belgium"
   // Returns { city, country } or null
@@ -55,10 +58,8 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
 
       if (rawCounts.size === 0) return res.json({ locations: [] });
 
-      // 3. Fetch cached coordinates for these cities
-      const cities = [...rawCounts.keys()];
+      // 3. Fetch cached coordinates
       const cached = new Map();
-      const uncached = [];
 
       const coordsRes = await fetch(
         `${SUPABASE_URL}/rest/v1/city_coords?select=city,country,lat,lng`,
@@ -71,37 +72,11 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
         cached.set(`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng });
       }
 
-      for (const key of cities) {
-        if (!cached.has(key)) {
-          const [city, country] = key.split('|');
-          uncached.push({ city, country, key });
-        }
-      }
-
-      // 4. Geocode uncached cities (fire-and-forget, results inserted to DB)
-      for (const u of uncached) {
-        const geo = await geocodeWithRetry(u.city, u.country);
-        if (geo) {
-          cached.set(u.key, { lat: geo.lat, lng: geo.lng });
-          fetch(`${SUPABASE_URL}/rest/v1/city_coords`, {
-            method: 'POST',
-            headers: {
-              apikey: SERVICE_KEY,
-              Authorization: `Bearer ${SERVICE_KEY}`,
-              'Content-Type': 'application/json',
-              Prefer: 'resolution=merge-duplicates',
-            },
-            body: JSON.stringify({ city: u.city, country: u.country, lat: geo.lat, lng: geo.lng }),
-          }).catch(() => {});
-          await new Promise(r => setTimeout(r, 1100));
-        }
-      }
-
-      // 5. Build response (only cities with coordinates)
+      // 4. Build response — only cached cities with 2+ orders (privacy threshold)
       const locations = [];
       for (const [key, count] of rawCounts) {
         const coord = cached.get(key);
-        if (coord) {
+        if (coord && count >= 2) {
           const [city, country] = key.split('|');
           locations.push({ city, country, count, lat: coord.lat, lng: coord.lng });
         }

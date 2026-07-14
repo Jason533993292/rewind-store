@@ -97,6 +97,9 @@ lines.append('  - AI auto-reply (OpenAI + Gemini fallback)')
 lines.append('  - requireAdmin inline on all admin routes')
 lines.append('  - isAdmin checks real token, not just email')
 lines.append('  - Instant admin revocation (checks admins table per request)')
+lines.append('  - Interactive 3D globe with customer arcs (Three.js)')
+lines.append('  - Customer location geocoding + caching (Nominatim/OSM)')
+lines.append('  - Order addresses parsed without country field')
 lines.append('')
 lines.append('=' * 80)
 lines.append('  SOURCE FILES')
@@ -129,6 +132,13 @@ files = [
     ('api/referral-routes.js', 'api/referral-routes.js'),
     ('api/settings-routes.js', 'api/settings-routes.js'),
     ('api/middleware/requireAdmin.js', 'api/middleware/requireAdmin.js'),
+    ('api/routes/orders-locations.js', 'api/routes/orders-locations.js'),
+    ('api/utils/geocode.js', 'api/utils/geocode.js'),
+    ('scripts/backfill-city-coords.js', 'scripts/backfill-city-coords.js'),
+    ('src/components/CustomerMap.jsx', 'src/components/CustomerMap.jsx'),
+    ('src/components/ui/world-map.jsx', 'src/components/ui/world-map.jsx'),
+    ('src/components/ui/globe.jsx', 'src/components/ui/globe.jsx'),
+    ('supabase/migrations/city_coords.sql', 'supabase/migrations/city_coords.sql'),
     ('server.js', 'server.js'),
     ('vite.config.js', 'vite.config.js'),
     ('package.json', 'package.json'),
