@@ -41,16 +41,19 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
         { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
       );
       const orders = Array.isArray(await ordersRes.json()) ? await ordersRes.json() : [];
+      console.log(`[locations] ${orders.length} orders fetched`);
 
       // 2. Aggregate by city/country
       const rawCounts = new Map();
       for (const o of orders) {
         const parsed = parseAddress(o.address);
+        console.log(`[locations] address="${o.address}" → ${JSON.stringify(parsed)}`);
         if (parsed) {
           const key = `${parsed.city}|${parsed.country}`;
           rawCounts.set(key, (rawCounts.get(key) || 0) + 1);
         }
       }
+      console.log(`[locations] ${rawCounts.size} unique pairs: ${JSON.stringify([...rawCounts])}`);
 
       if (rawCounts.size === 0) {
         return res.json({ locations: [] });
