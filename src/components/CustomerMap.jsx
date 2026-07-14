@@ -1,11 +1,9 @@
 // ── CustomerMap — button that opens the 3D globe (with 2D SVG fallback) ──
-// Three.js is lazy-loaded so it doesn't block initial page load.
-// Falls back to 2D world-map if WebGL is unavailable or crashes.
+// GlobePanel is imported dynamically only when user clicks the button.
+// Falls back to 2D world-map if WebGL crashes or is unavailable.
 
-import React, { useState, useEffect, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import WorldMap from './ui/world-map.jsx';
-
-const GlobePanel = lazy(() => import('./ui/globe.jsx'));
 
 class GlobeErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: false }; }
@@ -27,8 +25,8 @@ function supportsWebGL() {
 export default function CustomerMap() {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showGlobe, setShowGlobe] = useState(false);
-  const [showFallback, setShowFallback] = useState(false);
+  const [showModal, setShowModal] = useState(null); // null | 'globe' | 'map'
+  const [GlobePanel, setGlobePanel] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,15 +46,28 @@ export default function CustomerMap() {
     [locations]
   );
 
+  async function handleOpen() {
+    if (supportsWebGL()) {
+      setShowModal('globe');
+      // Dynamically import Three.js only on first click
+      if (!GlobePanel) {
+        const mod = await import('./ui/globe.jsx');
+        setGlobePanel(() => mod.default);
+      }
+    } else {
+      setShowModal('map');
+    }
+  }
+
   if (loading || locations.length === 0) return null;
+
+  const showGlobe = showModal === 'globe' && GlobePanel;
+  const showFallback = showModal === 'map';
 
   return (
     <>
       <div style={{ textAlign: 'center', padding: '0 24px 40px' }}>
-        <button onClick={() => {
-          if (supportsWebGL()) setShowGlobe(true);
-          else setShowFallback(true);
-        }} style={{
+        <button onClick={handleOpen} style={{
           padding: '12px 28px', borderRadius: '999px', border: '1px solid var(--ink)',
           background: 'var(--surface)', cursor: 'pointer', fontSize: '14px',
           fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s',
@@ -74,13 +85,7 @@ export default function CustomerMap() {
 
       {showGlobe && (
         <GlobeErrorBoundary locations={locations}>
-          <Suspense fallback={
-            <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', color: '#fff' }}>
-              Loading globe…
-            </div>
-          }>
-            <GlobePanel open={showGlobe} onClose={() => setShowGlobe(false)} locations={locations} />
-          </Suspense>
+          <GlobePanel open={true} onClose={() => setShowModal(null)} locations={locations} />
         </GlobeErrorBoundary>
       )}
 
@@ -89,12 +94,12 @@ export default function CustomerMap() {
           position: 'fixed', inset: 0, zIndex: 1000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-        }} onClick={() => setShowFallback(false)}>
+        }} onClick={() => setShowModal(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             width: '90vw', maxWidth: '800px', background: 'var(--surface)', borderRadius: '20px', padding: '24px',
             position: 'relative', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
           }}>
-            <button onClick={() => setShowFallback(false)} style={{
+            <button onClick={() => setShowModal(null)} style={{
               position: 'absolute', top: '12px', right: '12px', zIndex: 10,
               width: '32px', height: '32px', borderRadius: '50%', border: 'none',
               background: 'var(--line)', cursor: 'pointer', fontSize: '16px',
