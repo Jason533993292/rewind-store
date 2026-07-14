@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
@@ -108,11 +109,21 @@ console.log('[static]', path.join(__dirname, '..', 'dist'));
 
 // ── Health check (must be before rate limiter so Railway healthchecks don't get blocked) ──
 app.get('/api/health', (_req, res) => {
+  const distPath = path.join(__dirname, '..', 'dist');
+  const assetsPath = path.join(distPath, 'assets');
+  let distStatus = 'missing';
+  try {
+    const files = fs.readdirSync(assetsPath);
+    distStatus = files.length + ' files';
+  } catch (e) {
+    distStatus = 'error: ' + e.message;
+  }
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
+    dist: distStatus,
   });
 });
 
