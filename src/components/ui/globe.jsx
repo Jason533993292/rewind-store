@@ -230,11 +230,11 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .hexPolygonResolution(3)
         .hexPolygonMargin(0.7)
         .hexPolygonUseDots(false)
-        .hexPolygonColor(() => 'rgba(190, 210, 245, 0.65)')
-        .hexPolygonAltitude(0.006)
+        .hexPolygonColor(() => 'rgba(190, 210, 245, 0.08)')
+        .hexPolygonAltitude(0.003)
         .showAtmosphere(defaultProps.showAtmosphere)
-        .atmosphereColor(defaultProps.atmosphereColor)
-        .atmosphereAltitude(defaultProps.atmosphereAltitude);
+        .atmosphereColor('#3b82f6')
+        .atmosphereAltitude(0.06);
     } catch (err) {
       console.error('[Globe] Failed to set hex polygon data (country outlines):', err);
     }
@@ -275,7 +275,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
 
   return (
     <group ref={groupRef}>
-      <AtmosphereGlow radius={100} color="#6fb8ff" power={2.4} intensity={0.85} />
+      <AtmosphereGlow radius={100} color="#3b82f6" power={2.0} intensity={0.3} />
       <CityBeacons data={data} radius={100} onHover={onHoverCity} />
     </group>
   );
@@ -320,7 +320,7 @@ export function World({ globeConfig, data, onHoverCity }) {
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
       <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ}
-        autoRotateSpeed={1} autoRotate={true} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI - Math.PI / 3} />
+        enableRotate={true} rotateSpeed={0.8} />
       <EffectComposer multisampling={0}>
         <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.9} mipmapBlur radius={0.6} />
       </EffectComposer>
@@ -356,12 +356,12 @@ export default function GlobePanel({ open, onClose, locations }) {
 
   const globeConfig = useMemo(() => ({
     pointSize: 4, globeColor: '#021532', showAtmosphere: true,
-    atmosphereColor: '#bcd6ff', atmosphereAltitude: 0.18,
+    atmosphereColor: '#3b82f6', atmosphereAltitude: 0.06,
     emissive: '#021532', emissiveIntensity: 0.05, shininess: 0.6,
-    polygonColor: 'rgba(255,255,255,0.7)', ambientLight: '#38bdf8',
+    polygonColor: 'rgba(190,210,245,0.08)', ambientLight: '#38bdf8',
     directionalLeftLight: '#ffffff', directionalTopLight: '#ffffff',
     pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9,
-    rings: 1, maxRings: 3, autoRotate: true, autoRotateSpeed: 0.5,
+    rings: 1, maxRings: 3, autoRotate: false, autoRotateSpeed: 0,
   }), []);
 
   const data = useMemo(() => (locations ? buildArcs(locations) : []), [locations]);
