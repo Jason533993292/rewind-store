@@ -9,3 +9,4 @@ test-results.json
 test-results/
 uptime-errors.log
 dist/
+# silence desktop attachments
