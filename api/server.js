@@ -1125,9 +1125,8 @@ app.get('/api/admin/audit-log', requireAdmin, async (req, res) => {
   } catch { res.json({ entries: [] }); }
 });
 
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
-}
+// The root server.js handles app.listen(). This file only exports the app.
+// (Vercel imports this directly as a serverless function.)
 
 // ── Global error handler ──
 app.use((err, req, res, next) => {
