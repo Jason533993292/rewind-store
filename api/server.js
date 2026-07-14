@@ -106,14 +106,7 @@ app.use(express.static(path.join(__dirname, '..', 'dist'), {
 }));
 console.log('[static]', path.join(__dirname, '..', 'dist'));
 
-// ── Rate limiting ──
-const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
-app.use(generalLimiter);
-const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
-
-// Load blocked IPs on startup
-
-// ── Health check ──
+// ── Health check (must be before rate limiter so Railway healthchecks don't get blocked) ──
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -122,6 +115,14 @@ app.get('/api/health', (_req, res) => {
     env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
   });
 });
+
+// ── Rate limiting ──
+const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
+app.use(generalLimiter);
+const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
+
+// Load blocked IPs on startup
+
 app.get('/api/env', requireAdmin, (_req, res) => {
   const RESEND_KEY = process.env.RESEND_API_KEY;
   const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
