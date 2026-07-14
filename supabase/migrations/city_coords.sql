@@ -12,12 +12,15 @@ CREATE TABLE IF NOT EXISTS city_coords (
 
 ALTER TABLE city_coords ENABLE ROW LEVEL SECURITY;
 
--- Allow anon key to read (used by the customer map on the frontend)
+-- Allow anyone (including anon key) to read — used by the customer map frontend
 CREATE POLICY "Anyone can read city_coords"
   ON city_coords FOR SELECT
   USING (true);
 
--- Allow service_role to insert/update (used by the backfill script and Express route)
+-- Allow service_role to insert/update/delete
+-- FOR ALL needs BOTH USING (for SELECT/UPDATE/DELETE) and WITH CHECK (for INSERT/UPDATE)
+DROP POLICY IF EXISTS "Service role can write city_coords" ON city_coords;
 CREATE POLICY "Service role can write city_coords"
-  ON city_coords FOR ALL
-  USING (auth.jwt() ->> 'role' = 'service_role');
+  ON city_coords
+  USING (auth.jwt() ->> 'role' = 'service_role')
+  WITH CHECK (auth.jwt() ->> 'role' = 'service_role');

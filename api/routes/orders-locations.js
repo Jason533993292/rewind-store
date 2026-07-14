@@ -16,6 +16,13 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
     const parts = address.split(',').map(s => s.trim()).filter(Boolean);
     if (parts.length < 2) return null;
     const country = parts[parts.length - 1];
+    // If the last segment is a known country, use it. Otherwise assume 'Belgium'
+    // and treat the last segment as a city name (addresses often omit country).
+    const isCountry = ['belgium','netherlands','france','germany','luxembourg','spain','italy','portugal','austria','switzerland','uk','united kingdom','usa','united states'].includes(country.toLowerCase());
+    if (!isCountry && parts.length >= 2) {
+      // No country found — last segment is actually a city. Use 'Belgium' as default.
+      return { city: country, country: 'Belgium' };
+    }
     // Try to extract city name from the second-to-last segment
     // If it looks like "1000 Brussels" (postal + city), extract the city part
     let city = parts[parts.length - 2];

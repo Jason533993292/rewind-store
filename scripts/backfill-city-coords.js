@@ -68,8 +68,11 @@ async function main() {
   console.log(`  ${pairs.size} unique city/country pairs to geocode\n`);
 
   // Clean existing city_coords to avoid stale data
-  await sfetch('/city_coords', { method: 'DELETE' });
-  console.log('  🧹 Cleared old city_coords cache\n');
+  console.log('  🧹 Clearing old city_coords cache\n');
+  await fetch(`${SUPABASE_URL}/rest/v1/city_coords?id=gte.0`, {
+    method: 'DELETE',
+    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+  }).catch(() => {});
 
   const USER_AGENT = 'REWIND (orders@rewind-stores.com)';
   let done = 0;
