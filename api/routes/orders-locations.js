@@ -2,10 +2,6 @@
 // Returns aggregated customer locations by city for the world map.
 // Cache-first: reads from city_coords table.
 // Falls back to live geocode for any uncached city and writes result.
-//
-// Address format in orders table:
-//   "Street 123, 1000, Brussels, Belgium"
-// City = second-to-last comma segment, Country = last segment.
 
 import { Router } from 'express';
 import { geocodeWithRetry } from '../utils/geocode.js';
@@ -13,11 +9,22 @@ import { geocodeWithRetry } from '../utils/geocode.js';
 export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
   const router = Router();
 
+  // Parse address like "Street 123, 1000, Brussels, Belgium" or "1000 Brussels, Belgium"
+  // Returns { city, country } or null
   function parseAddress(address) {
     if (!address) return null;
     const parts = address.split(',').map(s => s.trim()).filter(Boolean);
     if (parts.length < 2) return null;
-    return { city: parts[parts.length - 2], country: parts[parts.length - 1] };
+    const country = parts[parts.length - 1];
+    // Try to extract city name from the second-to-last segment
+    // If it looks like "1000 Brussels" (postal + city), extract the city part
+    let city = parts[parts.length - 2];
+    // Check if city segment contains a postal code (starts with digits)
+    const postalMatch = city.match(/^(\d{4,5})\s+(.+)/);
+    if (postalMatch) {
+      city = postalMatch[2]; // Use the city name after the postal code
+    }
+    return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country };
   }
 
   router.get('/locations', async (req, res) => {
@@ -51,7 +58,6 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
       const cached = new Map();
       const uncached = [];
 
-      // Supabase REST doesn't support IN filters easily, so fetch all coords
       const coordsRes = await fetch(
         `${SUPABASE_URL}/rest/v1/city_coords?select=city,country,lat,lng`,
         { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
@@ -74,7 +80,6 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
         const geo = await geocodeWithRetry(u.city, u.country);
         if (geo) {
           cached.set(u.key, { lat: geo.lat, lng: geo.lng });
-          // Insert into cache (fire-and-forget)
           fetch(`${SUPABASE_URL}/rest/v1/city_coords`, {
             method: 'POST',
             headers: {
@@ -85,7 +90,6 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
             },
             body: JSON.stringify({ city: u.city, country: u.country, lat: geo.lat, lng: geo.lng }),
           }).catch(() => {});
-          // Nominatim rate limit
           await new Promise(r => setTimeout(r, 1100));
         }
       }

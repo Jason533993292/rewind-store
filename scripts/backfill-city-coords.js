@@ -6,8 +6,9 @@
 // Expects env vars: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 //
 // Address format in orders table (single text field):
-//   "Street 123, 1000, Brussels, Belgium"
-// We extract city = second-to-last segment, country = last segment.
+//   "Street 123, 1000, Brussels, Belgium"  or  "1000 Brussels, Belgium"
+// We parse city from the second-to-last segment, extracting it from
+// "1000 Brussels" → "Brussels" when a postal code is present.
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -17,58 +18,45 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   process.exit(1);
 }
 
-async function fetchOrders() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=address&status=in.(pending,ordered,shipped)`, {
-    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-  });
-  if (!res.ok) throw new Error(`Supabase returned ${res.status}`);
-  return res.json();
-}
-
-async function insertCoords(city, country, lat, lng) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/city_coords`, {
-    method: 'POST',
+async function sfetch(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
+    ...opts,
     headers: {
       apikey: SERVICE_KEY,
       Authorization: `Bearer ${SERVICE_KEY}`,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates',
+      ...(opts.headers || {}),
     },
-    body: JSON.stringify({ city, country, lat, lng }),
   });
   if (!res.ok) {
-    const text = await res.text();
-    console.warn(`  ⚠  Insert failed for ${city}, ${country}: ${text.slice(0, 100)}`);
+    const text = await res.text().catch(() => '');
+    throw new Error(`Supabase ${opts.method || 'GET'} ${path}: ${res.status} ${text.slice(0, 200)}`);
   }
-}
-
-function parseAddress(address) {
-  if (!address) return null;
-  const parts = address.split(',').map(s => s.trim()).filter(Boolean);
-  if (parts.length < 2) return null;
-  const country = parts[parts.length - 1];
-  const city = parts[parts.length - 2];
-  return { city, country };
-}
-
-const USER_AGENT = 'REWIND (orders@rewind-stores.com)';
-
-async function geocode(city, country) {
-  const q = encodeURIComponent(`${city}, ${country}`);
-  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`;
-  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (!Array.isArray(data) || data.length === 0) return null;
-  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  return res;
 }
 
 async function main() {
   console.log('Fetching orders...');
-  const orders = Array.isArray(await fetchOrders()) ? await fetchOrders() : [];
+  const ordersRes = await sfetch('/orders?select=address&status=in.(pending,ordered,shipped)');
+  const orders = await ordersRes.json();
   console.log(`  ${orders.length} orders found`);
 
-  // Extract unique city/country pairs
+  // Parse address and extract unique city/country pairs
+  // "Street 123, 1000, Brussels, Belgium" → city="Brussels", country="Belgium"
+  function parseAddress(address) {
+    if (!address) return null;
+    const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length < 2) return null;
+    const country = parts[parts.length - 1];
+    let city = parts[parts.length - 2];
+    // Handle "1000 Brussels" format — strip leading postal code
+    const postalMatch = city.match(/^(\d{4,5})\s+(.+)/);
+    if (postalMatch) {
+      city = postalMatch[2];
+    }
+    return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country };
+  }
+
   const pairs = new Map();
   for (const o of orders) {
     const parsed = parseAddress(o.address);
@@ -79,18 +67,31 @@ async function main() {
   }
   console.log(`  ${pairs.size} unique city/country pairs to geocode\n`);
 
+  // Clean existing city_coords to avoid stale data
+  await sfetch('/city_coords', { method: 'DELETE' });
+  console.log('  🧹 Cleared old city_coords cache\n');
+
+  const USER_AGENT = 'REWIND (orders@rewind-stores.com)';
   let done = 0;
   for (const [, { city, country }] of pairs) {
-    const coords = await geocode(city, country);
-    if (coords) {
-      await insertCoords(city, country, coords.lat, coords.lng);
-      console.log(`  ✅ ${city}, ${country} → ${coords.lat}, ${coords.lng}`);
+    const q = encodeURIComponent(`${city}, ${country}`);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`, {
+      headers: { 'User-Agent': USER_AGENT },
+    });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const lat = parseFloat(data[0].lat);
+      const lng = parseFloat(data[0].lon);
+      await sfetch('/city_coords', {
+        method: 'POST',
+        body: JSON.stringify({ city, country, lat, lng }),
+      });
+      console.log(`  ✅ ${city}, ${country} → ${lat}, ${lng}`);
     } else {
       console.warn(`  ❌ Could not geocode ${city}, ${country}`);
     }
     done++;
     console.log(`  [${done}/${pairs.size}]\n`);
-    // Nominatim rate limit: 1 req/sec
     if (done < pairs.size) await new Promise(r => setTimeout(r, 1100));
   }
 
@@ -98,4 +99,3 @@ async function main() {
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
-
