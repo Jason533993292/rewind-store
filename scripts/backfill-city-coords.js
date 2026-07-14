@@ -10,6 +10,8 @@
 // We parse city from the second-to-last segment, extracting it from
 // "1000 Brussels" → "Brussels" when a postal code is present.
 
+import { geocodeWithRetry } from '../api/utils/geocode.js';
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -83,24 +85,17 @@ async function main() {
     headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
   }).catch(() => {});
 
-  const USER_AGENT = 'REWIND (orders@rewind-stores.com)';
   let done = 0;
   for (const [, { city, country }] of pairs) {
-    const q = encodeURIComponent(`${city}, ${country}`);
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`, {
-      headers: { 'User-Agent': USER_AGENT },
-    });
-    const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) {
-      const lat = parseFloat(data[0].lat);
-      const lng = parseFloat(data[0].lon);
+    const coords = await geocodeWithRetry(city, country);
+    if (coords) {
       await sfetch('/city_coords', {
         method: 'POST',
-        body: JSON.stringify({ city, country, lat, lng }),
+        body: JSON.stringify({ city, country, lat: coords.lat, lng: coords.lng }),
       });
-      console.log(`  ✅ ${city}, ${country} → ${lat}, ${lng}`);
+      console.log(`  ✅ ${city}, ${country} → ${coords.lat}, ${coords.lng}`);
     } else {
-      console.warn(`  ❌ Could not geocode ${city}, ${country}`);
+      console.warn(`  ❌ Could not geocode ${city}, ${country} (after retries)`);
     }
     done++;
     console.log(`  [${done}/${pairs.size}]\n`);

@@ -222,32 +222,40 @@ export function Globe({ globeConfig, data, onHoverCity }) {
   useEffect(() => {
     if (!globeRef.current || !isInitialized || !data) return;
 
-    // Real country outlines — hexPolygonResolution/Margin control
-    // how crisp vs. hex-tiled borders look
-    globeRef.current
-      .hexPolygonsData(countries.features)
-      .hexPolygonResolution(3)
-      .hexPolygonMargin(0.7)
-      .hexPolygonUseDots(false)
-      .hexPolygonColor(() => 'rgba(190, 210, 245, 0.65)')
-      .hexPolygonAltitude(0.006)
-      .showAtmosphere(defaultProps.showAtmosphere)
-      .atmosphereColor(defaultProps.atmosphereColor)
-      .atmosphereAltitude(defaultProps.atmosphereAltitude);
+    try {
+      // Real country outlines — hexPolygonResolution/Margin control
+      // how crisp vs. hex-tiled borders look
+      globeRef.current
+        .hexPolygonsData(countries.features)
+        .hexPolygonResolution(3)
+        .hexPolygonMargin(0.7)
+        .hexPolygonUseDots(false)
+        .hexPolygonColor(() => 'rgba(190, 210, 245, 0.65)')
+        .hexPolygonAltitude(0.006)
+        .showAtmosphere(defaultProps.showAtmosphere)
+        .atmosphereColor(defaultProps.atmosphereColor)
+        .atmosphereAltitude(defaultProps.atmosphereAltitude);
+    } catch (err) {
+      console.error('[Globe] Failed to set hex polygon data (country outlines):', err);
+    }
 
-    globeRef.current
-      .arcsData(data)
-      .arcStartLat(d => d.startLat)
-      .arcStartLng(d => d.startLng)
-      .arcEndLat(d => d.endLat)
-      .arcEndLng(d => d.endLng)
-      .arcColor(e => e.color)
-      .arcAltitude(e => e.arcAlt)
-      .arcStroke(() => 0.28)
-      .arcDashLength(defaultProps.arcLength)
-      .arcDashInitialGap(e => e.order * 1)
-      .arcDashGap(15)
-      .arcDashAnimateTime(() => defaultProps.arcTime);
+    try {
+      globeRef.current
+        .arcsData(data)
+        .arcStartLat(d => d.startLat)
+        .arcStartLng(d => d.startLng)
+        .arcEndLat(d => d.endLat)
+        .arcEndLng(d => d.endLng)
+        .arcColor(e => e.color)
+        .arcAltitude(e => e.arcAlt)
+        .arcStroke(() => 0.28)
+        .arcDashLength(defaultProps.arcLength)
+        .arcDashInitialGap(e => e.order * 1)
+        .arcDashGap(15)
+        .arcDashAnimateTime(() => defaultProps.arcTime);
+    } catch (err) {
+      console.error('[Globe] Failed to set arcs data:', err);
+    }
 
     globeRef.current.pointsData([]);
     globeRef.current.ringsData([]);
