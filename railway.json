@@ -1,7 +1,6 @@
 {
   "build": {
     "builder": "DOCKERFILE",
-    "buildCommand": "docker build -t rewind-app .",
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
