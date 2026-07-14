@@ -4,7 +4,7 @@
     "buildCommand": "npm run build && mkdir -p /tmp/dist-cache && cp -r dist/* /tmp/dist-cache/"
   },
   "deploy": {
-    "startCommand": "cp -r /tmp/dist-cache/* dist/ 2>/dev/null; node server.js",
+    "startCommand": "mkdir -p dist && cp -r /tmp/dist-cache/* dist/ && node server.js",
     "healthcheckPath": "/api/health",
     "restartPolicyType": "ON_FAILURE"
   }
