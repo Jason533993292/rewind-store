@@ -109,7 +109,9 @@ export default function CustomerMap() {
   );
 }
 
-// ── Upgraded 2D fallback map ──
+// ── Cleaner 2D fallback map ──
+// Thin solid arcs, small solid dots, soft static halo instead of heavy
+// blur + dash animation. Same color tiering as the 3D globe.
 function FullscreenMap({ locations, onClose }) {
   const total = useMemo(() => locations.reduce((s, l) => s + l.count, 0), [locations]);
   const maxCount = useMemo(() => Math.max(1, ...locations.map(l => l.count)), [locations]);
@@ -168,13 +170,6 @@ function FullscreenMap({ locations, onClose }) {
 
         <svg viewBox="0 0 800 450" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
           <defs>
-            <filter id="rw-glow" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="3.2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
             <radialGradient id="rw-origin-glow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#FF7A3D" stopOpacity="0" />
@@ -183,6 +178,7 @@ function FullscreenMap({ locations, onClose }) {
 
           <rect width="800" height="450" rx="12" fill="#05070d" />
 
+          {/* Faint dotted world texture */}
           {Array.from({ length: 800 / 26 }).flatMap((_, xi) =>
             Array.from({ length: 450 / 26 }).map((_, yi) => (
               <circle key={`${xi}-${yi}`} cx={13 + xi * 26} cy={13 + yi * 26} r={0.8}
@@ -190,8 +186,9 @@ function FullscreenMap({ locations, onClose }) {
             ))
           )}
 
+          {/* Warehouse origin — soft glow halo + solid core */}
           <circle cx={400} cy={225} r={22} fill="url(#rw-origin-glow)" />
-          <circle cx={400} cy={225} r={4} fill="#FF7A3D" filter="url(#rw-glow)" />
+          <circle cx={400} cy={225} r={4} fill="#FF7A3D" />
 
           {validLocations.map((loc, i) => {
             const x = ((loc.lng + 180) / 360) * 800;
@@ -200,24 +197,25 @@ function FullscreenMap({ locations, onClose }) {
             const midY = Math.min(225, y) - Math.abs(x - 400) * 0.25;
             const path = `M 400 225 Q ${midX} ${midY} ${x} ${y}`;
             const color = colorFor(loc.count);
-            const r = Math.min(3 + Math.log(loc.count + 1) * 3, 11);
+            const r = Math.min(2 + Math.log(loc.count + 1) * 1.6, 6);
             const isActive = activeCity && activeCity.city === loc.city && activeCity.country === loc.country;
 
             return (
               <g key={`${loc.city}-${loc.country}`}>
-                <path d={path} fill="none" stroke={color} strokeWidth={1.4} opacity={0.55} filter="url(#rw-glow)" />
-                <path d={path} fill="none" stroke={color} strokeWidth={1} strokeDasharray="3 4" opacity={0.5}>
-                  <animate attributeName="stroke-dashoffset" from="0" to="-14" dur="1.2s" repeatCount="indefinite" />
-                </path>
-                <circle cx={x} cy={y} r={r} fill="none" stroke={color} strokeWidth={1.5} opacity={0.6}>
-                  <animate attributeName="r" values={`${r};${r + 10};${r}`} dur="2.4s" begin={`${i * 0.15}s`} repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0.6;0;0.6" dur="2.4s" begin={`${i * 0.15}s`} repeatCount="indefinite" />
-                </circle>
+                {/* Thin solid arc — no dashes, no heavy blur */}
+                <path d={path} fill="none" stroke={color} strokeWidth={1.3} opacity={0.7} strokeLinecap="round" />
+
+                {/* Soft static halo behind the dot */}
+                <circle cx={x} cy={y} r={r * 2.6} fill={color} opacity={0.15} />
+
+                {/* Small solid core dot — tap target */}
                 <circle
-                  cx={x} cy={y} r={r} fill={color} opacity={0.9} filter="url(#rw-glow)"
+                  cx={x} cy={y} r={r} fill={color} opacity={0.95}
+                  stroke="#fff" strokeWidth={0.6} strokeOpacity={0.4}
                   style={{ cursor: 'pointer' }}
                   onClick={(e) => { e.stopPropagation(); handleTap(loc); }}
                 />
+
                 {isActive && (() => {
                   const tooltipY = Math.max(y - 46, 4);
                   return (

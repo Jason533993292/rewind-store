@@ -1,23 +1,22 @@
-// ── Aceternity-style 3D Globe (three-globe) — Upgraded ──
+// ── Aceternity-style 3D Globe (three-globe) — Final ──
 //
-// Additions over the previous version:
-//  1. Bloom post-processing — arcs/beacons actually glow now
-//  2. Vertical glowing beams at each city + pulsing ring
-//  3. Cinematic camera dolly-in on open
-//  4. Hover tooltips on city beacons
-//  5. Nebula-style radial gradient background
-//  6. Land dots tinted by latitude (cool poles, warm equator)
-//  7. Bright pulse traveling along each arc ("shipment in transit")
+// This version replaces the pre-sampled dot-cloud continents with real
+// country outlines (Natural Earth 110m admin-0 boundaries, public domain),
+// and adds a custom soft Fresnel-glow atmosphere layer.
 //
-// Dependency: npm install @react-three/postprocessing postprocessing
+// Carried over from the previous version:
+//  - Bloom post-processing
+//  - Glowing vertical city beacons + hover tooltips
+//  - Cinematic camera dolly-in on open
+//  - Nebula-style background gradient
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion } from 'three';
+import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion, ShaderMaterial, BackSide, AdditiveBlending } from 'three';
 import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import landDotsRaw from '../../data/land-dots.json';
+import countries from '../../data/countries.geojson';
 
 extend({ ThreeGlobe: ThreeGlobe });
 
@@ -46,38 +45,64 @@ function latLngToVec3(lat, lng, radius) {
   );
 }
 
-// Land dots tinted by latitude
-function LandDots({ dataInput, radius }) {
-  const { positions, colors } = useMemo(() => {
-    if (!dataInput || !dataInput.length) {
-      return { positions: new Float32Array([0, 0, 0]), colors: new Float32Array([0, 0, 0]) };
+function Starfield({ radius, count = 2000 }) {
+  const positions = useMemo(() => {
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+      const u = Math.random(), v = Math.random();
+      const theta = 2 * Math.PI * u;
+      const phi = Math.acos(2 * v - 1);
+      const r = radius * (2.5 + Math.random() * 3.5);
+      pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
     }
-    const pos = new Float32Array(dataInput.length);
-    const col = new Float32Array(dataInput.length);
-    const poleColor = new Color('#bcd6f5');
-    const equatorColor = new Color('#e8ddc8');
-
-    for (let i = 0; i < dataInput.length; i += 3) {
-      pos[i] = dataInput[i];
-      pos[i + 1] = dataInput[i + 1];
-      pos[i + 2] = dataInput[i + 2];
-      const latFactor = Math.min(1, Math.abs(dataInput[i + 1]) / radius);
-      const c = equatorColor.clone().lerp(poleColor, latFactor);
-      col[i] = c.r; col[i + 1] = c.g; col[i + 2] = c.b;
-    }
-    return { positions: pos, colors: col };
-  }, [dataInput, radius]);
-
-  if (positions.length <= 3) return null;
+    return new Float32Array(pts);
+  }, [radius, count]);
 
   return (
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={colors.length / 3} array={colors} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.35} vertexColors sizeAttenuation transparent opacity={0.75} />
+      <pointsMaterial size={0.6} color="#ffffff" sizeAttenuation transparent opacity={0.9} depthTest={false} />
     </points>
+  );
+}
+
+// Custom soft Fresnel-glow atmosphere shell
+function AtmosphereGlow({ radius, color = '#6fb8ff', power = 2.2, intensity = 0.9 }) {
+  const material = useMemo(() => new ShaderMaterial({
+    uniforms: {
+      glowColor: { value: new Color(color) },
+      power: { value: power },
+      intensity: { value: intensity },
+    },
+    vertexShader: `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vNormal;
+      uniform vec3 glowColor;
+      uniform float power;
+      uniform float intensity;
+      void main() {
+        float rim = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), power);
+        gl_FragColor = vec4(glowColor, rim * intensity);
+      }
+    `,
+    transparent: true,
+    side: BackSide,
+    blending: AdditiveBlending,
+    depthWrite: false,
+  }), [color, power, intensity]);
+
+  return (
+    <mesh material={material}>
+      <sphereGeometry args={[radius * 1.18, 64, 64]} />
+    </mesh>
   );
 }
 
@@ -164,58 +189,10 @@ function CityBeacons({ data, radius, onHover }) {
   );
 }
 
-// Arc pulse — a bright traveling bead on each arc line
-function ArcPulse({ data, radius }) {
-  const groupRef = useRef();
-  const meshRef = useRef();
-
-  const arcs = useMemo(() => {
-    if (!data) return [];
-    return data.map(d => ({
-      from: latLngToVec3(d.startLat, d.startLng, radius),
-      to: latLngToVec3(d.endLat, d.endLng, radius),
-      color: d.color,
-    }));
-  }, [data, radius]);
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current || !arcs.length) return;
-    const idx = Math.floor((clock.elapsedTime * 0.3) % arcs.length);
-    const arc = arcs[idx];
-    const mid = new Vector3().addVectors(arc.from, arc.to).multiplyScalar(0.5);
-    const dist = arc.from.distanceTo(arc.to);
-    mid.normalize().multiplyScalar(radius + dist * 0.4);
-    const t = (clock.elapsedTime * 0.5 + idx * 0.2) % 1;
-    const p = new Vector3()
-      .copy(arc.from).multiplyScalar((1 - t) * (1 - t))
-      .add(mid.clone().multiplyScalar(2 * t * (1 - t)))
-      .add(arc.to.clone().multiplyScalar(t * t));
-    meshRef.current.position.copy(p);
-    meshRef.current.material.color.set(arc.color);
-  });
-
-  if (!arcs.length) return null;
-
-  return (
-    <group ref={groupRef}>
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[0.15, 8, 8]} />
-        <meshBasicMaterial color="#93c5fd" />
-      </mesh>
-    </group>
-  );
-}
-
 export function Globe({ globeConfig, data, onHoverCity }) {
   const globeRef = useRef(null);
   const groupRef = useRef();
   const [isInitialized, setIsInitialized] = useState(false);
-
-  const landData = useMemo(() => {
-    const flat = [];
-    for (const d of landDotsRaw) flat.push(d[0], d[1], d[2]);
-    return flat;
-  }, []);
 
   const defaultProps = {
     pointSize: 1, atmosphereColor: '#ffffff', showAtmosphere: true,
@@ -245,8 +222,15 @@ export function Globe({ globeConfig, data, onHoverCity }) {
   useEffect(() => {
     if (!globeRef.current || !isInitialized || !data) return;
 
+    // Real country outlines — hexPolygonResolution/Margin control
+    // how crisp vs. hex-tiled borders look
     globeRef.current
-      .hexPolygonsData([])
+      .hexPolygonsData(countries.features)
+      .hexPolygonResolution(3)
+      .hexPolygonMargin(0.7)
+      .hexPolygonUseDots(false)
+      .hexPolygonColor(() => 'rgba(190, 210, 245, 0.65)')
+      .hexPolygonAltitude(0.006)
       .showAtmosphere(defaultProps.showAtmosphere)
       .atmosphereColor(defaultProps.atmosphereColor)
       .atmosphereAltitude(defaultProps.atmosphereAltitude);
@@ -283,9 +267,8 @@ export function Globe({ globeConfig, data, onHoverCity }) {
 
   return (
     <group ref={groupRef}>
-      <LandDots dataInput={landData} radius={5.01} />
+      <AtmosphereGlow radius={100} color="#6fb8ff" power={2.4} intensity={0.85} />
       <CityBeacons data={data} radius={5.01} onHover={onHoverCity} />
-      <ArcPulse data={data} radius={5.01} />
     </group>
   );
 }
@@ -364,10 +347,12 @@ export default function GlobePanel({ open, onClose, locations }) {
   }, [open]);
 
   const globeConfig = useMemo(() => ({
-    pointSize: 4, globeColor: '#021532', showAtmosphere: true, atmosphereColor: '#60a5fa',
-    atmosphereAltitude: 0.12, emissive: '#021532', emissiveIntensity: 0.05, shininess: 0.6,
-    polygonColor: 'rgba(255,255,255,0.7)', ambientLight: '#38bdf8', directionalLeftLight: '#ffffff',
-    directionalTopLight: '#ffffff', pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9,
+    pointSize: 4, globeColor: '#021532', showAtmosphere: true,
+    atmosphereColor: '#bcd6ff', atmosphereAltitude: 0.18,
+    emissive: '#021532', emissiveIntensity: 0.05, shininess: 0.6,
+    polygonColor: 'rgba(255,255,255,0.7)', ambientLight: '#38bdf8',
+    directionalLeftLight: '#ffffff', directionalTopLight: '#ffffff',
+    pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9,
     rings: 1, maxRings: 3, autoRotate: true, autoRotateSpeed: 0.5,
   }), []);
 
