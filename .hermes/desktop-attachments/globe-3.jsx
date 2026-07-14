@@ -1,11 +1,13 @@
 // ── Aceternity-style 3D Globe (three-globe) — Final ──
 //
 // This version replaces the pre-sampled dot-cloud continents with real
-// country outlines (Natural Earth 110m admin-0 boundaries, public domain),
-// and adds a custom soft Fresnel-glow atmosphere layer.
+// country outlines (Natural Earth 110m admin-0 boundaries, public domain —
+// the same dataset three-globe's own examples ship with), and adds a
+// custom soft Fresnel-glow atmosphere layer on top of three-globe's
+// built-in atmosphere for a richer halo.
 //
 // Carried over from the previous version:
-//  - Bloom post-processing
+//  - Bloom post-processing (npm install @react-three/postprocessing postprocessing)
 //  - Glowing vertical city beacons + hover tooltips
 //  - Cinematic camera dolly-in on open
 //  - Nebula-style background gradient
@@ -16,7 +18,7 @@ import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import countries from '../../data/countries.json';
+import countries from '../../data/countries.geojson';
 
 extend({ ThreeGlobe: ThreeGlobe });
 
@@ -68,7 +70,11 @@ function Starfield({ radius, count = 2000 }) {
   );
 }
 
-// Custom soft Fresnel-glow atmosphere shell
+// Custom soft Fresnel-glow atmosphere shell. three-globe's built-in
+// .showAtmosphere() gives a thin uniform rim; this adds a second, larger
+// layer whose brightness falls off with viewing angle (classic Fresnel
+// rim-light trick), which is what gives the reference image its soft,
+// thick halo rather than a hard edge.
 function AtmosphereGlow({ radius, color = '#6fb8ff', power = 2.2, intensity = 0.9 }) {
   const material = useMemo(() => new ShaderMaterial({
     uniforms: {
@@ -159,21 +165,25 @@ function CityBeacons({ data, radius, onHover }) {
     <group>
       {positions.map((pos, i) => {
         const { beamPos, quaternion } = beamTransforms[i];
+
         return (
           <group key={i}>
             <mesh ref={el => ringRefs.current[i] = el} position={pos}>
               <ringGeometry args={[0.2, 0.35, 32]} />
               <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} side={2} />
             </mesh>
+
             <mesh
               ref={el => beamRefs.current[i] = el}
-              position={beamPos} quaternion={quaternion}
+              position={beamPos}
+              quaternion={quaternion}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
               <cylinderGeometry args={[0.04, 0.09, beamHeight, 8, 1, true]} />
               <meshBasicMaterial color="#60a5fa" transparent opacity={0.4} depthWrite={false} />
             </mesh>
+
             <mesh
               position={pos}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
@@ -195,10 +205,19 @@ export function Globe({ globeConfig, data, onHoverCity }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   const defaultProps = {
-    pointSize: 1, atmosphereColor: '#ffffff', showAtmosphere: true,
-    atmosphereAltitude: 0.1, polygonColor: 'rgba(255,255,255,0.7)',
-    globeColor: '#1d072e', emissive: '#000000', emissiveIntensity: 0.1,
-    shininess: 0.9, arcTime: 2000, arcLength: 0.9, rings: 1, maxRings: 3,
+    pointSize: 1,
+    atmosphereColor: '#ffffff',
+    showAtmosphere: true,
+    atmosphereAltitude: 0.1,
+    polygonColor: 'rgba(255,255,255,0.7)',
+    globeColor: '#1d072e',
+    emissive: '#000000',
+    emissiveIntensity: 0.1,
+    shininess: 0.9,
+    arcTime: 2000,
+    arcLength: 0.9,
+    rings: 1,
+    maxRings: 3,
     ...globeConfig,
   };
 
@@ -217,13 +236,15 @@ export function Globe({ globeConfig, data, onHoverCity }) {
     material.emissive = new Color('#0a2a5a');
     material.emissiveIntensity = 0.25;
     material.shininess = 0.2;
-  }, [isInitialized]);
+  }, [isInitialized, globeConfig.globeColor, globeConfig.emissive, globeConfig.emissiveIntensity, globeConfig.shininess]);
 
   useEffect(() => {
     if (!globeRef.current || !isInitialized || !data) return;
 
-    // Real country outlines — hexPolygonResolution/Margin control
-    // how crisp vs. hex-tiled borders look
+    // Real country outlines instead of a pre-sampled dot cloud.
+    // hexPolygonResolution/margin control how crisp vs. "hex-tiled" the
+    // borders look — 3 + 0.7 gives clean, near-solid country shapes
+    // rather than a chunky hex-grid appearance.
     globeRef.current
       .hexPolygonsData(countries.features)
       .hexPolygonResolution(3)
@@ -258,8 +279,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
     const interval = setInterval(() => {
       if (!globeRef.current) return;
       const nums = genRandomNumbers(0, data.length, Math.floor((data.length * 4) / 5));
-      const ringsData = data.filter((d, i) => nums.includes(i))
-        .map(d => ({ lat: d.startLat, lng: d.startLng, color: '#60a5fa' }));
+      const ringsData = data.filter((d, i) => nums.includes(i)).map(d => ({ lat: d.startLat, lng: d.startLng, color: '#60a5fa' }));
       globeRef.current.ringsData(ringsData);
     }, 2000);
     return () => clearInterval(interval);
@@ -286,6 +306,7 @@ function WebGLRendererConfig() {
 function CinematicIntro({ targetZ }) {
   const { camera } = useThree();
   const startedAt = useRef(null);
+
   useFrame((state) => {
     if (startedAt.current === null) startedAt.current = state.clock.elapsedTime;
     const t = Math.min(1, (state.clock.elapsedTime - startedAt.current) / 1.8);
@@ -314,7 +335,13 @@ export function World({ globeConfig, data, onHoverCity }) {
       <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ}
         autoRotateSpeed={1} autoRotate={true} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI - Math.PI / 3} />
       <EffectComposer multisampling={0}>
-        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.9} mipmapBlur radius={0.6} />
+        <Bloom
+          intensity={0.9}
+          luminanceThreshold={0.15}
+          luminanceSmoothing={0.9}
+          mipmapBlur
+          radius={0.6}
+        />
       </EffectComposer>
     </Canvas>
   );
@@ -328,8 +355,7 @@ function buildArcs(locations) {
     const ratio = Math.min(loc.count / maxCount, 1);
     const color = COLORS[Math.floor(ratio * (COLORS.length - 1))];
     arcs.push({
-      order: 1, startLat: ORIGIN.lat, startLng: ORIGIN.lng,
-      endLat: loc.lat, endLng: loc.lng,
+      order: 1, startLat: ORIGIN.lat, startLng: ORIGIN.lng, endLat: loc.lat, endLng: loc.lng,
       arcAlt: 0.25 + ratio * 0.55, color,
       city: loc.city, count: loc.count,
     });
@@ -348,12 +374,14 @@ export default function GlobePanel({ open, onClose, locations }) {
 
   const globeConfig = useMemo(() => ({
     pointSize: 4, globeColor: '#021532', showAtmosphere: true,
+    // Softer, whiter-blue atmosphere and a touch more altitude than the
+    // original tuning — closer to the thick, soft halo in the reference
+    // image rather than a thin colored rim.
     atmosphereColor: '#bcd6ff', atmosphereAltitude: 0.18,
     emissive: '#021532', emissiveIntensity: 0.05, shininess: 0.6,
-    polygonColor: 'rgba(255,255,255,0.7)', ambientLight: '#38bdf8',
-    directionalLeftLight: '#ffffff', directionalTopLight: '#ffffff',
-    pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9,
-    rings: 1, maxRings: 3, autoRotate: true, autoRotateSpeed: 0.5,
+    polygonColor: 'rgba(255,255,255,0.7)', ambientLight: '#38bdf8', directionalLeftLight: '#ffffff',
+    directionalTopLight: '#ffffff', pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9, rings: 1, maxRings: 3,
+    autoRotate: true, autoRotateSpeed: 0.5,
   }), []);
 
   const data = useMemo(() => (locations ? buildArcs(locations) : []), [locations]);
@@ -363,28 +391,24 @@ export default function GlobePanel({ open, onClose, locations }) {
 
   return (
     <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 1000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'radial-gradient(circle at 50% 45%, rgba(10,20,50,0.75), rgba(0,0,0,0.85) 70%)',
       backdropFilter: 'blur(4px)',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        width: '90vw', maxWidth: '1000px', height: '85vh', maxHeight: '700px',
-        position: 'relative', overflow: 'hidden', borderRadius: '20px',
+        width: '90vw', maxWidth: '1000px', height: '85vh', maxHeight: '700px', position: 'relative', overflow: 'hidden',
+        borderRadius: '20px',
         background: 'radial-gradient(ellipse at 50% 30%, #0a1830 0%, #000 75%)',
       }}>
         <button onClick={onClose} style={{
-          position: 'absolute', top: '16px', right: '16px', zIndex: 10,
-          width: '36px', height: '36px', borderRadius: '50%', border: 'none',
-          background: 'rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer',
-          fontSize: '18px', display: 'grid', placeItems: 'center', fontWeight: 600,
+          position: 'absolute', top: '16px', right: '16px', zIndex: 10, width: '36px', height: '36px', borderRadius: '50%',
+          border: 'none', background: 'rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer', fontSize: '18px',
+          display: 'grid', placeItems: 'center', fontWeight: 600,
         }}>✕</button>
 
         <div style={{ position: 'absolute', top: '16px', left: '20px', zIndex: 10, color: '#fff' }}>
           <div style={{ fontSize: '18px', fontWeight: 700, opacity: 0.9 }}>Our reach</div>
-          <div style={{ fontSize: '13px', opacity: 0.5, marginTop: '2px' }}>
-            {locations.length} cities · {totalOrders} orders · Brussels
-          </div>
+          <div style={{ fontSize: '13px', opacity: 0.5, marginTop: '2px' }}>{locations.length} cities · {totalOrders} orders · Brussels</div>
         </div>
 
         {hoveredCity && (
