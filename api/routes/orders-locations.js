@@ -40,31 +40,20 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
         `${SUPABASE_URL}/rest/v1/orders?select=address&status=in.(pending,ordered,shipped)`,
         { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
       );
-      const orders = Array.isArray(await ordersRes.json()) ? await ordersRes.json() : [];
-      if (global.__locDebug) global.__locDebug = '';
-      const log = (m) => { if (global.__locDebug !== undefined) global.__locDebug += m + '\n'; };
-      log(`orders fetched: ${orders.length}`);
-      const orderedOrders = orders.length;
-      if (orderedOrders === 0) {
-        log('NO orders returned from Supabase');
-        return res.json({ locations: [], _debug: global.__locDebug });
-      }
+      const ordersData = await ordersRes.json();
+      const orders = Array.isArray(ordersData) ? ordersData : [];
 
       // 2. Aggregate by city/country
       const rawCounts = new Map();
       for (const o of orders) {
         const parsed = parseAddress(o.address);
-        log(`addr="${o.address}" → ${JSON.stringify(parsed)}`);
         if (parsed) {
           const key = `${parsed.city}|${parsed.country}`;
           rawCounts.set(key, (rawCounts.get(key) || 0) + 1);
         }
       }
-      log(`${rawCounts.size} pairs: ${JSON.stringify([...rawCounts])}`);
 
-      if (rawCounts.size === 0) {
-        return res.json({ locations: [], _debug: global.__locDebug });
-      }
+      if (rawCounts.size === 0) return res.json({ locations: [] });
 
       // 3. Fetch cached coordinates for these cities
       const cities = [...rawCounts.keys()];
@@ -75,7 +64,8 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
         `${SUPABASE_URL}/rest/v1/city_coords?select=city,country,lat,lng`,
         { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
       );
-      const coords = Array.isArray(await coordsRes.json()) ? await coordsRes.json() : [];
+      const coordsData = await coordsRes.json();
+      const coords = Array.isArray(coordsData) ? coordsData : [];
 
       for (const c of coords) {
         cached.set(`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng });
@@ -120,8 +110,8 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
       locations.sort((a, b) => b.count - a.count);
       res.json({ locations });
     } catch (e) {
-      console.error('Locations error:', e.message, e.stack?.slice(0, 300));
-      res.json({ locations: [], _error: e.message, _debug: global.__locDebug || '' });
+      console.error('Locations error:', e.message);
+      res.json({ locations: [] });
     }
   });
 
