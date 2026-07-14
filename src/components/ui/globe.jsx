@@ -163,7 +163,7 @@ function CityBeacons({ data, radius, onHover }) {
           <group key={i}>
             <mesh ref={el => ringRefs.current[i] = el} position={pos}>
               <ringGeometry args={[0.2, 0.35, 32]} />
-              <meshBasicMaterial color="#60a5fa" transparent opacity={0.7} side={2} />
+              <meshBasicMaterial color="#60a5fa" transparent opacity={1.0} side={2} />
             </mesh>
             <mesh
               ref={el => beamRefs.current[i] = el}
@@ -171,16 +171,16 @@ function CityBeacons({ data, radius, onHover }) {
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
-              <cylinderGeometry args={[0.04, 0.09, beamHeight, 8, 1, true]} />
-              <meshBasicMaterial color="#60a5fa" transparent opacity={0.4} depthWrite={false} />
+              <cylinderGeometry args={[0.08, 0.16, beamHeight, 8, 1, true]} />
+              <meshBasicMaterial color="#60a5fa" transparent opacity={0.8} depthWrite={false} />
             </mesh>
             <mesh
               position={pos}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
-              <sphereGeometry args={[0.14, 12, 12]} />
-              <meshBasicMaterial color="#93c5fd" />
+              <sphereGeometry args={[0.4, 16, 16]} />
+              <meshBasicMaterial color="#93c5fd" opacity={1.0} transparent={false} />
             </mesh>
           </group>
         );
@@ -230,11 +230,9 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .hexPolygonResolution(3)
         .hexPolygonMargin(0.7)
         .hexPolygonUseDots(false)
-        .hexPolygonColor(() => 'rgba(190, 210, 245, 0.08)')
+        .hexPolygonColor(() => 'rgba(190, 210, 245, 0)')
         .hexPolygonAltitude(0.003)
-        .showAtmosphere(defaultProps.showAtmosphere)
-        .atmosphereColor('#3b82f6')
-        .atmosphereAltitude(0.06);
+        .showAtmosphere(false);
     } catch (err) {
       console.error('[Globe] Failed to set hex polygon data (country outlines):', err);
     }
@@ -275,7 +273,6 @@ export function Globe({ globeConfig, data, onHoverCity }) {
 
   return (
     <group ref={groupRef}>
-      <AtmosphereGlow radius={100} color="#3b82f6" power={2.0} intensity={0.3} />
       <CityBeacons data={data} radius={100} onHover={onHoverCity} />
     </group>
   );
@@ -319,10 +316,10 @@ export function World({ globeConfig, data, onHoverCity }) {
       <directionalLight color="#ffffff" position={new Vector3(400, -100, -400)} intensity={0.4} />
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
-      <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ}
-        enableRotate={true} rotateSpeed={0.8} />
+      <OrbitControls enablePan={false} enableZoom={false}
+        enableRotate={true} rotateSpeed={0.8} enableDamping dampingFactor={0.1} />
       <EffectComposer multisampling={0}>
-        <Bloom intensity={0.9} luminanceThreshold={0.15} luminanceSmoothing={0.9} mipmapBlur radius={0.6} />
+        <Bloom intensity={0.2} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur radius={0.3} />
       </EffectComposer>
     </Canvas>
   );
@@ -355,10 +352,10 @@ export default function GlobePanel({ open, onClose, locations }) {
   }, [open]);
 
   const globeConfig = useMemo(() => ({
-    pointSize: 4, globeColor: '#021532', showAtmosphere: true,
-    atmosphereColor: '#3b82f6', atmosphereAltitude: 0.06,
+    pointSize: 4, globeColor: '#021532', showAtmosphere: false,
+    atmosphereColor: '#3b82f6', atmosphereAltitude: 0.01,
     emissive: '#021532', emissiveIntensity: 0.05, shininess: 0.6,
-    polygonColor: 'rgba(190,210,245,0.08)', ambientLight: '#38bdf8',
+    polygonColor: 'transparent', ambientLight: '#38bdf8',
     directionalLeftLight: '#ffffff', directionalTopLight: '#ffffff',
     pointLight: '#ffffff', arcTime: 2000, arcLength: 0.9,
     rings: 1, maxRings: 3, autoRotate: false, autoRotateSpeed: 0,
