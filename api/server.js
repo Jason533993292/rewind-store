@@ -115,8 +115,15 @@ const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders:
 
 // ── Health check ──
 app.get('/api/health', (_req, res) => {
+  const fs = require('fs');
+  const distPath = path.join(__dirname, '..', 'dist');
+  const assetsPath = path.join(distPath, 'assets');
+  let distOk = false, assetsOk = false, files = [];
+  try { distOk = fs.statSync(distPath).isDirectory(); } catch {}
+  try { assetsOk = fs.statSync(assetsPath).isDirectory(); files = fs.readdirSync(assetsPath); } catch {}
   res.json({
     status: 'ok',
+    dist: { exists: distOk, assets: assetsOk, files: files.length },
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
