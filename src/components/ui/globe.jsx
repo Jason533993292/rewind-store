@@ -7,7 +7,7 @@ import { Color, Scene, Fog, PerspectiveCamera, Vector3, PointsMaterial, BufferGe
 import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import countries from '../../data/globe.json';
+import landDotsRaw from '../../data/land-dots.json';
 
 extend({ ThreeGlobe: ThreeGlobe });
 
@@ -31,33 +31,6 @@ function genRandomNumbers(min, max, count) {
     if (arr.indexOf(r) === -1) arr.push(r);
   }
   return arr;
-}
-
-// Generate land dots from GeoJSON polygon vertices
-function generateLandDots(features, density = 0.35) {
-  const dots = [];
-  for (const f of features) {
-    if (!f.geometry) continue;
-    const coords = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] :
-                   f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : [];
-    for (const ring of coords) {
-      const outer = ring[0];
-      if (!outer) continue;
-      for (let i = 0; i < outer.length - 1; i += Math.max(1, Math.floor(1 / density))) {
-        const [lng, lat] = outer[i];
-        if (Math.abs(lat) === 90) continue;
-        const phi = (90 - lat) * (Math.PI / 180);
-        const theta = (lng + 180) * (Math.PI / 180);
-        const r = 5.01;
-        dots.push(
-          -r * Math.sin(phi) * Math.cos(theta),
-          r * Math.cos(phi),
-          r * Math.sin(phi) * Math.sin(theta),
-        );
-      }
-    }
-  }
-  return dots;
 }
 
 function Starfield({ radius, count = 1200 }) {
@@ -149,8 +122,12 @@ export function Globe({ globeConfig, data }) {
   const [isInitialized, setIsInitialized] = useState(false);
 
   const landData = useMemo(() => {
-    try { return generateLandDots(countries.features); }
-    catch { return []; }
+    // Pre-sampled land dots — already computed in land-dots.json
+    const flat = [];
+    for (const d of landDotsRaw) {
+      flat.push(d[0], d[1], d[2]);
+    }
+    return flat;
   }, []);
 
   const defaultProps = {
