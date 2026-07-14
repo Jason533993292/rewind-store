@@ -19,19 +19,22 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
     // If the last segment is a known country, use it. Otherwise assume 'Belgium'
     // and treat the last segment as a city name (addresses often omit country).
     const isCountry = ['belgium','netherlands','france','germany','luxembourg','spain','italy','portugal','austria','switzerland','uk','united kingdom','usa','united states'].includes(country.toLowerCase());
-    if (!isCountry && parts.length >= 2) {
-      // No country found — last segment is actually a city. Use 'Belgium' as default.
-      return { city: country, country: 'Belgium' };
+    if (!address) return null;
+    const parts = address.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length < 2) return null;
+    const last = parts[parts.length - 1];
+    const knownCountries = ['belgium','netherlands','france','germany','luxembourg','spain','italy','portugal','austria','switzerland','uk','united kingdom','usa','united states','canada'];
+    if (knownCountries.includes(last.toLowerCase())) {
+      let city = parts[parts.length - 2];
+      const pm = city.match(/^(\d{4,5})\s+(.+)/);
+      if (pm) city = pm[2];
+      return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country: last };
     }
-    // Try to extract city name from the second-to-last segment
-    // If it looks like "1000 Brussels" (postal + city), extract the city part
-    let city = parts[parts.length - 2];
-    // Check if city segment contains a postal code (starts with digits)
-    const postalMatch = city.match(/^(\d{4,5})\s+(.+)/);
-    if (postalMatch) {
-      city = postalMatch[2]; // Use the city name after the postal code
-    }
-    return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country };
+    // Last segment is a city name (no country) — default to Belgium
+    let city = last;
+    const pm = city.match(/^(\d{4,5})\s+(.+)/);
+    if (pm) city = pm[2];
+    return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country: 'Belgium' };
   }
 
   router.get('/locations', async (req, res) => {

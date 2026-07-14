@@ -47,14 +47,23 @@ async function main() {
     if (!address) return null;
     const parts = address.split(',').map(s => s.trim()).filter(Boolean);
     if (parts.length < 2) return null;
-    const country = parts[parts.length - 1];
-    let city = parts[parts.length - 2];
-    // Handle "1000 Brussels" format — strip leading postal code
-    const postalMatch = city.match(/^(\d{4,5})\s+(.+)/);
-    if (postalMatch) {
-      city = postalMatch[2];
+    const last = parts[parts.length - 1];
+    const secondLast = parts[parts.length - 2];
+    // If the last segment looks like a city (not a country), treat it as city
+    // and default country to 'Belgium' (addresses often omit the country)
+    const knownCountries = ['belgium','netherlands','france','germany','luxembourg','spain','italy','portugal','austria','switzerland','uk','united kingdom','usa','united states','canada'];
+    if (knownCountries.includes(last.toLowerCase())) {
+      // Last segment IS a country, second-to-last is the city
+      let city = secondLast;
+      const postalMatch = city.match(/^(\d{4,5})\s+(.+)/);
+      if (postalMatch) city = postalMatch[2];
+      return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country: last };
     }
-    return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country };
+    // Last segment is a city name (no country in address) — default to Belgium
+    let city = last;
+    const postalMatch = city.match(/^(\d{4,5})\s+(.+)/);
+    if (postalMatch) city = postalMatch[2];
+    return { city: city.replace(/^\d{4,5}\s*/, '').trim(), country: 'Belgium' };
   }
 
   const pairs = new Map();
