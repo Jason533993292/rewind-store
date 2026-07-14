@@ -1,13 +1,14 @@
-// ── CustomerMap — Fetches customer locations and renders the world map ──
-// Shows where REWIND customers are ordering from, aggregated by city.
+// ── CustomerMap — shows a button that opens a 3D globe with customer arcs ──
+// Fetches customer locations from /api/orders/locations.
 // No individual order data is exposed.
 
-import React, { useState, useEffect } from 'react';
-import WorldMap from './ui/world-map.jsx';
+import React, { useState, useEffect, useMemo } from 'react';
+import GlobePanel from './ui/globe.jsx';
 
 export default function CustomerMap() {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showGlobe, setShowGlobe] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -22,31 +23,40 @@ export default function CustomerMap() {
     return () => { cancelled = true; };
   }, []);
 
+  const totalOrders = useMemo(
+    () => (locations || []).reduce((s, l) => s + l.count, 0),
+    [locations]
+  );
+
+  if (loading || locations.length === 0) return null;
+
   return (
-    <section className="rw-section rw-section-alt" style={{ padding: '60px 24px' }}>
-      <div className="rw-section-head" style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <span className="rw-section-tag">Our reach</span>
-        <h2 style={{ fontSize: '28px', fontWeight: 700, margin: '8px 0 4px' }}>Where our customers are</h2>
-        <p style={{ fontSize: '15px', color: 'var(--muted)', maxWidth: '480px', margin: '0 auto' }}>
-          Every dot represents a city where someone has ordered. We ship across Europe from our warehouse in Brussels.
-        </p>
+    <>
+      <div style={{ textAlign: 'center', padding: '0 24px 40px' }}>
+        <button onClick={() => setShowGlobe(true)}
+          style={{
+            padding: '12px 28px', borderRadius: '999px', border: '1px solid var(--ink)',
+            background: 'var(--surface)', cursor: 'pointer', fontSize: '14px',
+            fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s',
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+          }}
+          onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = 'var(--surface)'; }}
+          onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          Our reach — {locations.length} cities, {totalOrders} orders
+        </button>
       </div>
 
-      {loading ? (
-        <div className="rw-skeleton" style={{ width: '100%', maxWidth: '800px', margin: '0 auto', aspectRatio: '16/9', borderRadius: '12px' }} />
-      ) : locations.length === 0 ? (
-        <p style={{ textAlign: 'center', color: 'var(--muted)', fontSize: '14px' }}>
-          {locations.length === 0 && !loading ? 'No order data yet. Once orders come in, a map will appear here.' : ''}
-        </p>
-      ) : (
-        <div style={{ maxWidth: '800px', margin: '0 auto', background: 'var(--surface)', borderRadius: '12px', padding: '16px', border: '1px solid var(--line)' }}>
-          <WorldMap locations={locations} />
-          <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--muted)' }}>
-            <span>📍 {locations.length} cities</span>
-            <span>📦 {locations.reduce((s, l) => s + l.count, 0)} orders</span>
-          </div>
-        </div>
+      {showGlobe && (
+        <GlobePanel
+          open={showGlobe}
+          onClose={() => setShowGlobe(false)}
+          locations={locations}
+        />
       )}
-    </section>
+    </>
   );
 }
