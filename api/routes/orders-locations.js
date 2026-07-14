@@ -15,13 +15,6 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
     if (!address) return null;
     const parts = address.split(',').map(s => s.trim()).filter(Boolean);
     if (parts.length < 2) return null;
-    const country = parts[parts.length - 1];
-    // If the last segment is a known country, use it. Otherwise assume 'Belgium'
-    // and treat the last segment as a city name (addresses often omit country).
-    const isCountry = ['belgium','netherlands','france','germany','luxembourg','spain','italy','portugal','austria','switzerland','uk','united kingdom','usa','united states'].includes(country.toLowerCase());
-    if (!address) return null;
-    const parts = address.split(',').map(s => s.trim()).filter(Boolean);
-    if (parts.length < 2) return null;
     const last = parts[parts.length - 1];
     const knownCountries = ['belgium','netherlands','france','germany','luxembourg','spain','italy','portugal','austria','switzerland','uk','united kingdom','usa','united states','canada'];
     if (knownCountries.includes(last.toLowerCase())) {
