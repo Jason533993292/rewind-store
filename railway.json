@@ -1,10 +1,11 @@
 {
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm run build && cp -r dist /tmp/dist-cache"
+    "builder": "DOCKERFILE",
+    "buildCommand": "docker build -t rewind-app .",
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "cp -r /tmp/dist-cache/* dist/ 2>/dev/null; node server.js",
+    "startCommand": "node server.js",
     "healthcheckPath": "/api/health",
     "restartPolicyType": "ON_FAILURE"
   }
