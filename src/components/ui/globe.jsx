@@ -158,12 +158,10 @@ export function Globe({ globeConfig, data }) {
   useEffect(() => {
     if (!globeRef.current || !isInitialized) return;
     const material = globeRef.current.globeMaterial();
-    material.color = new Color('#020d24');
-    material.emissive = new Color('#010812');
-    material.emissiveIntensity = 0.05;
-    material.shininess = 0.3;
-    material.transparent = true;
-    material.opacity = 0.85;
+    material.color = new Color('#041a3a');
+    material.emissive = new Color('#0a2a5a');
+    material.emissiveIntensity = 0.25; // glow from within — no dark angles
+    material.shininess = 0.2;
   }, [isInitialized, globeConfig.globeColor, globeConfig.emissive, globeConfig.emissiveIntensity, globeConfig.shininess]);
 
   useEffect(() => {
@@ -250,11 +248,10 @@ export function World({ globeConfig, data }) {
   return (
     <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)} gl={{ antialias: true, alpha: false }}>
       <WebGLRendererConfig />
-      <ambientLight color={globeConfig.ambientLight} intensity={0.6} />
-      <directionalLight color={globeConfig.directionalLeftLight} position={new Vector3(-400, 100, 400)} />
-      <directionalLight color={globeConfig.directionalTopLight} position={new Vector3(-200, 500, 200)} />
-      <pointLight color={globeConfig.pointLight} position={new Vector3(-200, 500, 200)} intensity={0.8} />
-      <Starfield radius={15} count={1200} />
+      <ambientLight color="#606090" intensity={0.8} />
+      <directionalLight color="#ffffff" position={new Vector3(-400, 100, 400)} intensity={0.6} />
+      <directionalLight color="#ffffff" position={new Vector3(400, -100, -400)} intensity={0.4} />
+      <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} />
       <OrbitControls enablePan={false} enableZoom={false} minDistance={cameraZ} maxDistance={cameraZ}
         autoRotateSpeed={1} autoRotate={true} minPolarAngle={Math.PI / 3.5} maxPolarAngle={Math.PI - Math.PI / 3} />
