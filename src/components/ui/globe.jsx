@@ -33,14 +33,14 @@ function genRandomNumbers(min, max, count) {
   return arr;
 }
 
-function Starfield({ radius, count = 1200 }) {
+function Starfield({ radius, count = 2000 }) {
   const positions = useMemo(() => {
     const pts = [];
     for (let i = 0; i < count; i++) {
       const u = Math.random(), v = Math.random();
       const theta = 2 * Math.PI * u;
       const phi = Math.acos(2 * v - 1);
-      const r = radius * (1.5 + Math.random() * 1.5);
+      const r = radius * (2.5 + Math.random() * 3.5); // further out: 2.5x–6x sphere radius
       pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
     }
     return new Float32Array(pts);
@@ -51,7 +51,7 @@ function Starfield({ radius, count = 1200 }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.3} color="#ffffff" sizeAttenuation transparent opacity={0.6} />
+      <pointsMaterial size={0.6} color="#ffffff" sizeAttenuation transparent opacity={0.8} />
     </points>
   );
 }
@@ -69,7 +69,7 @@ function LandDots({ dataInput }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.15} color="#888888" sizeAttenuation transparent opacity={0.5} />
+      <pointsMaterial size={0.35} color="#cccccc" sizeAttenuation transparent opacity={0.7} />
     </points>
   );
 }
@@ -158,10 +158,12 @@ export function Globe({ globeConfig, data }) {
   useEffect(() => {
     if (!globeRef.current || !isInitialized) return;
     const material = globeRef.current.globeMaterial();
-    material.color = new Color(globeConfig.globeColor || '#1d072e');
-    material.emissive = new Color(globeConfig.emissive || '#000000');
-    material.emissiveIntensity = globeConfig.emissiveIntensity || 0.1;
-    material.shininess = globeConfig.shininess || 0.9;
+    material.color = new Color('#020d24');
+    material.emissive = new Color('#010812');
+    material.emissiveIntensity = 0.05;
+    material.shininess = 0.4;
+    material.transparent = true;
+    material.opacity = 0.92;
   }, [isInitialized, globeConfig.globeColor, globeConfig.emissive, globeConfig.emissiveIntensity, globeConfig.shininess]);
 
   useEffect(() => {
