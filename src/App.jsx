@@ -222,13 +222,16 @@ export default function App() {
 
   // Lock body scroll when any modal/drawer is open
   // showSurvey is deliberately excluded from this effect.
-  // The survey overlay uses pointer-events: none (clicks pass through).
+  // Lock body scroll when any overlay is open
   useEffect(() => {
     const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
-    document.documentElement.style.overflow = anyOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; document.documentElement.style.overflow = ''; };
   }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
+
+  // Notify the globe panel to close when other dock panels open
+  useEffect(() => { if (showSettings) window.dispatchEvent(new Event('settings-panel-open')); }, [showSettings]);
+  useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
+  useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 

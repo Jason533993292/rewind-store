@@ -1,7 +1,10 @@
-// ── CustomerMap — button that opens the 3D globe (with 2D SVG fallback) ──
-// Everything is dynamic — no Three.js code loads until user clicks.
+// ── CustomerMap — button that opens the 3D globe ──
+// Auto-closes when dock buttons (settings, referrals, etc.) are clicked.
+// Locks body scroll while the globe panel is open.
 
 import React, { useState, useEffect, useMemo } from 'react';
+
+const GLOBE_OPEN_EVENT = 'globe-panel-open';
 
 function supportsWebGL() {
   try {
@@ -35,16 +38,45 @@ export default function CustomerMap() {
   );
 
   async function handleOpen() {
-    if (!supportsWebGL()) { setModal('map'); return; }
+    if (!supportsWebGL()) { openMap(); return; }
     setModal('loading');
+    // Lock scroll
+    document.body.style.overflow = 'hidden';
+    window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: true } }));
     try {
       const mod = await import('./ui/globe.jsx');
       setGlobePanel(() => mod.default);
       setModal('globe');
     } catch {
-      setModal('map');
+      openMap();
     }
   }
+
+  function handleClose() {
+    setModal(null);
+    setGlobePanel(null);
+    document.body.style.overflow = '';
+    window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: false } }));
+  }
+
+  function openMap() {
+    setModal('map');
+    document.body.style.overflow = 'hidden';
+    window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: true } }));
+  }
+
+  // Listen for other dock buttons — close the globe if they open
+  useEffect(() => {
+    const handler = () => { if (modal) handleClose(); };
+    window.addEventListener('settings-panel-open', handler);
+    window.addEventListener('referral-panel-open', handler);
+    window.addEventListener('wishlist-panel-open', handler);
+    return () => {
+      window.removeEventListener('settings-panel-open', handler);
+      window.removeEventListener('referral-panel-open', handler);
+      window.removeEventListener('wishlist-panel-open', handler);
+    };
+  }, [modal]);
 
   if (loading || locations.length === 0) return null;
 
