@@ -283,7 +283,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
 
   return (
     <group ref={groupRef}>
-      <LandDots dataInput={landData} radius={100} />
+      <LandDots dataInput={landData} radius={5.01} />
       <CityBeacons data={data} radius={5.01} onHover={onHoverCity} />
       <ArcPulse data={data} radius={5.01} />
     </group>
