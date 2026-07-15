@@ -215,7 +215,7 @@ function Moon() {
       ctx.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`;
       ctx.fillRect(x, y, 2, 2);
     }
-    return new THREE.CanvasTexture(canvas);
+    return new CanvasTexture(canvas);
   }, []);
 
   useFrame(({ clock }) => {
