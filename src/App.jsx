@@ -92,8 +92,15 @@ export default function App() {
   const dragRef = useRef(null);
   const wasDraggedRef = useRef(false);
   const snapSideRef = useRef(null);
-  const [dockPos, setDockPos] = useState({ x: 0, y: 0 });
-  const [dockSide, setDockSide] = useState('bottom'); // 'bottom' | 'top' | 'left' | 'right'
+  const [dockPos, setDockPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('rw_dock_pos');
+      return saved ? JSON.parse(saved) : { x: 0, y: 0 };
+    } catch { return { x: 0, y: 0 }; }
+  });
+  const [dockSide, setDockSide] = useState(() => {
+    try { return localStorage.getItem('rw_dock_side') || 'bottom'; } catch { return 'bottom'; }
+  });
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('rw_theme') === 'dark'; } catch { return false; }
   });
@@ -239,6 +246,14 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
+  // Persist dock position
+  useEffect(() => {
+    try { localStorage.setItem('rw_dock_pos', JSON.stringify(dockPos)); } catch {}
+  }, [dockPos]);
+  useEffect(() => {
+    try { localStorage.setItem('rw_dock_side', dockSide); } catch {}
+  }, [dockSide]);
+
   // Dock drag handling — direct DOM manipulation during drag, React state on drop
   useEffect(() => {
     function onMove(e) {
@@ -340,7 +355,14 @@ export default function App() {
     }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
+    };
   }, []);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
@@ -1180,6 +1202,12 @@ export default function App() {
           dragRef.current = { startX: e.clientX, startY: e.clientY, originX: cx, originY: cy };
           e.preventDefault();
         }}
+        onTouchStart={(e) => {
+          const t = e.touches[0];
+          const r = dockRef.current.getBoundingClientRect();
+          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          dragRef.current = { startX: t.clientX, startY: t.clientY, originX: cx, originY: cy };
+        }}
         onMouseEnter={() => !dragRef.current && setDockHover(true)}
         onMouseLeave={() => !dragRef.current && setDockHover(false)}
         style={{
@@ -1190,6 +1218,7 @@ export default function App() {
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
           borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 0 18px rgba(255,107,53,0.25), 0 2px 12px rgba(0,0,0,0.08)',
+          animation: dockHover ? 'none' : 'dockPulse 3s ease-in-out infinite',
           padding: dockSide === 'left' || dockSide === 'right' ? '4px 8px' : '7px',
           transform: `translateX(-50%) translateY(${dockHover && !dragRef.current ? -2 : 0}px)`,
           transition: dragRef.current ? 'none' : 'max-width 1.2s cubic-bezier(0.32, 0.72, 0, 1), max-height 1.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
@@ -1204,12 +1233,24 @@ export default function App() {
           whiteSpace: 'nowrap',
         }}
       >
+        {/* Grip handle */}
+        <div style={{
+          position: 'absolute', top: '2px', left: '50%', transform: 'translateX(-50%)',
+          display: dockSide === 'left' || dockSide === 'right' ? 'none' : 'flex',
+          flexDirection: 'column', gap: '2px', opacity: 0.3, pointerEvents: 'none', zIndex: 1,
+        }}>
+          <div style={{ width: '12px', height: '2px', borderRadius: '1px', background: '#666' }} />
+          <div style={{ width: '12px', height: '2px', borderRadius: '1px', background: '#666' }} />
+          <div style={{ width: '12px', height: '2px', borderRadius: '1px', background: '#666' }} />
+        </div>
 
+        {/* Referrals */}
         {/* Referrals */}
         <button onClick={() => {
           if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
           setShowSettings(false); setShowReferral(true);
         }}
+          title="Referrals"
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
@@ -1231,6 +1272,7 @@ export default function App() {
           if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
           setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false);
         }}
+          title="Home"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: '16px', flexShrink: 0,
@@ -1249,6 +1291,7 @@ export default function App() {
           if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
           setShowReferral(false); setShowSettings(true);
         }}
+          title="Settings"
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
