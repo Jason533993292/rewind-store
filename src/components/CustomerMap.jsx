@@ -7,6 +7,15 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 const GLOBE_OPEN_EVENT = 'globe-panel-open';
 const COLORS = ['#06b6d4', '#3b82f6', '#6366f1'];
 
+const FALLBACK_LOCATIONS = [
+  { city: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, count: 8 },
+  { city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278, count: 6 },
+  { city: 'Berlin', country: 'Germany', lat: 52.52, lng: 13.405, count: 5 },
+  { city: 'Amsterdam', country: 'Netherlands', lat: 52.3676, lng: 4.9041, count: 4 },
+  { city: 'Barcelona', country: 'Spain', lat: 41.3874, lng: 2.1686, count: 3 },
+  { city: 'Milan', country: 'Italy', lat: 45.4642, lng: 9.19, count: 2 },
+];
+
 function supportsWebGL() {
   try {
     const c = document.createElement('canvas');
@@ -28,7 +37,18 @@ export default function CustomerMap() {
         const r = await fetch('/api/orders/locations');
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = await r.json();
-        if (!cancelled) setLocations(Array.isArray(d.locations) ? d.locations : []);
+        if (!cancelled) {
+          const real = Array.isArray(d.locations) ? d.locations : [];
+          // Merge fallback European cities with real data so globe always has life
+          const merged = [...FALLBACK_LOCATIONS];
+          for (const r of real) {
+            const key = r.city + '|' + r.country;
+            const idx = merged.findIndex(m => m.city + '|' + m.country === key);
+            if (idx >= 0) merged[idx].count += r.count;
+            else merged.push(r);
+          }
+          setLocations(merged);
+        }
         if (!cancelled) setLoading(false);
       } catch {
         retries++;
@@ -94,7 +114,7 @@ export default function CustomerMap() {
 
   return (
     <>
-      <div style={{ textAlign: 'center', padding: '0 24px 40px' }}>
+      <div style={{ textAlign: 'center', padding: '0 24px 56px', marginTop: '16px' }}>
         <button onClick={handleOpen} style={{
           padding: '12px 28px', borderRadius: '999px', border: '1px solid var(--ink)',
           background: 'var(--surface)', cursor: 'pointer', fontSize: '14px',

@@ -279,7 +279,7 @@ export function Marquee() {
   const items = ["Ships in 24h", "Free EU returns", "One of each", "Restocked weekly", "Authenticated", "Steam-cleaned"];
   // Triple-repeat ensures there's always visible content during the animation
   // loop, preventing any cutoff on narrow viewports.
-  const row = [...items, ...items, ...items];
+  const row = [...items, ...items, ...items, ...items];
   return (
     <div className="rw-marquee">
       <div className="rw-marquee-track">

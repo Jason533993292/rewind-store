@@ -208,7 +208,8 @@ a { color: inherit; cursor: pointer; }
 }
 .rw-marquee-track {
   display: flex; gap: 40px; width: max-content;
-  animation: scroll 30s linear infinite;
+  animation: scroll 20s linear infinite;
+  will-change: transform;
 }
 .rw-marquee-item {
   display: inline-flex; align-items: center; gap: 8px;
@@ -217,7 +218,7 @@ a { color: inherit; cursor: pointer; }
 }
 .rw-marquee-item svg { color: var(--accent); }
 .rw-marquee-track > * { flex-shrink: 0; }
-@keyframes scroll { to { transform: translateX(-33.333%); } }
+@keyframes scroll { to { transform: translateX(-25%); } }
 .rw-marquee-track:hover { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .rw-marquee-track { animation: none; }
