@@ -45,26 +45,49 @@ function latLngToVec3(lat, lng, radius) {
   );
 }
 
-function Starfield({ radius, count = 2000 }) {
-  const positions = useMemo(() => {
-    const pts = [];
-    for (let i = 0; i < count; i++) {
-      const u = Math.random(), v = Math.random();
-      const theta = 2 * Math.PI * u;
-      const phi = Math.acos(2 * v - 1);
-      const r = radius * (2.5 + Math.random() * 3.5);
-      pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
-    }
-    return new Float32Array(pts);
+function Starfield({ radius, count = 1500 }) {
+  const groupRef = useRef();
+  const speeds = useMemo(() => Array.from({ length: 3 }, () => 0.3 + Math.random() * 0.5), []);
+
+  const layers = useMemo(() => {
+    return [0, 1, 2].map(layer => {
+      const pts = [];
+      const c = Math.floor(count / 3);
+      for (let i = 0; i < c; i++) {
+        const u = Math.random(), v = Math.random();
+        const theta = 2 * Math.PI * u;
+        const phi = Math.acos(2 * v - 1);
+        const r = radius * (2.5 + Math.random() * 4.5 + layer * 1.5);
+        pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
+      }
+      return new Float32Array(pts);
+    });
   }, [radius, count]);
 
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    groupRef.current.children.forEach((child, i) => {
+      const t = clock.elapsedTime * speeds[i];
+      child.material.opacity = 0.3 + Math.sin(t) * 0.35;
+      const s = 0.4 + Math.sin(t * 0.7 + 1) * 0.2;
+      child.material.size = Math.max(0.1, s);
+    });
+  });
+
   return (
-    <points>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-      </bufferGeometry>
-      <pointsMaterial size={0.6} color="#ffffff" sizeAttenuation transparent opacity={0.9} depthTest={false} />
-    </points>
+    <group ref={groupRef}>
+      {layers.map((positions, i) => (
+        <points key={i}>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+          </bufferGeometry>
+          <pointsMaterial
+            size={0.6} color="#ffffff" sizeAttenuation transparent
+            opacity={0.5} depthTest={false}
+          />
+        </points>
+      ))}
+    </group>
   );
 }
 
@@ -163,7 +186,7 @@ function CityBeacons({ data, radius, onHover }) {
           <group key={i}>
             <mesh ref={el => ringRefs.current[i] = el} position={pos}>
               <ringGeometry args={[0.2, 0.35, 32]} />
-              <meshBasicMaterial color="#60a5fa" transparent opacity={1.0} side={2} />
+              <meshBasicMaterial color="#22d3ee" transparent opacity={1.0} side={2} />
             </mesh>
             <mesh
               ref={el => beamRefs.current[i] = el}
@@ -172,15 +195,15 @@ function CityBeacons({ data, radius, onHover }) {
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
               <cylinderGeometry args={[0.08, 0.16, beamHeight, 8, 1, true]} />
-              <meshBasicMaterial color="#60a5fa" transparent opacity={0.8} depthWrite={false} />
+              <meshBasicMaterial color="#22d3ee" transparent opacity={0.9} depthWrite={false} />
             </mesh>
             <mesh
               position={pos}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
-              <sphereGeometry args={[0.4, 16, 16]} />
-              <meshBasicMaterial color="#93c5fd" opacity={1.0} transparent={false} />
+              <sphereGeometry args={[0.5, 16, 16]} />
+              <meshBasicMaterial color="#22d3ee" />
             </mesh>
           </group>
         );
@@ -316,8 +339,10 @@ export function World({ globeConfig, data, onHoverCity }) {
       <directionalLight color="#ffffff" position={new Vector3(400, -100, -400)} intensity={0.4} />
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
+      <Starfield radius={cameraZ} count={1500} />
       <OrbitControls enablePan={false} enableZoom={false}
-        enableRotate={true} rotateSpeed={0.8} enableDamping dampingFactor={0.1} />
+        enableRotate={true} rotateSpeed={0.8} enableDamping dampingFactor={0.1}
+        autoRotate autoRotateSpeed={0.4} />
       <EffectComposer multisampling={0}>
         <Bloom intensity={0.2} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur radius={0.3} />
       </EffectComposer>
