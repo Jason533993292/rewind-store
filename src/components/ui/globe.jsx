@@ -415,7 +415,7 @@ function ZoomHandler() {
       const target = new Vector3(0, 0, 0);
       const dir = new Vector3().copy(camera.position).sub(target);
       const dist = dir.length();
-      dir.normalize().multiplyScalar(Math.max(110, Math.min(600, dist - dist * 0.3 * e.detail)));
+      dir.normalize().multiplyScalar(Math.max(104, Math.min(600, dist - dist * 0.3 * e.detail)));
       camera.position.copy(target).add(dir);
     };
     window.addEventListener('globe-zoom', handler);
@@ -432,7 +432,7 @@ export function World({ globeConfig, data, onHoverCity }) {
   }, []);
 
   return (
-    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)} gl={{ antialias: true, alpha: false }}>
+    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 1, 1800)} gl={{ antialias: true, alpha: false }}>
       <WebGLRendererConfig />
       <CinematicIntro targetZ={cameraZ} />
       <ZoomHandler />
@@ -442,11 +442,10 @@ export function World({ globeConfig, data, onHoverCity }) {
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
       <Starfield radius={cameraZ} count={3000} />
-      <OrbitControls enablePan={false} enableZoom={true} zoomSpeed={0.8}
-        minDistance={110} maxDistance={600}
+      <OrbitControls makeDefault enablePan={false} enableZoom={true} zoomSpeed={0.8}
+        minDistance={104} maxDistance={600}
         enableRotate={true} rotateSpeed={0.8}
-        autoRotate autoRotateSpeed={0.4}
-        ref={(c) => { window.__globeControls = c; }} />
+        autoRotate autoRotateSpeed={0.4} />
       <EffectComposer multisampling={0}>
         <Bloom intensity={0.2} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur radius={0.3} />
       </EffectComposer>
@@ -518,13 +517,13 @@ export default function GlobePanel({ open, onClose, locations }) {
           position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
           zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px',
         }}>
-          <button onClick={() => document.dispatchEvent(new CustomEvent('globe-zoom', { detail: 1 }))} style={{
+          <button onClick={() => window.dispatchEvent(new CustomEvent('globe-zoom', { detail: 1 }))} style={{
             width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)',
             background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer',
             fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1,
             backdropFilter: 'blur(4px)', userSelect: 'none',
           }}>+</button>
-          <button onClick={() => document.dispatchEvent(new CustomEvent('globe-zoom', { detail: -1 }))} style={{
+          <button onClick={() => window.dispatchEvent(new CustomEvent('globe-zoom', { detail: -1 }))} style={{
             width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)',
             background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer',
             fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1,
