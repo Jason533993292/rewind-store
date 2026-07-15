@@ -401,6 +401,19 @@ function CinematicIntro({ targetZ }) {
   return null;
 }
 
+function ZoomHandler() {
+  const { camera } = useThree();
+  useEffect(() => {
+    const handler = (e) => {
+      const step = 30;
+      camera.position.z = Math.max(180, Math.min(600, camera.position.z - e.detail * step));
+    };
+    window.addEventListener('globe-zoom', handler);
+    return () => window.removeEventListener('globe-zoom', handler);
+  }, [camera]);
+  return null;
+}
+
 export function World({ globeConfig, data, onHoverCity }) {
   const scene = useMemo(() => {
     const s = new Scene();
@@ -412,13 +425,15 @@ export function World({ globeConfig, data, onHoverCity }) {
     <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 180, 1800)} gl={{ antialias: true, alpha: false }}>
       <WebGLRendererConfig />
       <CinematicIntro targetZ={cameraZ} />
+      <ZoomHandler />
       <ambientLight color="#606090" intensity={0.8} />
       <directionalLight color="#ffffff" position={new Vector3(-400, 100, 400)} intensity={0.6} />
       <directionalLight color="#ffffff" position={new Vector3(400, -100, -400)} intensity={0.4} />
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
       <Starfield radius={cameraZ} count={3000} />
-      <OrbitControls enablePan={false} enableZoom={false}
+      <OrbitControls enablePan={false} enableZoom={true} zoomSpeed={0.8}
+        minDistance={180} maxDistance={600}
         enableRotate={true} rotateSpeed={0.8} enableDamping dampingFactor={0.1}
         autoRotate autoRotateSpeed={0.4} />
       <EffectComposer multisampling={0}>
@@ -487,6 +502,24 @@ export default function GlobePanel({ open, onClose, locations }) {
           background: 'rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer',
           fontSize: '18px', display: 'grid', placeItems: 'center', fontWeight: 600,
         }}>✕</button>
+
+        <div style={{
+          position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)',
+          zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px',
+        }}>
+          <button onClick={() => document.dispatchEvent(new CustomEvent('globe-zoom', { detail: 1 }))} style={{
+            width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer',
+            fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1,
+            backdropFilter: 'blur(4px)', userSelect: 'none',
+          }}>+</button>
+          <button onClick={() => document.dispatchEvent(new CustomEvent('globe-zoom', { detail: -1 }))} style={{
+            width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer',
+            fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1,
+            backdropFilter: 'blur(4px)', userSelect: 'none',
+          }}>−</button>
+        </div>
 
         <div style={{ position: 'absolute', top: '16px', left: '20px', zIndex: 10, color: '#fff' }}>
           <div style={{ fontSize: '18px', fontWeight: 700, opacity: 0.9 }}>Our reach</div>
