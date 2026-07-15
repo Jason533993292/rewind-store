@@ -172,22 +172,39 @@ function Moon() {
       [250, 50, 5], [340, 100, 6], [160, 220, 7], [380, 210, 5],
       [70, 20, 4], [440, 210, 6], [120, 120, 11], [310, 170, 8],
       [220, 80, 7], [40, 160, 5], [460, 100, 4], [195, 240, 6],
+      // Additional impact craters
+      [55, 110, 9], [330, 190, 13], [170, 50, 10], [395, 30, 8],
+      [110, 170, 7], [270, 20, 6], [430, 150, 5], [20, 130, 4],
+      [310, 120, 15], [90, 230, 8], [240, 150, 12], [365, 200, 7],
     ];
     for (const [cx, cy, r] of craterSeeds) {
+      // Ejecta rays for larger impacts (r > 10)
+      if (r > 10) {
+        for (let ray = 0; ray < 8 + Math.floor(r / 3); ray++) {
+          const angle = Math.random() * Math.PI * 2;
+          const len = r * (1.5 + Math.random() * 2);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+          ctx.strokeStyle = `rgba(200, 195, 180, ${0.04 + Math.random() * 0.06})`;
+          ctx.lineWidth = 0.5 + Math.random();
+          ctx.stroke();
+        }
+      }
       // Dark crater floor
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(80, 80, 72, ${0.3 + Math.random() * 0.3})`;
+      ctx.fillStyle = `rgba(40, 38, 35, ${0.5 + Math.random() * 0.35})`;
       ctx.fill();
-      // Light rim (top-left edge)
+      // Light rim highlight (top-left)
       ctx.beginPath();
-      ctx.arc(cx - r * 0.15, cy - r * 0.15, r * 0.85, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(200, 195, 185, ${0.15 + Math.random() * 0.15})`;
+      ctx.arc(cx - r * 0.18, cy - r * 0.18, r * 0.82, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(210, 205, 195, ${0.12 + Math.random() * 0.12})`;
       ctx.fill();
-      // Inner shadow (bottom-right edge)
+      // Inner shadow (bottom-right)
       ctx.beginPath();
-      ctx.arc(cx + r * 0.1, cy + r * 0.1, r * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(60, 60, 55, ${0.1 + Math.random() * 0.15})`;
+      ctx.arc(cx + r * 0.12, cy + r * 0.12, r * 0.65, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(25, 24, 22, ${0.15 + Math.random() * 0.2})`;
       ctx.fill();
     }
     // Subtle noise overlay
