@@ -366,18 +366,27 @@ function WebGLRendererConfig() {
 
 function ZoomHandler() {
   const { camera } = useThree();
+  const targetDist = useRef(null);
 
   useEffect(() => {
     const handler = (e) => {
-      const dir = new Vector3().copy(camera.position);
-      const dist = dir.length();
-      const newDist = Math.max(104, Math.min(600, dist - dist * 0.2 * e.detail));
-      dir.normalize().multiplyScalar(newDist);
-      camera.position.copy(dir);
+      const dist = camera.position.length();
+      targetDist.current = Math.max(104, Math.min(600, dist - dist * 0.2 * e.detail));
     };
     window.addEventListener('globe-zoom', handler);
     return () => window.removeEventListener('globe-zoom', handler);
   }, [camera]);
+
+  useFrame(() => {
+    if (targetDist.current === null) return;
+    const dist = camera.position.length();
+    if (Math.abs(dist - targetDist.current) < 0.5) {
+      targetDist.current = null;
+      return;
+    }
+    const newDist = dist + (targetDist.current - dist) * 0.1;
+    camera.position.copy(camera.position.clone().normalize().multiplyScalar(newDist));
+  });
 
   return null;
 }
