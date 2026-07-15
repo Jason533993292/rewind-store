@@ -1,14 +1,7 @@
 // ── Aceternity-style 3D Globe (three-globe) — Final ──
 //
-// This version replaces the pre-sampled dot-cloud continents with real
-// country outlines (Natural Earth 110m admin-0 boundaries, public domain),
-// and adds a custom soft Fresnel-glow atmosphere layer.
-//
-// Carried over from the previous version:
-//  - Bloom post-processing
-//  - Glowing vertical city beacons + hover tooltips
-//  - Cinematic camera dolly-in on open
-//  - Nebula-style background gradient
+// Continent dots are sampled from the GeoJSON polygon data, so they
+// perfectly align with the country border lines drawn by CountryBorders.
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion } from 'three';
@@ -25,6 +18,8 @@ const aspect = 1.2;
 const cameraZ = 300;
 const ORIGIN = { lat: 50.8503, lng: 4.3517 };
 const COLORS = ['#c8d6e5', '#8395a7', '#576574'];
+const LAND_DOT_COUNT = 6000;
+const LAND_CHECK_SAMPLES = 80000;
 
 function genRandomNumbers(min, max, count) {
   const arr = [];
@@ -43,6 +38,78 @@ function latLngToVec3(lat, lng, radius) {
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
   );
+}
+
+// Ray-casting point-in-polygon test for a single ring
+function pointInRing(lng, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+// Check if a point is inside a GeoJSON feature (handles Polygon and MultiPolygon with holes)
+function pointInFeature(lng, lat, feature) {
+  const geom = feature.geometry;
+  if (!geom) return false;
+  const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+  for (const poly of polys) {
+    const outerRing = poly[0];
+    if (!outerRing || outerRing.length < 3) continue;
+    if (!pointInRing(lng, lat, outerRing)) continue;
+    // Check holes (inner rings)
+    let inHole = false;
+    for (let h = 1; h < poly.length; h++) {
+      if (pointInRing(lng, lat, poly[h])) { inHole = true; break; }
+    }
+    if (!inHole) return true;
+  }
+  return false;
+}
+
+// Sample random points inside all country polygons
+function sampleLandPoints(count, checkSamples, radius) {
+  const pts = [];
+  const features = countries.features;
+  // Compute global bounding box
+  let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+  for (const f of features) {
+    const geom = f.geometry;
+    if (!geom) continue;
+    const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    for (const poly of polys) {
+      for (const ring of poly) {
+        for (const coord of ring) {
+          const [lng, lat] = coord;
+          if (lng < minLng) minLng = lng;
+          if (lng > maxLng) maxLng = lng;
+          if (lat < minLat) minLat = lat;
+          if (lat > maxLat) maxLat = lat;
+        }
+      }
+    }
+  }
+
+  // Rejection sampling: generate random points, keep ones inside any country
+  let attempts = 0;
+  while (pts.length < count && attempts < checkSamples) {
+    attempts++;
+    const lng = minLng + Math.random() * (maxLng - minLng);
+    const lat = minLat + Math.random() * (maxLat - minLat);
+    for (const feature of features) {
+      if (pointInFeature(lng, lat, feature)) {
+        const v = latLngToVec3(lat, lng, radius * 1.002);
+        pts.push(v.x, v.y, v.z);
+        break;
+      }
+    }
+  }
+  return new Float32Array(pts);
 }
 
 function Starfield({ radius, count = 3000 }) {
@@ -82,8 +149,7 @@ function Starfield({ radius, count = 3000 }) {
             <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
           </bufferGeometry>
           <pointsMaterial
-            size={0.8} color="#ffffff" sizeAttenuation transparent
-            opacity={0.7}
+            size={0.8} color="#ffffff" sizeAttenuation transparent opacity={0.7}
           />
         </points>
       ))}
@@ -91,7 +157,20 @@ function Starfield({ radius, count = 3000 }) {
   );
 }
 
-// Country border lines — thin dark dots along polygon edges
+// Continent fill — dots sampled from GeoJSON, perfectly aligned with borders
+function LandDots({ radius }) {
+  const positions = useMemo(() => sampleLandPoints(LAND_DOT_COUNT, LAND_CHECK_SAMPLES, radius), [radius]);
+  return (
+    <points>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.7} color="#d0dce8" sizeAttenuation transparent opacity={0.8} depthTest={true} />
+    </points>
+  );
+}
+
+// Country border lines from GeoJSON polygon edges
 function CountryBorders({ radius }) {
   const lines = useMemo(() => {
     const allLines = [];
@@ -128,14 +207,12 @@ function CountryBorders({ radius }) {
           <bufferGeometry>
             <bufferAttribute attach="attributes-position" count={pts.length / 3} array={pts} itemSize={3} />
           </bufferGeometry>
-          <lineBasicMaterial color="#5a6a7a" transparent opacity={0.35} />
+          <lineBasicMaterial color="#5a6a7a" transparent opacity={0.4} />
         </line>
       ))}
     </group>
   );
 }
-
-
 
 // Glowing vertical beam + pulsing ring + hover target at each city
 function CityBeacons({ data, radius, onHover }) {
@@ -253,21 +330,8 @@ export function Globe({ globeConfig, data, onHoverCity }) {
   useEffect(() => {
     if (!globeRef.current || !isInitialized || !data) return;
 
-    try {
-      // Real country outlines — hexPolygonResolution/Margin control
-      // how crisp vs. hex-tiled borders look
-      globeRef.current
-        .hexPolygonsData(countries.features)
-        .hexPolygonResolution(3)
-        .hexPolygonMargin(0.7)
-        .hexPolygonColor(() => '#d0dce8')
-        .hexPolygonAltitude(0.001)
-        .hexPolygonUseDots(true)
-        .hexPolygonPointRadius(0.8)
-        .showAtmosphere(false);
-    } catch (err) {
-      console.error('[Globe] Failed to set hex polygon data (country outlines):', err);
-    }
+    // Country borders are rendered via R3F CountryBorders/LandDots below
+    // — no hex polygon setup needed from three-globe.
 
     try {
       globeRef.current
@@ -305,6 +369,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
 
   return (
     <group ref={groupRef}>
+      <LandDots radius={100} />
       <CountryBorders radius={100} />
       <CityBeacons data={data} radius={100} onHover={onHoverCity} />
     </group>
