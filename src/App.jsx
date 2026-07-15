@@ -245,14 +245,18 @@ export default function App() {
       const d = dragRef.current;
       if (!d) return;
       const x = d.originX + (e.clientX - d.startX);
-      const y = d.originY - (e.clientY - d.startY);
-      dockPosRef.current = { x, y };
-      wasDraggedRef.current = true;
-      document.body.classList.add('rw-dragging');
+      const y = d.originY + (e.clientY - d.startY);
+      // Clamp dock to viewport bounds
       const el = dockRef.current;
       if (el) {
-        el.style.left = `${x}px`;
-        el.style.bottom = `${window.innerHeight - y}px`;
+        const dw = el.offsetWidth, dh = el.offsetHeight;
+        const clampedX = Math.max(dw / 2 + 10, Math.min(innerWidth - dw / 2 - 10, x));
+        const clampedY = Math.max(dh + 10, Math.min(innerHeight - 10, y));
+        dockPosRef.current = { x: clampedX, y: clampedY };
+        wasDraggedRef.current = true;
+        document.body.classList.add('rw-dragging');
+        el.style.left = `${clampedX}px`;
+        el.style.bottom = `${innerHeight - clampedY}px`;
         el.style.transition = 'none';
         el.style.transform = 'translateX(-50%)';
         el.style.cursor = 'grabbing';
