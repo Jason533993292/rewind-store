@@ -242,7 +242,7 @@ export default function App() {
       const d = dragRef.current;
       if (!d) return;
       const x = d.offsetX + (e.clientX - d.startX);
-      const y = d.offsetY + (e.clientY - d.startY);
+      const y = d.offsetY - (e.clientY - d.startY);
       dockPosRef.current = { x, y };
       if (dockRef.current) {
         dockRef.current.style.left = `calc(50% + ${x}px)`;
