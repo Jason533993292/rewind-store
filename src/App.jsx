@@ -340,17 +340,19 @@ export default function App() {
       let side = snapSideRef.current || 'bottom';
       snapSideRef.current = null;
       const w = innerWidth, h = innerHeight;
-      if (side === 'left') { x = 12 + 0; y = h / 2; }
-      else if (side === 'right') { x = w - 0; y = h / 2; }
-      else if (side === 'bottom') { x = w / 2; y = 12 + 0; }
-      x = Math.round(x); y = Math.round(y);
-      dockPosRef.current = { x, y };
       if (el) {
+        const dw = el.offsetWidth, dh = el.offsetHeight;
+        if (side === 'left') { x = 12 + dw / 2; y = h / 2; }
+        else if (side === 'right') { x = w - 12 - dw / 2; y = h / 2; }
+        else if (side === 'bottom') { x = w / 2; y = 12; }
+        x = Math.round(x); y = Math.round(y);
+        dockPosRef.current = { x, y };
         el.style.left = `${x}px`;
         el.style.bottom = `${h - y}px`;
         el.style.transform = 'translateX(-50%)';
+        // Convert pixel pos back to offset format for React state
+        setDockPos({ x: Math.round(x - w / 2), y: Math.round(y - 28) });
       }
-      setDockPos({ x: x - w / 2, y: y - 28 });
       setDockSide(side);
     }
     window.addEventListener('mousemove', onMove);
