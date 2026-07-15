@@ -90,6 +90,7 @@ export default function App() {
   const dockRef = useRef(null);
   const dockPosRef = useRef({ x: 0, y: 0 });
   const dragRef = useRef(null);
+  const wasDraggedRef = useRef(false);
   const snapSideRef = useRef(null);
   const [dockPos, setDockPos] = useState({ x: 0, y: 0 });
   const [dockSide, setDockSide] = useState('bottom'); // 'bottom' | 'top' | 'left' | 'right'
@@ -238,6 +239,15 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
+  // Reset dock to bottom when any dock button is clicked from a side position
+  function resetDockToBottom() {
+    if (dockSide !== 'bottom') {
+      dockPosRef.current = { x: 0, y: 12 - 28 };
+      setDockPos({ x: 0, y: 12 - 28 });
+      setDockSide('bottom');
+    }
+  }
+
   // Dock drag handling — direct DOM manipulation during drag, React state on drop
   useEffect(() => {
     function onMove(e) {
@@ -246,6 +256,7 @@ export default function App() {
       const x = d.offsetX + (e.clientX - d.startX);
       const y = d.offsetY - (e.clientY - d.startY);
       dockPosRef.current = { x, y };
+      wasDraggedRef.current = true;
       const el = dockRef.current;
       if (el) {
         el.style.left = `calc(50% + ${x}px)`;
@@ -254,38 +265,39 @@ export default function App() {
         el.style.cursor = 'grabbing';
         el.style.userSelect = 'none';
       }
-      // Detect snap zone
+      // Detect snap zones — left, right, bottom
       if (el) {
         const r = el.getBoundingClientRect();
         const w = innerWidth, h = innerHeight, m = 80;
         let side = null;
-        if (r.top < m) side = 'top';
-        else if (h - r.bottom < m) side = 'bottom';
-        else if (r.left < m) side = 'left';
+        if (r.left < m) side = 'left';
         else if (w - r.right < m) side = 'right';
+        else if (h - r.bottom < m) side = 'bottom';
         snapSideRef.current = side;
-        // Show/hide indicator overlay
         const ind = document.getElementById('dock-snap-indicator');
         if (ind) {
           if (side) {
             ind.style.display = 'block';
-            ind.style.opacity = '0.6';
-            const isHV = side === 'top' || side === 'bottom';
-            ind.style.top = isHV ? '50%' : '40%';
-            ind.style.bottom = 'auto';
-            ind.style.left = isHV ? '40%' : (side === 'left' ? '0' : 'auto');
-            ind.style.right = isHV ? '40%' : (side === 'right' ? '0' : 'auto');
-            ind.style.width = isHV ? '20%' : '24px';
-            ind.style.height = isHV ? '24px' : '20%';
-            // Trapezium clip-path
-            if (side === 'left') ind.style.clipPath = 'polygon(0% 0%, 100% 15%, 100% 85%, 0% 100%)';
-            else if (side === 'right') ind.style.clipPath = 'polygon(0% 15%, 100% 0%, 100% 100%, 0% 85%)';
-            else if (side === 'top') ind.style.clipPath = 'polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)';
-            else if (side === 'bottom') ind.style.clipPath = 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)';
-            ind.style.transform = 'none';
-            ind.style.borderRadius = '0';
+            ind.style.opacity = '0.7';
+            ind.style.background = '#ff6b35';
+            ind.style.boxShadow = '0 0 20px #ff6b35';
+            if (side === 'left') {
+              ind.style.top = '35%'; ind.style.bottom = '35%'; ind.style.left = '0'; ind.style.right = 'auto';
+              ind.style.width = '32px'; ind.style.height = 'auto';
+              ind.style.clipPath = 'polygon(0% 0%, 100% 15%, 100% 85%, 0% 100%)';
+            } else if (side === 'right') {
+              ind.style.top = '35%'; ind.style.bottom = '35%'; ind.style.right = '0'; ind.style.left = 'auto';
+              ind.style.width = '32px'; ind.style.height = 'auto';
+              ind.style.clipPath = 'polygon(0% 15%, 100% 0%, 100% 100%, 0% 85%)';
+            } else if (side === 'bottom') {
+              ind.style.left = '35%'; ind.style.right = '35%'; ind.style.bottom = '0'; ind.style.top = 'auto';
+              ind.style.height = '32px'; ind.style.width = 'auto';
+              ind.style.clipPath = 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)';
+            }
           } else {
+            ind.style.display = 'none';
             ind.style.opacity = '0';
+            ind.style.boxShadow = 'none';
           }
         }
       }
@@ -313,7 +325,6 @@ export default function App() {
         const w = innerWidth, h = innerHeight;
         if (side === 'left') x = 12 - w / 2 + rect.width / 2;
         else if (side === 'right') x = w / 2 - rect.width / 2 - 12;
-        else if (side === 'top') { x = 0; y = h - 12 - 28 - rect.height; }
         else if (side === 'bottom') { x = 0; y = 12 - 28; }
       }
       x = Math.round(x); y = Math.round(y);
@@ -1150,11 +1161,10 @@ export default function App() {
       )}
 
       {/* ── Bottom Dock ── */}
-      {/* Snap indicator overlay */}
+      {/* Snap indicator — trapezium on left, right, bottom edges */}
       <div id="dock-snap-indicator" style={{
-        position: 'fixed', zIndex: 99998, pointerEvents: 'none',
-        background: '#ff6b35', opacity: 0, display: 'none',
-        transition: 'opacity 0.12s',
+        position: 'fixed', zIndex: 99998, pointerEvents: 'none', display: 'none',
+        transition: 'opacity 0.15s',
       }} />
 
       <div ref={dockRef}
@@ -1171,7 +1181,7 @@ export default function App() {
           justifyContent: 'center', alignItems: 'center', gap: '0',
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-          borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 2px 12px rgba(0,0,0,0.08)',
+          borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 0 18px rgba(255,107,53,0.25), 0 2px 12px rgba(0,0,0,0.08)',
           padding: dockSide === 'left' || dockSide === 'right' ? '4px 8px' : '7px',
           transform: `translateX(-50%) translateY(${dockHover && !dragRef.current ? -2 : 0}px)`,
           transition: dragRef.current ? 'none' : 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
@@ -1188,7 +1198,11 @@ export default function App() {
       >
 
         {/* Referrals */}
-        <button onClick={() => { setShowSettings(false); setShowReferral(true); }}
+        <button onClick={() => {
+          if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
+          resetDockToBottom();
+          setShowSettings(false); setShowReferral(true);
+        }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
@@ -1202,11 +1216,15 @@ export default function App() {
           onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.color = 'var(--ink)'; }}
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
-          <span>Referrals</span>
+          {dockSide === 'left' || dockSide === 'right' ? null : <span>Referrals</span>}
         </button>
 
         {/* Home */}
-        <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); setDockHover(false); }}
+        <button onClick={() => {
+          if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
+          resetDockToBottom();
+          setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false);
+        }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: '16px', flexShrink: 0,
@@ -1217,11 +1235,15 @@ export default function App() {
           onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
+          {dockHover && dockSide !== 'left' && dockSide !== 'right' && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
         </button>
 
         {/* Settings */}
-        <button onClick={() => { setShowReferral(false); setShowSettings(true); }}
+        <button onClick={() => {
+          if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
+          resetDockToBottom();
+          setShowReferral(false); setShowSettings(true);
+        }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
@@ -1235,26 +1257,9 @@ export default function App() {
           onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.color = 'var(--ink)'; }}
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>
+          {dockSide === 'left' || dockSide === 'right' ? null : <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>}
         </button>
 
-        {/* Dark mode toggle */}
-        <button onClick={() => setDarkMode(v => !v)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: dockHover ? '8px 12px' : '8px 0',
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
-            fontSize: '14px', whiteSpace: 'nowrap',
-            opacity: dockHover ? 1 : 0, overflow: 'hidden',
-            transition: 'opacity 0.8s ease 0.08s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.2s ease',
-            pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '60px' : '0',
-            transform: 'scale(1)',
-          }}
-          onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.color = 'var(--ink)'; }}
-          onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}
-          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
-          <span style={{ fontSize: '18px', lineHeight: 1 }}>{darkMode ? '☀️' : '🌙'}</span>
-        </button>
       </div>
 
       {/* ── Chat bubble ── */}
