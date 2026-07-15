@@ -346,7 +346,11 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .arcDashLength(defaultProps.arcLength)
         .arcDashInitialGap(e => e.order * 1)
         .arcDashGap(15)
-        .arcDashAnimateTime(() => defaultProps.arcTime);
+        .arcDashAnimateTime(() => defaultProps.arcTime)
+        .ringColor(d => d.color)
+        .ringMaxRadius(4)
+        .ringPropagationSpeed(RING_PROPAGATION_SPEED)
+        .ringRepeatPeriod((defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings);
     } catch (err) {
       console.error('[Globe] Failed to set arcs data:', err);
     }
