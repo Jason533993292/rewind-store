@@ -4,7 +4,7 @@
 // perfectly align with the country border lines drawn by CountryBorders.
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion } from 'three';
+import { Color, Fog, Vector3, Quaternion } from 'three';
 import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -364,21 +364,6 @@ function WebGLRendererConfig() {
   return null;
 }
 
-function CinematicIntro({ targetZ }) {
-  const { camera } = useThree();
-  const startedAt = useRef(null);
-  const done = useRef(false);
-  useFrame((state) => {
-    if (done.current) return;
-    if (startedAt.current === null) startedAt.current = state.clock.elapsedTime;
-    const t = Math.min(1, (state.clock.elapsedTime - startedAt.current) / 1.8);
-    const eased = 1 - Math.pow(1 - t, 3);
-    camera.position.z = (targetZ * 2.2) + (targetZ - targetZ * 2.2) * eased;
-    if (t >= 1) done.current = true;
-  });
-  return null;
-}
-
 function ZoomHandler() {
   const { camera } = useThree();
 
@@ -398,16 +383,12 @@ function ZoomHandler() {
 }
 
 export function World({ globeConfig, data, onHoverCity }) {
-  const scene = useMemo(() => {
-    const s = new Scene();
-    s.fog = new Fog(0x0a0000, 400, 2000);
-    return s;
-  }, []);
-
   return (
-    <Canvas scene={scene} camera={new PerspectiveCamera(50, aspect, 1, 1800)} gl={{ antialias: true, alpha: false }}>
+    <Canvas
+      camera={{ position: [0, 0, cameraZ], fov: 50, aspect, near: 1, far: 1800 }}
+      gl={{ antialias: true, alpha: false }}
+      onCreated={({ scene }) => { scene.fog = new Fog(0x0a0000, 400, 2000); }}>
       <WebGLRendererConfig />
-      <CinematicIntro targetZ={cameraZ} />
       <ZoomHandler />
       <ambientLight color="#606090" intensity={0.8} />
       <directionalLight color="#ffffff" position={new Vector3(-400, 100, 400)} intensity={0.6} />
