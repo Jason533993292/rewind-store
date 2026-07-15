@@ -32,9 +32,9 @@ function genRandomNumbers(min, max, count) {
 
 function latLngToVec3(lat, lng, radius) {
   const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lng + 180) * (Math.PI / 180);
+  const theta = (90 - lng) * (Math.PI / 180);
   return new Vector3(
-    -radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.sin(phi) * Math.cos(theta),
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
   );
@@ -186,9 +186,9 @@ function CountryBorders({ radius }) {
           for (const coord of ring) {
             const [lng, lat] = coord;
             const phi = (90 - lat) * (Math.PI / 180);
-            const theta = (lng + 180) * (Math.PI / 180);
+            const theta = (90 - lng) * (Math.PI / 180);
             pts.push(
-              -R * Math.sin(phi) * Math.cos(theta),
+              R * Math.sin(phi) * Math.cos(theta),
               R * Math.cos(phi),
               R * Math.sin(phi) * Math.sin(theta),
             );
