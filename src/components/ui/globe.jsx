@@ -83,7 +83,7 @@ function Starfield({ radius, count = 1500 }) {
           </bufferGeometry>
           <pointsMaterial
             size={0.6} color="#ffffff" sizeAttenuation transparent
-            opacity={0.5} depthTest={false}
+            opacity={0.5}
           />
         </points>
       ))}
@@ -185,8 +185,8 @@ function CityBeacons({ data, radius, onHover }) {
         return (
           <group key={i}>
             <mesh ref={el => ringRefs.current[i] = el} position={pos}>
-              <ringGeometry args={[0.2, 0.35, 32]} />
-              <meshBasicMaterial color="#22d3ee" transparent opacity={1.0} side={2} />
+              <ringGeometry args={[0.3, 0.5, 32]} />
+              <meshBasicMaterial color="#c8d6e5" transparent opacity={1.0} side={2} />
             </mesh>
             <mesh
               ref={el => beamRefs.current[i] = el}
@@ -194,16 +194,16 @@ function CityBeacons({ data, radius, onHover }) {
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
-              <cylinderGeometry args={[0.08, 0.16, beamHeight, 8, 1, true]} />
-              <meshBasicMaterial color="#22d3ee" transparent opacity={0.9} depthWrite={false} />
+              <cylinderGeometry args={[0.1, 0.2, beamHeight, 8, 1, true]} />
+              <meshBasicMaterial color="#c8d6e5" transparent opacity={1.0} depthWrite={false} />
             </mesh>
             <mesh
               position={pos}
               onPointerOver={(e) => { e.stopPropagation(); onHover(cities[i]); }}
               onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
             >
-              <sphereGeometry args={[0.5, 16, 16]} />
-              <meshBasicMaterial color="#22d3ee" />
+              <sphereGeometry args={[0.8, 20, 20]} />
+              <meshBasicMaterial color="#e2e8f0" />
             </mesh>
           </group>
         );
@@ -314,11 +314,14 @@ function WebGLRendererConfig() {
 function CinematicIntro({ targetZ }) {
   const { camera } = useThree();
   const startedAt = useRef(null);
+  const done = useRef(false);
   useFrame((state) => {
+    if (done.current) return;
     if (startedAt.current === null) startedAt.current = state.clock.elapsedTime;
     const t = Math.min(1, (state.clock.elapsedTime - startedAt.current) / 1.8);
     const eased = 1 - Math.pow(1 - t, 3);
     camera.position.z = (targetZ * 2.2) + (targetZ - targetZ * 2.2) * eased;
+    if (t >= 1) done.current = true;
   });
   return null;
 }
