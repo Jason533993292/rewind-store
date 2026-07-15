@@ -88,7 +88,8 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
   const dockRef = useRef(null);
-  const [dockDrag, setDockDrag] = useState(null); // { startX, startY, offsetX, offsetY }
+  const dockPosRef = useRef({ x: 0, y: 0 });
+  const dragRef = useRef(null);
   const [dockPos, setDockPos] = useState({ x: 0, y: 0 }); // offset from default center-bottom
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('rw_theme') === 'dark'; } catch { return false; }
@@ -235,47 +236,51 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
-  // Dock drag handling
+  // Dock drag handling — direct DOM manipulation during drag, React state on drop
   useEffect(() => {
-    if (!dockDrag) return;
     function onMove(e) {
-      setDockPos({ x: dockDrag.offsetX + (e.clientX - dockDrag.startX), y: dockDrag.offsetY + (e.clientY - dockDrag.startY) });
+      const d = dragRef.current;
+      if (!d) return;
+      const x = d.offsetX + (e.clientX - d.startX);
+      const y = d.offsetY + (e.clientY - d.startY);
+      dockPosRef.current = { x, y };
+      if (dockRef.current) {
+        dockRef.current.style.left = `calc(50% + ${x}px)`;
+        dockRef.current.style.bottom = `calc(28px + ${y}px)`;
+        dockRef.current.style.transition = 'none';
+        dockRef.current.style.cursor = 'grabbing';
+        dockRef.current.style.userSelect = 'none';
+      }
     }
     function onUp(e) {
-      // Snapping: check if dock is near screen edges
-      const dockEl = dockRef.current;
-      if (dockEl) {
-        const rect = dockEl.getBoundingClientRect();
+      const d = dragRef.current;
+      if (!d) { dragRef.current = null; return; }
+      dragRef.current = null;
+      const el = dockRef.current;
+      if (el) {
+        el.style.cursor = 'grab';
+        el.style.userSelect = '';
+      }
+      // Snapping
+      let { x, y } = dockPosRef.current;
+      if (el) {
+        const rect = el.getBoundingClientRect();
         const w = window.innerWidth;
         const h = window.innerHeight;
         const snapMargin = 80;
-        let snapX = dockPos.x;
-        let snapY = dockPos.y;
-        // Snap left edge → dock's left = 12px from viewport left
-        if (rect.left < snapMargin) {
-          snapX = 12 - w / 2 + rect.width / 2;
-        }
-        // Snap right edge → dock's right = 12px from viewport right
-        if (w - rect.right < snapMargin) {
-          snapX = w / 2 - rect.width / 2 - 12;
-        }
-        // Snap top edge → dock's top = 12px from viewport top
-        if (rect.top < snapMargin) {
-          snapY = h - rect.top - 28;
-          snapY = h - 12 - 28 - rect.height;
-        }
-        // Snap bottom edge → dock's bottom = 12px from viewport bottom
-        if (h - rect.bottom < snapMargin) {
-          snapY = 12 - 28;
-        }
-        setDockPos({ x: Math.round(snapX), y: Math.round(snapY) });
+        if (rect.left < snapMargin) x = 12 - w / 2 + rect.width / 2;
+        if (w - rect.right < snapMargin) x = w / 2 - rect.width / 2 - 12;
+        if (rect.top < snapMargin) y = h - 12 - 28 - rect.height;
+        if (h - rect.bottom < snapMargin) y = 12 - 28;
       }
-      setDockDrag(null);
+      x = Math.round(x); y = Math.round(y);
+      dockPosRef.current = { x, y };
+      setDockPos({ x, y });
     }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
-  }, [dockDrag]);
+  }, []);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 
@@ -1103,11 +1108,11 @@ export default function App() {
       {/* ── Bottom Dock ── */}
       <div ref={dockRef}
         onMouseDown={(e) => {
-          setDockDrag({ startX: e.clientX, startY: e.clientY, offsetX: dockPos.x, offsetY: dockPos.y });
+          dragRef.current = { startX: e.clientX, startY: e.clientY, offsetX: dockPosRef.current.x, offsetY: dockPosRef.current.y };
           e.preventDefault();
         }}
-        onMouseEnter={() => !dockDrag && setDockHover(true)}
-        onMouseLeave={() => !dockDrag && setDockHover(false)}
+        onMouseEnter={() => !dragRef.current && setDockHover(true)}
+        onMouseLeave={() => !dragRef.current && setDockHover(false)}
         style={{
           position: 'fixed', bottom: `calc(28px + ${dockPos.y}px)`, left: `calc(50% + ${dockPos.x}px)`, zIndex: 99999,
           display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
@@ -1128,14 +1133,16 @@ export default function App() {
         {/* Minus — always visible, collapses the dock */}
         <button onClick={(e) => { e.stopPropagation(); setDockHover(false); }}
           style={{
-            width: '22px', height: '22px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.12)',
-            background: 'rgba(200,200,200,0.3)', cursor: 'pointer', lineHeight: 1, flexShrink: 0,
+            position: 'absolute', top: '-8px', right: '-8px',
+            width: '20px', height: '20px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.12)',
+            background: 'rgba(240,240,240,0.85)', cursor: 'pointer', lineHeight: 1,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '12px', fontWeight: 700, color: '#777', padding: 0, marginLeft: '2px',
-            transition: 'opacity 0.2s, background 0.2s', opacity: 0.5,
+            fontSize: '12px', fontWeight: 700, color: '#666', padding: 0,
+            transition: 'opacity 0.15s, transform 0.15s', opacity: 0.6,
+            zIndex: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
           }}
-          onMouseOver={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.background = 'rgba(180,180,180,0.5)'; }}
-          onMouseOut={e => { e.currentTarget.style.opacity = 0.5; e.currentTarget.style.background = 'rgba(200,200,200,0.3)'; }}
+          onMouseOver={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.transform = 'scale(1.15)'; }}
+          onMouseOut={e => { e.currentTarget.style.opacity = 0.6; e.currentTarget.style.transform = 'scale(1)'; }}
           title="Collapse dock"
         >−</button>
 
