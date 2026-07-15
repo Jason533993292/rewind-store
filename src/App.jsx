@@ -241,7 +241,35 @@ export default function App() {
     function onMove(e) {
       setDockPos({ x: dockDrag.offsetX + (e.clientX - dockDrag.startX), y: dockDrag.offsetY + (e.clientY - dockDrag.startY) });
     }
-    function onUp() {
+    function onUp(e) {
+      // Snapping: check if dock is near screen edges
+      const dockEl = dockRef.current;
+      if (dockEl) {
+        const rect = dockEl.getBoundingClientRect();
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const snapMargin = 80;
+        let snapX = dockPos.x;
+        let snapY = dockPos.y;
+        // Snap left edge → dock's left = 12px from viewport left
+        if (rect.left < snapMargin) {
+          snapX = 12 - w / 2 + rect.width / 2;
+        }
+        // Snap right edge → dock's right = 12px from viewport right
+        if (w - rect.right < snapMargin) {
+          snapX = w / 2 - rect.width / 2 - 12;
+        }
+        // Snap top edge → dock's top = 12px from viewport top
+        if (rect.top < snapMargin) {
+          snapY = h - rect.top - 28;
+          snapY = h - 12 - 28 - rect.height;
+        }
+        // Snap bottom edge → dock's bottom = 12px from viewport bottom
+        if (h - rect.bottom < snapMargin) {
+          snapY = 12 - 28;
+        }
+        setDockPos({ x: Math.round(snapX), y: Math.round(snapY) });
+      }
       setDockDrag(null);
     }
     window.addEventListener('mousemove', onMove);
@@ -1097,6 +1125,20 @@ export default function App() {
           whiteSpace: 'nowrap',
         }}
       >
+        {/* Minus — always visible, collapses the dock */}
+        <button onClick={(e) => { e.stopPropagation(); setDockHover(false); }}
+          style={{
+            width: '22px', height: '22px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.12)',
+            background: 'rgba(200,200,200,0.3)', cursor: 'pointer', lineHeight: 1, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '12px', fontWeight: 700, color: '#777', padding: 0, marginLeft: '2px',
+            transition: 'opacity 0.2s, background 0.2s', opacity: 0.5,
+          }}
+          onMouseOver={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.background = 'rgba(180,180,180,0.5)'; }}
+          onMouseOut={e => { e.currentTarget.style.opacity = 0.5; e.currentTarget.style.background = 'rgba(200,200,200,0.3)'; }}
+          title="Collapse dock"
+        >−</button>
+
         {/* Referrals */}
         <button onClick={() => { setShowSettings(false); setShowReferral(true); }}
           style={{
