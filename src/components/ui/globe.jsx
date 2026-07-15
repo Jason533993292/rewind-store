@@ -405,8 +405,11 @@ function ZoomHandler() {
   const { camera } = useThree();
   useEffect(() => {
     const handler = (e) => {
-      const step = 30;
-      camera.position.z = Math.max(180, Math.min(600, camera.position.z - e.detail * step));
+      const step = 40;
+      const newZ = Math.max(200, Math.min(600, camera.position.z - e.detail * step));
+      window.__globeControls?.object?.position?.set(0, 0, newZ);
+      window.__globeControls?.target?.set(0, 0, 0);
+      window.__globeControls?.update();
     };
     window.addEventListener('globe-zoom', handler);
     return () => window.removeEventListener('globe-zoom', handler);
@@ -433,9 +436,10 @@ export function World({ globeConfig, data, onHoverCity }) {
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
       <Starfield radius={cameraZ} count={3000} />
       <OrbitControls enablePan={false} enableZoom={true} zoomSpeed={0.8}
-        minDistance={180} maxDistance={600}
+        minDistance={200} maxDistance={600}
         enableRotate={true} rotateSpeed={0.8} enableDamping dampingFactor={0.1}
-        autoRotate autoRotateSpeed={0.4} />
+        autoRotate autoRotateSpeed={0.4}
+        ref={(c) => { window.__globeControls = c; }} />
       <EffectComposer multisampling={0}>
         <Bloom intensity={0.2} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur radius={0.3} />
       </EffectComposer>
