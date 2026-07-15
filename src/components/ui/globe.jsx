@@ -252,9 +252,10 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .hexPolygonsData(countries.features)
         .hexPolygonResolution(3)
         .hexPolygonMargin(0.7)
-        .hexPolygonUseDots(false)
-        .hexPolygonColor(() => 'rgba(190, 210, 245, 0)')
-        .hexPolygonAltitude(0.003)
+        .hexPolygonColor(() => '#a0b4c8')
+        .hexPolygonAltitude(0.001)
+        .hexPolygonUseDots(true)
+        .hexPolygonPointRadius(0.3)
         .showAtmosphere(false);
     } catch (err) {
       console.error('[Globe] Failed to set hex polygon data (country outlines):', err);
