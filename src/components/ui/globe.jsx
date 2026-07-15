@@ -148,6 +148,29 @@ function Starfield({ radius, count = 3000 }) {
 }
 
 // Continent fill — dots sampled from GeoJSON, perfectly aligned with borders
+function Moon() {
+  const moonRef = useRef();
+  useFrame(({ clock }) => {
+    if (moonRef.current) {
+      moonRef.current.position.x = 600 * Math.cos(clock.elapsedTime * 0.02);
+      moonRef.current.position.z = 600 * Math.sin(clock.elapsedTime * 0.02);
+    }
+  });
+  return (
+    <group ref={moonRef} position={[600, 200, 0]}>
+      <mesh>
+        <sphereGeometry args={[12, 24, 24]} />
+        <meshStandardMaterial color="#d4d4dc" roughness={0.8} metalness={0.1} emissive="#888899" emissiveIntensity={0.05} />
+      </mesh>
+      {/* Subtle glow */}
+      <mesh>
+        <sphereGeometry args={[14, 16, 16]} />
+        <meshBasicMaterial color="#aabbdd" transparent opacity={0.08} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
 function LandDots({ radius }) {
   const positions = useMemo(() => sampleLandPoints(LAND_DOT_COUNT, LAND_CHECK_SAMPLES, radius), [radius]);
   return (
@@ -405,6 +428,7 @@ export function World({ globeConfig, data, onHoverCity }) {
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
       <Starfield radius={cameraZ} count={3000} />
+      <Moon />
       <OrbitControls makeDefault enablePan={false} enableZoom={true} zoomSpeed={0.8}
         minDistance={104} maxDistance={600}
         enableRotate={true} rotateSpeed={0.8}
