@@ -88,6 +88,8 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
   const dockRef = useRef(null);
+  const [dockDrag, setDockDrag] = useState(null); // { startX, startY, offsetX, offsetY }
+  const [dockPos, setDockPos] = useState({ x: 0, y: 0 }); // offset from default center-bottom
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('rw_theme') === 'dark'; } catch { return false; }
   });
@@ -232,6 +234,20 @@ export default function App() {
   useEffect(() => { if (showSettings) window.dispatchEvent(new Event('settings-panel-open')); }, [showSettings]);
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
+
+  // Dock drag handling
+  useEffect(() => {
+    if (!dockDrag) return;
+    function onMove(e) {
+      setDockPos({ x: dockDrag.offsetX + (e.clientX - dockDrag.startX), y: dockDrag.offsetY + (e.clientY - dockDrag.startY) });
+    }
+    function onUp() {
+      setDockDrag(null);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [dockDrag]);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 
@@ -1058,19 +1074,24 @@ export default function App() {
 
       {/* ── Bottom Dock ── */}
       <div ref={dockRef}
-        onMouseEnter={() => setDockHover(true)}
-        onMouseLeave={() => setDockHover(false)}
+        onMouseDown={(e) => {
+          setDockDrag({ startX: e.clientX, startY: e.clientY, offsetX: dockPos.x, offsetY: dockPos.y });
+          e.preventDefault();
+        }}
+        onMouseEnter={() => !dockDrag && setDockHover(true)}
+        onMouseLeave={() => !dockDrag && setDockHover(false)}
         style={{
-          position: 'fixed', bottom: '28px', left: '50%', zIndex: 99999,
+          position: 'fixed', bottom: `calc(28px + ${dockPos.y}px)`, left: `calc(50% + ${dockPos.x}px)`, zIndex: 99999,
           display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
           borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 2px 12px rgba(0,0,0,0.08)',
           padding: '7px',
-          transform: dockHover ? 'translateX(-50%) translateY(-2px)' : 'translateX(-50%) translateY(0)',
-          transition: 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
+          transform: `translateX(-50%) translateY(${dockHover && !dockDrag ? -2 : 0}px)`,
+          transition: dockDrag ? 'none' : 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
           willChange: 'max-width, transform',
-          cursor: 'default',
+          cursor: dockDrag ? 'grabbing' : 'grab',
+          userSelect: dockDrag ? 'none' : 'auto',
           maxWidth: dockHover ? '420px' : '54px',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
