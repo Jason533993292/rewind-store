@@ -13,22 +13,12 @@ import countries from '../../data/countries.json';
 
 extend({ ThreeGlobe: ThreeGlobe });
 
-const RING_PROPAGATION_SPEED = 3;
 const aspect = 1.2;
 const cameraZ = 300;
 const ORIGIN = { lat: 50.8503, lng: 4.3517 };
 const COLORS = ['#c8d6e5', '#8395a7', '#576574'];
 const LAND_DOT_COUNT = 6000;
 const LAND_CHECK_SAMPLES = 80000;
-
-function genRandomNumbers(min, max, count) {
-  const arr = [];
-  while (arr.length < count) {
-    const r = Math.floor(Math.random() * (max - min)) + min;
-    if (arr.indexOf(r) === -1) arr.push(r);
-  }
-  return arr;
-}
 
 function latLngToVec3(lat, lng, radius) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -346,11 +336,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .arcDashLength(defaultProps.arcLength)
         .arcDashInitialGap(e => e.order * 1)
         .arcDashGap(15)
-        .arcDashAnimateTime(() => defaultProps.arcTime)
-        .ringColor(d => d.color)
-        .ringMaxRadius(4)
-        .ringPropagationSpeed(RING_PROPAGATION_SPEED)
-        .ringRepeatPeriod((defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings);
+        .arcDashAnimateTime(() => defaultProps.arcTime);
     } catch (err) {
       console.error('[Globe] Failed to set arcs data:', err);
     }
@@ -358,18 +344,6 @@ export function Globe({ globeConfig, data, onHoverCity }) {
     globeRef.current.pointsData([]);
     globeRef.current.ringsData([]);
   }, [isInitialized, data, defaultProps]);
-
-  useEffect(() => {
-    if (!globeRef.current || !isInitialized || !data) return;
-    const interval = setInterval(() => {
-      if (!globeRef.current) return;
-      const nums = genRandomNumbers(0, data.length, Math.floor((data.length * 4) / 5));
-      const ringsData = data.filter((d, i) => nums.includes(i))
-        .map(d => ({ lat: d.startLat, lng: d.startLng, color: '#60a5fa' }));
-      globeRef.current.ringsData(ringsData);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [isInitialized, data]);
 
   return (
     <group ref={groupRef}>
