@@ -402,24 +402,25 @@ function CinematicIntro({ targetZ }) {
 }
 
 function ZoomHandler() {
-  const { camera } = useThree();
+  const { camera, controls } = useThree();
   useEffect(() => {
     const handler = (e) => {
-      const ct = window.__globeControls;
-      if (ct?.dollyIn) {
-        ct.dollyIn(Math.pow(1.5, -e.detail));
-        ct.update();
+      // Use R3F's controls reference (drei registers OrbitControls here)
+      if (controls?.dollyIn) {
+        controls.dollyIn(Math.pow(1.5, -e.detail));
+        controls.update();
         return;
       }
+      // Absolute fallback
       const target = new Vector3(0, 0, 0);
       const dir = new Vector3().copy(camera.position).sub(target);
       const dist = dir.length();
-      dir.normalize().multiplyScalar(Math.max(80, Math.min(600, dist - dist * 0.25 * e.detail)));
+      dir.normalize().multiplyScalar(Math.max(110, Math.min(600, dist - dist * 0.3 * e.detail)));
       camera.position.copy(target).add(dir);
     };
     window.addEventListener('globe-zoom', handler);
     return () => window.removeEventListener('globe-zoom', handler);
-  }, [camera]);
+  }, [camera, controls]);
   return null;
 }
 
