@@ -4,7 +4,7 @@
 // perfectly align with the country border lines drawn by CountryBorders.
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { Color, Fog, Vector3, Quaternion } from 'three';
+import { Color, Fog, Vector3, Quaternion, CanvasTexture } from 'three';
 import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -150,22 +150,81 @@ function Starfield({ radius, count = 3000 }) {
 // Continent fill — dots sampled from GeoJSON, perfectly aligned with borders
 function Moon() {
   const moonRef = useRef();
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    // Base surface
+    const grad = ctx.createRadialGradient(200, 100, 20, 256, 128, 256);
+    grad.addColorStop(0, '#e8e8e0');
+    grad.addColorStop(0.5, '#d4d4cc');
+    grad.addColorStop(1, '#b0b0a8');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 256);
+    // Craters — dark spots with lighter rims
+    const craterSeeds = [
+      [80, 50, 18], [200, 30, 12], [350, 60, 22], [420, 120, 10],
+      [60, 140, 14], [150, 100, 8], [280, 140, 20], [400, 180, 15],
+      [100, 200, 10], [230, 200, 16], [320, 30, 7], [450, 70, 6],
+      [30, 80, 12], [180, 160, 9], [370, 140, 11], [480, 160, 8],
+      [140, 30, 6], [290, 90, 14], [50, 180, 8], [410, 40, 9],
+      [250, 50, 5], [340, 100, 6], [160, 220, 7], [380, 210, 5],
+      [70, 20, 4], [440, 210, 6], [120, 120, 11], [310, 170, 8],
+      [220, 80, 7], [40, 160, 5], [460, 100, 4], [195, 240, 6],
+    ];
+    for (const [cx, cy, r] of craterSeeds) {
+      // Dark crater floor
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(80, 80, 72, ${0.3 + Math.random() * 0.3})`;
+      ctx.fill();
+      // Light rim (top-left edge)
+      ctx.beginPath();
+      ctx.arc(cx - r * 0.15, cy - r * 0.15, r * 0.85, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200, 195, 185, ${0.15 + Math.random() * 0.15})`;
+      ctx.fill();
+      // Inner shadow (bottom-right edge)
+      ctx.beginPath();
+      ctx.arc(cx + r * 0.1, cy + r * 0.1, r * 0.7, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(60, 60, 55, ${0.1 + Math.random() * 0.15})`;
+      ctx.fill();
+    }
+    // Subtle noise overlay
+    for (let i = 0; i < 8000; i++) {
+      const x = Math.random() * 512;
+      const y = Math.random() * 256;
+      const a = Math.random() * 0.04;
+      ctx.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`;
+      ctx.fillRect(x, y, 2, 2);
+    }
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
   useFrame(({ clock }) => {
     if (moonRef.current) {
-      moonRef.current.position.x = 600 * Math.cos(clock.elapsedTime * 0.02);
-      moonRef.current.position.z = 600 * Math.sin(clock.elapsedTime * 0.02);
+      const angle = clock.elapsedTime * 0.015;
+      moonRef.current.position.x = 550 * Math.cos(angle);
+      moonRef.current.position.z = 550 * Math.sin(angle);
     }
   });
+
   return (
-    <group ref={moonRef} position={[600, 200, 0]}>
+    <group ref={moonRef} position={[550, 180, 0]}>
       <mesh>
-        <sphereGeometry args={[12, 24, 24]} />
-        <meshStandardMaterial color="#d4d4dc" roughness={0.8} metalness={0.1} emissive="#888899" emissiveIntensity={0.05} />
+        <sphereGeometry args={[14, 48, 48]} />
+        <meshStandardMaterial
+          map={texture}
+          roughness={0.9}
+          metalness={0.05}
+          bumpMap={texture}
+          bumpScale={0.8}
+        />
       </mesh>
-      {/* Subtle glow */}
+      {/* Soft outer glow */}
       <mesh>
-        <sphereGeometry args={[14, 16, 16]} />
-        <meshBasicMaterial color="#aabbdd" transparent opacity={0.08} depthWrite={false} />
+        <sphereGeometry args={[16, 24, 24]} />
+        <meshBasicMaterial color="#aabbdd" transparent opacity={0.06} depthWrite={false} />
       </mesh>
     </group>
   );
