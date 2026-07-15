@@ -11,7 +11,7 @@
 //  - Nebula-style background gradient
 
 import { useEffect, useRef, useState, useMemo } from 'react';
-import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion, ShaderMaterial, BackSide, AdditiveBlending } from 'three';
+import { Color, Scene, Fog, PerspectiveCamera, Vector3, Quaternion } from 'three';
 import ThreeGlobe from 'three-globe';
 import { useThree, Canvas, extend, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -91,43 +91,51 @@ function Starfield({ radius, count = 3000 }) {
   );
 }
 
-// Custom soft Fresnel-glow atmosphere shell
-function AtmosphereGlow({ radius, color = '#6fb8ff', power = 2.2, intensity = 0.9 }) {
-  const material = useMemo(() => new ShaderMaterial({
-    uniforms: {
-      glowColor: { value: new Color(color) },
-      power: { value: power },
-      intensity: { value: intensity },
-    },
-    vertexShader: `
-      varying vec3 vNormal;
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+// Country border lines — thin dark dots along polygon edges
+function CountryBorders({ radius }) {
+  const lines = useMemo(() => {
+    const allLines = [];
+    const R = radius;
+    for (const feature of countries.features) {
+      const geom = feature.geometry;
+      if (!geom) continue;
+      const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+      for (const poly of polys) {
+        for (const ring of poly) {
+          if (ring.length < 3) continue;
+          const pts = [];
+          for (const coord of ring) {
+            const [lng, lat] = coord;
+            const phi = (90 - lat) * (Math.PI / 180);
+            const theta = (lng + 180) * (Math.PI / 180);
+            pts.push(
+              -R * Math.sin(phi) * Math.cos(theta),
+              R * Math.cos(phi),
+              R * Math.sin(phi) * Math.sin(theta),
+            );
+          }
+          allLines.push(new Float32Array(pts));
+        }
       }
-    `,
-    fragmentShader: `
-      varying vec3 vNormal;
-      uniform vec3 glowColor;
-      uniform float power;
-      uniform float intensity;
-      void main() {
-        float rim = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), power);
-        gl_FragColor = vec4(glowColor, rim * intensity);
-      }
-    `,
-    transparent: true,
-    side: BackSide,
-    blending: AdditiveBlending,
-    depthWrite: false,
-  }), [color, power, intensity]);
+    }
+    return allLines;
+  }, [radius]);
 
   return (
-    <mesh material={material}>
-      <sphereGeometry args={[radius * 1.18, 64, 64]} />
-    </mesh>
+    <group>
+      {lines.map((pts, i) => (
+        <line key={i}>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" count={pts.length / 3} array={pts} itemSize={3} />
+          </bufferGeometry>
+          <lineBasicMaterial color="#5a6a7a" transparent opacity={0.35} />
+        </line>
+      ))}
+    </group>
   );
 }
+
+
 
 // Glowing vertical beam + pulsing ring + hover target at each city
 function CityBeacons({ data, radius, onHover }) {
@@ -297,6 +305,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
 
   return (
     <group ref={groupRef}>
+      <CountryBorders radius={100} />
       <CityBeacons data={data} radius={100} onHover={onHoverCity} />
     </group>
   );
