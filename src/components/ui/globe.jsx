@@ -331,7 +331,7 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .arcEndLat(d => d.endLat)
         .arcEndLng(d => d.endLng)
         .arcColor(e => e.color)
-        .arcAltitude(e => e.arcAlt)
+        .arcAltitudeAutoScale(0.35)
         .arcStroke(() => 0.28)
         .arcDashLength(defaultProps.arcLength)
         .arcDashInitialGap(e => e.order * 1)
@@ -417,8 +417,7 @@ function buildArcs(locations) {
     arcs.push({
       order: 1, startLat: ORIGIN.lat, startLng: ORIGIN.lng,
       endLat: loc.lat, endLng: loc.lng,
-      arcAlt: 0.25 + ratio * 0.55, color,
-      city: loc.city, count: loc.count,
+      color, city: loc.city, count: loc.count,
     });
   }
   return arcs;
