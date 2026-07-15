@@ -403,24 +403,31 @@ function CinematicIntro({ targetZ }) {
 
 function ZoomHandler() {
   const { camera, controls } = useThree();
+  const targetDist = useRef(300);
+  const currentDist = useRef(300);
+
   useEffect(() => {
+    targetDist.current = 300;
+    currentDist.current = 300;
     const handler = (e) => {
-      // Use R3F's controls reference (drei registers OrbitControls here)
-      if (controls?.dollyIn) {
-        controls.dollyIn(Math.pow(1.5, -e.detail));
-        controls.update();
-        return;
-      }
-      // Absolute fallback
-      const target = new Vector3(0, 0, 0);
-      const dir = new Vector3().copy(camera.position).sub(target);
-      const dist = dir.length();
-      dir.normalize().multiplyScalar(Math.max(104, Math.min(600, dist - dist * 0.3 * e.detail)));
-      camera.position.copy(target).add(dir);
+      const step = camera.position.length() * 0.15;
+      targetDist.current = Math.max(104, Math.min(600, targetDist.current - e.detail * step));
     };
     window.addEventListener('globe-zoom', handler);
     return () => window.removeEventListener('globe-zoom', handler);
-  }, [camera, controls]);
+  }, [camera]);
+
+  useFrame(() => {
+    const target = new Vector3(0, 0, 0);
+    const dir = new Vector3().copy(camera.position).sub(target);
+    const dist = dir.length();
+    currentDist.current = dist;
+    if (Math.abs(dist - targetDist.current) < 0.5) return;
+    const newDist = dist + (targetDist.current - dist) * 0.12;
+    dir.normalize().multiplyScalar(newDist);
+    camera.position.copy(target).add(dir);
+  });
+
   return null;
 }
 
@@ -445,7 +452,7 @@ export function World({ globeConfig, data, onHoverCity }) {
       <OrbitControls makeDefault enablePan={false} enableZoom={true} zoomSpeed={0.8}
         minDistance={104} maxDistance={600}
         enableRotate={true} rotateSpeed={0.8}
-        autoRotate autoRotateSpeed={0.4} />
+        enableDamping dampingFactor={0.08} />
       <EffectComposer multisampling={0}>
         <Bloom intensity={0.2} luminanceThreshold={0.3} luminanceSmoothing={0.9} mipmapBlur radius={0.3} />
       </EffectComposer>
