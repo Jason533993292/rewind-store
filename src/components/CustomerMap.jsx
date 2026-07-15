@@ -24,40 +24,28 @@ function supportsWebGL() {
 }
 
 export default function CustomerMap() {
-  const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState(FALLBACK_LOCATIONS);
   const [modal, setModal] = useState(null);
   const [GlobePanel, setGlobePanel] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    let retries = 0;
     async function fetchLocations() {
       try {
         const r = await fetch('/api/orders/locations');
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        if (!r.ok) return;
         const d = await r.json();
-        if (!cancelled) {
-          const real = Array.isArray(d.locations) ? d.locations : [];
-          // Merge fallback European cities with real data so globe always has life
-          const merged = [...FALLBACK_LOCATIONS];
-          for (const r of real) {
-            const key = r.city + '|' + r.country;
-            const idx = merged.findIndex(m => m.city + '|' + m.country === key);
-            if (idx >= 0) merged[idx].count += r.count;
-            else merged.push(r);
-          }
-          setLocations(merged);
+        if (cancelled) return;
+        const real = Array.isArray(d.locations) ? d.locations : [];
+        const merged = [...FALLBACK_LOCATIONS];
+        for (const r of real) {
+          const key = r.city + '|' + r.country;
+          const idx = merged.findIndex(m => m.city + '|' + m.country === key);
+          if (idx >= 0) merged[idx].count += r.count;
+          else merged.push(r);
         }
-        if (!cancelled) setLoading(false);
-      } catch {
-        retries++;
-        if (retries < 3) {
-          setTimeout(fetchLocations, 2000 * retries);
-        } else {
-          if (!cancelled) setLoading(false);
-        }
-      }
+        setLocations(merged);
+      } catch {}
     }
     fetchLocations();
     return () => { cancelled = true; };
@@ -107,7 +95,6 @@ export default function CustomerMap() {
     };
   }, [modal]);
 
-  if (loading) return null;
   const label = locations.length > 0
     ? `Our reach — ${locations.length} cities, ${totalOrders} orders`
     : 'Our reach';
