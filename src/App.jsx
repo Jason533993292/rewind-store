@@ -270,13 +270,20 @@ export default function App() {
           if (side) {
             ind.style.display = 'block';
             ind.style.opacity = '0.6';
-            ind.style.top = side === 'top' ? '0' : side === 'bottom' ? 'auto' : '50%';
-            ind.style.bottom = side === 'bottom' ? '0' : 'auto';
-            ind.style.left = side === 'left' ? '0' : side === 'right' ? 'auto' : '50%';
-            ind.style.right = side === 'right' ? '0' : 'auto';
-            ind.style.width = (side === 'top' || side === 'bottom') ? '100%' : '4px';
-            ind.style.height = (side === 'left' || side === 'right') ? '100%' : '4px';
-            ind.style.transform = (side === 'top' || side === 'bottom') ? 'translateY(-50%)' : 'translateX(-50%)';
+            const isHV = side === 'top' || side === 'bottom';
+            ind.style.top = isHV ? '50%' : '40%';
+            ind.style.bottom = 'auto';
+            ind.style.left = isHV ? '40%' : (side === 'left' ? '0' : 'auto');
+            ind.style.right = isHV ? '40%' : (side === 'right' ? '0' : 'auto');
+            ind.style.width = isHV ? '20%' : '24px';
+            ind.style.height = isHV ? '24px' : '20%';
+            // Trapezium clip-path
+            if (side === 'left') ind.style.clipPath = 'polygon(0% 0%, 100% 15%, 100% 85%, 0% 100%)';
+            else if (side === 'right') ind.style.clipPath = 'polygon(0% 15%, 100% 0%, 100% 100%, 0% 85%)';
+            else if (side === 'top') ind.style.clipPath = 'polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%)';
+            else if (side === 'bottom') ind.style.clipPath = 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)';
+            ind.style.transform = 'none';
+            ind.style.borderRadius = '0';
           } else {
             ind.style.opacity = '0';
           }
@@ -1146,7 +1153,7 @@ export default function App() {
       {/* Snap indicator overlay */}
       <div id="dock-snap-indicator" style={{
         position: 'fixed', zIndex: 99998, pointerEvents: 'none',
-        background: '#ff6b35', borderRadius: '4px', opacity: 0, display: 'none',
+        background: '#ff6b35', opacity: 0, display: 'none',
         transition: 'opacity 0.12s',
       }} />
 
