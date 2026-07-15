@@ -96,11 +96,6 @@ export default function CustomerMap() {
     };
   }, [modal]);
 
-  if (!locations) return null;
-  const label = locations.length > 0
-    ? `Our reach — ${locations.length} cities, ${totalOrders} orders`
-    : 'Our reach';
-
   return (
     <>
       <div style={{ textAlign: 'center', padding: '0 24px 56px', marginTop: '16px' }}>
