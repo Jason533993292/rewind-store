@@ -239,60 +239,61 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
-  // Reset dock to bottom when any dock button is clicked from a side position
-  function resetDockToBottom() {
-    if (dockSide !== 'bottom') {
-      dockPosRef.current = { x: 0, y: 12 - 28 };
-      setDockPos({ x: 0, y: 12 - 28 });
-      setDockSide('bottom');
-    }
-  }
-
   // Dock drag handling — direct DOM manipulation during drag, React state on drop
   useEffect(() => {
     function onMove(e) {
       const d = dragRef.current;
       if (!d) return;
-      const x = d.offsetX + (e.clientX - d.startX);
-      const y = d.offsetY - (e.clientY - d.startY);
+      const x = d.originX + (e.clientX - d.startX);
+      const y = d.originY - (e.clientY - d.startY);
       dockPosRef.current = { x, y };
       wasDraggedRef.current = true;
       document.body.classList.add('rw-dragging');
       const el = dockRef.current;
       if (el) {
-        el.style.left = `calc(50% + ${x}px)`;
-        el.style.bottom = `calc(28px + ${y}px)`;
+        el.style.left = `${x}px`;
+        el.style.bottom = `${window.innerHeight - y}px`;
         el.style.transition = 'none';
+        el.style.transform = 'translateX(-50%)';
         el.style.cursor = 'grabbing';
         el.style.userSelect = 'none';
       }
-      // Detect snap zones — left, right, bottom
+      // Detect snap zone + proximity glow
       if (el) {
         const r = el.getBoundingClientRect();
-        const w = innerWidth, h = innerHeight, m = 80;
-        let side = null;
-        if (r.left < m) side = 'left';
-        else if (w - r.right < m) side = 'right';
-        else if (h - r.bottom < m) side = 'bottom';
-        snapSideRef.current = side;
+        const w = innerWidth, h = innerHeight, m = 100;
+        const cx = r.left + r.width / 2;
+        let best = null, bestD = m;
+        const checks = [
+          { side: 'left', dist: cx },
+          { side: 'right', dist: w - cx },
+          { side: 'bottom', dist: h - r.bottom },
+        ];
+        for (const c of checks) {
+          if (c.dist < bestD) { bestD = c.dist; best = c.side; }
+        }
+        snapSideRef.current = best;
         const ind = document.getElementById('dock-snap-indicator');
         if (ind) {
-          if (side) {
+          if (best) {
+            const op = Math.max(0.15, 1 - bestD / m);
             ind.style.display = 'block';
-            ind.style.opacity = '0.7';
+            ind.style.opacity = op;
+            ind.style.boxShadow = `0 0 ${12 + op * 30}px #ff6b35`;
             ind.style.background = '#ff6b35';
-            ind.style.boxShadow = '0 0 20px #ff6b35';
-            if (side === 'left') {
-              ind.style.top = '35%'; ind.style.bottom = '35%'; ind.style.left = '0'; ind.style.right = 'auto';
-              ind.style.width = '32px'; ind.style.height = 'auto';
+            ind.style.backgroundImage = 'radial-gradient(circle at 50% 50%, rgba(0,0,0,0.35) 2px, transparent 2px)';
+            ind.style.backgroundSize = '10px 10px';
+            if (best === 'left') {
+              ind.style.top = '30%'; ind.style.bottom = '30%'; ind.style.left = '0'; ind.style.right = 'auto';
+              ind.style.width = '36px'; ind.style.height = 'auto';
               ind.style.clipPath = 'polygon(0% 0%, 100% 15%, 100% 85%, 0% 100%)';
-            } else if (side === 'right') {
-              ind.style.top = '35%'; ind.style.bottom = '35%'; ind.style.right = '0'; ind.style.left = 'auto';
-              ind.style.width = '32px'; ind.style.height = 'auto';
+            } else if (best === 'right') {
+              ind.style.top = '30%'; ind.style.bottom = '30%'; ind.style.right = '0'; ind.style.left = 'auto';
+              ind.style.width = '36px'; ind.style.height = 'auto';
               ind.style.clipPath = 'polygon(0% 15%, 100% 0%, 100% 100%, 0% 85%)';
-            } else if (side === 'bottom') {
-              ind.style.left = '35%'; ind.style.right = '35%'; ind.style.bottom = '0'; ind.style.top = 'auto';
-              ind.style.height = '32px'; ind.style.width = 'auto';
+            } else if (best === 'bottom') {
+              ind.style.left = '30%'; ind.style.right = '30%'; ind.style.bottom = '0'; ind.style.top = 'auto';
+              ind.style.height = '36px'; ind.style.width = 'auto';
               ind.style.clipPath = 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)';
             }
           } else {
@@ -313,25 +314,24 @@ export default function App() {
         el.style.cursor = 'grab';
         el.style.userSelect = '';
         el.style.transition = '';
+        el.style.transform = '';
       }
-      // Hide indicator
-      const ind = document.getElementById('dock-snap-indicator');
-      if (ind) ind.style.display = 'none';
-
       // Finalize snap
       let { x, y } = dockPosRef.current;
       let side = snapSideRef.current || 'bottom';
       snapSideRef.current = null;
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const w = innerWidth, h = innerHeight;
-        if (side === 'left') x = 12 - w / 2 + rect.width / 2;
-        else if (side === 'right') x = w / 2 - rect.width / 2 - 12;
-        else if (side === 'bottom') { x = 0; y = 12 - 28; }
-      }
+      const w = innerWidth, h = innerHeight;
+      if (side === 'left') { x = 12 + 0; y = h / 2; }
+      else if (side === 'right') { x = w - 0; y = h / 2; }
+      else if (side === 'bottom') { x = w / 2; y = 12 + 0; }
       x = Math.round(x); y = Math.round(y);
       dockPosRef.current = { x, y };
-      setDockPos({ x, y });
+      if (el) {
+        el.style.left = `${x}px`;
+        el.style.bottom = `${h - y}px`;
+        el.style.transform = 'translateX(-50%)';
+      }
+      setDockPos({ x: x - w / 2, y: y - 28 });
       setDockSide(side);
     }
     window.addEventListener('mousemove', onMove);
@@ -1171,7 +1171,9 @@ export default function App() {
 
       <div ref={dockRef}
         onMouseDown={(e) => {
-          dragRef.current = { startX: e.clientX, startY: e.clientY, offsetX: dockPosRef.current.x, offsetY: dockPosRef.current.y };
+          const r = dockRef.current.getBoundingClientRect();
+          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          dragRef.current = { startX: e.clientX, startY: e.clientY, originX: cx, originY: cy };
           e.preventDefault();
         }}
         onMouseEnter={() => !dragRef.current && setDockHover(true)}
@@ -1186,7 +1188,7 @@ export default function App() {
           borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 0 18px rgba(255,107,53,0.25), 0 2px 12px rgba(0,0,0,0.08)',
           padding: dockSide === 'left' || dockSide === 'right' ? '4px 8px' : '7px',
           transform: `translateX(-50%) translateY(${dockHover && !dragRef.current ? -2 : 0}px)`,
-          transition: dragRef.current ? 'none' : 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
+          transition: dragRef.current ? 'none' : 'max-width 1.2s cubic-bezier(0.32, 0.72, 0, 1), max-height 1.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
           willChange: 'max-width, max-height, transform',
           cursor: dragRef.current ? 'grabbing' : 'grab',
           userSelect: dragRef.current ? 'none' : 'auto',
@@ -1202,7 +1204,6 @@ export default function App() {
         {/* Referrals */}
         <button onClick={() => {
           if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
-          resetDockToBottom();
           setShowSettings(false); setShowReferral(true);
         }}
           style={{
@@ -1224,7 +1225,6 @@ export default function App() {
         {/* Home */}
         <button onClick={() => {
           if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
-          resetDockToBottom();
           setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false);
         }}
           style={{
@@ -1243,7 +1243,6 @@ export default function App() {
         {/* Settings */}
         <button onClick={() => {
           if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
-          resetDockToBottom();
           setShowReferral(false); setShowSettings(true);
         }}
           style={{
