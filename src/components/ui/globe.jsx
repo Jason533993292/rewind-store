@@ -380,31 +380,19 @@ function CinematicIntro({ targetZ }) {
 }
 
 function ZoomHandler() {
-  const { camera, controls } = useThree();
-  const targetDist = useRef(300);
-  const currentDist = useRef(300);
+  const { camera } = useThree();
 
   useEffect(() => {
-    targetDist.current = 300;
-    currentDist.current = 300;
     const handler = (e) => {
-      const step = camera.position.length() * 0.15;
-      targetDist.current = Math.max(104, Math.min(600, targetDist.current - e.detail * step));
+      const dir = new Vector3().copy(camera.position);
+      const dist = dir.length();
+      const newDist = Math.max(104, Math.min(600, dist - dist * 0.2 * e.detail));
+      dir.normalize().multiplyScalar(newDist);
+      camera.position.copy(dir);
     };
     window.addEventListener('globe-zoom', handler);
     return () => window.removeEventListener('globe-zoom', handler);
   }, [camera]);
-
-  useFrame(() => {
-    const target = new Vector3(0, 0, 0);
-    const dir = new Vector3().copy(camera.position).sub(target);
-    const dist = dir.length();
-    currentDist.current = dist;
-    if (Math.abs(dist - targetDist.current) < 0.5) return;
-    const newDist = dist + (targetDist.current - dist) * 0.12;
-    dir.normalize().multiplyScalar(newDist);
-    camera.position.copy(target).add(dir);
-  });
 
   return null;
 }
