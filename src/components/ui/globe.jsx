@@ -442,7 +442,7 @@ export function World({ globeConfig, data, onHoverCity }) {
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
       <Starfield radius={cameraZ} count={3000} />
       <OrbitControls enablePan={false} enableZoom={true} zoomSpeed={0.8}
-        minDistance={80} maxDistance={600}
+        minDistance={110} maxDistance={600}
         enableRotate={true} rotateSpeed={0.8}
         autoRotate autoRotateSpeed={0.4}
         ref={(c) => { window.__globeControls = c; }} />
