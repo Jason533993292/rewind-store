@@ -1097,14 +1097,4 @@ input:focus:not(:focus-visible) {
   animation: splashSpin 0.8s linear infinite;
   margin: 0 auto;
 }
-@keyframes dockPulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(255,107,53,0.2), 0 2px 12px rgba(0,0,0,0.08); }
-  50% { box-shadow: 0 0 24px rgba(255,107,53,0.35), 0 2px 12px rgba(0,0,0,0.08); }
-}
-.rw-dragging *,
-.rw-dragging *::before,
-.rw-dragging *::after {
-  animation-play-state: paused !important;
-  transition: none !important;
-}
 @keyframes splashSpin { to { transform: rotate(360deg); } }
