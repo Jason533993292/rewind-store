@@ -157,9 +157,9 @@ function Moon() {
     const ctx = canvas.getContext('2d');
     // Base surface
     const grad = ctx.createRadialGradient(200, 100, 20, 256, 128, 256);
-    grad.addColorStop(0, '#e8e8e0');
-    grad.addColorStop(0.5, '#d4d4cc');
-    grad.addColorStop(1, '#b0b0a8');
+    grad.addColorStop(0, '#e0ddd0');
+    grad.addColorStop(0.5, '#c8c4b8');
+    grad.addColorStop(1, '#9a968c');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 512, 256);
     // Craters — dark spots with lighter rims
@@ -232,10 +232,12 @@ function Moon() {
         <sphereGeometry args={[14, 48, 48]} />
         <meshStandardMaterial
           map={texture}
-          roughness={0.9}
-          metalness={0.05}
+          roughness={0.85}
+          metalness={0.02}
           bumpMap={texture}
-          bumpScale={0.8}
+          bumpScale={2.5}
+          emissive={texture}
+          emissiveIntensity={0.08}
         />
       </mesh>
       {/* Soft outer glow */}
