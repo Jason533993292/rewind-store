@@ -1097,4 +1097,10 @@ input:focus:not(:focus-visible) {
   animation: splashSpin 0.8s linear infinite;
   margin: 0 auto;
 }
+.rw-dragging *,
+.rw-dragging *::before,
+.rw-dragging *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
 @keyframes splashSpin { to { transform: rotate(360deg); } }

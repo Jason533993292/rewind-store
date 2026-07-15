@@ -257,6 +257,7 @@ export default function App() {
       const y = d.offsetY - (e.clientY - d.startY);
       dockPosRef.current = { x, y };
       wasDraggedRef.current = true;
+      document.body.classList.add('rw-dragging');
       const el = dockRef.current;
       if (el) {
         el.style.left = `calc(50% + ${x}px)`;
@@ -306,6 +307,7 @@ export default function App() {
       const d = dragRef.current;
       if (!d) { dragRef.current = null; return; }
       dragRef.current = null;
+      document.body.classList.remove('rw-dragging');
       const el = dockRef.current;
       if (el) {
         el.style.cursor = 'grab';
