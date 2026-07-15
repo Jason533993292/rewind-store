@@ -90,7 +90,9 @@ export default function App() {
   const dockRef = useRef(null);
   const dockPosRef = useRef({ x: 0, y: 0 });
   const dragRef = useRef(null);
-  const [dockPos, setDockPos] = useState({ x: 0, y: 0 }); // offset from default center-bottom
+  const snapSideRef = useRef(null);
+  const [dockPos, setDockPos] = useState({ x: 0, y: 0 });
+  const [dockSide, setDockSide] = useState('bottom'); // 'bottom' | 'top' | 'left' | 'right'
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('rw_theme') === 'dark'; } catch { return false; }
   });
@@ -244,12 +246,41 @@ export default function App() {
       const x = d.offsetX + (e.clientX - d.startX);
       const y = d.offsetY - (e.clientY - d.startY);
       dockPosRef.current = { x, y };
-      if (dockRef.current) {
-        dockRef.current.style.left = `calc(50% + ${x}px)`;
-        dockRef.current.style.bottom = `calc(28px + ${y}px)`;
-        dockRef.current.style.transition = 'none';
-        dockRef.current.style.cursor = 'grabbing';
-        dockRef.current.style.userSelect = 'none';
+      const el = dockRef.current;
+      if (el) {
+        el.style.left = `calc(50% + ${x}px)`;
+        el.style.bottom = `calc(28px + ${y}px)`;
+        el.style.transition = 'none';
+        el.style.cursor = 'grabbing';
+        el.style.userSelect = 'none';
+      }
+      // Detect snap zone
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const w = innerWidth, h = innerHeight, m = 80;
+        let side = null;
+        if (r.top < m) side = 'top';
+        else if (h - r.bottom < m) side = 'bottom';
+        else if (r.left < m) side = 'left';
+        else if (w - r.right < m) side = 'right';
+        snapSideRef.current = side;
+        // Show/hide indicator overlay
+        const ind = document.getElementById('dock-snap-indicator');
+        if (ind) {
+          if (side) {
+            ind.style.display = 'block';
+            ind.style.opacity = '0.6';
+            ind.style.top = side === 'top' ? '0' : side === 'bottom' ? 'auto' : '50%';
+            ind.style.bottom = side === 'bottom' ? '0' : 'auto';
+            ind.style.left = side === 'left' ? '0' : side === 'right' ? 'auto' : '50%';
+            ind.style.right = side === 'right' ? '0' : 'auto';
+            ind.style.width = (side === 'top' || side === 'bottom') ? '100%' : '4px';
+            ind.style.height = (side === 'left' || side === 'right') ? '100%' : '4px';
+            ind.style.transform = (side === 'top' || side === 'bottom') ? 'translateY(-50%)' : 'translateX(-50%)';
+          } else {
+            ind.style.opacity = '0';
+          }
+        }
       }
     }
     function onUp(e) {
@@ -260,22 +291,28 @@ export default function App() {
       if (el) {
         el.style.cursor = 'grab';
         el.style.userSelect = '';
+        el.style.transition = '';
       }
-      // Snapping
+      // Hide indicator
+      const ind = document.getElementById('dock-snap-indicator');
+      if (ind) ind.style.display = 'none';
+
+      // Finalize snap
       let { x, y } = dockPosRef.current;
+      let side = snapSideRef.current || 'bottom';
+      snapSideRef.current = null;
       if (el) {
         const rect = el.getBoundingClientRect();
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        const snapMargin = 80;
-        if (rect.left < snapMargin) x = 12 - w / 2 + rect.width / 2;
-        if (w - rect.right < snapMargin) x = w / 2 - rect.width / 2 - 12;
-        if (rect.top < snapMargin) y = h - 12 - 28 - rect.height;
-        if (h - rect.bottom < snapMargin) y = 12 - 28;
+        const w = innerWidth, h = innerHeight;
+        if (side === 'left') x = 12 - w / 2 + rect.width / 2;
+        else if (side === 'right') x = w / 2 - rect.width / 2 - 12;
+        else if (side === 'top') { x = 0; y = h - 12 - 28 - rect.height; }
+        else if (side === 'bottom') { x = 0; y = 12 - 28; }
       }
       x = Math.round(x); y = Math.round(y);
       dockPosRef.current = { x, y };
       setDockPos({ x, y });
+      setDockSide(side);
     }
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
@@ -1106,6 +1143,13 @@ export default function App() {
       )}
 
       {/* ── Bottom Dock ── */}
+      {/* Snap indicator overlay */}
+      <div id="dock-snap-indicator" style={{
+        position: 'fixed', zIndex: 99998, pointerEvents: 'none',
+        background: '#ff6b35', borderRadius: '4px', opacity: 0, display: 'none',
+        transition: 'opacity 0.12s',
+      }} />
+
       <div ref={dockRef}
         onMouseDown={(e) => {
           dragRef.current = { startX: e.clientX, startY: e.clientY, offsetX: dockPosRef.current.x, offsetY: dockPosRef.current.y };
@@ -1115,36 +1159,26 @@ export default function App() {
         onMouseLeave={() => !dragRef.current && setDockHover(false)}
         style={{
           position: 'fixed', bottom: `calc(28px + ${dockPos.y}px)`, left: `calc(50% + ${dockPos.x}px)`, zIndex: 99999,
-          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
+          display: 'flex',
+          flexDirection: dockSide === 'left' || dockSide === 'right' ? 'column' : 'row',
+          justifyContent: 'center', alignItems: 'center', gap: '0',
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
           borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 2px 12px rgba(0,0,0,0.08)',
-          padding: '7px',
+          padding: dockSide === 'left' || dockSide === 'right' ? '4px 8px' : '7px',
           transform: `translateX(-50%) translateY(${dockHover && !dragRef.current ? -2 : 0}px)`,
-          transition: dragRef.current ? 'none' : 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
-          willChange: 'max-width, transform',
+          transition: dragRef.current ? 'none' : 'max-width 0.8s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.8s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
+          willChange: 'max-width, max-height, transform',
           cursor: dragRef.current ? 'grabbing' : 'grab',
           userSelect: dragRef.current ? 'none' : 'auto',
-          maxWidth: dockHover ? '420px' : '54px',
+          ...(dockSide === 'left' || dockSide === 'right'
+            ? { maxHeight: dockHover ? '320px' : '44px', maxWidth: '44px' }
+            : { maxWidth: dockHover ? '420px' : '54px', maxHeight: '44px' }
+          ),
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}
       >
-        {/* Minus — always visible, collapses the dock */}
-        <button onClick={(e) => { e.stopPropagation(); setDockHover(false); }}
-          style={{
-            position: 'absolute', top: '-8px', right: '-8px',
-            width: '20px', height: '20px', borderRadius: '50%', border: '1px solid rgba(0,0,0,0.12)',
-            background: 'rgba(240,240,240,0.85)', cursor: 'pointer', lineHeight: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '12px', fontWeight: 700, color: '#666', padding: 0,
-            transition: 'opacity 0.15s, transform 0.15s', opacity: 0.6,
-            zIndex: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          }}
-          onMouseOver={e => { e.currentTarget.style.opacity = 1; e.currentTarget.style.transform = 'scale(1.15)'; }}
-          onMouseOut={e => { e.currentTarget.style.opacity = 0.6; e.currentTarget.style.transform = 'scale(1)'; }}
-          title="Collapse dock"
-        >−</button>
 
         {/* Referrals */}
         <button onClick={() => { setShowSettings(false); setShowReferral(true); }}
