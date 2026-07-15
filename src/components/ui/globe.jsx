@@ -24,7 +24,7 @@ const RING_PROPAGATION_SPEED = 3;
 const aspect = 1.2;
 const cameraZ = 300;
 const ORIGIN = { lat: 50.8503, lng: 4.3517 };
-const COLORS = ['#06b6d4', '#3b82f6', '#6366f1'];
+const COLORS = ['#c8d6e5', '#8395a7', '#576574'];
 
 function genRandomNumbers(min, max, count) {
   const arr = [];
@@ -45,9 +45,9 @@ function latLngToVec3(lat, lng, radius) {
   );
 }
 
-function Starfield({ radius, count = 1500 }) {
+function Starfield({ radius, count = 3000 }) {
   const groupRef = useRef();
-  const speeds = useMemo(() => Array.from({ length: 3 }, () => 0.3 + Math.random() * 0.5), []);
+  const speeds = useMemo(() => Array.from({ length: 3 }, () => 0.2 + Math.random() * 0.4), []);
 
   const layers = useMemo(() => {
     return [0, 1, 2].map(layer => {
@@ -57,7 +57,7 @@ function Starfield({ radius, count = 1500 }) {
         const u = Math.random(), v = Math.random();
         const theta = 2 * Math.PI * u;
         const phi = Math.acos(2 * v - 1);
-        const r = radius * (2.5 + Math.random() * 4.5 + layer * 1.5);
+        const r = radius * (1.2 + Math.random() * 1.8 + layer * 0.6);
         pts.push(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
       }
       return new Float32Array(pts);
@@ -68,9 +68,9 @@ function Starfield({ radius, count = 1500 }) {
     if (!groupRef.current) return;
     groupRef.current.children.forEach((child, i) => {
       const t = clock.elapsedTime * speeds[i];
-      child.material.opacity = 0.3 + Math.sin(t) * 0.35;
-      const s = 0.4 + Math.sin(t * 0.7 + 1) * 0.2;
-      child.material.size = Math.max(0.1, s);
+      child.material.opacity = 0.5 + Math.sin(t) * 0.4;
+      const s = 0.6 + Math.sin(t * 0.7 + 1) * 0.3;
+      child.material.size = Math.max(0.2, s);
     });
   });
 
@@ -82,8 +82,8 @@ function Starfield({ radius, count = 1500 }) {
             <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
           </bufferGeometry>
           <pointsMaterial
-            size={0.6} color="#ffffff" sizeAttenuation transparent
-            opacity={0.5}
+            size={0.8} color="#ffffff" sizeAttenuation transparent
+            opacity={0.7}
           />
         </points>
       ))}
@@ -252,10 +252,10 @@ export function Globe({ globeConfig, data, onHoverCity }) {
         .hexPolygonsData(countries.features)
         .hexPolygonResolution(3)
         .hexPolygonMargin(0.7)
-        .hexPolygonColor(() => '#a0b4c8')
+        .hexPolygonColor(() => '#d0dce8')
         .hexPolygonAltitude(0.001)
         .hexPolygonUseDots(true)
-        .hexPolygonPointRadius(0.3)
+        .hexPolygonPointRadius(0.8)
         .showAtmosphere(false);
     } catch (err) {
       console.error('[Globe] Failed to set hex polygon data (country outlines):', err);
@@ -343,7 +343,7 @@ export function World({ globeConfig, data, onHoverCity }) {
       <directionalLight color="#ffffff" position={new Vector3(400, -100, -400)} intensity={0.4} />
       <pointLight color="#ffffff" position={new Vector3(200, 200, 200)} intensity={0.5} />
       <Globe globeConfig={globeConfig} data={data} onHoverCity={onHoverCity} />
-      <Starfield radius={cameraZ} count={1500} />
+      <Starfield radius={cameraZ} count={3000} />
       <OrbitControls enablePan={false} enableZoom={false}
         enableRotate={true} rotateSpeed={0.8} enableDamping dampingFactor={0.1}
         autoRotate autoRotateSpeed={0.4} />
