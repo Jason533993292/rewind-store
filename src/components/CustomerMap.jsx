@@ -24,7 +24,7 @@ function supportsWebGL() {
 }
 
 export default function CustomerMap() {
-  const [locations, setLocations] = useState(FALLBACK_LOCATIONS);
+  const [locations, setLocations] = useState(null);
   const [modal, setModal] = useState(null);
   const [GlobePanel, setGlobePanel] = useState(null);
 
@@ -33,7 +33,7 @@ export default function CustomerMap() {
     async function fetchLocations() {
       try {
         const r = await fetch('/api/orders/locations');
-        if (!r.ok) return;
+        if (!r.ok) throw new Error();
         const d = await r.json();
         if (cancelled) return;
         const real = Array.isArray(d.locations) ? d.locations : [];
@@ -45,16 +45,17 @@ export default function CustomerMap() {
           else merged.push(r);
         }
         setLocations(merged);
-      } catch {}
+      } catch {
+        if (!cancelled) setLocations(FALLBACK_LOCATIONS);
+      }
     }
     fetchLocations();
     return () => { cancelled = true; };
   }, []);
 
-  const totalOrders = useMemo(
-    () => (locations || []).reduce((s, l) => s + l.count, 0),
-    [locations]
-  );
+  const label = locations
+    ? `Our reach — ${locations.length} cities, ${locations.reduce((s, l) => s + l.count, 0)} orders`
+    : 'Our reach';
 
   async function handleOpen() {
     if (!supportsWebGL()) { openMap(); return; }
@@ -95,6 +96,7 @@ export default function CustomerMap() {
     };
   }, [modal]);
 
+  if (!locations) return null;
   const label = locations.length > 0
     ? `Our reach — ${locations.length} cities, ${totalOrders} orders`
     : 'Our reach';
