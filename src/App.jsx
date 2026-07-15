@@ -1071,7 +1071,7 @@ export default function App() {
           transition: 'max-width 0.6s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.3s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)',
           willChange: 'max-width, transform',
           cursor: 'default',
-          maxWidth: dockHover ? '420px' : '54px',
+          maxWidth: dockHover ? '520px' : '54px',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}
