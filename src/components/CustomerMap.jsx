@@ -22,14 +22,24 @@ export default function CustomerMap() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    let retries = 0;
+    async function fetchLocations() {
       try {
         const r = await fetch('/api/orders/locations');
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = await r.json();
         if (!cancelled) setLocations(Array.isArray(d.locations) ? d.locations : []);
-      } catch {}
-      if (!cancelled) setLoading(false);
-    })();
+        if (!cancelled) setLoading(false);
+      } catch {
+        retries++;
+        if (retries < 3) {
+          setTimeout(fetchLocations, 2000 * retries);
+        } else {
+          if (!cancelled) setLoading(false);
+        }
+      }
+    }
+    fetchLocations();
     return () => { cancelled = true; };
   }, []);
 
@@ -77,7 +87,10 @@ export default function CustomerMap() {
     };
   }, [modal]);
 
-  if (loading || locations.length === 0) return null;
+  if (loading) return null;
+  const label = locations.length > 0
+    ? `Our reach — ${locations.length} cities, ${totalOrders} orders`
+    : 'Our reach';
 
   return (
     <>
@@ -94,8 +107,8 @@ export default function CustomerMap() {
             <circle cx="12" cy="12" r="10" />
             <path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
-          Our reach — {locations.length} cities, {totalOrders} orders
-        </button>
+          {label}
+          </button>
       </div>
 
       {modal === 'globe' && GlobePanel && (
