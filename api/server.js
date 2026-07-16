@@ -143,7 +143,7 @@ const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders:
 // previously-issued session token (silent re-check on page load). Either way,
 // the response hands back a fresh signed session token — that's what the
 // client stores and replays, never the master secret itself.
-app.post('/api/verify-admin', async (req, res) => {
+app.post('/api/verify-admin', strictLimiter, async (req, res) => {
   const { email, token } = req.body;
   if (!email || !token) return res.json({ verified: false });
   const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
@@ -435,8 +435,15 @@ app.post('/api/admin/create-promo', async (req, res) => {
   } catch (e) { res.status(500).json({ error: 'Failed to create promo: ' + e.message }); }
 });
 
-// Admin management (add/remove admins)
+// Admin management — requires master token specifically, not just any admin session
 app.post('/api/manage-admins', async (req, res) => {
+  const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+  const provided = (req.headers['x-admin-token'] || req.cookies?.admin_session || '').trim();
+  const a = Buffer.from(provided);
+  const b = Buffer.from(ADMIN_TOKEN || '');
+  const isMaster = a.length === b.length && ADMIN_TOKEN && crypto.timingSafeEqual(a, b);
+  if (!isMaster) return res.status(403).json({ error: 'Master token required to manage admins' });
+
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
   const { action, email } = req.body;
@@ -728,7 +735,7 @@ app.get('/api/admin/blocked-ips', async (req, res) => {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
     res.json({ ips: await r.json() || [] });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 app.post('/api/admin/block-ip', express.json(), async (req, res) => {
@@ -787,7 +794,7 @@ app.post('/api/admin/block-email', express.json(), async (req, res) => {
     if (d.error) return res.status(500).json({ error: d.error });
     auditLog(getAdminEmailFromToken(req), 'block_email', email, req.ip);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 // ── Admin: block a chat customer (email + IP) ──
@@ -862,7 +869,7 @@ app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
     await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
     auditLog(getAdminEmailFromToken(req), 'unblock_email', email, req.ip);
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 // ── Admin: list all user emails from orders + wishlists ──
@@ -900,7 +907,7 @@ app.post('/api/admin/products/add', async (req, res) => {
     });
     const data = await r.json();
     res.json({ ok: r.ok, data });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 app.post('/api/admin/products/update', async (req, res) => {
@@ -915,7 +922,7 @@ app.post('/api/admin/products/update', async (req, res) => {
     });
     const data = await r.json();
     res.json({ ok: r.ok, data });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 app.post('/api/admin/products/delete', async (req, res) => {
@@ -928,7 +935,7 @@ app.post('/api/admin/products/delete', async (req, res) => {
       method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 app.post('/api/admin/products/upload-image', async (req, res) => {
@@ -949,7 +956,7 @@ app.post('/api/admin/products/upload-image', async (req, res) => {
     if (!r.ok) return res.status(500).json({ error: 'Upload failed' });
     const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/product-images/${filePath}`;
     res.json({ ok: true, url: publicUrl });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 // ── Admin: get all wishlist users ──
@@ -1159,7 +1166,7 @@ app.post('/api/admin/orders/update-status', async (req, res) => {
       body: JSON.stringify({ status }),
     });
     res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch { res.status(500).json({ error: 'Operation failed' }); }
 });
 
 // ── Admin: audit log ──
