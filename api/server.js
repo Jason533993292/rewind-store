@@ -10,6 +10,7 @@ import { buildChatRouter } from './chat-routes.js';
 import { buildReferralRouter } from './referral-routes.js';
 import { buildSettingsRouter } from './settings-routes.js';
 import { requireAdmin, signAdminSession, verifyAdminSession } from './middleware/requireAdmin.js';
+import cookieParser from 'cookie-parser';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.set('trust proxy', 1);
@@ -25,6 +26,7 @@ app.use(helmet({
   },
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
+app.use(cookieParser());
 // Larger body limit for the image-upload route only, registered before the
 // global 1mb parser so it claims the request first (body-parser skips
 // re-parsing once req._body is set).
@@ -159,9 +161,30 @@ app.post('/api/verify-admin', async (req, res) => {
     const data = await r.json();
     const verified = Array.isArray(data) && data.length > 0;
     if (!verified) return res.json({ verified: false });
-    res.json({ verified: true, sessionToken: signAdminSession(email) });
+    const sessionToken = signAdminSession(email);
+    // Set HttpOnly cookie — JS can't read it, XSS-safe
+    res.cookie('admin_session', sessionToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 12 * 60 * 60 * 1000,
+    });
+    res.json({ verified: true });
   } catch {
     res.json({ verified: false });
+  }
+});
+
+// ── Admin: check if session cookie is still valid (no localStorage needed) ──
+app.get('/api/admin/check-auth', async (req, res) => {
+  const token = req.cookies?.admin_session;
+  if (!token) return res.status(401).json({ authed: false });
+  if (verifyAdminSession(token)) {
+    res.json({ authed: true });
+  } else {
+    res.clearCookie('admin_session');
+    res.status(401).json({ authed: false });
   }
 });
 

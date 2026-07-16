@@ -598,7 +598,7 @@ export default function App() {
   // trivially spoofable in localStorage). If the token is missing, admin
   // UI buttons won't render — and even if they did, the server would
   // reject any action since the real auth comes from the token.
-  const isAdmin = !!localStorage.getItem('rw_admin_email') && !!localStorage.getItem('rw_admin_token');
+  const isAdmin = !!localStorage.getItem('rw_admin_email');
   // Only activate admin mode if the user has a verified admin email saved,
   // NOT just because #admin is in the URL (security: prevents full admin
   // panel access by anyone who navigates to /#admin).

@@ -80,9 +80,10 @@ export function requireAdmin(req, res, next) {
   }
 
   const header = req.headers['authorization'] || '';
+  const fromCookie = req.cookies?.admin_session?.trim() || '';
   const provided = header.startsWith('Bearer ')
     ? header.slice(7).trim()
-    : (req.headers['x-admin-token'] || '').trim();
+    : (req.headers['x-admin-token'] || fromCookie).trim();
 
   if (!provided) {
     return res.status(401).json({ error: 'Missing admin token' });
