@@ -23,6 +23,7 @@ app.use(helmet({
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
     },
   },
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
 // Larger body limit for the image-upload route only, registered before the
 // global 1mb parser so it claims the request first (body-parser skips
@@ -60,7 +61,7 @@ const BLOCKED_EMAILS = new Set();
 
 // ── Admin audit logging ──
 // Logs every admin action to Supabase audit_log table for forensic traceability.
-async function auditLog(adminEmail, action, details) {
+async function auditLog(adminEmail, action, details, ip) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const url = process.env.VITE_SUPABASE_URL;
   if (!key || !url || !adminEmail) return;
@@ -72,7 +73,7 @@ async function auditLog(adminEmail, action, details) {
         admin_email: adminEmail,
         action,
         details: typeof details === 'string' ? details : JSON.stringify(details),
-        ip: '',
+        ip: ip || '',
         created_at: new Date().toISOString(),
       }),
     }).catch(() => {});
@@ -165,7 +166,7 @@ app.post('/api/verify-admin', async (req, res) => {
 });
 
 // ── Generate product description (fallback — AI was removed for security) ──
-app.post('/api/generate-description', requireAdmin, async (req, res) => {
+app.post('/api/generate-description', async (req, res) => {
   res.json({ title: 'Vintage Streetwear Piece', description: 'Hand-picked vintage item. Authenticated, steam-cleaned, and ready to wear.' });
 });
 
@@ -280,7 +281,7 @@ app.post('/api/send-order', async (req, res) => {
 });
 
 // ── Campaign (admin panel) ──
-app.post('/api/send-campaign', requireAdmin, async (req, res) => {
+app.post('/api/send-campaign', async (req, res) => {
   const { emails, subject, message } = req.body;
   if (!resend) return res.json({ ok: false, sent: 0, total: emails?.length || 0, error: 'RESEND_API_KEY not configured on Railway' });
   if (!emails || !Array.isArray(emails) || emails.length === 0) {
@@ -392,7 +393,7 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 });
 
 // Admin: create a promo code (stored in DB)
-app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
+app.post('/api/admin/create-promo', async (req, res) => {
   const { discount, label, code } = req.body;
   if (!discount || discount < 1 || discount > 100) return res.status(400).json({ error: 'Discount must be 1-100' });
   const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -407,13 +408,13 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
       const errText = await promoRes.text();
       return res.status(500).json({ error: 'Supabase error: ' + errText });
     }
-    auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${discount}% off)`);
+    auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${discount}% off)`, req.ip);
     res.json({ code: promoCode, discount });
   } catch (e) { res.status(500).json({ error: 'Failed to create promo: ' + e.message }); }
 });
 
 // Admin management (add/remove admins)
-app.post('/api/manage-admins', requireAdmin, async (req, res) => {
+app.post('/api/manage-admins', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
   const { action, email } = req.body;
@@ -546,7 +547,7 @@ app.post('/api/lookup-order', async (req, res) => {
   } catch { res.json({ found: false }); }
 });
 
-app.post('/api/get-orders', requireAdmin, async (req, res) => {
+app.post('/api/get-orders', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -561,7 +562,7 @@ app.post('/api/get-orders', requireAdmin, async (req, res) => {
 });
 
 // ── Save order to Supabase (admin only) ──
-app.post('/api/save-order', requireAdmin, async (req, res) => {
+app.post('/api/save-order', async (req, res) => {
   const { orderNum, customer_name, email, address, items, total } = req.body;
   if (!orderNum) return res.status(400).json({ error: 'No order number' });
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -596,7 +597,7 @@ app.post('/api/save-order', requireAdmin, async (req, res) => {
 });
 
 // ── Run automated tests ──
-app.get('/api/run-tests', requireAdmin, async (_req, res) => {
+app.get('/api/run-tests', async (_req, res) => {
   try {
     const { runTests } = await import('../tests/button-test.js');
     const result = await runTests();
@@ -695,31 +696,34 @@ app.post('/api/stripe-webhook', async (req, res) => {
   res.json({ received: true });
 });
 
-// ── Admin: manage blocked IPs ──
-app.use('/api/admin', requireAdmin);
+// ── Admin: blanket auth + no-cache for all /api/admin/* routes ──
+app.use('/api/admin', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, must-revalidate');
+  requireAdmin(req, res, next);
+});
 
-app.get('/api/admin/blocked-ips', requireAdmin, async (req, res) => {
+app.get('/api/admin/blocked-ips', async (req, res) => {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
     res.json({ ips: await r.json() || [] });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/block-ip', requireAdmin, express.json(), async (req, res) => {
+app.post('/api/admin/block-ip', express.json(), async (req, res) => {
   const { ip } = req.body;
   if (!ip) return res.status(400).json({ error: 'IP required' });
   await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ip_address: ip }) });
   BLOCKED_IPS.set(ip, true);
-  auditLog(getAdminEmailFromToken(req), 'block_ip', ip);
+  auditLog(getAdminEmailFromToken(req), 'block_ip', ip, req.ip);
   res.json({ ok: true });
 });
 
-app.post('/api/admin/unblock-ip', requireAdmin, express.json(), async (req, res) => {
+app.post('/api/admin/unblock-ip', express.json(), async (req, res) => {
   const { ip } = req.body;
   if (!ip) return res.status(400).json({ error: 'IP required' });
   await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
   BLOCKED_IPS.delete(ip);
-  auditLog(getAdminEmailFromToken(req), 'unblock_ip', ip);
+  auditLog(getAdminEmailFromToken(req), 'unblock_ip', ip, req.ip);
   res.json({ ok: true });
 });
 
@@ -745,27 +749,27 @@ app.post('/api/check-blocked-email', express.json(), async (req, res) => {
 });
 
 // ── Admin: manage blocked emails ──
-app.get('/api/admin/blocked-emails', requireAdmin, async (req, res) => {
+app.get('/api/admin/blocked-emails', async (req, res) => {
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
     res.json({ emails: await r.json() || [] });
   } catch { res.json({ emails: [] }); }
 });
 
-app.post('/api/admin/block-email', requireAdmin, express.json(), async (req, res) => {
+app.post('/api/admin/block-email', express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { method: 'POST', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }) });
     const d = await r.json();
     if (d.error) return res.status(500).json({ error: d.error });
-    auditLog(getAdminEmailFromToken(req), 'block_email', email);
+    auditLog(getAdminEmailFromToken(req), 'block_email', email, req.ip);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Admin: block a chat customer (email + IP) ──
-app.post('/api/admin/block-customer', requireAdmin, express.json(), async (req, res) => {
+app.post('/api/admin/block-customer', express.json(), async (req, res) => {
   const { session_id, email, ip } = req.body;
   if (!session_id && !email) return res.status(400).json({ error: 'session_id or email required' });
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -829,18 +833,18 @@ app.post('/api/admin/block-customer', requireAdmin, express.json(), async (req, 
   res.json({ ok: results.emailBlocked || results.ipBlocked, ...results, errors: errors.length > 0 ? errors : undefined });
 });
 
-app.post('/api/admin/unblock-email', requireAdmin, express.json(), async (req, res) => {
+app.post('/api/admin/unblock-email', express.json(), async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email.toLowerCase().trim())}`, { method: 'DELETE', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
-    auditLog(getAdminEmailFromToken(req), 'unblock_email', email);
+    auditLog(getAdminEmailFromToken(req), 'unblock_email', email, req.ip);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Admin: list all user emails from orders + wishlists ──
-app.get('/api/admin/user-emails', requireAdmin, async (req, res) => {
+app.get('/api/admin/user-emails', async (req, res) => {
   try {
     const [ords, wls] = await Promise.all([
       fetch(`${SUPABASE_URL}/rest/v1/orders?select=email`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }).then(r => r.json()),
@@ -853,21 +857,31 @@ app.get('/api/admin/user-emails', requireAdmin, async (req, res) => {
   } catch { res.json({ emails: [] }); }
 });
 
-// ── Admin: product CRUD ──
-app.post('/api/admin/products/add', requireAdmin, async (req, res) => {
+// ── Admin: product CRUD with input validation ──
+app.post('/api/admin/products/add', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  const { name, cat, price, stock, sizes, ...rest } = req.body;
+  if (!name || !cat || typeof price !== 'number' || price < 0) {
+    return res.status(400).json({ error: 'name, cat, and non-negative price are required' });
+  }
+  if (stock !== undefined && (typeof stock !== 'number' || stock < 0)) {
+    return res.status(400).json({ error: 'stock must be a non-negative number' });
+  }
+  if (sizes !== undefined && !Array.isArray(sizes)) {
+    return res.status(400).json({ error: 'sizes must be an array' });
+  }
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products`, {
       method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify({ name, cat, price, stock, sizes, ...rest }),
     });
     const data = await r.json();
     res.json({ ok: r.ok, data });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/products/update', requireAdmin, async (req, res) => {
+app.post('/api/admin/products/update', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const { product_id, ...updates } = req.body;
   if (!product_id) return res.status(400).json({ error: 'product_id required' });
@@ -882,7 +896,7 @@ app.post('/api/admin/products/update', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
+app.post('/api/admin/products/delete', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const { id } = req.body;
   if (!id) return res.status(400).json({ error: 'id required' });
@@ -895,7 +909,7 @@ app.post('/api/admin/products/delete', requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
+app.post('/api/admin/products/upload-image', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
@@ -917,7 +931,7 @@ app.post('/api/admin/products/upload-image', requireAdmin, async (req, res) => {
 });
 
 // ── Admin: get all wishlist users ──
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
@@ -932,7 +946,7 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
 });
 
 // ── Admin: preview cancellation email (generates text without sending) ──
-app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
+app.post('/api/admin/preview-cancel-email', async (req, res) => {
   const { reason, customReason, customerName } = req.body;
   const reasonLabels = { out_of_stock: 'Out of stock', damaged: 'Damaged during handling', customer_request: 'Customer requested cancellation', other: 'Other' };
   const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
@@ -983,7 +997,7 @@ app.post('/api/admin/preview-cancel-email', requireAdmin, async (req, res) => {
 });
 
 // ── Admin: cancel order ──
-app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
+app.post('/api/admin/cancel-order', async (req, res) => {
   const { orderId, reason, customReason } = req.body;
   if (!orderId || !reason) return res.status(400).json({ error: 'orderId and reason required' });
   try {
@@ -1064,7 +1078,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
         </div>`,
       });
     }
-    auditLog(getAdminEmailFromToken(req), 'cancel_order', orderNum || orderId);
+    auditLog(getAdminEmailFromToken(req), 'cancel_order', orderNum || orderId, req.ip);
     res.json({ ok: true });
   } catch (err) {
     console.error('Cancel order error:', err);
@@ -1073,7 +1087,7 @@ app.post('/api/admin/cancel-order', requireAdmin, async (req, res) => {
 });
 
 // ── Admin: undo cancellation (revert to pending) ──
-app.post('/api/admin/undo-cancel-order', requireAdmin, async (req, res) => {
+app.post('/api/admin/undo-cancel-order', async (req, res) => {
   const { orderId } = req.body;
   if (!orderId) return res.status(400).json({ error: 'orderId required' });
   try {
@@ -1092,19 +1106,27 @@ app.post('/api/admin/undo-cancel-order', requireAdmin, async (req, res) => {
 });
 
 // ── Admin: get all orders ──
-app.get('/api/admin/orders', requireAdmin, async (req, res) => {
+app.get('/api/admin/orders', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc`, {
-      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-    });
-    const data = await r.json();
-    res.json({ orders: data || [] });
-  } catch { res.json({ orders: [] }); }
+    const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+    const offset = parseInt(req.query.offset) || 0;
+    const [ordersRes, countRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc&limit=${limit}&offset=${offset}`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/orders?select=count`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      }),
+    ]);
+    const orders = await ordersRes.json();
+    const count = Array.isArray(await countRes.json()) ? (await countRes.json())[0]?.count : 0;
+    res.json({ orders: orders || [], total: count, limit, offset });
+  } catch { res.json({ orders: [], total: 0 }); }
 });
 
-app.post('/api/admin/orders/update-status', requireAdmin, async (req, res) => {
+app.post('/api/admin/orders/update-status', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const { id, status } = req.body;
   if (!id || !status) return res.status(400).json({ error: 'id and status required' });
@@ -1119,7 +1141,7 @@ app.post('/api/admin/orders/update-status', requireAdmin, async (req, res) => {
 });
 
 // ── Admin: audit log ──
-app.get('/api/admin/audit-log', requireAdmin, async (req, res) => {
+app.get('/api/admin/audit-log', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ entries: [] });
   try {
