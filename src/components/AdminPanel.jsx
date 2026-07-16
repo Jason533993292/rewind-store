@@ -252,7 +252,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           { id: 'email', label: '📧 Email' },
           { id: 'orders', label: '📦 Orders' },
           { id: 'chats', label: '💬 Chats' + (chatUnread > 0 ? ` (${chatUnread})` : '') },
-          { id: 'saved', label: '⭐ Saved' },
+          { id: 'promo', label: '🎟️ Promo Codes' },
           { id: 'blocked', label: '🚫 Blocked' },
           { id: 'products', label: '🛍️ Products' },
           { id: 'changelog', label: '📋 Changelog' },

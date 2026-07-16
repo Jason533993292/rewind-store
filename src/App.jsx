@@ -88,19 +88,6 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
   const dockRef = useRef(null);
-  const dockPosRef = useRef({ x: 0, y: 0 });
-  const dragRef = useRef(null);
-  const wasDraggedRef = useRef(false);
-  const snapSideRef = useRef(null);
-  const [dockPos, setDockPos] = useState(() => {
-    try {
-      const saved = localStorage.getItem('rw_dock_pos');
-      return saved ? JSON.parse(saved) : { x: 0, y: 0 };
-    } catch { return { x: 0, y: 0 }; }
-  });
-  const [dockSide, setDockSide] = useState(() => {
-    try { return localStorage.getItem('rw_dock_side') || 'bottom'; } catch { return 'bottom'; }
-  });
   const [darkMode, setDarkMode] = useState(() => {
     try { return localStorage.getItem('rw_theme') === 'dark'; } catch { return false; }
   });
@@ -245,127 +232,6 @@ export default function App() {
   useEffect(() => { if (showSettings) window.dispatchEvent(new Event('settings-panel-open')); }, [showSettings]);
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
-
-  // Persist dock position
-  useEffect(() => {
-    try { localStorage.setItem('rw_dock_pos', JSON.stringify(dockPos)); } catch {}
-  }, [dockPos]);
-  useEffect(() => {
-    try { localStorage.setItem('rw_dock_side', dockSide); } catch {}
-  }, [dockSide]);
-
-  // Dock drag handling — direct DOM manipulation during drag, React state on drop
-  useEffect(() => {
-    function onMove(e) {
-      const d = dragRef.current;
-      if (!d) return;
-      const x = d.originX + (e.clientX - d.startX);
-      const y = d.originY + (e.clientY - d.startY);
-      // Clamp dock to viewport bounds
-      const el = dockRef.current;
-      if (el) {
-        const dw = el.offsetWidth, dh = el.offsetHeight;
-        const clampedX = Math.max(dw / 2 + 10, Math.min(innerWidth - dw / 2 - 10, x));
-        const clampedY = Math.max(dh + 10, Math.min(innerHeight - 10, y));
-        dockPosRef.current = { x: clampedX, y: clampedY };
-        wasDraggedRef.current = true;
-        document.body.classList.add('rw-dragging');
-        el.style.left = `${clampedX}px`;
-        el.style.bottom = `${innerHeight - clampedY}px`;
-        el.style.transition = 'none';
-        el.style.transform = 'translateX(-50%)';
-        el.style.cursor = 'grabbing';
-        el.style.userSelect = 'none';
-      }
-      // Detect snap zone + proximity glow
-      if (el) {
-        const r = el.getBoundingClientRect();
-        const w = innerWidth, h = innerHeight, m = 100;
-        const cx = r.left + r.width / 2;
-        let best = null, bestD = m;
-        const checks = [
-          { side: 'left', dist: cx },
-          { side: 'right', dist: w - cx },
-          { side: 'bottom', dist: h - r.bottom },
-        ];
-        for (const c of checks) {
-          if (c.dist < bestD) { bestD = c.dist; best = c.side; }
-        }
-        snapSideRef.current = best;
-        const ind = document.getElementById('dock-snap-indicator');
-        if (ind) {
-          if (best) {
-            const op = Math.max(0.15, 1 - bestD / m);
-            ind.style.display = 'block';
-            ind.style.opacity = op;
-            ind.style.boxShadow = `0 0 ${12 + op * 30}px #ff6b35`;
-            ind.style.background = '#ff6b35';
-            ind.style.backgroundImage = 'radial-gradient(circle at 50% 50%, rgba(0,0,0,0.35) 2px, transparent 2px)';
-            ind.style.backgroundSize = '10px 10px';
-            if (best === 'left') {
-              ind.style.top = '30%'; ind.style.bottom = '30%'; ind.style.left = '0'; ind.style.right = 'auto';
-              ind.style.width = '36px'; ind.style.height = 'auto';
-              ind.style.clipPath = 'polygon(0% 0%, 100% 15%, 100% 85%, 0% 100%)';
-            } else if (best === 'right') {
-              ind.style.top = '30%'; ind.style.bottom = '30%'; ind.style.right = '0'; ind.style.left = 'auto';
-              ind.style.width = '36px'; ind.style.height = 'auto';
-              ind.style.clipPath = 'polygon(0% 15%, 100% 0%, 100% 100%, 0% 85%)';
-            } else if (best === 'bottom') {
-              ind.style.left = '30%'; ind.style.right = '30%'; ind.style.bottom = '0'; ind.style.top = 'auto';
-              ind.style.height = '36px'; ind.style.width = 'auto';
-              ind.style.clipPath = 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)';
-            }
-          } else {
-            ind.style.display = 'none';
-            ind.style.opacity = '0';
-            ind.style.boxShadow = 'none';
-          }
-        }
-      }
-    }
-    function onUp(e) {
-      const d = dragRef.current;
-      if (!d) { dragRef.current = null; return; }
-      dragRef.current = null;
-      document.body.classList.remove('rw-dragging');
-      const el = dockRef.current;
-      if (el) {
-        el.style.cursor = 'grab';
-        el.style.userSelect = '';
-        el.style.transition = '';
-        el.style.transform = '';
-      }
-      // Finalize snap
-      let { x, y } = dockPosRef.current;
-      let side = snapSideRef.current || 'bottom';
-      snapSideRef.current = null;
-      const w = innerWidth, h = innerHeight;
-      if (el) {
-        const dw = el.offsetWidth, dh = el.offsetHeight;
-        if (side === 'left') { x = 12 + dw / 2; y = h / 2; }
-        else if (side === 'right') { x = w - 12 - dw / 2; y = h / 2; }
-        else if (side === 'bottom') { x = w / 2; y = 12; }
-        x = Math.round(x); y = Math.round(y);
-        dockPosRef.current = { x, y };
-        el.style.left = `${x}px`;
-        el.style.bottom = `${h - y}px`;
-        el.style.transform = 'translateX(-50%)';
-        // Convert pixel pos back to offset format for React state
-        setDockPos({ x: Math.round(x - w / 2), y: Math.round(y - 28) });
-      }
-      setDockSide(side);
-    }
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onUp);
-    };
-  }, []);
 
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 
@@ -1191,90 +1057,28 @@ export default function App() {
       )}
 
       {/* ── Bottom Dock ── */}
-      {/* Snap indicator — trapezium on left, right, bottom edges */}
-      <div id="dock-snap-indicator" style={{
-        position: 'fixed', zIndex: 99998, pointerEvents: 'none', display: 'none',
-        transition: 'opacity 0.15s',
-      }} />
-
       <div ref={dockRef}
-        onMouseDown={(e) => {
-          const r = dockRef.current.getBoundingClientRect();
-          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-          dragRef.current = { startX: e.clientX, startY: e.clientY, originX: cx, originY: cy };
-          e.preventDefault();
-        }}
-        onTouchStart={(e) => {
-          const t = e.touches[0];
-          const r = dockRef.current.getBoundingClientRect();
-          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-          dragRef.current = { startX: t.clientX, startY: t.clientY, originX: cx, originY: cy };
-        }}
-        onMouseEnter={() => !dragRef.current && setDockHover(true)}
-        onMouseLeave={() => !dragRef.current && setDockHover(false)}
+        onMouseEnter={() => setDockHover(true)}
+        onMouseLeave={() => setDockHover(false)}
         style={{
-          position: 'fixed', bottom: `calc(28px + ${dockPos.y}px)`, left: `calc(50% + ${dockPos.x}px)`, zIndex: 99999,
-          display: 'flex',
-          flexDirection: dockSide === 'left' || dockSide === 'right' ? 'column' : 'row',
-          justifyContent: 'center', alignItems: 'center', gap: '0',
+          position: 'fixed', bottom: '28px', left: '50%', zIndex: 99999,
+          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
-          borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 0 18px rgba(255,107,53,0.25), 0 2px 12px rgba(0,0,0,0.08)',
-          animation: dockHover ? 'none' : 'dockPulse 3s ease-in-out infinite',
-          padding: dockSide === 'left' || dockSide === 'right' ? '4px 8px' : '7px',
-          transform: `translateX(-50%) translateY(${dockHover && !dragRef.current ? -2 : 0}px)`,
-          transition: dragRef.current ? 'none' : 'max-width 1.2s cubic-bezier(0.32, 0.72, 0, 1), max-height 1.2s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.5s ease, transform 0.5s cubic-bezier(0.32, 0.72, 0, 1)',
-          willChange: 'max-width, max-height, transform',
-          cursor: dragRef.current ? 'grabbing' : 'grab',
-          userSelect: dragRef.current ? 'none' : 'auto',
-          ...(dockSide === 'left' || dockSide === 'right'
-            ? { maxHeight: dockHover ? '320px' : '44px', maxWidth: '44px' }
-            : { maxWidth: dockHover ? '420px' : '54px', maxHeight: '44px' }
-          ),
+          borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 2px 12px rgba(0,0,0,0.08)',
+          padding: '7px',
+          transform: dockHover ? 'translateX(-50%) translateY(-2px)' : 'translateX(-50%) translateY(0)',
+          transition: 'max-width 0.6s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.3s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)',
+          willChange: 'max-width, transform',
+          cursor: 'default',
+          maxWidth: dockHover ? '420px' : '54px',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}
       >
-        {/* Grip handle */}
-        <div style={{
-          position: 'absolute', top: '2px', left: '50%', transform: 'translateX(-50%)',
-          display: dockSide === 'left' || dockSide === 'right' ? 'none' : 'flex',
-          flexDirection: 'column', gap: '2px', opacity: 0.3, pointerEvents: 'none', zIndex: 1,
-        }}>
-          <div style={{ width: '12px', height: '2px', borderRadius: '1px', background: '#666' }} />
-          <div style={{ width: '12px', height: '2px', borderRadius: '1px', background: '#666' }} />
-          <div style={{ width: '12px', height: '2px', borderRadius: '1px', background: '#666' }} />
-        </div>
-
-        {/* Referrals */}
-        {/* Referrals */}
-        <button onClick={() => {
-          if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
-          setShowSettings(false); setShowReferral(true);
-        }}
-          title="Referrals"
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: dockHover ? '8px 12px' : '8px 0',
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
-            fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-            opacity: dockHover ? 1 : 0, overflow: 'hidden',
-            transition: 'opacity 0.8s ease 0.12s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.2s ease',
-            pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '120px' : '0',
-            transform: 'scale(1)',
-          }}
-          onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.color = 'var(--ink)'; }}
-          onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/><circle cx="12" cy="12" r="10"/></svg>
-          {dockSide === 'left' || dockSide === 'right' ? null : <span>Referrals</span>}
-        </button>
 
         {/* Home */}
-        <button onClick={() => {
-          if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
-          setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false);
-        }}
-          title="Home"
+        <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: '16px', flexShrink: 0,
@@ -1285,15 +1089,11 @@ export default function App() {
           onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          {dockHover && dockSide !== 'left' && dockSide !== 'right' && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
+          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
         </button>
 
         {/* Settings */}
-        <button onClick={() => {
-          if (wasDraggedRef.current) { wasDraggedRef.current = false; return; }
-          setShowReferral(false); setShowSettings(true);
-        }}
-          title="Settings"
+        <button onClick={() => { setShowReferral(false); setShowSettings(true); }}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: dockHover ? '8px 12px' : '8px 0',
@@ -1307,7 +1107,7 @@ export default function App() {
           onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.color = 'var(--ink)'; }}
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          {dockSide === 'left' || dockSide === 'right' ? null : <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>}
+          <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Settings</span>
         </button>
 
       </div>
