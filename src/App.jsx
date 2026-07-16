@@ -990,7 +990,7 @@ export default function App() {
 
         <div className="rw-shop-layout">
           <aside id="rw-sidebar" style={{
-            width: '260px',
+            width: '320px',
             flexShrink: 0,
             background: 'var(--bg)',
             borderRadius: '12px',
