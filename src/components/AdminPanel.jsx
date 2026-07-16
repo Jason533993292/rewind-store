@@ -37,9 +37,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
   const [chatUnread, setChatUnread] = useState(0);
 
-  // Keyboard shortcuts: 1-9 for tabs
+  // Keyboard shortcuts: 1-9 for tabs (skip when typing in inputs)
   useEffect(() => {
     const handler = (e) => {
+      const tag = e.target.tagName;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
       const n = parseInt(e.key);
       if (n >= 1 && n <= 9 && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const tabs = ['users', 'email', 'orders', 'chats', 'promo', 'blocked', 'products', 'changelog', 'audit'];
