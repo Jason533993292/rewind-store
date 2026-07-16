@@ -128,7 +128,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── Rate limiting ──
-const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false });
+const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
 app.use(generalLimiter);
 const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
 

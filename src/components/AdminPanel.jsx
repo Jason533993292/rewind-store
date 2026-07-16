@@ -713,8 +713,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
           {/* ── Edit product panel ── */}
           {adminTab === 'edit' && editProduct && (
-            <EditProductPanel key={editProduct.id || editProduct.product_id} product={editProduct} onDone={() => { setEditProduct(null); setAdminTab('saved'); }}
-              setCustomProducts={setCustomProducts} />
+            <EditProductPanel key={editProduct.id || editProduct.product_id} product={editProduct} onDone={() => { setEditProduct(null); setAdminTab('products'); }} setCustomProducts={setCustomProducts} />
           )}
 
           {/* ── Blocked IPs ── */}
@@ -1564,7 +1563,7 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
         <button onClick={onDone}
           style={{ padding: '10px 18px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s' }}
           onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
-          onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>← Back to saved
+          onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>← Back
         </button>
       </div>
 
@@ -1587,8 +1586,20 @@ function EditProductPanel({ product, onDone, setCustomProducts }) {
               }
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: '0 0 6px', fontSize: '12px', color: 'var(--muted)', lineHeight: '1.5' }}>
-                To change the photo, you'll need to delete this product and re-add it with the new image. All other fields can be edited here.
+              <label style={{ display: 'inline-block', padding: '10px 18px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.15s' }}
+                onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
+                onMouseOut={e => { e.target.style.background = 'var(--surface)'; }}>
+                📷 Upload new photo
+                <input type="file" accept="image/*" style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const url = await uploadProductImage(file, product.product_id || product.id);
+                    if (url) { product.img = url; setSaving(v => v); setMsg('✅ Photo uploaded'); } else setMsg('❌ Upload failed');
+                  }} />
+              </label>
+              <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
+                Upload a new photo. Supported: JPG, PNG, WebP.
               </p>
             </div>
           </div>
