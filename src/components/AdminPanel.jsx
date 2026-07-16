@@ -2274,10 +2274,10 @@ function CreatePromoCode({ showToast }) {
     if (!code.trim()) { setMsg('Enter a code'); return; }
     setLoading(true); setMsg('');
     try {
-      const r = await fetch('/api/admin/promo/create', {
+      const r = await fetch('/api/admin/create-promo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), maxUses: Number(maxUses), expiresIn: Number(expiresIn) }),
+        body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), label: `${Number(discount)}% off` }),
       });
       const d = await r.json();
       if (d.success) {
