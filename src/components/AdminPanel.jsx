@@ -252,7 +252,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           { id: 'promo', label: '🎟️ Promo Codes' },
           { id: 'blocked', label: '🚫 Blocked' },
           { id: 'products', label: '🛍️ Products' },
-          { id: 'changelog', label: '📋 Changelog' },
           { id: 'audit', label: '📜 Audit Log' },
         ].filter(t => t.label).map((t) => (
           <button key={t.id} onClick={() => setAdminTab(t.id)}
@@ -272,7 +271,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
       {/* Keyboard shortcuts hint */}
       <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '-16px', marginBottom: '24px', textAlign: 'center' }}>
-        Shortcuts: 1 Users · 2 Email · 3 Orders · 4 Chats · 5 Promo · 6 Blocked · 7 Products · 8 Changelog · 9 Audit
+        Shortcuts: 1 Users · 2 Email · 3 Orders · 4 Chats · 5 Promo · 6 Blocked · 7 Products · 8 Audit
       </div>
 
       {!supabase && (
@@ -717,33 +716,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           {adminTab === 'blocked' && <BlockedPanel />}
 
           {/* ── Changelog ── */}
-          {adminTab === 'changelog' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '20px', maxWidth: '700px', fontSize: '14px', lineHeight: '1.7' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '20px' }}>📋 Dev log</h3>
-            {[
-              { v: 'V8.2.0', date: 'Jul 7', items: ['✕ X button immediately closes + hides chat from list', 'Email required before customer can start a chat', 'Block button now shows feedback messages', 'Hover flicker in session list fixed (e.currentTarget)'] },
-              { v: 'V8.1.0', date: 'Jul 7', items: ['Chat email input screen for customers', 'URL encoding for session IDs'] },
-              { v: 'V8.0.0', date: 'Jul 7', items: ['Full live chat system (ChatBubble + admin panel)', 'Separate modals for Close session, Block, Give promo', 'Notification badge on Chats tab (polls 10s)', 'Session closed UI for customers', 'SVG spinner on refresh button', 'Promo codes stored in DB + valid in checkout', 'Admin token reads from localStorage on mount'] },
-              { v: 'V7.9.0', date: 'Jul 7', items: ['Performance: lazy images, content-visibility CSS', 'Removed unused deps (react-router-dom, react-select)', 'Removed old promo code button'] },
-              { v: 'V7.8.0', date: 'Jul 6', items: ['Security fixes from Claude audit', 'Hydrate blocked lists on boot', 'Gate /api/env behind requireAdmin', 'AI auto-reply fire-and-forget', 'AI sender set to "ai" not "admin"'] },
-              { v: 'V7.7.0', date: 'Jul 6', items: ['Admin chat panel with session list + reply', 'AI auto-reply for common questions'] },
-              { v: 'V7.6.0', date: 'Jul 6', items: ['Undo cancel button for cancelled orders', '3-column product grid', 'Live chat feature (backend + widget)'] },
-              { v: 'V7.5.0', date: 'Jul 5', items: ['Cache-control no-store (no more Cloudflare purge)', 'Security: shipping calc, IP blocker, helmet, minify', 'Cancel flow with step indicators + reason-specific emails', 'Canned cancel emails (no AI for predefined reasons)'] },
-              { v: 'V7.4.0', date: 'Jul 5', items: ['Admin cancel order + email', 'Mouse glow removed', 'Gemini AI for cancel emails'] },
-              { v: 'V7.3.0', date: 'Jul 4', items: ['Chat widget + product descriptions', 'Admin security fixes'] },
-              { v: 'V7.0.0', date: 'Jul 3', items: ['Admin panel with orders, users, products', 'Stripe payments + webhooks', 'Supabase RLS lockdown'] },
-              { v: 'V6.0.0', date: 'Jun 28', items: ['Initial deploy: product grid, cart, wishlist', 'Railway + Cloudflare setup'] },
-            ].map(entry => (
-              <div key={entry.v} style={{ marginBottom: '16px', paddingLeft: '12px', borderLeft: '2px solid var(--line)' }}>
-                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--accent)' }}>{entry.v} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>— {entry.date}</span></div>
-                <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '13px', color: 'var(--ink)' }}>
-                  {entry.items.map((item, i) => <li key={i}>{item}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-          )}
-
           {/* ── Audit Log ── */}
           {adminTab === 'audit' && <AuditLogPanel adminToken={adminToken} />}
 
