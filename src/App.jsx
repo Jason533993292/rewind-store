@@ -33,14 +33,7 @@ const VERSION = 'V11.11.0';
 
 // Small reusable component — defined outside App() to prevent TDZ issues with
 // the minifier reordering hoisted function declarations before state variables.
-function SidebarBtn({ label, isOn, onClick, count }) {
-  return (
-    <button className={"rw-sb-btn" + (isOn ? " is-on" : "")} onClick={onClick}>
-      <span className="rw-sb-label">{label}</span>
-      {count !== undefined && <span className="rw-sb-count">{count}</span>}
-    </button>
-  );
-}
+import SidebarBtn from './components/SidebarBtn';
 
 export default function App() {
   // showSurvey MUST be the VERY FIRST state var so no TDZ error can occur
@@ -1140,54 +1133,4 @@ export default function App() {
 /* ══════════════════════════════════════════════
    ADMIN PANEL — accessible at /#admin
    ══════════════════════════════════════════════ */
-function Survey({ onDone, onSkip }) {
-  const [step, setStep] = useState('choose');
-  const [source, setSource] = useState('');
-  const [otherText, setOtherText] = useState('');
-  const [done, setDone] = useState(false);
-
-  const submit = async (answer) => {
-    const ans = answer || (source === 'Other' ? otherText : source);
-    try { await fetch('/api/survey', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: ans }) }); } catch {}
-    setDone(true);
-    setTimeout(() => onDone(), 1500);
-  };
-
-  const options = ['Social media', 'Vinted', 'Grailed', 'Google', 'From a friend', 'Other'];
-  return (
-    <div>
-      {done ? (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🙏</div>
-          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--ink)', margin: '0' }}>Thanks for letting us know!</p>
-          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '4px 0 0' }}>Enjoy browsing REWIND.</p>
-        </div>
-      ) : (
-      <>
-      {options.map(o => (
-        <button key={o} onClick={() => { if (o === 'Other') { setSource(o); setStep('other'); } else { submit(o); } }}
-          style={{ display: 'block', width: '100%', padding: '12px', marginBottom: '8px', borderRadius: '8px', border: '1px solid var(--line)', background: source === o ? 'var(--ink)' : 'var(--surface)', color: source === o ? 'var(--surface)' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', textAlign: 'center', transition: 'all 0.15s' }}
-          onMouseOver={e => { if (source !== o) { e.target.style.background = 'var(--line)'; e.target.style.transform = 'translateY(-1px)'; } }}
-          onMouseOut={e => { if (source !== o) { e.target.style.background = 'var(--surface)'; e.target.style.transform = ''; } }}>
-          {o}
-        </button>
-      ))}
-      {step === 'other' && (
-        <div style={{ marginTop: '12px' }}>
-          <input className="rw-input" placeholder="Tell us where..." value={otherText} onChange={e => setOtherText(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && otherText.trim()) submit(otherText.trim()); }} autoFocus />
-          <button onClick={() => submit(otherText.trim())} disabled={!otherText.trim()}
-            style={{ marginTop: '8px', padding: '10px 20px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: 'var(--surface)', cursor: 'pointer', fontWeight: 600, width: '100%', transition: 'all 0.15s' }}
-            onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
-            onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
-            Submit
-          </button>
-        </div>
-      )}
-      <button onClick={onSkip} className="rw-txt-btn" style={{ marginTop: '12px', padding: '8px', fontSize: '12px' }}>Skip</button>
-      </>)}
-    </div>
-  );
-}
-
-
+import Survey from './components/Survey';
