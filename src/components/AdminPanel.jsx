@@ -9,7 +9,7 @@ import { money } from '../hooks/useCountdown';
 
 const VERSION = 'V11.3.0';
 
-function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
+function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showToast }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -42,7 +42,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
     const handler = (e) => {
       const n = parseInt(e.key);
       if (n >= 1 && n <= 9 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const tabs = ['users', 'email', 'orders', 'chats', 'saved', 'blocked', 'products', 'changelog', 'audit'];
+        const tabs = ['users', 'email', 'orders', 'chats', 'promo', 'blocked', 'products', 'changelog', 'audit'];
         if (tabs[n - 1]) { setAdminTab(tabs[n - 1]); }
       }
     };
@@ -275,7 +275,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
 
       {/* Keyboard shortcuts hint */}
       <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '-16px', marginBottom: '24px', textAlign: 'center' }}>
-        Shortcuts: 1 Users · 2 Email · 3 Orders · 4 Chats · 5 Saved · 6 Blocked · 7 Products · 8 Changelog · 9 Audit
+        Shortcuts: 1 Users · 2 Email · 3 Orders · 4 Chats · 5 Promo · 6 Blocked · 7 Products · 8 Changelog · 9 Audit
       </div>
 
       {!supabase && (
@@ -754,60 +754,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts }) {
           {/* ── Chats ── */}
           {adminTab === 'chats' && <AdminChatPanel adminToken={adminToken} chatUnread={chatUnread} setChatUnread={setChatUnread} />}
 
-          {/* ── Saved products ── */}
-          {adminTab === 'saved' && (
-          <div key={savedVersion} style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>⭐ Saved products</h3>
-            {(() => {
-              const allProds = [...REWIND_PRODUCTS, ...customProducts];
-              const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
-              const saved = allProds.filter(p => savedIds.includes(p.id || p.product_id));
-              if (saved.length === 0) return <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No saved products yet. Click ⋮ on any product and select Save.</p>;
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {saved.map(p => (
-                    <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px', background: 'var(--line)', borderRadius: '8px' }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: p.hue ? `hsl(${p.hue},60%,80%)` : 'var(--line-2)', overflow: 'hidden', flexShrink: 0 }}>
-                        {p.img && <img src={p.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 600 }}>{p.name}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{p.brand}{p.brand && p.cat ? ' · ' : ''}{p.cat}</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent)' }}>{money(p.price)}</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                        <button onClick={() => { onSelect(p); }}
-                          onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
-                          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
-                          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--line-2)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
-                          👁 View
-                        </button>
-                        <button onClick={() => {
-                          setEditProduct(p);
-                          setAdminTab('edit');
-                        }}
-                          onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
-                          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
-                          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--surface)', border: '1px solid var(--line-2)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
-                          ✏️ Edit
-                        </button>
-                        <button onClick={() => {
-                          const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
-                          const newIds = savedIds.filter(id => id !== (p.id || p.product_id));
-                          localStorage.setItem('rw_admin_saved', JSON.stringify(newIds));
-                          setSavedVersion(v => v + 1);
-                        }}
-                          onMouseOver={e => { e.target.style.transform = 'scale(1.08)'; e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)'; }}
-                          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
-                          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'transform 0.15s' }}>
-                          ✕ Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
+          {/* ── Promo Codes ── */}
+          {adminTab === 'promo' && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>🎟️ Promo Codes</h3>
+            <CreatePromoCode showToast={showToast} />
           </div>
           )}
 
@@ -2298,3 +2249,63 @@ function AuditLogPanel({ adminToken }) {
 }
 
 export default AdminPanel;
+
+/* ── Create promo code form ── */
+function CreatePromoCode({ showToast }) {
+  const [code, setCode] = useState('');
+  const [discount, setDiscount] = useState(10);
+  const [maxUses, setMaxUses] = useState(50);
+  const [expiresIn, setExpiresIn] = useState(90);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  const handleCreate = async () => {
+    if (!code.trim()) { setMsg('Enter a code'); return; }
+    setLoading(true); setMsg('');
+    try {
+      const r = await fetch('/api/admin/promo/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), maxUses: Number(maxUses), expiresIn: Number(expiresIn) }),
+      });
+      const d = await r.json();
+      if (d.success) {
+        setMsg('✅ Promo code ' + code.trim().toUpperCase() + ' created!');
+        setCode('');
+        if (showToast) showToast('Promo code created');
+      } else {
+        setMsg(d.error || 'Failed to create');
+      }
+    } catch { setMsg('Network error'); }
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+        <div>
+          <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Code</label>
+          <input className="rw-input" placeholder="e.g. SUMMER20" value={code} onChange={e => setCode(e.target.value.toUpperCase())} style={{ width: '100%' }} />
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Discount %</label>
+            <input className="rw-input" type="number" value={discount} onChange={e => setDiscount(e.target.value)} min={1} max={100} style={{ width: '100%' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Max uses</label>
+            <input className="rw-input" type="number" value={maxUses} onChange={e => setMaxUses(e.target.value)} min={1} style={{ width: '100%' }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires (days)</label>
+            <input className="rw-input" type="number" value={expiresIn} onChange={e => setExpiresIn(e.target.value)} min={1} style={{ width: '100%' }} />
+          </div>
+        </div>
+        <button className="rw-btn rw-btn-pri" onClick={handleCreate} disabled={loading} style={{ padding: '12px', fontSize: '14px' }}>
+          {loading ? 'Creating...' : 'Create promo code'}
+        </button>
+        {msg && <p style={{ fontSize: '13px', margin: 0 }}>{msg}</p>}
+      </div>
+    </div>
+  );
+}
