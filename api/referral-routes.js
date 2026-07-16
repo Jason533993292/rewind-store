@@ -27,8 +27,12 @@ const FRAUD = {
   REFERRER_REWARD_PERCENT: 10,
 };
 
-// In-memory rate limit bucket for code generation per IP
+// In-memory rate limit bucket for code generation per IP (24h TTL)
 const ipGenRate = new Map();
+setInterval(() => {
+  const cutoff = Date.now() - 86400000;
+  for (const [k, v] of ipGenRate) if (v.ts < cutoff) ipGenRate.delete(k);
+}, 600000);
 
 export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EMAIL, REPLY_TO, requireAdmin }) {
 
@@ -546,6 +550,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
 
       const redemption = redemptions[0];
       const rewardValue = FRAUD.REFERRER_REWARD_PERCENT;
+      const rewardPromo = 'RW-REF-' + crypto.randomBytes(3).toString('hex').toUpperCase();
 
       await fetchSupabase('referral_rewards', {
         method: 'POST',
@@ -571,7 +576,6 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
 
       if (resend) {
         try {
-          const rewardPromo = 'RW-REF-' + crypto.randomBytes(3).toString('hex').toUpperCase();
           const notifyHtml = `<!DOCTYPE html>
 <html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#FAF6EF">
 <table width="100%" style="max-width:560px;margin:0 auto;padding:40px 20px">

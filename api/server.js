@@ -100,6 +100,8 @@ app.use(async (req, res, next) => {
   next();
 });
 
+app.set('trust proxy', 1);
+
 app.use(express.static(path.join(__dirname, '..', 'dist'), {
   setHeaders(res, p) {
     if (p.endsWith('.html')) res.set('Cache-Control', 'no-store, must-revalidate');
@@ -133,18 +135,6 @@ app.use(generalLimiter);
 const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true });
 
 // Load blocked IPs on startup
-
-app.get('/api/env', requireAdmin, (_req, res) => {
-  const RESEND_KEY = process.env.RESEND_API_KEY;
-  const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
-  res.json({
-    SUPABASE_URL: SUPABASE_URL,
-    SUPABASE_ANON_KEY: (SUPABASE_KEY || '').slice(0, 8) + '…',
-    RESEND_KEY: !!RESEND_KEY,
-    STRIPE_KEY: !!STRIPE_KEY,
-    ADMIN_TOKEN: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-  });
-});
 
 // ── Verify admin email + token (server-side check) ──
 // `token` is either the master secret (first login, typed by the admin) or a

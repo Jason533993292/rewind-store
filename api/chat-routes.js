@@ -11,6 +11,15 @@ function escapeHtml(str) {
 
 function makeLimiter() {
   const hits = new Map();
+  // Cleanup stale entries every 10 minutes
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, arr] of hits) {
+      const fresh = arr.filter((t) => now - t < 600000);
+      if (fresh.length === 0) hits.delete(key);
+      else hits.set(key, fresh);
+    }
+  }, 600000);
   return function isLimited(key, max, windowMs) {
     const now = Date.now();
     const arr = (hits.get(key) || []).filter((t) => now - t < windowMs);
@@ -21,7 +30,7 @@ function makeLimiter() {
 }
 
 function getIp(req) {
-  return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+  return req.ip;
 }
 
 /**
