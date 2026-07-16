@@ -42,11 +42,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     const handler = (e) => {
       const tag = e.target.tagName;
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
-      const n = parseInt(e.key);
-      if (n >= 1 && n <= 9 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const tabs = ['users', 'email', 'orders', 'chats', 'promo', 'blocked', 'products', 'changelog', 'audit'];
-        if (tabs[n - 1]) { setAdminTab(tabs[n - 1]); }
-      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -2282,8 +2277,8 @@ function CreatePromoCode({ showToast }) {
         body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), label: `${Number(discount)}% off` }),
       });
       const d = await r.json();
-      if (d.success) {
-        setMsg('✅ Promo code ' + code.trim().toUpperCase() + ' created!');
+      if (d.code) {
+        setMsg('✅ Promo code ' + d.code + ' created!');
         setCode('');
         if (showToast) showToast('Promo code created');
       } else {
