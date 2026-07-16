@@ -2278,7 +2278,7 @@ function CreatePromoCode({ showToast }) {
     try {
       const r = await fetch('/api/admin/create-promo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': localStorage.getItem('rw_admin_token') },
         body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), label: `${Number(discount)}% off` }),
       });
       const d = await r.json();
