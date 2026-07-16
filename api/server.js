@@ -46,14 +46,14 @@ const BLOCKED_EMAILS = new Set();
 // Hydrate in-memory blocked lists from Supabase on boot
 (async () => {
   try {
-    const ipRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_ips?select=ip_address`, {
+    const ipRes = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?select=ip_address`, {
       headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
     });
     const ipData = await ipRes.json();
     if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip_address, true));
   } catch (e) { console.warn('Failed to load blocked IPs:', e.message); }
   try {
-    const emailRes = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
+    const emailRes = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
       headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
     });
     const emailData = await emailRes.json();
@@ -65,7 +65,7 @@ const BLOCKED_EMAILS = new Set();
 // Logs every admin action to Supabase audit_log table for forensic traceability.
 async function auditLog(adminEmail, action, details, ip) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
+  const url = SUPABASE_URL;
   if (!key || !url || !adminEmail) return;
   try {
     await fetch(`${url}/rest/v1/audit_log`, {
@@ -81,9 +81,9 @@ async function auditLog(adminEmail, action, details, ip) {
     }).catch(() => {});
   } catch {}
 }
-// Extract admin email from x-admin-token for audit logging
+// Extract admin email from session token or cookie for audit logging
 function getAdminEmailFromToken(req) {
-  const token = (req.headers['x-admin-token'] || '').trim();
+  const token = (req.headers['x-admin-token'] || req.cookies?.admin_session || '').trim();
   if (!token) return null;
   try {
     const parts = token.split('.');
@@ -93,7 +93,7 @@ function getAdminEmailFromToken(req) {
 }
 
 app.use(async (req, res, next) => {
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || req.connection?.remoteAddress;
+  const ip = req.ip || req.connection?.remoteAddress;
   if (BLOCKED_IPS.has(ip)) {
     return res.status(403).send(`
       <html><body style="background:#FAF6EF;display:grid;place-items:center;height:100vh;margin:0;font-family:sans-serif">
@@ -103,7 +103,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.set('trust proxy', 1);
 
 app.use(express.static(path.join(__dirname, '..', 'dist'), {
   setHeaders(res, p) {
@@ -196,7 +195,7 @@ app.post('/api/generate-description', async (req, res) => {
 const RESEND_KEY = process.env.RESEND_API_KEY;
 const FROM_EMAIL = process.env.FROM_EMAIL || 'REWIND <orders@rewind-stores.com>';
 const REPLY_TO = process.env.REPLY_TO || 'philippekojoanaman@gmail.com';
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const resend = RESEND_KEY ? new Resend(RESEND_KEY) : null;
@@ -444,13 +443,13 @@ app.post('/api/manage-admins', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email required' });
 
   if (action === 'add') {
-    await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/admins`, {
       method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ email, added_by: 'admin' }),
     });
     res.json({ ok: true });
   } else if (action === 'remove') {
-    await fetch(`${process.env.SUPABASE_URL}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/admins?email=eq.${encodeURIComponent(email)}`, {
       method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     res.json({ ok: true });
@@ -474,7 +473,7 @@ async function computeOrder(items, promoCode) {
   if (promoCode) {
     try {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${process.env.SUPABASE_URL || 'https://luiqimsfvllgsmzedncw.supabase.co'}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=discount,discount_type,label,uses,max_uses`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=discount,discount_type,label,uses,max_uses`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
       const data = await r.json();
@@ -500,7 +499,7 @@ async function computeOrder(items, promoCode) {
 // payment_intent.succeeded path so stock actually depletes on real orders.
 async function decrementStockByIds(items) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL;
+  const url = SUPABASE_URL;
   if (!key || !url || !items?.length) return;
   const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
   for (const item of items) {
@@ -549,7 +548,7 @@ app.post('/api/lookup-order', async (req, res) => {
   if (!email || !orderNum) return res.status(400).json({ error: 'Email and order number required' });
   try {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-    const r = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&email=eq.${encodeURIComponent(email)}&select=order_num,status,total,items,shipping,customer_name,created_at`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&email=eq.${encodeURIComponent(email)}&select=order_num,status,total,items,shipping,customer_name,created_at`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
     const data = await r.json();
@@ -574,7 +573,7 @@ app.post('/api/get-orders', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
-    const response = await fetch(`${process.env.SUPABASE_URL || SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}&order=created_at.desc`, {
+    const response = await fetch(`${SUPABASE_URL || SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}&order=created_at.desc`, {
       headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
     });
     const orders = await response.json();
