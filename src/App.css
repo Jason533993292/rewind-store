@@ -272,8 +272,9 @@ a { color: inherit; cursor: pointer; }
 /* ── Sidebar buttons ── */
 .rw-sb-btn {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
-  padding: 6px 10px;
-  border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600;
+  padding: 10px 10px;
+  margin-bottom: 4px;
+  border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 600;
   color: var(--ink); background: transparent; transition: background 0.12s, opacity 0.12s;
   text-align: left;
   opacity: 0.7;
