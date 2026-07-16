@@ -476,25 +476,19 @@ async function computeOrder(items, promoCode) {
 // payment_intent.succeeded path so stock actually depletes on real orders.
 async function decrementStockByIds(items) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const url = process.env.VITE_SUPABASE_URL || SUPABASE_URL;
-  if (!key || !url) return;
-  for (const it of (items || [])) {
-    const pid = it.id || it.product_id;
-    const qty = it.qty || 1;
+  const url = process.env.VITE_SUPABASE_URL;
+  if (!key || !url || !items?.length) return;
+  const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+  for (const item of items) {
+    const pid = item.id || item.product_id;
+    const qty = item.qty || 1;
     if (!pid) continue;
     try {
-      const r = await fetch(`${url}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-      });
-      const products = await r.json();
-      if (!Array.isArray(products) || products.length === 0) continue;
-      const p = products[0];
-      const currentStock = p.stock ?? 0;
-      const newStock = Math.max(0, currentStock - qty);
-      await fetch(`${url}/rest/v1/custom_products?id=eq.${p.id}`, {
-        method: 'PATCH',
-        headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock: newStock }),
+      // Atomic RPC decrement — no read-then-write race
+      await fetch(`${url}/rest/v1/rpc/decrement_stock`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ p_product_id: pid, p_qty: qty }),
       });
     } catch (e) {
       console.warn(`Stock decrement failed for "${pid}":`, e.message);
@@ -630,36 +624,53 @@ app.post('/api/stripe-webhook', async (req, res) => {
     const { orderNum, email, name, address, itemsJson, promoCode } = pi.metadata || {};
     if (orderNum && email) {
       try {
-        const items = itemsJson ? JSON.parse(itemsJson) : [];
-        const { subtotal, shipping, discountPrice } = await computeOrder(items, promoCode);
-        const total = discountPrice + shipping;
-        await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-          method: 'POST',
-          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_num: orderNum, email, customer_name: name || '', address: address || '', items: JSON.stringify(items), total, shipping, status: 'pending', created_at: new Date().toISOString() }),
+        // Webhook idempotency: skip if order already exists
+        const check = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&select=id`, {
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         });
-        console.log('Order saved from PaymentIntent:', orderNum);
+        const existing = await check.json();
+        if (Array.isArray(existing) && existing.length > 0) {
+          console.log('Order already exists (duplicate webhook):', orderNum);
+        } else {
+          const items = itemsJson ? JSON.parse(itemsJson) : [];
+          const { subtotal, shipping, discountPrice } = await computeOrder(items, promoCode);
+          const total = discountPrice + shipping;
+          await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+            method: 'POST',
+            headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_num: orderNum, email, customer_name: name || '', address: address || '', items: JSON.stringify(items), total, shipping, status: 'pending', created_at: new Date().toISOString() }),
+          });
+          console.log('Order saved from PaymentIntent:', orderNum);
 
-        // Decrement stock — this is the live checkout path, so this is the
-        // only place real orders actually deplete inventory.
-        await decrementStockByIds(items);
+          // Decrement stock — atomic RPC
+          await decrementStockByIds(items);
 
-        // Send the customer's order-confirmation email — called directly,
-        // not via an HTTP loopback (the old `localhost:${PORT}` call only
-        // worked on Railway's single process; it silently no-ops on a
-        // serverless deploy target since there's nothing listening there).
-        if (process.env.RESEND_API_KEY) {
-          sendOrderConfirmationEmail({ email, name, items, total, address, orderNum })
-            .then((result) => { if (!result.ok) console.warn('send-order failed:', result.error); })
-            .catch((e) => console.warn('send-order call failed:', e.message));
-        }
+          // Increment promo uses if a promo was applied
+          if (promoCode) {
+            try {
+              await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_promo_uses`, {
+                method: 'POST',
+                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ p_code: promoCode }),
+              });
+            } catch (promoErr) {
+              console.warn('Failed to increment promo uses:', promoErr.message);
+            }
+          }
 
-        // Check for pending referral redemption and fulfill it — called
-        // directly on the pre-built referralRouter, no HTTP loopback.
-        try {
-          await referralRouter.fulfillReferral(orderNum);
-        } catch (refErr) {
-          console.warn('Referral fulfill failed:', refErr.message);
+          // Confirmation email
+          if (process.env.RESEND_API_KEY) {
+            sendOrderConfirmationEmail({ email, name, items, total, address, orderNum })
+              .then((result) => { if (!result.ok) console.warn('send-order failed:', result.error); })
+              .catch((e) => console.warn('send-order call failed:', e.message));
+          }
+
+          // Fulfill referral
+          try {
+            await referralRouter.fulfillReferral(orderNum);
+          } catch (refErr) {
+            console.warn('Referral fulfill failed:', refErr.message);
+          }
         }
       } catch (e) { console.error('Failed to fulfill from PaymentIntent:', e); }
     }
