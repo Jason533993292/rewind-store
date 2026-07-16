@@ -112,57 +112,13 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
   );
 }
 
-/* ── Inline referral input (for checkout) ── */
+/* ── Inline referral input (for checkout) — WIP, disabled ── */
 export function ReferralInput({ onApply, appliedReferral, referralDiscount, referralLoading, referralError }) {
-  const [code, setCode] = useState('');
-
-  useEffect(() => {
-    if (appliedReferral) setCode('');
-  }, [appliedReferral]);
-
-  const handleApply = () => {
-    if (!code.trim() || referralLoading) return;
-    onApply(code.trim());
-  };
-
   return (
     <div className="rw-co-sec">
       <h3>Referral code</h3>
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
-        <input className="rw-input" placeholder="Enter referral code"
-          value={code} onChange={e => setCode(e.target.value.toUpperCase())}
-          disabled={!!appliedReferral}
-          style={{ marginBottom: 0, flex: 1 }} />
-        {!appliedReferral ? (
-          <button className="rw-btn rw-btn-ghost" onClick={handleApply}
-            disabled={!code.trim() || referralLoading}
-            style={{ padding: '13px 18px', fontSize: '13px', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            {referralLoading ? '…' : 'Apply'}
-          </button>
-        ) : (
-          <button className="rw-btn rw-btn-ghost" onClick={() => onApply('')}
-            style={{ padding: '13px 18px', fontSize: '13px', whiteSpace: 'nowrap', flexShrink: 0, color: 'var(--accent)' }}>
-            Remove
-          </button>
-        )}
-      </div>
-      {referralLoading && (
-        <span style={{ color: 'var(--muted)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 500 }}>
-          ⏳ Checking…
-        </span>
-      )}
-      {appliedReferral && (
-        <span style={{ color: '#0E9F6E', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 600 }}>
-          ✓ Referral applied — {referralDiscount}% off!
-        </span>
-      )}
-      {referralError && !appliedReferral && (
-        <span style={{ color: 'var(--accent)', fontSize: '13px', marginTop: '6px', display: 'block' }}>
-          {referralError}
-        </span>
-      )}
-      <p style={{ fontSize: '11.5px', color: 'var(--muted)', marginTop: '6px', lineHeight: '1.4' }}>
-        Have a referral code? Enter it above to get {REFERRAL_DISCOUNT}% off your order.
+      <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '6px 0', lineHeight: '1.4' }}>
+        🚧 The referral system is currently under construction. Check back soon!
       </p>
     </div>
   );
