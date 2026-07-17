@@ -436,6 +436,20 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     }
   }, [open]);
 
+  // Listen for Apple Pay / Payment Request success
+  useEffect(() => {
+    const handler = (e) => {
+      setCardValid(false);
+      setProcessing(false);
+      setPlaced(true);
+      if (e.detail?.paymentIntent?.id) {
+        console.log('Apple Pay succeeded:', e.detail.paymentIntent.id);
+      }
+    };
+    window.addEventListener('apple-pay-success', handler);
+    return () => window.removeEventListener('apple-pay-success', handler);
+  }, []);
+
   // Validate promo code with debounce — checks /api/referral/validate which
   // also falls back to promo_codes table for admin-generated codes
   useEffect(() => {

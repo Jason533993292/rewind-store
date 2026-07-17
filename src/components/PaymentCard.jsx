@@ -141,7 +141,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
   const paymentRequest = useMemo(() => {
     if (!stripe) return null;
     const pr = stripe.paymentRequest({
-      country: 'BE',
+      country: 'CN',
       currency: 'eur',
       total: { label: 'REWIND', amount: parseInt(clientSecret?.split('_secret')[0]?.split('_').pop() || '0') || 0 },
       requestPayerName: true,
@@ -161,11 +161,11 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
         setError(confirmError.message);
       } else if (paymentIntent.status === 'succeeded') {
         event.complete('success');
-        // Trigger the parent's pay flow
-        onPayReady?.({ pay: async () => ({ success: true, paymentIntent }) });
+        // Dispatch custom event so the parent checkout shows confirmation
+        window.dispatchEvent(new CustomEvent('apple-pay-success', { detail: { paymentIntent } }));
       }
     } catch {}
-  }, [stripe, clientSecret, onPayReady]);
+  }, [stripe, clientSecret]);
 
   useEffect(() => {
     if (paymentRequest) {
