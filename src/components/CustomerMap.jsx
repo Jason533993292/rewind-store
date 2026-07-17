@@ -115,6 +115,16 @@ export default function CustomerMap() {
           </button>
       </div>
 
+      {modal === 'loading' && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: '#000',
+        }}>
+          <div style={{ color: '#fff', fontSize: '14px', opacity: 0.7 }}>Loading globe…</div>
+        </div>
+      )}
+
       {modal === 'globe' && GlobePanel && (
         <GlobePanel open={true} onClose={handleClose} locations={locations} />
       )}

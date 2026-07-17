@@ -32,8 +32,17 @@ export default function ChatBubble() {
   const [sessionStatus, setSessionStatus] = useState('open');
   const [customerEmail, setCustomerEmail] = useState('');
   const [showEmailScreen, setShowEmailScreen] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
+
+  useEffect(() => {
+    if (open) setMounted(true);
+    else {
+      const t = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
 
   const fetchMessages = useCallback(async (markRead) => {
     if (!sessionId) return;
@@ -122,11 +131,12 @@ export default function ChatBubble() {
 
   return (
     <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 10000, fontFamily: 'inherit' }}>
-      {open && (
+      {mounted && (
         <div style={{
           width: '360px', height: '480px', background: '#fff', borderRadius: '16px',
           boxShadow: '0 8px 30px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column',
           marginBottom: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,.06)',
+          opacity: open ? 1 : 0, transition: 'opacity 0.3s ease',
         }}>
           <div style={{
             padding: '14px 16px', background: 'var(--ink, #16130F)', color: '#fff',
@@ -140,9 +150,9 @@ export default function ChatBubble() {
                   New
                 </button>
               )}
-              <button onClick={() => setOpen(false)} aria-label="Close chat"
-                style={{ background: 'none', border: 'none', color: '#fff', fontSize: '18px', cursor: 'pointer', lineHeight: 1 }}>
-                &times;
+              <button onClick={() => fetchMessages(true)} aria-label="Refresh messages"
+                style={{ background: 'none', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '12px', cursor: 'pointer', borderRadius: '6px', padding: '3px 8px', lineHeight: 1 }}>
+                ↻
               </button>
             </div>
           </div>
