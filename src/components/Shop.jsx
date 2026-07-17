@@ -948,6 +948,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               paymentMethod={payment}
               country={formFields.country}
               onPaymentSuccess={completeOrder}
+              walletOnly={payment === 'applepay' || payment === 'googlepay'}
               onChange={({ valid }) => setCardValid(valid)}
             />
           </div>
