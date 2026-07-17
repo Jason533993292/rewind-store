@@ -4,6 +4,7 @@ import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import PaymentCard from './PaymentCard';
 import { ReferralInput } from './Referral';
+import { loadStripe } from '@stripe/stripe-js';
 
 /* ---------- LazyImage (for real product photos) ---------- */
 function LazyImage({ src, alt, className }) {
@@ -641,10 +642,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     }
     // Use the orderNum already set in state (generated when checkout opened)
     const currentOrderNum = orderNum;
+    let payResult;
     try {
       if (payment === 'card' || payment === 'applepay' || payment === 'googlepay') {
         // Card/Apple Pay: use Elements inline
-        const payResult = await paymentRef.current?.pay({
+        payResult = await paymentRef.current?.pay({
           name: formFields.name,
           email: formFields.email,
           address: formFields.address,
