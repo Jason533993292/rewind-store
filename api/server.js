@@ -563,13 +563,15 @@ app.post('/api/create-payment-intent', async (req, res) => {
   const { subtotal, discountPrice } = await computeOrder(items, promoCode, country);
   const finalTotal = Math.round(discountPrice * 100);
 
-  // Map frontend payment method IDs to Stripe payment method types
+  // Map frontend payment method IDs to Stripe payment method types.
+  // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
+  // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
+  // wallets produce a standard 'card' PaymentMethod under the hood via the
+  // Payment Request Button, so they're covered by the 'card' fallback below.
   const methodTypes = paymentMethod === 'bancontact' ? ['bancontact']
     : paymentMethod === 'klarna' ? ['klarna']
     : paymentMethod === 'ideal' ? ['ideal']
     : paymentMethod === 'paypal' ? ['paypal']
-    : paymentMethod === 'applepay' ? ['card', 'apple_pay']
-    : paymentMethod === 'googlepay' ? ['card', 'google_pay']
     : ['card'];
 
   try {

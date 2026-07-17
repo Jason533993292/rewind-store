@@ -4,8 +4,8 @@ import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import PaymentCard from './PaymentCard';
 import { ReferralInput } from './Referral';
+import { loadStripe } from '@stripe/stripe-js';
 
-/* ---------- LazyImage (for real product photos) ---------- */
 /* ---------- LazyImage (for real product photos) ---------- */
 function LazyImage({ src, alt, className }) {
   const [loaded, setLoaded] = useState(false);
@@ -726,9 +726,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         }
         // If we get here with no redirect, payment was instant (unlikely for redirect methods)
         console.log('Payment completed for:', currentOrderNum);
+        setProcessing(false);
+        return;
       }
 
-      // Payment succeeded
+      // Payment succeeded (card / Apple Pay / Google Pay only)
       completeOrder(payResult.paymentIntent, currentOrderNum);
     } catch (e) {
       setProcessing(false);
@@ -839,12 +841,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             <div><span>Total</span><b>{money(finalTotal)}</b></div>
           </div>
           <button className="rw-btn rw-btn-pri rw-btn-full"
-            disabled={processing || payment === 'applepay' || payment === 'googlepay'}
+            disabled={processing}
             onClick={handlePay}>
-            {processing ? <><i className="rw-spinner" /> Processing…</>
-            : payment === 'applepay' ? `Apple Pay — ${money(finalTotal)}`
-            : payment === 'googlepay' ? `Google Pay — ${money(finalTotal)}`
-            : `Pay ${money(finalTotal)}`}
+            {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(finalTotal)}`}
           </button>
           <div className="rw-co-trust">
             <Icon name="check" size={13} /> Secured with 256-bit SSL
