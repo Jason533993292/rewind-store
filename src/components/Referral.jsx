@@ -15,54 +15,9 @@ const REFERRAL_DISCOUNT = 10;
 
 /* ── Referral modal dialog ── */
 export function ReferralDialog({ open, onClose, userEmail, showToast }) {
-  // WIP — referrals are temporarily disabled
-  const [referralsEnabled, setReferralsEnabled] = useState(() => {
-    try { return localStorage.getItem('rw_referrals_enabled') === 'true'; } catch { return false; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem('rw_referrals_enabled', referralsEnabled ? 'true' : 'false'); } catch {}
-  }, [referralsEnabled]);
-
-  const [step, setStep] = useState('generate');
-  const [code, setCode] = useState('');
-  const [shareUrl, setShareUrl] = useState('');
-  const [usedCount, setUsedCount] = useState(0);
-  const [maxUses, setMaxUses] = useState(10);
-  const [status, setStatus] = useState('active');
-  const [rewards, setRewards] = useState([]);
-  const [redemptions, setRedemptions] = useState([]);
-  const [copyFeedback, setCopyFeedback] = useState('');
-  const [statsLoading, setStatsLoading] = useState(false);
-  const [generateLoading, setGenerateLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (open) {
-      setError('');
-      setCopyFeedback('');
-      if (userEmail && referralsEnabled) {
-        setStep('loading');
-        loadStats();
-      } else {
-        setStep('generate');
-      }
-    }
-  }, [open, userEmail, referralsEnabled]);
-
-  const loadStats = useCallback(async () => {
-    setStatsLoading(true);
-    try {
-      const r = await fetch(`/api/referral/stats?email=${encodeURIComponent(userEmail)}`);
-      const d = await r.json();
-      if (d.code) {
-        setCode(d.code); setShareUrl(d.shareUrl || `https://rewind-stores.com?ref=${d.code}`);
-        setUsedCount(d.usedCount || 0); setMaxUses(d.maxUses || 10);
-        setStatus(d.status || 'active'); setRewards(d.rewards || []); setRedemptions(d.redemptions || []);
-        setStep('ready');
-      } else { setStep('generate'); }
-    } catch { setError('Could not load referral data'); setStep('generate'); }
-    setStatsLoading(false);
-  }, [userEmail]);
+  useEffect(() => { if (open) setError(''); }, [open]);
 
   if (!open) return null;
 
@@ -74,38 +29,17 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
         </button>
       </div>
       <div className="rw-ref-page-body">
-        {/* WIP Banner */}
         <div style={{
-          background: 'linear-gradient(135deg, #ffb347, #ff6b35)', borderRadius: '16px',
-          padding: '32px 24px', textAlign: 'center', margin: '20px auto', maxWidth: '500px',
+          background: '#16130F', borderRadius: '16px',
+          padding: '40px 24px', textAlign: 'center', margin: '40px auto', maxWidth: '480px',
         }}>
-          <div style={{ fontSize: '48px', marginBottom: '12px' }}>🚧</div>
-          <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>
-            Work in Progress
+          <div style={{ fontSize: '56px', marginBottom: '16px', lineHeight: 1 }}>🚧</div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: '0 0 10px' }}>
+            Coming soon
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: 1.6, margin: '0 0 20px' }}>
-            The referral system is currently under construction. Stay tuned — we're building something great!
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', lineHeight: 1.6, margin: '0' }}>
+            Referrals aren't ready yet. We'll let you know when they launch.
           </p>
-
-          {/* Enable/Disable toggle */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '10px',
-            background: 'rgba(255,255,255,0.2)', borderRadius: '999px', padding: '6px 14px',
-          }}>
-            <span style={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}>Enable referrals</span>
-            <button onClick={() => setReferralsEnabled(v => !v)}
-              style={{
-                width: '44px', height: '24px', borderRadius: '12px', border: 'none',
-                background: referralsEnabled ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.3)',
-                cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
-              }}>
-              <div style={{
-                width: '18px', height: '18px', borderRadius: '50%', background: '#fff',
-                position: 'absolute', top: '3px', left: referralsEnabled ? '23px' : '3px',
-                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-              }} />
-            </button>
-          </div>
         </div>
       </div>
     </div>
