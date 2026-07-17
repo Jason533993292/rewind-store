@@ -469,15 +469,39 @@ app.post('/api/manage-admins', async (req, res) => {
   }
 });
 
+// Shipping zones from China
+const SHIPPING_ZONES = {
+  // Zone 1 — East Asia ($8)
+  'JP': 8, 'KR': 8, 'TW': 8, 'HK': 8, 'MO': 8, 'CN': 3,
+  // Zone 2 — SE Asia ($12)
+  'TH': 12, 'VN': 12, 'SG': 12, 'MY': 12, 'ID': 12, 'PH': 12, 'BN': 12, 'KH': 12, 'LA': 12, 'MM': 12,
+  // Zone 3 — South Asia ($15)
+  'IN': 15, 'BD': 15, 'LK': 15, 'NP': 15, 'PK': 15, 'MV': 15,
+  // Zone 4 — Middle East / Central Asia ($18)
+  'AE': 18, 'SA': 18, 'QA': 18, 'KW': 18, 'BH': 18, 'OM': 18, 'IR': 18, 'IQ': 18, 'IL': 18, 'TR': 18, 'KZ': 18, 'UZ': 18, 'MN': 15,
+  // Zone 5 — Europe ($22)
+  'GB': 22, 'DE': 22, 'FR': 22, 'IT': 22, 'ES': 22, 'NL': 22, 'BE': 22, 'AT': 22, 'CH': 22, 'SE': 22, 'DK': 22, 'NO': 22, 'FI': 22, 'IE': 22, 'PT': 22, 'PL': 22, 'CZ': 22, 'HU': 22, 'GR': 22, 'RO': 22, 'BG': 22, 'HR': 22, 'SK': 22, 'SI': 22, 'LT': 22, 'LV': 22, 'EE': 22, 'IS': 22,
+  // Zone 6 — North America ($22)
+  'US': 22, 'CA': 22, 'MX': 22,
+  // Zone 7 — Oceania ($25)
+  'AU': 25, 'NZ': 25, 'FJ': 25,
+  // Zone 8 — South America ($28)
+  'BR': 28, 'AR': 28, 'CO': 28, 'CL': 28, 'PE': 28, 'EC': 28, 'VE': 28, 'UY': 28, 'PY': 28, 'BO': 28,
+  // Zone 9 — Africa ($28)
+  'ZA': 28, 'NG': 28, 'KE': 28, 'EG': 28, 'MA': 28, 'TN': 28, 'DZ': 28, 'GH': 28, 'CI': 28, 'SN': 28, 'ET': 28, 'TZ': 28, 'UG': 28,
+};
+const DEFAULT_SHIPPING = 28;
+
 // Compute real order total server-side — never trust the client
-async function computeOrder(items, promoCode) {
+async function computeOrder(items, promoCode, country) {
   let subtotal = 0;
   for (const it of (items || [])) {
     const pid = it.id || it.product_id;
     const realPrice = pid ? await lookupProductPrice(pid) : null;
     subtotal += (realPrice ?? it.price ?? 0) * (it.qty || 1);
   }
-  const shipping = subtotal >= 150 ? 0 : 8;
+  const zoneRate = SHIPPING_ZONES[(country || '').toUpperCase()] || DEFAULT_SHIPPING;
+  const shipping = subtotal >= 150 ? 0 : zoneRate;
   let discountPrice = subtotal;
   let discountLabel = null;
   // Validate promo code against DB
@@ -533,10 +557,10 @@ async function decrementStockByIds(items) {
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
-  const { items, orderNum, email, name, address, promoCode, paymentMethod } = req.body;
+  const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
   // Server-side price recompute — never trust client amounts
-  const { subtotal, discountPrice } = await computeOrder(items, promoCode);
+  const { subtotal, discountPrice } = await computeOrder(items, promoCode, country);
   const finalTotal = Math.round(discountPrice * 100);
 
   // Map frontend payment method IDs to Stripe payment method types

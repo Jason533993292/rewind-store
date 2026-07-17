@@ -660,6 +660,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             address: formFields.address,
             promoCode: promo,
             paymentMethod: payment,
+            country: formFields.country,
           }),
         });
         const piData = await piRes.json();
@@ -852,6 +853,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               items={items}
               promoCode={promo}
               paymentMethod={payment}
+              country={formFields.country}
               onChange={({ valid }) => setCardValid(valid)}
             />
           </div>
