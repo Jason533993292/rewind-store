@@ -801,6 +801,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               address={[formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', ')}
               items={items}
               promoCode={promo}
+              paymentMethod={payment}
               onChange={({ valid }) => setCardValid(valid)}
             />
           </div>

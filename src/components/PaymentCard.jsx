@@ -96,17 +96,12 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
     setProcessing(true);
     setError('');
 
-    const cardElement = elements.getElement(CardNumberElement);
-    if (!cardElement) {
-      setProcessing(false);
-      return { error: 'Card element not found' };
-    }
-
     const details = overrideDetails || {};
+    const isCard = true; // CardFormInner only used for card payments
 
     const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
-        card: cardElement,
+        card: elements.getElement(CardNumberElement),
         billing_details: {
           name: details.name || '',
           email: details.email || '',
@@ -231,7 +226,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 }
 
 /* ---------- PaymentCard (main export) ---------- */
-const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp }, ref) {
+const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp, paymentMethod }, ref) {
   const [clientSecret, setClientSecret] = useState(null);
   const [cardValid, setCardValid] = useState(false);
   const [focused, setFocused] = useState(null);
@@ -275,7 +270,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '' }),
+      body: JSON.stringify({ items:cleanItems, orderNum, email:currentEmail, name: name||'', address: address||'', promoCode: promoProp||'', paymentMethod: paymentMethod || 'card' }),
     })
       .then((r) => r.json())
       .then((data) => {

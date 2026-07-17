@@ -533,17 +533,27 @@ async function decrementStockByIds(items) {
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
-  const { items, orderNum, email, name, address, promoCode } = req.body;
+  const { items, orderNum, email, name, address, promoCode, paymentMethod } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
   // Server-side price recompute — never trust client amounts
   const { subtotal, discountPrice } = await computeOrder(items, promoCode);
   const finalTotal = Math.round(discountPrice * 100);
+
+  // Map frontend payment method IDs to Stripe payment method types
+  const methodTypes = paymentMethod === 'bancontact' ? ['bancontact']
+    : paymentMethod === 'klarna' ? ['klarna']
+    : paymentMethod === 'ideal' ? ['ideal']
+    : paymentMethod === 'paypal' ? ['paypal']
+    : paymentMethod === 'applepay' ? ['card', 'apple_pay']
+    : paymentMethod === 'googlepay' ? ['card', 'google_pay']
+    : ['card'];
+
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalTotal,
       currency: 'eur',
       metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty, price: i.price }))), promoCode: promoCode || '' },
-      payment_method_types: ['card'],
+      payment_method_types: methodTypes,
     });
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
