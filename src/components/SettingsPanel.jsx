@@ -262,40 +262,6 @@ function ThemeSettings() {
 
   return (
     <div>
-      <div style={{ marginBottom: '16px' }}>
-        <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', margin: '0 0 8px' }}>Appearance</p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['light', 'dark'].map(t => (
-            <button key={t} onClick={() => applyTheme(t)} style={{
-              flex: 1, padding: '10px', borderRadius: '10px',
-              border: mode === t ? '2px solid var(--ink)' : '1px solid var(--line)',
-              background: mode === t ? 'var(--ink)' : 'var(--surface)',
-              color: mode === t ? 'var(--surface)' : 'var(--muted)',
-              cursor: 'pointer', fontWeight: 600, fontSize: '13px',
-              transition: 'all 0.15s',
-            }}>
-              {t === 'light' ? '☀️ Light' : '🌙 Dark'}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', margin: '0 0 8px' }}>Product grid</p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['2', '3', '4'].map(c => (
-            <button key={c} onClick={() => setCols(c)} style={{
-              flex: 1, padding: '10px', borderRadius: '10px',
-              border: cols === c ? '2px solid var(--ink)' : '1px solid var(--line)',
-              background: cols === c ? 'var(--ink)' : 'var(--surface)',
-              color: cols === c ? 'var(--surface)' : 'var(--muted)',
-              cursor: 'pointer', fontWeight: 600, fontSize: '13px',
-              transition: 'all 0.15s',
-            }}>
-              {c} cols
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
