@@ -139,17 +139,19 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
   // Payment Request (Apple Pay / Google Pay)
   const [canPay, setCanPay] = useState(false);
   const paymentRequest = useMemo(() => {
-    if (!stripe) return null;
-    const pr = stripe.paymentRequest({
-      country: 'CN',
-      currency: 'eur',
-      total: { label: 'REWIND', amount: parseInt(clientSecret?.split('_secret')[0]?.split('_').pop() || '0') || 0 },
-      requestPayerName: true,
-      requestPayerEmail: true,
-    });
-    pr.canMakePayment().then(result => { if (result) setCanPay(true); });
-    return pr;
-  }, [stripe, clientSecret]);
+    if (!stripe || !clientSecret) return null;
+    try {
+      const pr = stripe.paymentRequest({
+        country: 'HK',
+        currency: 'eur',
+        total: { label: 'REWIND', amount: 0 },
+        requestPayerName: true,
+        requestPayerEmail: true,
+      });
+      pr.canMakePayment().then(result => { if (result) setCanPay(true); }).catch(() => {});
+      return pr;
+    } catch { return null; }
+  }, [stripe]);
 
   const handlePaymentRequest = useCallback(async (event) => {
     try {
