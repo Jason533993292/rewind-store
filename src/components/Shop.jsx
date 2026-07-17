@@ -437,7 +437,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   }, [open]);
 
   // ── Shared post-payment success handler ──
-  const completeOrder = useCallback(async (paymentIntent) => {
+  const completeOrder = useCallback(async (paymentIntent, orderNumForReferral) => {
     setOrderNum(orderNum);
     setCardValid(false);
 
@@ -449,7 +449,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         body: JSON.stringify({
           code: referralCode,
           refereeEmail: formFields.email,
-          orderNum: currentOrderNum,
+          orderNum: orderNumForReferral || orderNum,
           refereeName: formFields.name,
           refereeAddress: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
         }),
@@ -458,7 +458,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
 
     setProcessing(false);
     setPlaced(true);
-  }, [orderNum, referralCode, formFields, currentOrderNum]);
+  }, [orderNum, referralCode, formFields]);
 
   // Handle return from redirect payment methods (Klarna, Bancontact, iDEAL)
   useEffect(() => {
@@ -705,7 +705,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       }
 
       // Payment succeeded
-      completeOrder(payResult.paymentIntent);
+      completeOrder(payResult.paymentIntent, currentOrderNum);
     } catch (e) {
       setProcessing(false);
       setPayError('Payment could not be processed — please check your details and try again.');
