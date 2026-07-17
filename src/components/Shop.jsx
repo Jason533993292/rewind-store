@@ -418,6 +418,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   const paymentRef = useRef(null);
   const [saveInfo, setSaveInfo] = useState(false);
   const [formFields, setFormFields] = useState({ email: '', name: '', address: '', postal: '', city: '', country: '' });
+  const isMobile = useMemo(() => /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent), []);
 
   // Generate order number when checkout opens
   useEffect(() => {
@@ -922,16 +923,21 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       <div className="rw-checkout-payment">
         <h3 style={{ fontSize: '19px', fontWeight: 700, marginBottom: '14px' }}>Payment</h3>
         <div className="rw-pay-grid">
-          {REWIND_PAYMENTS.map((pm) => (
-            <button key={pm.id} className={"rw-pay" + (payment === pm.id ? " is-on" : "")}
-              onClick={() => setPayment(pm.id)}>
+          {REWIND_PAYMENTS.map((pm) => {
+            const isApplePayDisabled = pm.id === 'applepay' && !isMobile;
+            return (
+            <button key={pm.id}
+              className={"rw-pay" + (payment === pm.id ? " is-on" : "") + (isApplePayDisabled ? " is-disabled" : "")}
+              onClick={() => { if (!isApplePayDisabled) setPayment(pm.id); }}
+              style={isApplePayDisabled ? { opacity: 0.4, cursor: 'not-allowed' } : {}}>
               <div className="rw-pay-radio">{payment === pm.id && <Icon name="check" size={13} />}</div>
               <div className="rw-pay-label">
                 {pm.label}
-                <small>{pm.sub}</small>
+                <small>{isApplePayDisabled ? 'Mobile only' : pm.sub}</small>
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
         {(payment === 'card' || payment === 'applepay' || payment === 'googlepay') && (
           <div className="rw-card-fields">
