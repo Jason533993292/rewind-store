@@ -43,22 +43,26 @@ app.use(express.json({
 const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
 const BLOCKED_EMAILS = new Set();
 
-// Hydrate in-memory blocked lists from Supabase on boot
+// Hydrate in-memory blocked lists from Supabase on boot (with 5s timeout)
+const startupFetch = async (url, opts) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const r = await fetch(url, { ...opts, signal: controller.signal });
+    return await r.json();
+  } catch { return []; }
+  finally { clearTimeout(timer); }
+};
+
 (async () => {
-  try {
-    const ipRes = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?select=ip_address`, {
-      headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
-    });
-    const ipData = await ipRes.json();
-    if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip_address, true));
-  } catch (e) { console.warn('Failed to load blocked IPs:', e.message); }
-  try {
-    const emailRes = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
-      headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
-    });
-    const emailData = await emailRes.json();
-    if (Array.isArray(emailData)) emailData.forEach(r => BLOCKED_EMAILS.add(r.email.toLowerCase()));
-  } catch (e) { console.warn('Failed to load blocked emails:', e.message); }
+  const ipData = await startupFetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_ips?select=ip_address`, {
+    headers: { apikey: process.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+  });
+  if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip_address, true));
+  const emailData = await startupFetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
+    headers: { apikey: process.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+  });
+  if (Array.isArray(emailData)) emailData.forEach(r => BLOCKED_EMAILS.add(r.email.toLowerCase()));
 })();
 
 // ── Admin audit logging ──
