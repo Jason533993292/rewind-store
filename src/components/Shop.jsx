@@ -560,6 +560,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   async function handlePay() {
     setProcessing(true);
     setPayError('');
+    // Safety timeout: reset processing after 30s if something hangs
+    const safetyTimer = setTimeout(() => setProcessing(false), 30000);
     // Client-side field validation before hitting the API
     const missing = [];
     if (!formFields.email?.trim()) missing.push('Email');

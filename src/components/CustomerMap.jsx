@@ -53,9 +53,7 @@ export default function CustomerMap() {
     return () => { cancelled = true; };
   }, []);
 
-  const label = locations
-    ? `Our reach — ${locations.length} cities, ${locations.reduce((s, l) => s + l.count, 0)} orders`
-    : 'Our reach';
+  const label = locations ? 'Our reach' : 'Our reach';
 
   async function handleOpen() {
     if (!supportsWebGL()) { openMap(); return; }

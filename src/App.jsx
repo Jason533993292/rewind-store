@@ -1072,7 +1072,7 @@ export default function App() {
         }}
       >
         {/* Referrals */}
-          <button onClick={() => { setShowSettings(false); setShowReferral(true); }}
+        <button onClick={() => { setShowSettings(false); setShowReferral(true); setDockHover(false); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: dockHover ? '8px 12px' : '8px 0',
@@ -1102,24 +1102,6 @@ export default function App() {
           onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
           {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
-        </button>
-
-        {/* Referrals */}
-        <button onClick={() => { setShowSettings(false); setShowReferral(true); }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: dockHover ? '8px 12px' : '8px 0',
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
-            fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
-            opacity: dockHover ? 1 : 0, overflow: 'hidden',
-            transition: 'opacity 0.8s ease 0.1s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.2s ease',
-            pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '110px' : '0',
-            transform: 'scale(1)',
-          }}
-          onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.color = 'var(--ink)'; }}
-          onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 2v2m-4-2v2M7 2v2M3 8h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M12 11v4m-2-2h4"/><path d="M8 16h.01M16 16h.01"/></svg>
-          <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Referrals</span>
         </button>
 
         {/* Settings */}

@@ -554,7 +554,7 @@ a { color: inherit; cursor: pointer; }
 .rw-co-sec h3 { font-size: 19px; font-weight: 700; margin-bottom: 14px; }
 .rw-input {
   width: 100%; padding: 13px 15px; border: 1.5px solid var(--line-2); border-radius: 10px;
-  background: var(--surface); font-size: 15px; color: var(--ink); outline: none;
+  background: var(--surface); font-size: 16px; color: var(--ink); outline: none;
   margin-bottom: 10px; transition: border-color .15s, box-shadow .15s;
 }
 .rw-input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 16%, transparent); }
