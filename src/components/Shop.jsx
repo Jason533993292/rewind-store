@@ -839,9 +839,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             <div><span>Total</span><b>{money(finalTotal)}</b></div>
           </div>
           <button className="rw-btn rw-btn-pri rw-btn-full"
-            disabled={processing}
+            disabled={processing || payment === 'applepay' || payment === 'googlepay'}
             onClick={handlePay}>
-            {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(finalTotal)}`}
+            {processing ? <><i className="rw-spinner" /> Processing…</>
+            : payment === 'applepay' ? `Apple Pay — ${money(finalTotal)}`
+            : payment === 'googlepay' ? `Google Pay — ${money(finalTotal)}`
+            : `Pay ${money(finalTotal)}`}
           </button>
           <div className="rw-co-trust">
             <Icon name="check" size={13} /> Secured with 256-bit SSL

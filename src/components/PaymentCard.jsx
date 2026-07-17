@@ -150,7 +150,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
       setPrError(true);
       return null;
     }
-  }, [stripe]);
+  }, [stripe, clientSecret]);
 
   // Keep the Apple Pay / Google Pay sheet's total in sync with the real cart amount
   useEffect(() => {
@@ -188,14 +188,20 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
   }, [stripe, clientSecret, onPaymentSuccess]);
 
   useEffect(() => {
-    if (paymentRequest) {
-      paymentRequest.on('paymentMethod', handlePaymentRequest);
-      return () => { paymentRequest.off('paymentMethod', handlePaymentRequest); };
-    }
-  }, [paymentRequest, handlePaymentRequest]);
+    if (!paymentRequest || !clientSecret) return;
+    paymentRequest.on('paymentMethod', handlePaymentRequest);
+    return () => { paymentRequest.off('paymentMethod', handlePaymentRequest); };
+  }, [paymentRequest, handlePaymentRequest, clientSecret]);
 
   return (
     <div className="rw-cc-form">
+      {canPay && !prError && (
+        <div style={{ marginBottom: '12px' }}>
+          <PaymentRequestButtonElement
+            options={{ paymentRequest, style: { paymentRequestButton: { type: 'buy', theme: 'dark', height: '48px' } } }}
+          />
+        </div>
+      )}
       <div className="rw-cc-group">
         <label>Card Number</label>
         <div className="rw-stripe-input">
