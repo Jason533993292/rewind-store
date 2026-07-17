@@ -15,13 +15,6 @@ function detectBrand(digits) {
   return Object.keys(CARD_BRANDS).find((k) => k !== 'generic' && CARD_BRANDS[k].test(digits)) || 'generic';
 }
 
-function formatCardNumber(digits, brand) {
-  if (brand === 'amex') {
-    return digits.replace(/^(\d{0,4})(\d{0,6})(\d{0,5}).*$/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' '));
-  }
-  return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-}
-
 /* ---------- BrandMark ---------- */
 function BrandMark({ brand }) {
   if (brand === 'mastercard') {
@@ -53,7 +46,7 @@ const ELEMENT_OPTIONS = {
 };
 
 /* ---------- CardFormInner — lives inside <Elements>, handles Stripe hooks ---------- */
-function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayReady, onFocusChange }) {
+function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayReady, onFocusChange, onPaymentSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState('');
@@ -97,7 +90,6 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
     setError('');
 
     const details = overrideDetails || {};
-    const isCard = true; // CardFormInner only used for card payments
 
     const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
@@ -123,21 +115,24 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
     }
 
     if (paymentIntent.status === 'succeeded') {
+      // Call the success handler directly (replaces custom event)
+      if (onPaymentSuccess) onPaymentSuccess(paymentIntent);
       return { success: true, paymentIntent };
     }
 
     const msg = `Payment ${paymentIntent.status} — please try again`;
     setError(msg);
     return { error: msg };
-  }, [stripe, elements, clientSecret]);
+  }, [stripe, elements, clientSecret, onPaymentSuccess]);
 
   // Register the pay function with parent
   useEffect(() => {
     onPayReady?.({ pay });
   }, [pay, onPayReady]);
 
-  // Payment Request (Apple Pay / Google Pay)
+  // Payment Request (Apple Pay / Google Pay) — wrapped in try-catch so it never crashes
   const [canPay, setCanPay] = useState(false);
+  const [prError, setPrError] = useState(false);
   const paymentRequest = useMemo(() => {
     if (!stripe || !clientSecret) return null;
     try {
@@ -148,12 +143,17 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
         requestPayerName: true,
         requestPayerEmail: true,
       });
-      pr.canMakePayment().then(result => { if (result) setCanPay(true); }).catch(() => {});
+      pr.canMakePayment().then(result => { if (result) setCanPay(true); }).catch(() => setPrError(true));
       return pr;
-    } catch { return null; }
+    } catch {
+      console.warn('PaymentRequest not supported');
+      setPrError(true);
+      return null;
+    }
   }, [stripe]);
 
   const handlePaymentRequest = useCallback(async (event) => {
+    setProcessing(true);
     try {
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: event.paymentMethod.id,
@@ -161,13 +161,21 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
       if (confirmError) {
         event.complete('fail');
         setError(confirmError.message);
+        setProcessing(false);
       } else if (paymentIntent.status === 'succeeded') {
         event.complete('success');
-        // Dispatch custom event so the parent checkout shows confirmation
-        window.dispatchEvent(new CustomEvent('apple-pay-success', { detail: { paymentIntent } }));
+        setProcessing(false);
+        // Call success handler directly
+        if (onPaymentSuccess) onPaymentSuccess(paymentIntent);
+      } else {
+        event.complete('fail');
+        setProcessing(false);
       }
-    } catch {}
-  }, [stripe, clientSecret]);
+    } catch {
+      event.complete('fail');
+      setProcessing(false);
+    }
+  }, [stripe, clientSecret, onPaymentSuccess]);
 
   useEffect(() => {
     if (paymentRequest) {
@@ -178,7 +186,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 
   return (
     <div className="rw-cc-form">
-      {canPay && (
+      {canPay && !prError && (
         <div style={{ marginBottom: '12px' }}>
           <PaymentRequestButtonElement
             options={{ paymentRequest, style: { paymentRequestButton: { type: 'buy', theme: 'dark', height: '48px' } } }}
@@ -220,7 +228,6 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
           </div>
         </div>
       </div>
-      {amount && <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>}
       {processing && <div className="rw-cc-processing"><i className="rw-spinner" /> Processing…</div>}
       {error && <div className="rw-cc-error">{error}</div>}
     </div>
@@ -228,12 +235,14 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 }
 
 /* ---------- PaymentCard (main export) ---------- */
-const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp, paymentMethod, country }, ref) {
+const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp, paymentMethod, country, onPaymentSuccess }, ref) {
   const [clientSecret, setClientSecret] = useState(null);
   const [cardValid, setCardValid] = useState(false);
   const [focused, setFocused] = useState(null);
   const [firstDigits, setFirstDigits] = useState('');
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [fetchError, setFetchError] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
   const cardSceneRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -264,26 +273,49 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
       ? parseFloat(amount.replace(/[^0-9.,]/g, '').replace(',', '.'))
       : amount;
     if (!numAmount || numAmount <= 0) return;
-    const currentEmail = email || 'checkout@rewind-stores.com';
 
-    // Strip price data from items for server-side pricing
+    setFetchError('');
+    setIsFetching(true);
+    setClientSecret(null);
+
+    const currentEmail = email || 'checkout@rewind-stores.com';
     const cleanItems = (items || []).map(it => ({ id: it.id || it.product_id, qty: it.qty }));
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
 
     fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items:cleanItems, orderNum, email:currentEmail, name: name||'', address: address||'', promoCode: promoProp||'', paymentMethod: paymentMethod || 'card', country: country || '' }),
+      body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '', paymentMethod: paymentMethod || 'card', country: country || '' }),
+      signal: controller.signal,
     })
-      .then((r) => r.json())
+      .then((r) => {
+        clearTimeout(timer);
+        if (!r.ok) throw new Error(`Server responded with ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
-          console.warn('PaymentIntent fetch failed:', data.error);
+          setFetchError(data.error || 'Payment system unavailable');
         }
       })
-      .catch((e) => console.warn('PaymentIntent fetch error:', e));
-  }, [amount, orderNum, email, name, address, items, promoProp]);
+      .catch((e) => {
+        if (e.name === 'AbortError') {
+          setFetchError('Payment server timed out. Please try again.');
+        } else {
+          setFetchError(e.message || 'Network error connecting to payment gateway.');
+        }
+      })
+      .finally(() => setIsFetching(false));
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [amount, orderNum, email, name, address, items, promoProp, paymentMethod, country]);
 
   // Store the pay function from inside Elements so the ref can call it
   const [payFn, setPayFn] = useState(null);
@@ -309,7 +341,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
 
   return (
     <div className="rw-cc-wrap">
-      {/* ── Animated card preview (unchanged) ── */}
+      {/* ── Animated card preview ── */}
       <div className="rw-cc-scene"
         ref={cardSceneRef}
         onMouseMove={handleMouseMove}
@@ -375,12 +407,27 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
             onError={(err) => console.warn('Card error:', err)}
             onPayReady={({ pay }) => setPayFn(() => pay)}
             onFocusChange={(field) => setFocused(field)}
+            onPaymentSuccess={onPaymentSuccess}
           />
         </Elements>
       ) : (
         <div className="rw-cc-form">
-          <div className="rw-cc-loading">Loading payment form…</div>
-          {amount && <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>}
+          {isFetching && <div className="rw-cc-loading">Loading payment form…</div>}
+          {fetchError && (
+            <div className="rw-cc-error">
+              <p>{fetchError}</p>
+              <button
+                onClick={() => {
+                  setFetchError('');
+                  setClientSecret(null);
+                }}
+                style={{ marginTop: '8px', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--line-2)', cursor: 'pointer' }}
+              >Retry</button>
+            </div>
+          )}
+          {amount && !isFetching && !fetchError && (
+            <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>
+          )}
         </div>
       )}
     </div>

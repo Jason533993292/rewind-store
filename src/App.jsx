@@ -732,6 +732,15 @@ export default function App() {
         const p = allProds.find(x => (x.id || x.product_id) === pid);
         if (p) setSelectedProduct(p);
       }
+      // Handle return from redirect payment methods (Klarna, Bancontact, iDEAL, PayPal)
+      if (window.location.hash.startsWith('#/payment-complete')) {
+        const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+        const order = params.get('order');
+        if (order) {
+          setOrderNumber(order);
+          setCheckout(true);
+        }
+      }
     };
     // Handle initial URL hash immediately (direct navigation to #/product/xxx)
     onHash();

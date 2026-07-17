@@ -436,19 +436,37 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     }
   }, [open]);
 
-  // Listen for Apple Pay / Payment Request success
+  // ── Shared post-payment success handler ──
+  const completeOrder = useCallback(async (paymentIntent) => {
+    setOrderNum(orderNum);
+    setCardValid(false);
+
+    // Record referral redemption (if a referral code was applied)
+    if (referralCode) {
+      fetch('/api/referral/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: referralCode,
+          refereeEmail: formFields.email,
+          orderNum: currentOrderNum,
+          refereeName: formFields.name,
+          refereeAddress: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
+        }),
+      }).catch(e => console.warn('Referral apply failed:', e));
+    }
+
+    setProcessing(false);
+    setPlaced(true);
+  }, [orderNum, referralCode, formFields, currentOrderNum]);
+
+  // Handle return from redirect payment methods (Klarna, Bancontact, iDEAL)
   useEffect(() => {
-    const handler = (e) => {
-      setCardValid(false);
-      setProcessing(false);
+    if (open && orderNumberProp) {
+      setOrderNum(orderNumberProp);
       setPlaced(true);
-      if (e.detail?.paymentIntent?.id) {
-        console.log('Apple Pay succeeded:', e.detail.paymentIntent.id);
-      }
-    };
-    window.addEventListener('apple-pay-success', handler);
-    return () => window.removeEventListener('apple-pay-success', handler);
-  }, []);
+    }
+  }, [open, orderNumberProp]);
 
   // Validate promo code with debounce — checks /api/referral/validate which
   // also falls back to promo_codes table for admin-generated codes
@@ -686,28 +704,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         console.log('Payment completed for:', currentOrderNum);
       }
 
-      // Payment succeeded — save order and show confirmation
-      setOrderNum(currentOrderNum);
-      setCardValid(false);
-
-      // Record referral redemption (if a referral code was applied)
-      if (referralCode) {
-        fetch('/api/referral/apply', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: referralCode,
-            refereeEmail: formFields.email,
-            orderNum: currentOrderNum,
-            refereeName: formFields.name,
-            refereeAddress: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
-          }),
-        }).catch(e => console.warn('Referral apply failed:', e));
-      }
-
-      // Show confirmation
-      setProcessing(false);
-      setPlaced(true);
+      // Payment succeeded
+      completeOrder(payResult.paymentIntent);
     } catch (e) {
       setProcessing(false);
       setPayError('Payment could not be processed — please check your details and try again.');
@@ -854,6 +852,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               promoCode={promo}
               paymentMethod={payment}
               country={formFields.country}
+              onPaymentSuccess={completeOrder}
               onChange={({ valid }) => setCardValid(valid)}
             />
           </div>
