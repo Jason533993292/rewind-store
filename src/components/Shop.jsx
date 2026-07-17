@@ -386,9 +386,6 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
         )}
       </div>
       {pendingRemove && (
-        <div className="rw-scrim is-on" onClick={onCancelRemove} />
-      )}
-      {pendingRemove && (
         <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 52, background: 'var(--bg)', borderRadius: '12px', padding: '24px', maxWidth: '340px', width: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', textAlign: 'center' }}>
           <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 16px', color: 'var(--ink)' }}>Remove "{pendingRemove.name}" from your bag?</p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>

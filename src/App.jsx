@@ -1140,8 +1140,8 @@ export default function App() {
 
       </div>
 
-      {/* ── Chat bubble ── */}
-      <ChatBubble />
+      {/* ── Chat bubble — hidden when cart is open ── */}
+      {!drawer && <ChatBubble />}
 
       {showSettings && (
         <React.Suspense fallback={null}>
