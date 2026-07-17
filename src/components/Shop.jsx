@@ -4,80 +4,8 @@ import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import PaymentCard from './PaymentCard';
 import { ReferralInput } from './Referral';
-import { loadStripe } from '@stripe/stripe-js';
-import { PaymentRequestButtonElement } from '@stripe/react-stripe-js';
 
-/* ---------- Apple Pay / Google Pay Button ---------- */
-function ApplePayButton({ amount, email, name, onSuccess, payment }) {
-  const [stripeInstance, setStripeInstance] = useState(null);
-  const [canPay, setCanPay] = useState(null); // null=loading, true/false=ready
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY).then(setStripeInstance);
-  }, []);
-
-  const paymentRequest = useMemo(() => {
-    if (!stripeInstance) return null;
-    try {
-      const pr = stripeInstance.paymentRequest({
-        country: 'HK',
-        currency: 'eur',
-        total: { label: 'REWIND', amount: Math.round(amount * 100) },
-        requestPayerName: true,
-        requestPayerEmail: true,
-      });
-      pr.canMakePayment().then(result => setCanPay(!!result)).catch(() => setCanPay(false));
-      return pr;
-    } catch {
-      setCanPay(false);
-      return null;
-    }
-  }, [stripeInstance, amount]);
-
-  useEffect(() => {
-    if (!paymentRequest || !stripeInstance || !onSuccess) return;
-    const handler = async (event) => {
-      try {
-        // Create PaymentIntent via our API
-        const piRes = await fetch('/api/create-payment-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: [], orderNum: 'RW-AP-' + Date.now(), email, name, promoCode: '', paymentMethod: 'card', country: '' }),
-        });
-        const piData = await piRes.json();
-        if (!piData.clientSecret) { event.complete('fail'); setError('Payment setup failed'); return; }
-
-        const { error: confirmError, paymentIntent } = await stripeInstance.confirmCardPayment(piData.clientSecret, {
-          payment_method: event.paymentMethod.id,
-        });
-        if (confirmError) { event.complete('fail'); setError(confirmError.message); return; }
-        if (paymentIntent.status === 'succeeded') {
-          event.complete('success');
-          onSuccess(paymentIntent);
-        } else {
-          event.complete('fail');
-          setError(`Payment ${paymentIntent.status}`);
-        }
-      } catch { event.complete('fail'); setError('Payment failed'); }
-    };
-    paymentRequest.on('paymentMethod', handler);
-    return () => { paymentRequest.off('paymentMethod', handler); };
-  }, [paymentRequest, stripeInstance, onSuccess, email, name]);
-
-  if (canPay === null) return <div className="rw-cc-loading">Checking payment options…</div>;
-  if (canPay === false) return <p style={{ fontSize: '13px', color: 'var(--muted)' }}>{payment === 'applepay' ? 'Apple Pay' : 'Google Pay'} is not available on this device.</p>;
-  return (
-    <div>
-      <PaymentRequestButtonElement
-        options={{ paymentRequest, style: { paymentRequestButton: { type: 'buy', theme: 'dark', height: '48px' } } }}
-      />
-      {error && <div className="rw-cc-error">{error}</div>}
-    </div>
-  );
-}
-
-
+/* ---------- LazyImage (for real product photos) ---------- */
 /* ---------- LazyImage (for real product photos) ---------- */
 function LazyImage({ src, alt, className }) {
   const [loaded, setLoaded] = useState(false);
@@ -763,10 +691,32 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         }
         // Load Stripe and redirect
         const stripeInstance = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+        const billingBase = {
+          name: formFields.name,
+          email: formFields.email,
+        };
+        const paymentMethodDataByType = {
+          klarna: {
+            type: 'klarna',
+            billing_details: {
+              ...billingBase,
+              address: {
+                line1: formFields.address,
+                city: formFields.city,
+                postal_code: formFields.postal,
+                country: formFields.country,
+              },
+            },
+          },
+          bancontact: { type: 'bancontact', billing_details: billingBase },
+          ideal: { type: 'ideal', billing_details: billingBase },
+          paypal: { type: 'paypal', billing_details: billingBase },
+        };
         const { error } = await stripeInstance.confirmPayment({
           clientSecret: piData.clientSecret,
           confirmParams: {
             return_url: window.location.origin + '/#/payment-complete?order=' + currentOrderNum,
+            payment_method_data: paymentMethodDataByType[payment],
           },
         });
         if (error) {
@@ -912,7 +862,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             </button>
           ))}
         </div>
-        {payment === 'card' && (
+        {(payment === 'card' || payment === 'applepay' || payment === 'googlepay') && (
           <div className="rw-card-fields">
             <PaymentCard
               ref={paymentRef}
@@ -930,15 +880,6 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               onChange={({ valid }) => setCardValid(valid)}
             />
           </div>
-        )}
-        {(payment === 'applepay' || payment === 'googlepay') && (
-          <ApplePayButton
-            amount={finalTotal}
-            email={formFields.email}
-            name={formFields.name}
-            onSuccess={completeOrder}
-            payment={payment}
-          />
         )}
         <div className="rw-co-config">
           {payment === 'payconiq' && 'Scan the QR code with Payconiq to complete payment.'}

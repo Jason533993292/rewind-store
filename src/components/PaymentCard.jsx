@@ -134,7 +134,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
   const [canPay, setCanPay] = useState(false);
   const [prError, setPrError] = useState(false);
   const paymentRequest = useMemo(() => {
-    if (!stripe || !clientSecret) return null;
+    if (!stripe) return null;
     try {
       const pr = stripe.paymentRequest({
         country: 'HK',
@@ -151,6 +151,16 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
       return null;
     }
   }, [stripe]);
+
+  // Keep the Apple Pay / Google Pay sheet's total in sync with the real cart amount
+  useEffect(() => {
+    if (!paymentRequest || !amount) return;
+    const numAmount = typeof amount === 'string'
+      ? parseFloat(amount.replace(/[^0-9.,]/g, '').replace(',', '.'))
+      : amount;
+    if (!numAmount || numAmount <= 0) return;
+    paymentRequest.update({ total: { label: 'REWIND', amount: Math.round(numAmount * 100) } });
+  }, [paymentRequest, amount]);
 
   const handlePaymentRequest = useCallback(async (event) => {
     setProcessing(true);
