@@ -492,6 +492,35 @@ const SHIPPING_ZONES = {
 };
 const DEFAULT_SHIPPING = 28;
 
+// Map full country names to ISO-2 codes (in case user types a name instead)
+const COUNTRY_NAME_MAP = {
+  'china': 'CN', 'japan': 'JP', 'south korea': 'KR', 'korea': 'KR', 'taiwan': 'TW',
+  'hong kong': 'HK', 'macau': 'MO', 'thailand': 'TH', 'vietnam': 'VN', 'singapore': 'SG',
+  'malaysia': 'MY', 'indonesia': 'ID', 'philippines': 'PH', 'india': 'IN', 'bangladesh': 'BD',
+  'sri lanka': 'LK', 'nepal': 'NP', 'pakistan': 'PK', 'united arab emirates': 'AE', 'uae': 'AE',
+  'saudi arabia': 'SA', 'qatar': 'QA', 'kuwait': 'KW', 'bahrain': 'BH', 'oman': 'OM',
+  'israel': 'IL', 'turkey': 'TR', 'turkiye': 'TR', 'united kingdom': 'GB', 'uk': 'GB',
+  'england': 'GB', 'germany': 'DE', 'france': 'FR', 'italy': 'IT', 'spain': 'ES',
+  'netherlands': 'NL', 'holland': 'NL', 'belgium': 'BE', 'austria': 'AT', 'switzerland': 'CH',
+  'sweden': 'SE', 'denmark': 'DK', 'norway': 'NO', 'finland': 'FI', 'ireland': 'IE',
+  'portugal': 'PT', 'poland': 'PL', 'czech republic': 'CZ', 'czechia': 'CZ', 'hungary': 'HU',
+  'greece': 'GR', 'romania': 'RO', 'croatia': 'HR', 'slovakia': 'SK', 'slovenia': 'SI',
+  'lithuania': 'LT', 'latvia': 'LV', 'estonia': 'EE', 'bulgaria': 'BG',
+  'united states': 'US', 'usa': 'US', 'canada': 'CA', 'mexico': 'MX',
+  'australia': 'AU', 'new zealand': 'NZ',
+  'brazil': 'BR', 'argentina': 'AR', 'colombia': 'CO', 'chile': 'CL', 'peru': 'PE',
+  'south africa': 'ZA', 'nigeria': 'NG', 'egypt': 'EG', 'morocco': 'MA', 'kenya': 'KE',
+};
+
+function resolveCountry(country) {
+  if (!country) return '';
+  const upper = country.toUpperCase().trim();
+  // If it's already a 2-letter ISO code, use it
+  if (/^[A-Z]{2}$/.test(upper)) return upper;
+  // Otherwise try the name map
+  return (COUNTRY_NAME_MAP[country.toLowerCase().trim()] || '').toUpperCase();
+}
+
 // Compute real order total server-side — never trust the client
 async function computeOrder(items, promoCode, country) {
   let subtotal = 0;
@@ -500,7 +529,7 @@ async function computeOrder(items, promoCode, country) {
     const realPrice = pid ? await lookupProductPrice(pid) : null;
     subtotal += (realPrice ?? it.price ?? 0) * (it.qty || 1);
   }
-  const zoneRate = SHIPPING_ZONES[(country || '').toUpperCase()] || DEFAULT_SHIPPING;
+  const zoneRate = SHIPPING_ZONES[resolveCountry(country)] || DEFAULT_SHIPPING;
   const shipping = subtotal >= 150 ? 0 : zoneRate;
   let discountPrice = subtotal;
   let discountLabel = null;
