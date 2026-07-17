@@ -610,53 +610,89 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     // Use the orderNum already set in state (generated when checkout opened)
     const currentOrderNum = orderNum;
     try {
-      // Process payment via Stripe Elements inline
-      const payResult = await paymentRef.current?.pay({
-        name: formFields.name,
-        email: formFields.email,
-        address: formFields.address,
-        city: formFields.city,
-        postal: formFields.postal,
-        country: formFields.country,
-      });
+      if (payment === 'card' || payment === 'applepay' || payment === 'googlepay') {
+        // Card/Apple Pay: use Elements inline
+        const payResult = await paymentRef.current?.pay({
+          name: formFields.name,
+          email: formFields.email,
+          address: formFields.address,
+          city: formFields.city,
+          postal: formFields.postal,
+          country: formFields.country,
+        });
 
-      if (!payResult || payResult.error) {
-        setPayError(payResult?.error || 'Payment failed — please try again');
-        setProcessing(false);
-        return;
-      }
-
-      if (payResult.success) {
-        // Payment succeeded — save order to Supabase and send confirmation
-        setOrderNum(currentOrderNum);
-        setCardValid(false);
-
-        // Order save + confirmation email are handled server-side by the
-        // Stripe webhook (payment_intent.succeeded) once payment is verified —
-        // never trust the client's own "success" signal for fulfillment.
-
-        // Record referral redemption (if a referral code was applied)
-        if (referralCode) {
-          fetch('/api/referral/apply', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              code: referralCode,
-              refereeEmail: formFields.email,
-              orderNum: currentOrderNum,
-              refereeName: formFields.name,
-              refereeAddress: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
-            }),
-          }).catch(e => console.warn('Referral apply failed:', e));
+        if (!payResult || payResult.error) {
+          setPayError(payResult?.error || 'Payment failed — please try again');
+          setProcessing(false);
+          return;
         }
 
-        // Show confirmation
-        setProcessing(false);
-        setPlaced(true);
+        if (!payResult.success) {
+          setPayError(`Payment ${payResult.paymentIntent?.status || 'failed'}`);
+          setProcessing(false);
+          return;
+        }
       } else {
-        setPayError('Payment could not be completed. Please try again.');
-        setProcessing(false);
+        // Redirect-based methods (Klarna, Bancontact, iDEAL, PayPal)
+        // Create payment intent first via the API
+        const piRes = await fetch('/api/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: items.map(i => ({ id: i.id || i.product_id, qty: i.qty })),
+            orderNum: currentOrderNum,
+            email: formFields.email,
+            name: formFields.name,
+            address: formFields.address,
+            promoCode: promo,
+            paymentMethod: payment,
+          }),
+        });
+        const piData = await piRes.json();
+        if (!piData.clientSecret) {
+          setPayError(piData.error || 'Failed to create payment');
+          setProcessing(false);
+          return;
+        }
+        // Load Stripe and redirect
+        const stripeInstance = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+        const { error } = await stripeInstance.confirmPayment({
+          clientSecret: piData.clientSecret,
+          confirmParams: {
+            return_url: window.location.origin + '/#/payment-complete?order=' + currentOrderNum,
+          },
+        });
+        if (error) {
+          setPayError(error.message);
+          setProcessing(false);
+          return;
+        }
+        // If we get here with no redirect, payment was instant (unlikely for redirect methods)
+        console.log('Payment completed for:', currentOrderNum);
       }
+
+      // Payment succeeded — save order and show confirmation
+      setOrderNum(currentOrderNum);
+      setCardValid(false);
+
+      // Record referral redemption (if a referral code was applied)
+      if (referralCode) {
+        fetch('/api/referral/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: referralCode,
+            refereeEmail: formFields.email,
+            orderNum: currentOrderNum,
+            refereeName: formFields.name,
+            refereeAddress: [formFields.address, formFields.postal, formFields.city, formFields.country].filter(Boolean).join(', '),
+          }),
+        }).catch(e => console.warn('Referral apply failed:', e));
+      }
+
+      // Show confirmation
+      setProcessing(false);
+      setPlaced(true);
     } catch (e) {
       setProcessing(false);
       setPayError('Payment could not be processed — please check your details and try again.');
@@ -766,7 +802,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             <div><span>Total</span><b>{money(finalTotal)}</b></div>
           </div>
           <button className="rw-btn rw-btn-pri rw-btn-full"
-            disabled={processing || (payment === 'card' && !cardValid)}
+            disabled={processing}
             onClick={handlePay}>
             {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(finalTotal)}`}
           </button>
