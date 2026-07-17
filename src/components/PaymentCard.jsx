@@ -186,14 +186,6 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 
   return (
     <div className="rw-cc-form">
-      {canPay && !prError && (
-        <div style={{ marginBottom: '12px' }}>
-          <PaymentRequestButtonElement
-            options={{ paymentRequest, style: { paymentRequestButton: { type: 'buy', theme: 'dark', height: '48px' } } }}
-          />
-          <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--muted)', margin: '10px 0' }}>or pay with card</div>
-        </div>
-      )}
       <div className="rw-cc-group">
         <label>Card Number</label>
         <div className="rw-stripe-input">

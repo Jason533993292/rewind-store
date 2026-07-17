@@ -58,7 +58,7 @@ export const BRANDS = {
 
 
 export const REWIND_PAYMENTS = [
-  { id: "card",       label: "Card",          sub: "Visa · Mastercard · Apple Pay" },
+  { id: "card",       label: "Card",          sub: "Visa · Mastercard" },
   { id: "applepay",   label: "Apple Pay",     sub: "One-tap on Apple" },
   { id: "googlepay",  label: "Google Pay",    sub: "Pay with Google" },
   { id: "bancontact", label: "Bancontact",    sub: "Belgian debit" },
@@ -66,7 +66,6 @@ export const REWIND_PAYMENTS = [
   { id: "ideal",      label: "iDEAL",         sub: "Dutch banking" },
   { id: "paypal",     label: "PayPal",        sub: "Pay in your account" },
 ];
-
 // ── Image configuration ────────────────────────────────────
 // Set IMG_BASE_URL to serve real product photos from a CDN or backend.
 // Images are resolved as: <IMG_BASE_URL>/<product.id>.webp
