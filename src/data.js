@@ -58,12 +58,7 @@ export const BRANDS = {
 
 
 export const REWIND_PAYMENTS = [
-  { id: "card",       label: "Card",          sub: "Visa · Mastercard" },
-  { id: "paypal",     label: "PayPal",        sub: "Pay in your account" },
-  { id: "payconiq",   label: "Payconiq",      sub: "Scan to pay (BE)" },
-  { id: "applepay",   label: "Apple Pay",     sub: "One-tap on Apple" },
-  { id: "bancontact", label: "Bancontact",    sub: "Belgian debit" },
-  { id: "klarna",     label: "Klarna",        sub: "Pay in 3" }
+  { id: "card",       label: "Card",          sub: "Visa · Mastercard · Apple Pay" },
 ];
 
 // ── Image configuration ────────────────────────────────────

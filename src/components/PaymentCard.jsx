@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, forwardRef, useImperativeHandle, useCallback, useRef } from 'react';
-import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, PaymentRequestButtonElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
 /* ---------- card brand detection & formatting ---------- */
@@ -141,8 +141,54 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
     onPayReady?.({ pay });
   }, [pay, onPayReady]);
 
+  // Payment Request (Apple Pay / Google Pay)
+  const [canPay, setCanPay] = useState(false);
+  const paymentRequest = useMemo(() => {
+    if (!stripe) return null;
+    const pr = stripe.paymentRequest({
+      country: 'BE',
+      currency: 'eur',
+      total: { label: 'REWIND', amount: parseInt(clientSecret?.split('_secret')[0]?.split('_').pop() || '0') || 0 },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+    pr.canMakePayment().then(result => { if (result) setCanPay(true); });
+    return pr;
+  }, [stripe, clientSecret]);
+
+  const handlePaymentRequest = useCallback(async (event) => {
+    try {
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: event.paymentMethod.id,
+      });
+      if (confirmError) {
+        event.complete('fail');
+        setError(confirmError.message);
+      } else if (paymentIntent.status === 'succeeded') {
+        event.complete('success');
+        // Trigger the parent's pay flow
+        onPayReady?.({ pay: async () => ({ success: true, paymentIntent }) });
+      }
+    } catch {}
+  }, [stripe, clientSecret, onPayReady]);
+
+  useEffect(() => {
+    if (paymentRequest) {
+      paymentRequest.on('paymentMethod', handlePaymentRequest);
+      return () => { paymentRequest.off('paymentMethod', handlePaymentRequest); };
+    }
+  }, [paymentRequest, handlePaymentRequest]);
+
   return (
     <div className="rw-cc-form">
+      {canPay && (
+        <div style={{ marginBottom: '12px' }}>
+          <PaymentRequestButtonElement
+            options={{ paymentRequest, style: { paymentRequestButton: { type: 'buy', theme: 'dark', height: '48px' } } }}
+          />
+          <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--muted)', margin: '10px 0' }}>or pay with card</div>
+        </div>
+      )}
       <div className="rw-cc-group">
         <label>Card Number</label>
         <div className="rw-stripe-input">
