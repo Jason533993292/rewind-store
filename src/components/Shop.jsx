@@ -422,6 +422,17 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   useEffect(() => {
     if (open) {
       setOrderNum('RW-' + String(Date.now()).slice(-8));
+      // Restore saved checkout info
+      try {
+        const saved = localStorage.getItem('rw_checkout_info');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.email || parsed.name || parsed.address) {
+            setFormFields(prev => ({ ...prev, ...parsed }));
+            setSaveInfo(true);
+          }
+        }
+      } catch {}
     }
   }, [open]);
 

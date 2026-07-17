@@ -1053,6 +1053,8 @@ export default function App() {
       <div ref={dockRef}
         onMouseEnter={() => setDockHover(true)}
         onMouseLeave={() => setDockHover(false)}
+        onClick={() => { if (!dockHover) setDockHover(true); }}
+        onTouchStart={(e) => { e.preventDefault(); setDockHover(v => !v); }}
         style={{
           position: 'fixed', bottom: '28px', left: '50%', zIndex: 99999,
           display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
