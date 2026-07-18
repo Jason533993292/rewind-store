@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     minify: 'terser',
-    terserOptions: { compress: { drop_console: true } },
+    terserOptions: { compress: { drop_console: false } },
   },
   server: {
     open: true,
