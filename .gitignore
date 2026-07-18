@@ -10,3 +10,4 @@ test-results/
 uptime-errors.log
 dist/
 # silence desktop attachments
+.hermes/
