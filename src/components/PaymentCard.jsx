@@ -137,7 +137,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
     if (!stripe) return null;
     try {
       const pr = stripe.paymentRequest({
-        country: 'HK',
+        country: 'BE',
         currency: 'eur',
         total: { label: 'REWIND', amount: 0 },
         requestPayerName: true,

@@ -22,6 +22,8 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co", "https://*.stripe.com"],
       scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
     },
   },
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
@@ -216,10 +218,15 @@ const referralRouter = buildReferralRouter({
   requireAdmin,
 });
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function orderHtml({ name, items, total, address, orderNum }) {
   const rows = items.map((it) => `
     <tr>
-      <td style="padding:10px 0;border-bottom:1px solid #eee">${it.name} <span style="color:#888">(${it.size})</span></td>
+      <td style="padding:10px 0;border-bottom:1px solid #eee">${escapeHtml(it.name)} <span style="color:#888">(${escapeHtml(it.size || '')})</span></td>
       <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right">€${it.price}</td>
     </tr>`).join('');
   return `<!DOCTYPE html>
@@ -230,8 +237,8 @@ function orderHtml({ name, items, total, address, orderNum }) {
 </td></tr>
 <tr><td style="background:#fff;border-radius:14px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
   <h2 style="font-size:22px;color:#16130F;margin:0 0 6px">Order confirmed ✅</h2>
-  <p style="color:#6E665A;font-size:15px;margin:0 0 4px">Hi ${name || 'there'},</p>
-  <p style="color:#6E665A;font-size:15px;margin:0 0 20px">Your order <b>${orderNum}</b> has been placed.</p>
+  <p style="color:#6E665A;font-size:15px;margin:0 0 4px">Hi ${escapeHtml(name || 'there')},</p>
+  <p style="color:#6E665A;font-size:15px;margin:0 0 20px">Your order <b>${escapeHtml(orderNum)}</b> has been placed.</p>
   <table width="100%">${rows}</table>
   <div style="border-top:2px solid #16130F;padding:12px 0;margin-top:8px">
     <table width="100%"><tr>
@@ -240,7 +247,7 @@ function orderHtml({ name, items, total, address, orderNum }) {
     </tr></table>
   </div>
   <p style="color:#6E665A;font-size:14px;margin:16px 0 0">
-    Shipping to:<br>${address || '(address provided)'}
+    Shipping to:<br>${escapeHtml(address || '(address provided)')}
   </p>
 </td></tr>
 <tr><td style="text-align:center;padding:20px 0;color:#6E665A;font-size:13px">
@@ -257,7 +264,7 @@ function campaignHtml({ message }) {
   <h1 style="font-size:28px;color:#16130F;margin:0">REWIND<span style="color:#FF4D14">.</span></h1>
 </td></tr>
 <tr><td style="background:#fff;border-radius:14px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
-  <p style="color:#16130F;font-size:16px;line-height:1.6;margin:0;white-space:pre-wrap">${message}</p>
+  <p style="color:#16130F;font-size:16px;line-height:1.6;margin:0;white-space:pre-wrap">${escapeHtml(message || '')}</p>
 </td></tr>
 <tr><td style="text-align:center;padding:20px 0;color:#6E665A;font-size:13px">
   <p style="margin:0"><a href="https://rewind-stores.com/#admin" style="color:#FF4D14">Unsubscribe</a></p>
@@ -307,7 +314,7 @@ app.post('/api/send-order', async (req, res) => {
 });
 
 // ── Campaign (admin panel) ──
-app.post('/api/send-campaign', async (req, res) => {
+app.post('/api/send-campaign', requireAdmin, async (req, res) => {
   const { emails, subject, message } = req.body;
   if (!resend) return res.json({ ok: false, sent: 0, total: emails?.length || 0, error: 'RESEND_API_KEY not configured on Railway' });
   if (!emails || !Array.isArray(emails) || emails.length === 0) {
@@ -419,7 +426,7 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 });
 
 // Admin: create a promo code (stored in DB)
-app.post('/api/admin/create-promo', async (req, res) => {
+app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
   const { discount, label, code } = req.body;
   if (!discount || discount < 1 || discount > 100) return res.status(400).json({ error: 'Discount must be 1-100' });
   const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -440,7 +447,7 @@ app.post('/api/admin/create-promo', async (req, res) => {
 });
 
 // Admin management — requires master token specifically, not just any admin session
-app.post('/api/manage-admins', async (req, res) => {
+app.post('/api/manage-admins', strictLimiter, async (req, res) => {
   const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
   const provided = (req.headers['x-admin-token'] || req.cookies?.admin_session || '').trim();
   const a = Buffer.from(provided);
@@ -527,7 +534,10 @@ async function computeOrder(items, promoCode, country) {
   for (const it of (items || [])) {
     const pid = it.id || it.product_id;
     const realPrice = pid ? await lookupProductPrice(pid) : null;
-    subtotal += (realPrice ?? it.price ?? 0) * (it.qty || 1);
+    // Never fall back to the client-supplied price. If the product ID
+    // isn't found in the server catalog or custom_products, treat it as
+    // free/ignored rather than trusting whatever price the client sent.
+    subtotal += (realPrice ?? 0) * (it.qty || 1);
   }
   const zoneRate = SHIPPING_ZONES[resolveCountry(country)] || DEFAULT_SHIPPING;
   const shipping = subtotal >= 150 ? 0 : zoneRate;
@@ -588,6 +598,36 @@ app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
   const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
+  
+  // Validate items array — each must have a valid id and positive qty
+  for (const it of items) {
+    const pid = it.id || it.product_id;
+    if (!pid || typeof pid !== 'string') return res.status(400).json({ error: 'Each item must have a valid product id' });
+    const qty = it.qty || 1;
+    if (!Number.isInteger(qty) || qty < 1 || qty > 99) return res.status(400).json({ error: `Item "${pid}" has invalid quantity` });
+  }
+  
+  // Check stock before creating PaymentIntent — prevents overselling
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  for (const it of items) {
+    const pid = it.id || it.product_id;
+    const qty = it.qty || 1;
+    try {
+      // Check custom_products first (these have variable stock)
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}&select=stock,name`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const product = data[0];
+        if (product.stock != null && product.stock < qty) {
+          return res.status(400).json({ error: `"${product.name || pid}" only has ${product.stock} in stock` });
+        }
+      }
+      // If not found in custom_products, it's a static SERVER_PRODUCT — no stock to check
+    } catch {}
+  }
+
   // Server-side price recompute — never trust client amounts
   const { subtotal, discountPrice } = await computeOrder(items, promoCode, country);
   const finalTotal = Math.round(discountPrice * 100);
@@ -619,7 +659,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
 
 // ── Get orders by email ──
 // ── Customer order lookup by email + order number ──
-app.post('/api/lookup-order', async (req, res) => {
+app.post('/api/lookup-order', strictLimiter, async (req, res) => {
   const { email, orderNum } = req.body;
   if (!email || !orderNum) return res.status(400).json({ error: 'Email and order number required' });
   try {
@@ -645,7 +685,7 @@ app.post('/api/lookup-order', async (req, res) => {
   } catch { res.json({ found: false }); }
 });
 
-app.post('/api/get-orders', async (req, res) => {
+app.post('/api/get-orders', strictLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -660,7 +700,7 @@ app.post('/api/get-orders', async (req, res) => {
 });
 
 // ── Save order to Supabase (admin only) ──
-app.post('/api/save-order', async (req, res) => {
+app.post('/api/save-order', requireAdmin, async (req, res) => {
   const { orderNum, customer_name, email, address, items, total } = req.body;
   if (!orderNum) return res.status(400).json({ error: 'No order number' });
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -695,7 +735,7 @@ app.post('/api/save-order', async (req, res) => {
 });
 
 // ── Run automated tests ──
-app.get('/api/run-tests', async (_req, res) => {
+app.get('/api/run-tests', requireAdmin, async (_req, res) => {
   try {
     const { runTests } = await import('../tests/button-test.js');
     const result = await runTests();
