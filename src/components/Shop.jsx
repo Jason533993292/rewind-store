@@ -592,10 +592,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   }
 
   async function handlePay() {
+    console.log('REWIND PAY: handlePay called');
     setProcessing(true);
     setPayError('');
     // Safety timeout: reset processing after 30s if something hangs
-    const safetyTimer = setTimeout(() => setProcessing(false), 30000);
+    const safetyTimer = setTimeout(() => { console.log('REWIND PAY: safety timeout'); setProcessing(false); }, 30000);
     // Client-side field validation before hitting the API
     const missing = [];
     if (!formFields.email?.trim()) missing.push('Email');
@@ -643,9 +644,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     }
     // Use the orderNum already set in state (generated when checkout opened)
     const currentOrderNum = orderNum;
+    console.log('REWIND PAY: starting payment, order=' + currentOrderNum);
     let payResult;
     try {
       if (payment === 'card' || payment === 'applepay' || payment === 'googlepay') {
+        console.log('REWIND PAY: calling paymentRef.pay()');
         // Card/Apple Pay: use Elements inline
         payResult = await paymentRef.current?.pay({
           name: formFields.name,
@@ -655,6 +658,8 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           postal: formFields.postal,
           country: formFields.country,
         });
+
+        console.log('REWIND PAY: pay() returned', payResult ? 'result' : 'undefined');
 
         if (!payResult || payResult.error) {
           setPayError(payResult?.error || 'Payment failed — please try again');
