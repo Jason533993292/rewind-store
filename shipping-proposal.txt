@@ -1,0 +1,14 @@
+# Proposed Shipping Rates (from Belgium)
+
+| Zone | Countries | Cost |
+|------|-----------|------|
+| **Zone 0 — Domestic** | Belgium | **€3** |
+| **Zone 1 — Neighbors** | Netherlands, France, Germany, Luxembourg | **€5** |
+| **Zone 2 — EU** | Austria, Denmark, Spain, Sweden, Italy, Ireland, Portugal, Poland, Czechia, Slovakia, Hungary, Slovenia, Croatia, Romania, Bulgaria, Estonia, Latvia, Lithuania, Finland, Greece, Malta, Cyprus | **€8** |
+| **Zone 3 — Europe non-EU** | UK, Switzerland, Norway, Iceland, Serbia, Bosnia, Albania, Montenegro, North Macedonia | **€12** |
+| **Zone 4 — Americas** | USA, Canada, Mexico, Brazil, Argentina, Colombia, Chile, Peru | **€18** |
+| **Zone 5 — Rest of world** | Asia (China, Japan, Korea, India, Australia, NZ), Africa, Middle East | **€25** |
+
+Still free shipping above €150 regardless of zone.
+
+Want me to implement this, or adjust any prices/zones?

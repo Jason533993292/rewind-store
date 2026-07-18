@@ -46,7 +46,7 @@ const ELEMENT_OPTIONS = {
 };
 
 /* ---------- CardFormInner — lives inside <Elements>, handles Stripe hooks ---------- */
-function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayReady, onFocusChange, onPaymentSuccess, walletOnly, paymentMethod }) {
+function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayReady, onFocusChange, onPaymentSuccess }) {
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState('');
@@ -202,7 +202,6 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
           />
         </div>
       )}
-      {!walletOnly && (<>
       <div className="rw-cc-group">
         <label>Card Number</label>
         <div className="rw-stripe-input">
@@ -237,13 +236,6 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
           </div>
         </div>
       </div>
-      </>)}
-      {walletOnly && !canPay && !prError && (
-        <p style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '20px 0' }}>
-          {paymentMethod === 'applepay' ? 'Apple Pay' : 'Google Pay'} is not available on this device.<br/>
-          <span style={{ fontSize: '12px' }}>Try a supported device or select "Card" to pay by card.</span>
-        </p>
-      )}
       {processing && <div className="rw-cc-processing"><i className="rw-spinner" /> Processing…</div>}
       {error && <div className="rw-cc-error">{error}</div>}
     </div>
@@ -251,7 +243,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
 }
 
 /* ---------- PaymentCard (main export) ---------- */
-const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp, paymentMethod, country, onPaymentSuccess, walletOnly }, ref) {
+const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKey, orderNum, email, name, address, items, promoCode: promoProp, paymentMethod, country, onPaymentSuccess }, ref) {
   const [clientSecret, setClientSecret] = useState(null);
   const [cardValid, setCardValid] = useState(false);
   const [focused, setFocused] = useState(null);
@@ -424,8 +416,6 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
             onPayReady={({ pay }) => setPayFn(() => pay)}
             onFocusChange={(field) => setFocused(field)}
             onPaymentSuccess={onPaymentSuccess}
-            walletOnly={walletOnly}
-            paymentMethod={paymentMethod}
           />
         </Elements>
       ) : (
