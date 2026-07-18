@@ -438,12 +438,11 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
       body: JSON.stringify({ code: promoCode, discount, label: label || `${discount}% off`, created_by: 'admin' }),
     });
     if (!promoRes.ok) {
-      const errText = await promoRes.text();
-      return res.status(500).json({ error: 'Supabase error: ' + errText });
+      return res.status(500).json({ error: 'Failed to create promo code' });
     }
     auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${discount}% off)`, req.ip);
     res.json({ code: promoCode, discount });
-  } catch (e) { res.status(500).json({ error: 'Failed to create promo: ' + e.message }); }
+  } catch (e) { console.error('Create promo error:', e); res.status(500).json({ error: 'Failed to create promo code' }); }
 });
 
 // Admin management — requires master token specifically, not just any admin session
@@ -695,7 +694,8 @@ app.post('/api/get-orders', strictLimiter, async (req, res) => {
     const orders = await response.json();
     res.json({ orders: orders || [] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Get orders error:', err);
+    res.status(500).json({ error: 'Could not fetch orders' });
   }
 });
 
@@ -730,7 +730,7 @@ app.post('/api/save-order', requireAdmin, async (req, res) => {
     res.json({ ok: response.ok });
   } catch (err) {
     console.error('Save order error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to save order' });
   }
 });
 
@@ -741,7 +741,8 @@ app.get('/api/run-tests', requireAdmin, async (_req, res) => {
     const result = await runTests();
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message, passed: 0, failed: 1, total: 1, results: [{ name: 'Test runner', status: '❌', detail: err.message }] });
+    console.error('Test runner error:', err);
+    res.status(500).json({ error: 'Test runner failed', passed: 0, failed: 1, total: 1, results: [{ name: 'Test runner', status: '❌', detail: 'Test execution failed' }] });
   }
 });
 
@@ -1162,10 +1163,11 @@ app.post('/api/admin/cancel-order', async (req, res) => {
       // Use canned emails for predefined reasons, AI for "Other"
       let emailBody = '';
       const reasonText = reason === 'other' && customReason ? customReason : (reasonLabels[reason] || reason);
+      const escapedName = escapeHtml(order.customer_name || 'there');
       const cannedEmails = {
-        out_of_stock: `Hi ${order.customer_name || 'there'},\n\nWe regret to inform you that your recent REWIND order has been cancelled due to the item being out of stock. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
-        damaged: `Hi ${order.customer_name || 'there'},\n\nWe regret to inform you that your recent REWIND order has been cancelled because the item was damaged during handling. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
-        customer_request: `Hi ${order.customer_name || 'there'},\n\nAs requested, your recent REWIND order has been cancelled. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+        out_of_stock: `Hi ${escapedName},\n\nWe regret to inform you that your recent REWIND order has been cancelled due to the item being out of stock. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+        damaged: `Hi ${escapedName},\n\nWe regret to inform you that your recent REWIND order has been cancelled because the item was damaged during handling. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
+        customer_request: `Hi ${escapedName},\n\nAs requested, your recent REWIND order has been cancelled. A full refund has been initiated and will appear in your account within 5-10 business days. If you have any questions, reply to this email or contact us at orders@rewind-stores.com.\n\n— REWIND team`,
       };
       if (reason !== 'other' && cannedEmails[reason]) {
         emailBody = cannedEmails[reason];
@@ -1205,7 +1207,7 @@ app.post('/api/admin/cancel-order', async (req, res) => {
           <h1 style="font-size:24px;color:#16130F">REWIND<span style="color:#FF4D14">.</span></h1>
           <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
             <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Order cancelled</h2>
-            <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${order.customer_name || 'there'},</p>
+            <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${escapeHtml(order.customer_name || 'there')},</p>
             <p style="color:#6E665A;font-size:15px;line-height:1.6">
               ${emailBody}<br/><br/>
               <b>Reason:</b> ${reasonText}<br/><br/>
@@ -1220,7 +1222,7 @@ app.post('/api/admin/cancel-order', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('Cancel order error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to cancel order' });
   }
 });
 
@@ -1239,7 +1241,7 @@ app.post('/api/admin/undo-cancel-order', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.error('Undo cancel error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to undo cancellation' });
   }
 });
 
