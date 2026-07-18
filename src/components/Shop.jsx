@@ -732,7 +732,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       }
 
       // Payment succeeded (card / Apple Pay / Google Pay only)
-      completeOrder(payResult.paymentIntent, currentOrderNum);
+      if (payResult && payResult.paymentIntent) {
+        completeOrder(payResult.paymentIntent, currentOrderNum);
+      } else {
+        setPayError('Payment result missing — please try again');
+        setProcessing(false);
+      }
     } catch (e) {
       setProcessing(false);
       setPayError('Payment could not be processed — please check your details and try again.');
