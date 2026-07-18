@@ -51,7 +51,7 @@ export function buildSettingsRouter({ SUPABASE_URL, SERVICE_KEY, requireAdmin })
       });
     } catch (e) {
       console.error('Settings pulse error:', e);
-      res.status(500).json({ error: e.message });
+      res.status(500).json({ error: 'Operation failed' });
     }
   });
 
@@ -87,7 +87,7 @@ export function buildSettingsRouter({ SUPABASE_URL, SERVICE_KEY, requireAdmin })
       });
     } catch (e) {
       console.error('Order lookup error:', e);
-      res.status(500).json({ error: e.message });
+      res.status(500).json({ error: 'Operation failed' });
     }
   });
 
@@ -125,7 +125,7 @@ export function buildSettingsRouter({ SUPABASE_URL, SERVICE_KEY, requireAdmin })
       }
       res.json({ code: promoCode, discount });
     } catch (e) {
-      res.status(500).json({ error: 'Failed to create promo: ' + e.message });
+      res.status(500).json({ error: 'Failed to create promo' });
     }
   });
 

@@ -231,7 +231,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
     } catch (err) {
       console.error('Referral generate error:', err);
-      res.status(500).json({ error: 'Failed to generate referral code: ' + err.message });
+      res.status(500).json({ error: 'Failed to generate referral code' });
     }
   });
 
@@ -299,7 +299,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
     } catch (err) {
       console.error('Referral stats error:', err);
-      res.status(500).json({ error: 'Failed to fetch stats: ' + err.message });
+      res.status(500).json({ error: 'Failed to fetch stats' });
     }
   });
 
@@ -385,7 +385,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
     } catch (err) {
       console.error('Referral validate error:', err);
-      res.status(500).json({ error: 'Failed to validate: ' + err.message });
+      res.status(500).json({ error: 'Failed to validate code' });
     }
   });
 
@@ -524,7 +524,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       return res.json({ applied: true, discount: parseInt(refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT), type: refCode.reward_type || 'percent', flagged: !!flaggedReason, flaggedReason: flaggedReason || null });
     } catch (err) {
       console.error('Referral apply error:', err);
-      res.status(500).json({ error: 'Failed to apply referral: ' + err.message });
+      res.status(500).json({ error: 'Failed to apply referral' });
     }
   });
 
@@ -608,7 +608,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       return { fulfilled: true, promoCode: rewardPromo, referrerEmail: redemption.referrer_email };
     } catch (err) {
       console.error('Referral fulfill error:', err);
-      return { fulfilled: false, error: 'Failed to fulfill: ' + err.message };
+      return { fulfilled: false, error: 'Failed to fulfill' };
     }
   }
 
@@ -646,7 +646,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
     } catch (err) {
       console.error('Admin referral list error:', err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Internal error' });
     }
   });
 
@@ -664,7 +664,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
       res.json({ ok: true });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Internal error' });
     }
   });
 
@@ -686,7 +686,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
       res.json({ ok: true });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Internal error' });
     }
   });
 
@@ -704,7 +704,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
       res.json({ ok: true });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Internal error' });
     }
   });
 
