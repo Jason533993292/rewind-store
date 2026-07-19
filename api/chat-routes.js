@@ -139,20 +139,9 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
-      // Auto-reply with AI (fire-and-forget so the response is not delayed)
-      (async () => {
-        try {
-          const reply = await getAiAutoReply(message.trim());
-          if (reply) {
-            await sfetch('/chat_messages', {
-              method: 'POST',
-              body: JSON.stringify({ session_id, sender: 'ai', message: reply }),
-            });
-          }
-        } catch (e) {
-          console.warn('AI auto-reply failed:', e.message);
-        }
-      })();
+      // Auto-reply is handled by an external cron job (Hermes Agent)
+      // that checks for unanswered customer messages every few minutes.
+      // This keeps the chat system self-hosted without needing an API key.
 
       res.json({ session_id });
     } catch (e) {
@@ -297,131 +286,18 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     } catch (e) { res.status(500).json({ error: 'Could not delete session' }); }
   });
 
-  // ── Diagnostic endpoint to check AI configuration ──
+  // ── Diagnostic endpoint to check chat system health ──
   router.get('/api/chat/ai-status', async (req, res) => {
-    const results = {
-      openaiKeyPresent: !!process.env.OPENAI_API_KEY,
-      geminiKeyPresent: !!process.env.GEMINI_API_KEY,
+    res.json({
+      mode: 'cron',
+      status: 'Auto-replies handled by Hermes Agent cron job',
       nodeVersion: process.version,
       hasFetch: typeof fetch !== 'undefined',
-    };
-    // Quick test: call OpenAI models list
-    if (process.env.OPENAI_API_KEY) {
-      try {
-        const r = await fetch('https://api.openai.com/v1/models', {
-          headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-        });
-        results.openaiModels = r.ok ? 'OK' : 'FAIL';
-      } catch (e) {
-        results.openaiModels = 'ERROR';
-      }
-    }
-    // Quick test: call Gemini
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with just: OK' }] }], generationConfig: { maxOutputTokens: 5 } }),
-        });
-        results.geminiStatus = r.ok ? 'OK' : 'FAIL';
-      } catch (e) {
-        results.geminiStatus = 'ERROR';
-      }
-    }
-    res.json(results);
+    });
   });
 
   return router;
 }
 
-// ── AI auto-reply for common questions ──
-// Used by the chat system to auto-answer FAQs about products, sizing, shipping
-// Falls back from OpenAI to Gemini so either works
-
-/**
- * Try to get an AI reply from OpenAI, Gemini, or null if both fail.
- * OpenAI is tried first; if it fails (key missing, error response, etc.)
- * the function falls through to Gemini automatically.
- */
-// Used by the chat system to auto-answer FAQs about products, sizing, shipping
-// Uses OpenAI API (Gemini key is available as fallback)
-export async function getAiAutoReply(messageText) {
-  // Try OpenAI first (already set in Railway env)
-  const OPENAI_KEY = process.env.OPENAI_API_KEY;
-  if (OPENAI_KEY) {
-    try {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENAI_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
-
-- All product details (material, size, era, care) are listed in the product's info panel on the website
-- If the customer asks about a specific item, tell them to check the item details in the product card
-- Shipping: €8 flat rate within EU. Free shipping over €150
-- Returns: 14-day free returns
-- Each item is unique (vintage, one of one)
-- Items ship within 24 hours
-- Authenticated, steam-cleaned before shipping
-
-Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."` },
-            { role: 'user', content: messageText },
-          ],
-          max_tokens: 300,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const reply = data?.choices?.[0]?.message?.content;
-        if (reply) return reply;
-      } else {
-        console.warn('OpenAI API returned', res.status, (await res.text()).slice(0, 100));
-      }
-    } catch (e) {
-      console.warn('OpenAI reply failed:', e.message);
-    }
-  }
-
-  // Fallback: try Gemini
-  const GEMINI_KEY = process.env.GEMINI_API_KEY;
-  if (GEMINI_KEY) {
-    try {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `You are an AI assistant for REWIND vintage streetwear. Answer customer questions concisely (max 2-3 sentences) based on this knowledge:
-
-- All product details (material, size, era, care) are listed in the product's info panel on the website
-- If the customer asks about a specific item, tell them to check the item details in the product card
-- Shipping: €8 flat rate within EU. Free shipping over €150
-- Returns: 14-day free returns
-- Each item is unique (vintage, one of one)
-- Items ship within 24 hours
-- Authenticated, steam-cleaned before shipping
-
-Customer message: "${messageText}"
-
-Reply helpfully but briefly. If you don't know the answer, say "Contact the owner at orders@rewind-stores.com for more info."` }] }],
-          generationConfig: { maxOutputTokens: 300 },
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (reply) return reply;
-      } else {
-        console.warn('Gemini API returned', res.status);
-      }
-    } catch (e) {
-      console.warn('Gemini reply failed:', e.message);
-    }
-  }
-
-  return null;
-}
+// The cron job uses /api/chat/messages and /api/admin/chat/reply
+// (both are defined above and already requireAdmin-gated)
