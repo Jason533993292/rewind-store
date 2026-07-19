@@ -248,6 +248,47 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
+  // ── Desktop notifications for new chat messages (works on ANY page, not just admin) ──
+  useEffect(() => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
+    if (Notification.permission !== 'granted') return;
+
+    // Register service worker for background notifications
+    const registerSW = async () => {
+      try {
+        await navigator.serviceWorker.register('/sw.js');
+      } catch {}
+    };
+    registerSW();
+
+    // Poll for unread messages every 60s — works on any page
+    let lastCount = 0;
+    const interval = setInterval(async () => {
+      try {
+        const r = await fetch('/api/admin/chat/sessions');
+        if (!r.ok) return; // Not admin — skip silently
+        const d = await r.json();
+        const sessions = Array.isArray(d.sessions) ? d.sessions : [];
+        // Count sessions where last message is from customer (needs reply)
+        const unread = sessions.filter(s => s.last_message_sender === 'customer' || !s.last_read_admin).length;
+        if (unread > lastCount && lastCount > 0) {
+          const diff = unread - lastCount;
+          try {
+            new Notification('💬 New customer message' + (diff > 1 ? ` (${diff})` : ''), {
+              body: diff > 1 ? `${diff} unread messages` : 'A customer needs a reply',
+              icon: '/favicon.png',
+              tag: 'rewind-chat',
+            });
+          } catch {}
+        }
+        lastCount = unread;
+      } catch {}
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Mouse-following glow — REMOVED (caused stacking issues with panels/modals)
 
   // Close modals/drawers on Escape key
