@@ -66,15 +66,12 @@ export default function App() {
   const [checkout, setCheckout] = useState(false);
   const [checkoutCount, setCheckoutCount] = useState(0);
   
-  // Lock body scroll when checkout is open (prevents double scrollbar + background peek)
+  // Lock body scroll when any modal/drawer/overlay is open
+  // Single unified effect — removes the old checkout-only effect that conflicted.
   useEffect(() => {
-    if (checkout) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [checkout]);
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
   const [toast, setToast] = useState(null);
   const [infoPage, setInfoPage] = useState(null);
   const [showReferral, setShowReferral] = useState(false);
@@ -213,13 +210,37 @@ export default function App() {
     r.style.setProperty('--font-head', `"${t.headingFont}", sans-serif`);
   }, [t.accent, t.headingFont]);
 
-  // Lock body scroll when any modal/drawer is open
-  // showSurvey is deliberately excluded from this effect.
-  // Lock body scroll when any overlay is open
+  // Browser back-button: close overlays instead of navigating away
+  // When an overlay opens, push history state so the browser back button
+  // triggers a popstate event. We intercept it and close the overlay.
+  const popHandled = useRef(false);
   useEffect(() => {
-    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
+    if (checkout || drawer || showSettings || showReferral || wishlistOpen || quick || signupOpen || showSizes || infoPage || promoOpen) {
+      if (!popHandled.current) {
+        window.history.pushState({ overlay: true }, '');
+        popHandled.current = true;
+      }
+    } else {
+      popHandled.current = false;
+    }
+  }, [checkout, drawer, showSettings, showReferral, wishlistOpen, quick, signupOpen, showSizes, infoPage, promoOpen]);
+
+  useEffect(() => {
+    const onPop = () => {
+      if (checkout) { setCheckout(false); popHandled.current = false; return; }
+      if (drawer) { setDrawer(false); popHandled.current = false; return; }
+      if (showSettings) { setShowSettings(false); popHandled.current = false; return; }
+      if (showReferral) { setShowReferral(false); popHandled.current = false; return; }
+      if (wishlistOpen) { setWishlistOpen(false); popHandled.current = false; return; }
+      if (quick) { setQuick(null); popHandled.current = false; return; }
+      if (signupOpen) { setSignupOpen(false); popHandled.current = false; return; }
+      if (showSizes) { setShowSizes(false); popHandled.current = false; return; }
+      if (infoPage) { setInfoPage(null); popHandled.current = false; return; }
+      if (promoOpen) { setPromoOpen(false); popHandled.current = false; return; }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [checkout, drawer, showSettings, showReferral, wishlistOpen, quick, signupOpen, showSizes, infoPage, promoOpen]);
 
   // Notify the globe panel to close when other dock panels open
   useEffect(() => { if (showSettings) window.dispatchEvent(new Event('settings-panel-open')); }, [showSettings]);
