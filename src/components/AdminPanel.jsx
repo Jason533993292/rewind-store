@@ -45,6 +45,30 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [cancelStep, setCancelStep] = useState(0); // 0=closed, 1=reason, 2=email preview, 3=refund
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
   const [chatUnread, setChatUnread] = useState(0);
+  const lastUnreadRef = useRef(0);
+
+  // ── Desktop notifications for new chat messages ──
+  useEffect(() => {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase || chatUnread === 0) return;
+    if (chatUnread > lastUnreadRef.current && Notification.permission === 'granted') {
+      const diff = chatUnread - lastUnreadRef.current;
+      try {
+        new Notification('💬 New chat message' + (diff > 1 ? ` (${diff} unread)` : ''), {
+          body: diff > 1 ? `${diff} unread messages from customers` : 'A customer sent a new message',
+          icon: '/favicon.png',
+          tag: 'rewind-chat',
+        });
+      } catch {}
+    }
+    lastUnreadRef.current = chatUnread;
+  }, [chatUnread, supabase]);
 
   // Keyboard shortcuts: 1-9 for tabs (skip when typing in inputs)
   useEffect(() => {
