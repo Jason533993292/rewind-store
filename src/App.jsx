@@ -816,6 +816,20 @@ export default function App() {
     </React.Suspense>
   );
 
+  // ── SEO: update page title & meta tags ──
+  useEffect(() => {
+    if (selectedProduct) {
+      document.title = `${selectedProduct.name} — REWIND`;
+      let meta = document.querySelector('meta[name="description"]');
+      if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+      meta.content = selectedProduct.note || selectedProduct.material || `Shop the ${selectedProduct.name} at REWIND`;
+    } else if (showTrackOrder) {
+      document.title = 'Track your order — REWIND';
+    } else {
+      document.title = "REWIND — Curated Vintage & Retro Sportswear";
+    }
+  }, [selectedProduct, showTrackOrder]);
+
   const curPid = selectedProduct?.id || selectedProduct?.product_id;
 
   // Show product detail page instead of shop
