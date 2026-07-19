@@ -168,6 +168,20 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         method: 'PATCH',
         body: JSON.stringify({ last_message_at: new Date().toISOString(), status: 'open' }),
       });
+      // Notify admin of new follow-up message
+      if (resend && notifyEmail) {
+        try {
+          const sessRes = await sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}&select=customer_name,customer_email`);
+          const sessData = await sessRes.json();
+          const sess = Array.isArray(sessData) && sessData.length > 0 ? sessData[0] : {};
+          resend.emails.send({
+            from: FROM_EMAIL, reply_to: REPLY_TO, to: notifyEmail,
+            subject: `💬 New message from ${sess.customer_name || sess.customer_email || 'a customer'}`,
+            html: `<p style="font-family:sans-serif">${escapeHtml(message.trim())}</p>
+                   <p style="font-family:sans-serif"><a href="https://rewind-stores.com/#admin">Reply in admin panel →</a></p>`,
+          }).catch(() => {});
+        } catch {}
+      }
       res.json({ ok: true });
     } catch (e) {
       console.error('chat/send error:', e);
