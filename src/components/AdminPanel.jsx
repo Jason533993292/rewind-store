@@ -37,6 +37,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [cancelling, setCancelling] = useState(false);
   const [previewEmail, setPreviewEmail] = useState('');
   const [previewReason, setPreviewReason] = useState('');
+  // Shipping modal state
+  const [shipOrder, setShipOrder] = useState(null);
+  const [trackingNum, setTrackingNum] = useState('');
+  const [courierName, setCourierName] = useState('');
+  const [shipping, setShipping] = useState(false);
   const [cancelStep, setCancelStep] = useState(0); // 0=closed, 1=reason, 2=email preview, 3=refund
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
   const [chatUnread, setChatUnread] = useState(0);
@@ -584,6 +589,12 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                           <td style={{ padding: '8px 10px', fontWeight: 700 }}>{money(o.total)}</td>
                           <td style={{ padding: '8px 10px' }}>
                             <select value={o.status} onChange={async (e) => {
+                              if (e.target.value === 'shipped' && o.status !== 'cancelled') {
+                                setShipOrder(o);
+                                setTrackingNum('');
+                                setCourierName('');
+                                return;
+                              }
                               await updateOrderStatus(o.id, e.target.value);
                               setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
                             }}
@@ -946,6 +957,53 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Ship order modal ── */}
+      {shipOrder && (
+        <div className="rw-modal-wrap" onClick={() => { if (!shipping) { setShipOrder(null); } }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '460px', gridTemplateColumns: '1fr', background: 'var(--surface)', borderRadius: '14px', padding: '32px' }}>
+            <button onClick={() => setShipOrder(null)}
+              style={{ position: 'absolute', top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>✕</button>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>🚚 Mark as shipped</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 20px' }}>
+              Order {shipOrder.order_num} · {shipOrder.customer_name}
+            </p>
+            <input className="rw-input" type="text" placeholder="Courier name (e.g. PostNL, FedEx)"
+              value={courierName} onChange={e => setCourierName(e.target.value)}
+              style={{ marginBottom: '10px' }} />
+            <input className="rw-input" type="text" placeholder="Tracking number"
+              value={trackingNum} onChange={e => setTrackingNum(e.target.value)}
+              style={{ marginBottom: '14px' }} />
+            <p style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '16px' }}>
+              Customer will receive an email with tracking info. Track at <a href="https://www.17track.net/en" target="_blank" style={{ color: 'var(--accent)' }}>17track.net</a>
+            </p>
+            <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!trackingNum.trim() || !courierName.trim() || shipping}
+              onClick={async () => {
+                setShipping(true);
+                try {
+                  const r = await fetch('/api/admin/orders/ship', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: shipOrder.id, trackingNumber: trackingNum.trim(), courier: courierName.trim() }),
+                  });
+                  const d = await r.json();
+                  if (d.ok) {
+                    setOrders(prev => prev.map(ord => ord.id === shipOrder.id ? { ...ord, status: 'shipped' } : ord));
+                    setShipOrder(null);
+                    alert('✅ Shipped! Email sent to customer.');
+                  } else {
+                    alert('❌ Failed: ' + (d.error || 'Unknown error'));
+                  }
+                } catch {
+                  alert('❌ Network error — try again');
+                }
+                setShipping(false);
+              }}>
+              {shipping ? 'Shipping...' : `Mark shipped & notify customer`}
+            </button>
           </div>
         </div>
       )}
