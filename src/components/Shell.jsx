@@ -257,7 +257,7 @@ export function Hero({ onShop }) {
           <button className="rw-btn rw-btn-ghost" onClick={() => onShop('Jerseys')}>Browse jerseys</button>
         </div>
         <div className="rw-hero-stats">
-          <div><b>4.9</b><span>★ 2,300+ reviews</span></div>
+          <div><b>4.3</b><span>★ 23 reviews</span></div>
           <div><b>24h</b><span>EU dispatch</span></div>
           <div><b>14d</b><span>free returns</span></div>
         </div>
