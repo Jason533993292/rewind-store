@@ -296,6 +296,66 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     });
   });
 
+  // ── Internal endpoint for Hermes cron job: get pending messages ──
+  router.get('/api/cron/chat/pending', async (req, res) => {
+    const token = req.headers['x-cron-token'];
+    if (token !== process.env.CRON_SECRET_TOKEN) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    try {
+      const sessions = await sfetch('/chat_sessions?status=eq.open&order=last_message_at.desc.nullslast&limit=20&select=session_id,customer_email,customer_name,last_message_at');
+      const sessionsData = await sessions.json();
+      if (!Array.isArray(sessionsData) || sessionsData.length === 0) {
+        return res.json({ messages: [] });
+      }
+      const results = [];
+      for (const session of sessionsData) {
+        const msgRes = await sfetch(`/chat_messages?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.desc&limit=5&select=sender,message,created_at`);
+        const messages = await msgRes.json();
+        if (!Array.isArray(messages) || messages.length === 0) continue;
+        const lastMsg = messages[0];
+        if (lastMsg.sender !== 'customer') continue;
+        const lastMsgTime = new Date(lastMsg.created_at).getTime();
+        if (Date.now() - lastMsgTime < 60000) continue;
+        results.push({
+          session_id: session.session_id,
+          customer_email: session.customer_email || null,
+          customer_name: session.customer_name || null,
+          last_message: lastMsg.message,
+          conversation: messages.reverse().map(m => ({ sender: m.sender, message: m.message })),
+        });
+      }
+      res.json({ messages: results });
+    } catch (e) {
+      console.error('Cron pending error:', e);
+      res.status(500).json({ error: 'Could not fetch pending messages' });
+    }
+  });
+
+  // ── Internal endpoint for Hermes cron job: post a reply ──
+  router.post('/api/cron/chat/reply', async (req, res) => {
+    const token = req.headers['x-cron-token'];
+    if (token !== process.env.CRON_SECRET_TOKEN) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    const { session_id, message } = req.body || {};
+    if (!session_id || !message) return res.status(400).json({ error: 'session_id and message required' });
+    try {
+      await sfetch('/chat_messages', {
+        method: 'POST',
+        body: JSON.stringify({ session_id, sender: 'ai', message }),
+      });
+      await sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ last_message_at: new Date().toISOString(), status: 'open' }),
+      });
+      res.json({ ok: true });
+    } catch (e) {
+      console.error('Cron reply error:', e);
+      res.status(500).json({ error: 'Could not post reply' });
+    }
+  });
+
   return router;
 }
 
