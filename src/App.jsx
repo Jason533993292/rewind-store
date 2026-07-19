@@ -66,13 +66,6 @@ export default function App() {
   const [showSizes, setShowSizes] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [checkoutCount, setCheckoutCount] = useState(0);
-  
-  // Lock body scroll when any modal/drawer/overlay is open
-  // Single unified effect — removes the old checkout-only effect that conflicted.
-  useEffect(() => {
-    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
   const [toast, setToast] = useState(null);
   const [infoPage, setInfoPage] = useState(null);
   const [showReferral, setShowReferral] = useState(false);
@@ -103,6 +96,14 @@ export default function App() {
   const [orderNumber, setOrderNumber] = useState('');
   const [showTweaks, setShowTweaks] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+
+  // ── ALL useEffects below ──
+
+  // Lock body scroll when any modal/drawer/overlay is open
+  useEffect(() => {
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const stored = localStorage.getItem('rw_recent');
