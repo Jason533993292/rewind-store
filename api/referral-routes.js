@@ -324,16 +324,17 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         // (admin-generated promo codes from settings panel live there)
         try {
           const promoRes = await fetchSupabase('promo_codes', {
-            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,used`,
+            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,uses`,
           });
           if (Array.isArray(promoRes) && promoRes.length > 0) {
             const p = promoRes[0];
-            if (p.used) {
+            if (p.uses && p.uses > 0) {
               return res.json({ valid: false, error: 'This promo code has already been used' });
             }
             return res.json({
               valid: true,
               discount: p.discount,
+              value: p.discount,
               type: 'percent',
               label: p.label || `${p.discount}% off`,
               fromPromoTable: true,
@@ -368,7 +369,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
           params: `?referee_email=eq.${encodeURIComponent(normalizedReferee)}&code_id=eq.${refCode.id}&limit=1`,
         });
         if (Array.isArray(existing) && existing.length > 0) {
-          return res.json({ valid: true, alreadyRedeemed: true, discount: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT });
+          return res.json({ valid: true, alreadyRedeemed: true, discount: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT, value: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT });
         }
       }
 
@@ -381,6 +382,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       return res.json({
         valid: true,
         discount: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT,
+        value: refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT,
         label: `${refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT}% off (referral)`,
       });
     } catch (err) {
