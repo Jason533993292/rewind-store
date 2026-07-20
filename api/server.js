@@ -9,8 +9,43 @@ import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
 import { buildReferralRouter } from './referral-routes.js';
 import { buildSettingsRouter } from './settings-routes.js';
+import pushRouter from './push-routes.js';
 import { requireAdmin, signAdminSession, verifyAdminSession } from './middleware/requireAdmin.js';
 import cookieParser from 'cookie-parser';
+import webPush from 'web-push';
+
+const VAPID_PUBLIC_KEY = 'BNewrKRg9ASnQuZ5hBF-4I9_s-R9FKgh2CkhqZ9l9QFwJTnJyJByDfMM3-xvM8wDHCyAXnpbvkVqQdMDzmenNOw';
+const VAPID_PRIVATE_KEY = '0MTkN7XNh8OdWAXHUwhrW-5o5Nf94nhw-nbD1junI5s';
+webPush.setVapidDetails('mailto:orders@rewind-stores.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+// Send push notification to all stored subscriptions
+async function sendPushNotification(title, body, url = '/#admin') {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?select=*`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    if (!res.ok) return;
+    const subs = await res.json();
+    if (!Array.isArray(subs)) return;
+    const payload = JSON.stringify({ title, body, url, tag: 'rewind-chat' });
+    for (const sub of subs) {
+      if (!sub.subscription) continue;
+      try {
+        await webPush.sendNotification(sub.subscription, payload);
+      } catch (e) {
+        if (e.statusCode === 410 || e.statusCode === 404) {
+          // Subscription expired — remove it
+          fetch(`${SUPABASE_URL}/rest/v1/push_subscriptions?id=eq.${sub.id}`, {
+            method: 'DELETE',
+            headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+          }).catch(() => {});
+        }
+      }
+    }
+  } catch {}
+}
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.set('trust proxy', 1);
@@ -1348,6 +1383,9 @@ app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);
   res.status(500).json({ error: 'Internal error' });
 });
+
+// ── Push notification routes ──
+app.use(pushRouter);
 
 // ── Referral routes ──
 app.use('/api/referral', referralRouter);

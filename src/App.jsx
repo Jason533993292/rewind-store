@@ -250,15 +250,41 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
-  // ── Desktop notifications for new chat messages (only on admin page or when logged in) ──
+  // ── Desktop notifications + push subscription (works even when browser is closed) ──
   useEffect(() => {
-    if (!('Notification' in window)) return;
-    const isAdminPage = window.location.hash === '#admin';
-    const hasAdminEmail = !!localStorage.getItem('rw_admin_email');
-    if (!isAdminPage && !hasAdminEmail) return;
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
     if (Notification.permission === 'default') Notification.requestPermission();
 
+    // Register service worker for push notifications
+    const setup = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+        if (Notification.permission !== 'granted') return;
+
+        // Get VAPID key and subscribe to push
+        const keyRes = await fetch('/api/push/vapid-key');
+        const keyData = await keyRes.json();
+        const existingSub = await registration.pushManager.getSubscription();
+        if (existingSub) return; // Already subscribed
+
+        const sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: keyData.publicKey,
+        });
+        // Save subscription to server
+        await fetch('/api/push/subscribe', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sub),
+        });
+      } catch {}
+    };
+    setup();
+
+    // Also poll for unread messages when on admin page
     let lastCount = 0;
+    const isAdmin = window.location.hash === '#admin' || !!localStorage.getItem('rw_admin_email');
+    if (!isAdmin) return;
     const interval = setInterval(async () => {
       try {
         const r = await fetch('/api/admin/chat/sessions');
@@ -268,7 +294,7 @@ export default function App() {
         const unread = sessions.filter(s => s.last_message_sender === 'customer' || !s.last_read_admin).length;
         if (unread > lastCount && lastCount > 0 && Notification.permission === 'granted') {
           const diff = unread - lastCount;
-          new Notification('💬 New customer message' + (diff > 1 ? ' (' + diff + ')' : ''), {
+          new Notification('New customer message' + (diff > 1 ? ' (' + diff + ')' : ''), {
             body: diff > 1 ? diff + ' unread messages' : 'A customer needs a reply',
             icon: '/favicon.png',
             tag: 'rewind-chat',

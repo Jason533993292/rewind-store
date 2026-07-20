@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
+import { sendPushNotification } from './push-routes.js';
 
 const MAX_MESSAGE_LEN = 2000;
 
@@ -182,6 +183,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
           }).catch(() => {});
         } catch {}
       }
+      // Push notification to browser (works even when site is closed)
+      sendPushNotification('New customer message', message.trim().substring(0, 120)).catch(() => {});
       res.json({ ok: true });
     } catch (e) {
       console.error('chat/send error:', e);
