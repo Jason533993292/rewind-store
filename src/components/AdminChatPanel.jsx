@@ -94,6 +94,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const selectedEmail = session?.customer_email || '';
 
   return (
+    <>
     <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>
@@ -288,5 +289,6 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
           </div>
         </div>
       )}
+    </>
   );
 }
