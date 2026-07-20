@@ -1411,8 +1411,8 @@ app.get('/api/admin/email-ips', async (req, res) => {
   } catch { res.json({ mappings: [] }); }
 });
 
-// ── Admin: bulk cleanup test accounts (requires CRON_SECRET_TOKEN) ──
-app.post('/api/admin/cleanup-test-emails', async (req, res) => {
+// ── Cleanup test accounts (before admin blanket middleware, uses cron token) ──
+app.post('/api/cleanup-test-emails', async (req, res) => {
   const token = req.headers['x-cron-token'];
   if (token !== process.env.CRON_SECRET_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
