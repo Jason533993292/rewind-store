@@ -188,12 +188,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   🚫 Block
                 </button>
                 {selectedEmail && (
-                  <a href={'mailto:' + selectedEmail}
+                  <button onClick={() => { navigator.clipboard?.writeText(selectedEmail); alert('📋 Email copied: ' + selectedEmail); }}
                     onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                     onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
-                    style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, textDecoration: 'none', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
-                    📧 Email
-                  </a>
+                    style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
+                    📧 Copy email
+                  </button>
                 )}
                 <button onClick={handleClose}
                   onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
