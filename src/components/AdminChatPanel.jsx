@@ -305,8 +305,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       email: selectedEmail,
-                      percent: promoPercent || undefined,
-                      customAmount: promoPercent === 0 ? Number(promoCustomValue) : undefined,
+                      percent: promoPercent === 0 ? Number(promoCustomValue) : promoPercent,
                       max_uses: promoMaxUses ? Number(promoMaxUses) : undefined,
                       expires_at: promoExpires || undefined,
                     }),
