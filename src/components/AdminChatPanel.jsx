@@ -113,7 +113,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
       </div>
 
       <div style={{ display: 'flex', gap: '16px', minHeight: '300px' }}>
-        <div style={{ width: '220px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto' }}>
+        <div style={{ width: '200px', minWidth: '160px', flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto' }}>
           {sessions.length === 0 ? (
             <p style={{ color: 'var(--muted)', fontSize: '13px', padding: '8px' }}>No active chat sessions.</p>
           ) : sessions.map(s => (

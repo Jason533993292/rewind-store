@@ -50,7 +50,10 @@ export default function CreatePromoCode({ showToast }) {
             <input className="rw-input" type="number" value={expiresIn} onChange={e => setExpiresIn(e.target.value)} min={1} style={{ width: '100%' }} />
           </div>
         </div>
-        <button className="rw-btn rw-btn-pri" onClick={handleCreate} disabled={loading} style={{ padding: '12px', fontSize: '14px' }}>
+        <button className="rw-btn rw-btn-pri" onClick={handleCreate} disabled={loading}
+          onMouseOver={e => { if (!e.target.disabled) { e.target.style.transform = 'translateY(-1px)'; e.target.style.boxShadow = '0 4px 12px rgba(255,77,20,0.3)'; } }}
+          onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}
+          style={{ padding: '12px', fontSize: '14px', transition: 'all 0.15s' }}>
           {loading ? 'Creating...' : 'Create promo code'}
         </button>
         {msg && <p style={{ fontSize: '13px', margin: 0 }}>{msg}</p>}

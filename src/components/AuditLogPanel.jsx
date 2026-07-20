@@ -90,13 +90,17 @@ export default function AuditLogPanel() {
                 </span>
                 {isEmail(e.details) && (
                   <button onClick={() => blockEmail(e.details)}
-                    style={{ padding: '2px 6px', borderRadius: '4px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                    onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                    onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}
+                    style={{ padding: '2px 6px', borderRadius: '4px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}>
                     🚫
                   </button>
                 )}
                 {isIp(e.details) && (
                   <button onClick={() => blockIp(e.details)}
-                    style={{ padding: '2px 6px', borderRadius: '4px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                    onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                    onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}
+                    style={{ padding: '2px 6px', borderRadius: '4px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}>
                     🚫
                   </button>
                 )}

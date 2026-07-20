@@ -419,7 +419,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                 const input = document.getElementById('new-admin-email');
                 const email = input.value.trim();
                 if (!email) return;
-                const r = await fetch('/api/manage-admins', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', email, adminEmail }) });
+                const masterToken = prompt('Enter the admin master token to authorize this change:');
+                if (!masterToken) return;
+                const r = await fetch('/api/manage-admins', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': masterToken }, body: JSON.stringify({ action: 'add', email, adminEmail }) });
                 const d = await r.json();
                 alert(d.ok ? `✅ ${email} added as admin` : `❌ ${d.error}`);
                 if (d.ok) input.value = '';

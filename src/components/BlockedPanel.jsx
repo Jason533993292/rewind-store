@@ -74,7 +74,9 @@ export default function BlockedPanel() {
                 onKeyDown={e => { if (e.key === 'Enter' && newEmail.trim()) blockEmail(newEmail.trim()); }}
                 style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line-2)', borderRadius: '6px', fontSize: '13px' }} />
               <button onClick={() => blockEmail(newEmail)} disabled={!newEmail.trim()}
-                style={{ padding: '8px 14px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Block</button>
+                onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
+                onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}
+                style={{ padding: '8px 14px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}>Block</button>
             </div>
           </div>
 
@@ -102,12 +104,21 @@ export default function BlockedPanel() {
                         </td>
                         <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                           {blockedEmails.has(m.email) ? (
-                            <button onClick={() => unblockEmail(m.email)} style={{ fontSize: '11px', padding: '2px 8px', background: 'none', border: '1px solid var(--line-2)', borderRadius: '4px', cursor: 'pointer' }}>Unblock</button>
+                            <button onClick={() => unblockEmail(m.email)}
+                              onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
+                              onMouseOut={e => { e.target.style.background = 'none'; e.target.style.color = 'var(--ink)'; e.target.style.transform = ''; }}
+                              style={{ fontSize: '11px', padding: '2px 8px', background: 'none', border: '1px solid var(--line-2)', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.15s' }}>Unblock</button>
                           ) : (
                             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                              <button onClick={() => blockEmail(m.email)} style={{ fontSize: '11px', padding: '2px 8px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Block</button>
+                              <button onClick={() => blockEmail(m.email)}
+                                onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                                onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}
+                                style={{ fontSize: '11px', padding: '2px 8px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.15s' }}>Block</button>
                               {m.ips[0] && (
-                                <button onClick={() => blockIp(m.ips[0])} style={{ fontSize: '11px', padding: '2px 8px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Block IP</button>
+                                <button onClick={() => blockIp(m.ips[0])}
+                                  onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+                                  onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}
+                                  style={{ fontSize: '11px', padding: '2px 8px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.15s' }}>Block IP</button>
                               )}
                             </div>
                           )}
