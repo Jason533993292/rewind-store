@@ -280,10 +280,35 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             )}
             <div style={{ marginBottom: '10px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Max uses</label>
-              <input className="rw-input" type="number" min="1" max="999" placeholder="Unlimited" value={promoMaxUses} onChange={e => setPromoMaxUses(e.target.value)} style={{ marginBottom: '0' }} />
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                {[1,2,5,10].map(n => (
+                  <button key={n} onClick={() => setPromoMaxUses(n)}
+                    style={{ padding: '4px 10px', borderRadius: '6px', border: promoMaxUses === n ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: promoMaxUses === n ? 'var(--ink)' : 'var(--surface)', color: promoMaxUses === n ? '#fff' : 'var(--ink)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}>
+                    {n}
+                  </button>
+                ))}
+                <button onClick={() => setPromoMaxUses('')}
+                  style={{ padding: '4px 10px', borderRadius: '6px', border: promoMaxUses === '' || promoMaxUses === null || promoMaxUses === undefined ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: promoMaxUses === '' || promoMaxUses === null || promoMaxUses === undefined ? 'var(--ink)' : 'var(--surface)', color: promoMaxUses === '' || promoMaxUses === null || promoMaxUses === undefined ? '#fff' : 'var(--ink)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}>
+                  ∞ Unlimited
+                </button>
+              </div>
+              <input className="rw-input" type="number" min="1" max="999" placeholder="Custom..." value={promoMaxUses || ''} onChange={e => setPromoMaxUses(e.target.value ? Number(e.target.value) : '')} style={{ marginBottom: '0' }} />
             </div>
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires</label>
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                {[{label:'1 day',days:1},{label:'2 days',days:2},{label:'5 days',days:5},{label:'1 week',days:7}].map(opt => {
+                  const d = new Date(); d.setDate(d.getDate() + opt.days);
+                  const ds = d.toISOString().split('T')[0];
+                  const active = promoExpires === ds;
+                  return (
+                    <button key={opt.days} onClick={() => setPromoExpires(ds)}
+                      style={{ padding: '4px 10px', borderRadius: '6px', border: active ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: active ? 'var(--ink)' : 'var(--surface)', color: active ? '#fff' : 'var(--ink)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}>
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
               <input className="rw-input" type="date" min={new Date().toISOString().split('T')[0]} value={promoExpires} onChange={e => setPromoExpires(e.target.value)} style={{
                 marginBottom: '0',
                 borderColor: promoExpires && promoExpires < new Date().toISOString().split('T')[0] ? '#dc2626' : 'var(--line-2)',
