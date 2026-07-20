@@ -485,7 +485,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
     if (!promoRes.ok) {
       const errText = await promoRes.text();
       console.error('Create promo failed:', errText);
-      // Retry without optional fields that may not exist in older DB schemas
+      // Retry without optional fields
       delete body.expires_at;
       delete body.email;
       delete body.max_uses;
@@ -496,8 +496,19 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
       });
       if (!retryRes.ok) {
         const retryErr = await retryRes.text();
-        console.error('Create promo retry failed:', retryErr);
-        return res.status(500).json({ error: 'Failed to create promo code' });
+        try {
+          const parsed = JSON.parse(retryErr);
+          return res.status(500).json({ error: 'Failed: ' + (parsed.message || parsed.error || retryErr.slice(0, 200)) });
+        } catch {
+          // Fallback to the original error message if retry also fails
+          const orig = errText;
+          try {
+            const p = JSON.parse(orig);
+            return res.status(500).json({ error: 'Failed: ' + (p.message || p.error || orig.slice(0, 200)) });
+          } catch {
+            return res.status(500).json({ error: 'Failed: ' + orig.slice(0, 200) });
+          }
+        }
       }
     }
     auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${finalDiscount}% off)`, req.ip);

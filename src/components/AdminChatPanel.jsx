@@ -284,7 +284,13 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             </div>
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires</label>
-              <input className="rw-input" type="date" min={new Date().toISOString().split('T')[0]} value={promoExpires} onChange={e => setPromoExpires(e.target.value)} style={{ marginBottom: '0' }} />
+              <input className="rw-input" type="date" min={new Date().toISOString().split('T')[0]} value={promoExpires} onChange={e => setPromoExpires(e.target.value)} style={{
+                marginBottom: '0',
+                borderColor: promoExpires && promoExpires < new Date().toISOString().split('T')[0] ? '#dc2626' : 'var(--line-2)',
+              }} />
+              {promoExpires && promoExpires < new Date().toISOString().split('T')[0] && (
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#dc2626', fontWeight: 600 }}>Cannot select a date before today</p>
+              )}
             </div>
             {generatedCode && (
               <div style={{ background: 'var(--line)', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
