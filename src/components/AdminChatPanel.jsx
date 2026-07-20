@@ -89,8 +89,6 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   };
 
   const now = Date.now();
-  const agents = ['REWIND Assistant', 'Support Agent', 'Style Advisor'];
-  const agentColors = ['#FF4D14', '#2563EB', '#7C3AED'];
   const session = sessions.find(s => s.session_id === selectedId);
   const selectedEmail = session?.customer_email || '';
 
@@ -144,7 +142,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   <p style={{ color: 'var(--muted)', fontSize: '13px', padding: '20px', textAlign: 'center' }}>No messages in this session.</p>
                 ) : messages.map(m => {
                   const isCustomer = m.sender === 'customer';
-                  const agentIdx = !isCustomer && m.sender !== 'ai' ? agents.indexOf(m.sender) : -1;
+                  const nameColor = isCustomer ? 'var(--muted)' : (m.sender === 'ai' ? 'var(--accent)' : '#fff');
                   return (
                     <div key={m.id || m.timestamp || Math.random()}
                       style={{
@@ -157,8 +155,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                         fontSize: '13px',
                       }}>
                       {!isCustomer && (
-                        <div style={{ fontSize: '10px', fontWeight: 700, marginBottom: '2px', color: agentIdx >= 0 ? agentColors[agentIdx] : 'var(--accent)' }}>
-                          {m.sender === 'ai' ? 'AI Assistant' : m.sender}
+                        <div style={{ fontSize: '10px', fontWeight: 700, marginBottom: '4px', color: nameColor }}>
+                          {m.sender === 'ai' ? 'AI Assistant' : (m.sender === 'admin' ? 'Admin' : m.sender)}
                         </div>
                       )}
                       <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.message || m.text || ''}</div>
@@ -168,6 +166,21 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                     </div>
                   );
                 })}
+              </div>
+              {/* ── Action buttons + reply ── */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                <button onClick={() => setShowPromoPanel(true)}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                  🏷 Promo code
+                </button>
+                <button onClick={() => setShowBlockPanel(true)}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                  🚫 Block customer
+                </button>
+                <button onClick={handleClose}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                  ✕ Close chat
+                </button>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input value={reply} onChange={e => setReply(e.target.value)}
