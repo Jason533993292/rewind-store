@@ -9,6 +9,7 @@ import AdminChatPanel from './AdminChatPanel';
 import BlockedPanel from './BlockedPanel';
 import ProductForm from './ProductForm';
 import EditProductPanel from './EditProductPanel';
+import AdminOrdersPanel from './AdminOrdersPanel';
 import { REWIND_PRODUCTS, REWIND_CATS } from '../data';
 import { supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from '../lib/supabase';
 import { money } from '../hooks/useCountdown';
@@ -537,194 +538,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
           {/* ── Orders ── */}
           {adminTab === 'orders' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-            {/* ── Order stats chart ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '20px' }}>
-              <div style={{ background: 'var(--bg)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.length}</div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Total</div>
-              </div>
-              <div style={{ background: 'color-mix(in oklab, var(--accent) 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'pending').length}</div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>⏳ Pending</div>
-              </div>
-              <div style={{ background: 'color-mix(in oklab, var(--accent) 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'ordered').length}</div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>📦 Ordered</div>
-              </div>
-              <div style={{ background: 'color-mix(in oklab, var(--ink) 16%, transparent)', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 700 }}>{orders.filter(o => o.status === 'shipped').length}</div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>🚚 Shipped</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📦 Orders to fulfill</h3>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {orders.length > 0 && (
-                  <button onClick={() => {
-                    const csv = ["Order,Customer,Email,Items,Total,Status,Address"];
-                    orders.forEach(o => {
-                      const items = (Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size})`).join('; ');
-                      csv.push(`"${o.order_num}","${o.customer_name}","${o.email}","${items}","€${o.total}","${o.status}","${o.address}"`);
-                    });
-                    navigator.clipboard.writeText(csv.join('\n'));
-                    alert('📋 Orders CSV copied! Paste into Shopify or Excel.');
-                  }}
-                    style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}
-                    onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
-                    onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
-                            📋 Export CSV
-                  </button>
-                )}
-              </div>
-            </div>
-            {orders.length === 0 ? (
-              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No orders yet. When a customer checks out, orders appear here.</p>
-            ) : (
-              <>
-                <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>
-                  {orders.filter(o => o.status === 'pending').length} pending · {orders.filter(o => o.status === 'ordered').length} ordered · {orders.filter(o => o.status === 'shipped').length} shipped
-                </p>
-                <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                    <thead><tr style={{ background: 'var(--line)', textAlign: 'left' }}>
-                      <th style={{ padding: '8px 10px' }}>Order</th>
-                      <th style={{ padding: '8px 10px' }}>Customer</th>
-                      <th style={{ padding: '8px 10px' }}>Items</th>
-                      <th style={{ padding: '8px 10px' }}>Total</th>
-                      <th style={{ padding: '8px 10px' }}>Status</th>
-                      <th style={{ padding: '8px 10px' }}>Supplier</th>
-                    </tr></thead>
-                    <tbody>
-                      {orders.map(o => (
-                        <tr key={o.id} style={{ borderTop: '1px solid var(--line)', background: o.status === 'pending' ? 'color-mix(in oklab, var(--accent) 8%, transparent)' : 'transparent' }}>
-                          <td style={{ padding: '8px 10px', fontWeight: 600, fontSize: '12px' }}>{o.order_num}</td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <div>{o.customer_name}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{o.email}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{o.address}</div>
-                          </td>
-                          <td style={{ padding: '8px 10px', fontSize: '12px' }}>
-                            {(Array.isArray(o.items) ? o.items : []).map((it, i) => (
-                              <div key={i}>{typeof it === 'string' ? it : `${it.name} (${it.size}) × ${it.qty || 1}`}</div>
-                            ))}
-                          </td>
-                          <td style={{ padding: '8px 10px', fontWeight: 700 }}>{money(o.total)}</td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <select value={o.status} onChange={async (e) => {
-                              if (e.target.value === 'shipped' && o.status !== 'cancelled') {
-                                setShipOrder(o);
-                                setTrackingNum('');
-                                setCourierName('');
-                                return;
-                              }
-                              await updateOrderStatus(o.id, e.target.value);
-                              setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: e.target.value } : ord));
-                            }}
-                              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', fontWeight: 600,
-                                background: o.status === 'pending' ? 'color-mix(in oklab, var(--accent) 20%, transparent)' : o.status === 'ordered' ? 'color-mix(in oklab, var(--accent) 40%, transparent)' : 'color-mix(in oklab, var(--ink) 20%, transparent)' }}>
-                              <option value="pending">⏳ Pending</option>
-                              <option value="ordered">📦 Ordered</option>
-                              <option value="shipped">🚚 Shipped</option>
-                            </select>
-                          </td>
-                          <td style={{ padding: '8px 10px' }}>
-                            <button onClick={() => {
-                              const items = (Array.isArray(o.items) ? o.items : []).map(it => typeof it === 'string' ? it : `${it.name} (${it.size}) × ${it.qty || 1}`).join(', ');
-                              const msg = `NEW ORDER\n━━━━━━━━━━━\nOrder: ${o.order_num}\nItem: ${items}\nCustomer: ${o.customer_name}\nAddress: ${o.address}\nEmail: ${o.email}\n━━━━━━━━━━━\nPlease ship to the address above.`;
-                              navigator.clipboard.writeText(msg);
-                              alert('✅ Order info copied! Paste it into your Alibaba / WhatsApp / DSers chat.');
-                            }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s', marginRight: '4px' }}
-                              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'var(--surface)'; e.target.style.transform = 'translateY(-1px)'; }}
-                              onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
-                              📋 Copy for supplier
-                            </button>
-                            {o.status !== 'cancelled' && o.status !== 'shipped' && (
-                            <button onClick={() => { setCancelOrder({ id: o.id, order: o }); setCancelStep(1); }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--accent)', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
-                              onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
-                              onMouseOut={e => { e.target.style.background = 'color-mix(in oklab, var(--accent) 15%, transparent)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
-                              ✕ Cancel
-                            </button>
-                            )}
-                            {o.status === 'cancelled' && (
-                            <button onClick={async () => {
-                              const r = await fetch('/api/admin/undo-cancel-order', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ orderId: o.id }),
-                              });
-                              const d = await r.json();
-                              if (d.ok) setOrders(prev => prev.map(p => p.id === o.id ? { ...p, status: 'pending' } : p));
-                            }}
-                              style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--ink)', background: 'var(--surface)', color: 'var(--ink)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
-                              onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
-                              onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; e.target.style.transform = ''; }}>
-                              ↩ Undo
-                            </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </div>
-          )}
-
-          {/* ── Stock bar chart ── */}
-          {adminTab === 'orders' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📊 Stock levels</h3>
-            {(() => {
-              const allProds = [...REWIND_PRODUCTS, ...customProducts];
-              const maxStock = Math.max(...allProds.map(p => p.stock || 0), 1);
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {allProds.map(p => (
-                    <div key={p.id || p.product_id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ width: '160px', fontSize: '12px', fontWeight: 600, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                      <div style={{ flex: 1, height: '22px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', position: 'relative' }}>
-                        <div style={{
-                          width: `${Math.round(((p.stock || 0) / maxStock) * 100)}%`,
-                          height: '100%',
-                          background: (p.stock || 0) <= 5 ? 'var(--accent)' : (p.stock || 0) <= 15 ? 'color-mix(in oklab, var(--accent) 60%, var(--ink))' : 'color-mix(in oklab, var(--ink) 40%, transparent)',
-                          borderRadius: '4px',
-                          transition: 'width 0.3s',
-                        }} />
-                      </div>
-                      <span style={{ width: '30px', fontSize: '12px', fontWeight: 700, color: (p.stock || 0) <= 5 ? 'var(--accent)' : 'var(--muted)' }}>{p.stock || 0}</span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-          )}
-
-          {/* ── Stock alerts ── */}
-          {adminTab === 'orders' && (
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>📉 Stock alerts</h3>
-            {(() => {
-              const allProds = [...REWIND_PRODUCTS, ...customProducts];
-              const low = allProds.filter(p => p.stock !== undefined && p.stock <= 5);
-              if (low.length === 0) return <p style={{ color: 'var(--muted)', fontSize: '14px' }}>All products have sufficient stock.</p>;
-              return (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {low.map(p => (
-                    <span key={p.id || p.product_id} style={{ padding: '6px 12px', background: 'color-mix(in oklab, var(--accent) 15%, transparent)', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
-                      {p.name} — only {p.stock} left
-                    </span>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
+            <AdminOrdersPanel showToast={showToast} />
           )}
 
           {/* ── Edit product panel ── */}
@@ -734,12 +548,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
           {/* ── Blocked IPs ── */}
           {adminTab === 'blocked' && <BlockedPanel />}
-
-          {/* ── Changelog ── */}
-          {/* ── Audit Log ── */}
           {adminTab === 'audit' && <AuditLogPanel />}
-
-          {/* ── Chats ── */}
           {adminTab === 'chats' && <AdminChatPanel chatUnread={chatUnread} setChatUnread={setChatUnread} />}
 
           {/* ── Promo Codes ── */}

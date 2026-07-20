@@ -14,7 +14,8 @@
   --maxw: 1300px;
 }
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
+@keyframes rw-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
 html { overflow-x: hidden; width: 100%; scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
 html, body { margin: 0; padding: 0; }
 body {
