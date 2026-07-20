@@ -103,6 +103,7 @@ export default function App() {
   useEffect(() => {
     const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
+    document.documentElement.style.overflow = anyOpen ? 'hidden' : '';
   }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
