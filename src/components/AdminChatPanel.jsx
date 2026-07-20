@@ -15,6 +15,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const [chatRefreshing, setChatRefreshing] = useState(false);
   const [promoPercent, setPromoPercent] = useState(10);
   const [promoCustomValue, setPromoCustomValue] = useState('');
+  const [promoMaxUses, setPromoMaxUses] = useState('');
+  const [promoExpires, setPromoExpires] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const scrollRef = useRef(null);
 
@@ -256,9 +258,9 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
       {/* ── Promo code modal ── */}
       {showPromoPanel && (
         <div className="rw-modal-wrap" onClick={() => setShowPromoPanel(false)}>
-          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', gridTemplateColumns: '1fr' }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', gridTemplateColumns: '1fr' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>🏷 Promo code for {selectedEmail || 'customer'}</h3>
-            <div style={{ marginBottom: '12px' }}>
+            <div style={{ marginBottom: '10px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Discount type</label>
               <select value={promoPercent} onChange={e => setPromoPercent(Number(e.target.value))} className="rw-input">
                 <option value={10}>10% off</option>
@@ -268,8 +270,16 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
               </select>
             </div>
             {promoPercent === 0 && (
-              <input className="rw-input" placeholder="€ amount" value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)} style={{ marginBottom: '8px' }} />
+              <input className="rw-input" placeholder="€ amount" value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)} style={{ marginBottom: '10px' }} />
             )}
+            <div style={{ marginBottom: '10px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Max uses</label>
+              <input className="rw-input" type="number" min="1" max="999" placeholder="Unlimited" value={promoMaxUses} onChange={e => setPromoMaxUses(e.target.value)} style={{ marginBottom: '0' }} />
+            </div>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires</label>
+              <input className="rw-input" type="date" value={promoExpires} onChange={e => setPromoExpires(e.target.value)} style={{ marginBottom: '0' }} />
+            </div>
             {generatedCode && (
               <div style={{ background: 'var(--line)', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
                 <p style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '4px' }}>Generated code:</p>
@@ -285,6 +295,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                       email: selectedEmail,
                       percent: promoPercent || undefined,
                       customAmount: promoPercent === 0 ? Number(promoCustomValue) : undefined,
+                      max_uses: promoMaxUses ? Number(promoMaxUses) : undefined,
+                      expires_at: promoExpires || undefined,
                     }),
                   });
                   const d = await r.json();

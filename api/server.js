@@ -428,21 +428,29 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 
 // Admin: create a promo code (stored in DB)
 app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
-  const { discount, label, code } = req.body;
-  if (!discount || discount < 1 || discount > 100) return res.status(400).json({ error: 'Discount must be 1-100' });
+  const { discount, label, code, max_uses, expires_at, percent, customAmount, email } = req.body;
+  // Support both discount (percentage number) and percent/customAmount fields
+  const finalDiscount = discount || percent || (customAmount ? null : 10);
+  if (finalDiscount && (finalDiscount < 1 || finalDiscount > 100)) return res.status(400).json({ error: 'Discount must be 1-100' });
   const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   try {
+    const body = { code: promoCode, label: label || `${finalDiscount}% off`, created_by: 'admin' };
+    if (finalDiscount) body.discount = finalDiscount;
+    if (customAmount) { body.discount = customAmount; body.discount_type = 'amount'; }
+    if (max_uses) body.max_uses = max_uses;
+    if (expires_at) body.expires_at = expires_at;
+    if (email) body.email = email;
     const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
       method: 'POST',
-      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ code: promoCode, discount, label: label || `${discount}% off`, created_by: 'admin' }),
+      headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify(body),
     });
     if (!promoRes.ok) {
       return res.status(500).json({ error: 'Failed to create promo code' });
     }
-    auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${discount}% off)`, req.ip);
-    res.json({ code: promoCode, discount });
+    auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${finalDiscount}% off)`, req.ip);
+    res.json({ code: promoCode, discount: finalDiscount });
   } catch (e) { console.error('Create promo error:', e); res.status(500).json({ error: 'Failed to create promo code' }); }
 });
 
