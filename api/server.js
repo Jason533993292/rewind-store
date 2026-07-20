@@ -1377,9 +1377,38 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal error' });
 });
 
-// ── Push notification VAPID key endpoint (lazy-loaded to avoid web-push crash on startup) ──
+// ── Push notification VAPID key endpoint ──
 app.get('/api/push/vapid-key', (req, res) => {
   res.json({ publicKey: getVapidPublicKey() });
+});
+
+// ── Admin: get email-to-IP mappings ──
+app.get('/api/admin/email-ips', async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ mappings: [] });
+  try {
+    const [chatRes, orderRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/chat_sessions?select=customer_email,customer_ip&order=last_message_at.desc&limit=500', {
+        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+      }),
+      fetch(SUPABASE_URL + '/rest/v1/orders?select=email,ip_address&order=created_at.desc&limit=500', {
+        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+      }),
+    ]);
+    const [chatData, orderData] = await Promise.all([chatRes.json(), orderRes.json()]);
+    const map = {};
+    const add = (email, ip) => {
+      if (email && ip) {
+        if (!map[email]) map[email] = new Set();
+        map[email].add(ip);
+      }
+    };
+    (Array.isArray(chatData) ? chatData : []).forEach(s => add(s.customer_email, s.customer_ip));
+    (Array.isArray(orderData) ? orderData : []).forEach(o => add(o.email, o.ip_address));
+    const mappings = Object.entries(map).map(([email, ips]) => ({ email, ips: [...ips] }));
+    mappings.sort((a, b) => b.ips.length - a.ips.length);
+    res.json({ mappings });
+  } catch { res.json({ mappings: [] }); }
 });
 
 app.post('/api/push/subscribe', async (req, res) => {
