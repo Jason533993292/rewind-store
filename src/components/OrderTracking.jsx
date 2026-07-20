@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Icon } from './Shell';
 
 export default function OrderTracking({ onClose }) {
   const [email, setEmail] = useState('');
