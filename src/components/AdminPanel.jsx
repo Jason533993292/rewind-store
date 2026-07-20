@@ -1035,4 +1035,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   );
 }
 
+export default AdminPanel;
+
 /* ── First-visit survey ── */
