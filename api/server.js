@@ -445,14 +445,20 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
   const staticCode = PROMO_CODES[upper];
   if (staticCode) return res.json(staticCode);
 
-  // Check database for generated promo codes
+  // Check database for generated promo codes with anti-abuse checks
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,used`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,used,uses,max_uses,expires_at`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
     if (Array.isArray(data) && data.length > 0) {
       const p = data[0];
+      // Already used
+      if (p.used) return res.json({ valid: false, error: 'Code already used' });
+      // Max uses reached
+      if (p.max_uses != null && (p.uses || 0) >= p.max_uses) return res.json({ valid: false, error: 'Usage limit reached' });
+      // Expired
+      if (p.expires_at && new Date(p.expires_at) < new Date()) return res.json({ valid: false, error: 'Code expired' });
       return res.json({ valid: true, type: 'percent', value: p.discount, label: p.label || `${p.discount}% off` });
     }
   } catch {}
@@ -864,6 +870,12 @@ app.post('/api/stripe-webhook', async (req, res) => {
                 method: 'POST',
                 headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ p_code: promoCode }),
+              });
+              // Also mark as used for single-use promos
+              await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}`, {
+                method: 'PATCH',
+                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ used: true }),
               });
             } catch (promoErr) {
               console.warn('Failed to increment promo uses:', promoErr.message);

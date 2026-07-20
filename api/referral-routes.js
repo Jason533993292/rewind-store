@@ -324,13 +324,13 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         // (admin-generated promo codes from settings panel live there)
         try {
           const promoRes = await fetchSupabase('promo_codes', {
-            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,used`,
+            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,used,uses,max_uses,expires_at`,
           });
           if (Array.isArray(promoRes) && promoRes.length > 0) {
             const p = promoRes[0];
-            if (p.used) {
-              return res.json({ valid: false, error: 'This promo code has already been used' });
-            }
+            if (p.used) return res.json({ valid: false, error: 'Code already used' });
+            if (p.max_uses != null && (p.uses || 0) >= p.max_uses) return res.json({ valid: false, error: 'Usage limit reached' });
+            if (p.expires_at && new Date(p.expires_at) < new Date()) return res.json({ valid: false, error: 'Code expired' });
             return res.json({
               valid: true,
               discount: p.discount,
