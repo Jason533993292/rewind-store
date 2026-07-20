@@ -170,24 +170,32 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                 })}
               </div>
               {/* ── Action buttons + reply ── */}
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexShrink: 0, overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '2px' }}>
                 <button onClick={() => setShowPromoPanel(true)}
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
-                  🏷 Promo code
+                  onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
+                  🏷️ Promo
                 </button>
                 <button onClick={() => setShowBlockPanel(true)}
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
-                  🚫 Block customer
+                  onMouseOver={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = ''; }}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: '#dc2626', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#fff', transition: 'all 0.15s', flexShrink: 0 }}>
+                  🚫 Block
                 </button>
                 {selectedEmail && (
                   <a href={'mailto:' + selectedEmail}
-                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'none', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center' }}>
+                    onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
+                    style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, textDecoration: 'none', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
                     📧 Email
                   </a>
                 )}
                 <button onClick={handleClose}
-                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
-                  ✕ Close chat
+                  onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
+                  ✕ Close
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
