@@ -73,6 +73,15 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   const readLimited = makeLimiter();
   // Daily AI reply cap per IP (resets on server restart — fine for solo shop)
   const aiReplyCount = new Map();
+  // Email verification codes: email → { code, expiresAt }
+  const verificationCodes = new Map();
+  // Clean expired codes every 5 minutes
+  setInterval(() => {
+    const now = Date.now();
+    for (const [email, entry] of verificationCodes) {
+      if (entry.expiresAt < now) verificationCodes.delete(email);
+    }
+  }, 300000);
 
   function validateMessage(message) {
     if (!message || typeof message !== 'string' || !message.trim()) return 'Message required';
@@ -371,6 +380,49 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       console.error('Cron reply error:', e);
       res.status(500).json({ error: 'Could not post reply' });
     }
+  });
+
+  // ── Send email verification code ──
+  router.post('/api/chat/send-verification', async (req, res) => {
+    const { email } = req.body;
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Valid email required' });
+    if (startLimited('verify:' + email.toLowerCase(), 3, 3600000)) {
+      return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+    }
+    if (!resend) return res.status(500).json({ error: 'Email service not configured' });
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    verificationCodes.set(email.toLowerCase(), { code, expiresAt: Date.now() + 5 * 60 * 1000 });
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL, reply_to: REPLY_TO, to: email,
+        subject: 'Your REWIND chat verification code',
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:40px auto;padding:32px;background:#FAF6EF;border-radius:14px;text-align:center">
+          <h1 style="font-size:24px;color:#16130F;margin:0">REWIND<span style="color:#FF4D14">.</span></h1>
+          <p style="color:#6E665A;font-size:15px;margin:20px 0 8px">Your chat verification code is:</p>
+          <div style="font-size:40px;font-weight:700;letter-spacing:8px;color:#16130F;background:#fff;border-radius:10px;padding:16px;margin:0 auto;max-width:280px">${code}</div>
+          <p style="color:#6E665A;font-size:13px;margin:20px 0 0">This code expires in 5 minutes.</p>
+        </div>`,
+      });
+      res.json({ ok: true });
+    } catch (e) {
+      console.error('Send verification error:', e);
+      res.status(500).json({ error: 'Failed to send verification email' });
+    }
+  });
+
+  // ── Verify email code ──
+  router.post('/api/chat/verify-code', async (req, res) => {
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ error: 'Email and code required' });
+    const entry = verificationCodes.get(email.toLowerCase());
+    if (!entry) return res.json({ verified: false, error: 'No code sent. Request a new one.' });
+    if (entry.expiresAt < Date.now()) {
+      verificationCodes.delete(email.toLowerCase());
+      return res.json({ verified: false, error: 'Code expired. Request a new one.' });
+    }
+    if (entry.code !== code) return res.json({ verified: false, error: 'Invalid code' });
+    verificationCodes.set(email.toLowerCase(), { verified: true, expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
+    res.json({ verified: true });
   });
 
   return router;

@@ -33,6 +33,10 @@ export default function ChatBubble() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [showEmailScreen, setShowEmailScreen] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerificationScreen, setShowVerificationScreen] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationMsg, setVerificationMsg] = useState('');
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
 
@@ -145,7 +149,7 @@ export default function ChatBubble() {
             <strong style={{ fontSize: '14px' }}>Chat with REWIND</strong>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {sessionId && (
-                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); }}
+                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); setShowVerificationScreen(false); setVerificationCode(''); setVerificationMsg(''); }}
                   style={{ background: 'none', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '11px', cursor: 'pointer', borderRadius: '6px', padding: '3px 8px' }}>
                   New
                 </button>
@@ -188,17 +192,92 @@ export default function ChatBubble() {
                 Open a new one
               </button>
             </div>
-          ) : !sessionId && showEmailScreen ? (
+          ) : !sessionId && showEmailScreen && !showVerificationScreen ? (
             <div style={{ padding: '14px' }}>
               <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 8px' }}>Enter your email to start chatting</p>
               <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
                 placeholder="your@email.com" type="email"
-                onKeyDown={(e) => { if (e.key === 'Enter' && customerEmail.includes('@')) setShowEmailScreen(false); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && customerEmail.includes('@')) document.getElementById('rw-send-code-btn')?.click(); }}
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', boxSizing: 'border-box' }} />
-              <button onClick={() => { if (customerEmail.includes('@')) setShowEmailScreen(false); }}
-                disabled={!customerEmail.includes('@')}
-                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', borderRadius: '8px', border: 'none', background: customerEmail.includes('@') ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: customerEmail.includes('@') ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
-                Continue
+              <button id="rw-send-code-btn" onClick={async () => {
+                if (!customerEmail.includes('@')) return;
+                setVerifying(true);
+                setVerificationMsg('');
+                try {
+                  const r = await fetch('/api/chat/send-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: customerEmail }),
+                  });
+                  const d = await r.json();
+                  if (d.ok) {
+                    setShowVerificationScreen(true);
+                    setVerificationMsg('');
+                  } else {
+                    setVerificationMsg(d.error || 'Failed to send code');
+                  }
+                } catch { setVerificationMsg('Network error'); }
+                setVerifying(false);
+              }}
+                disabled={!customerEmail.includes('@') || verifying}
+                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', borderRadius: '8px', border: 'none', background: customerEmail.includes('@') && !verifying ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: customerEmail.includes('@') && !verifying ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
+                {verifying ? 'Sending code...' : 'Send verification code'}
+              </button>
+              {verificationMsg && <p style={{ fontSize: '12px', color: 'var(--accent)', margin: '6px 0 0', textAlign: 'center' }}>{verificationMsg}</p>}
+            </div>
+          ) : !sessionId && showVerificationScreen ? (
+            <div style={{ padding: '14px' }}>
+              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 4px' }}>A 6-digit code was sent to</p>
+              <p style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 8px', wordBreak: 'break-all' }}>{customerEmail}</p>
+              <input value={verificationCode} onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="Enter 6-digit code" type="text" inputMode="numeric"
+                onKeyDown={async (e) => {
+                  if (e.key === 'Enter' && verificationCode.length === 6) {
+                    setVerifying(true); setVerificationMsg('');
+                    try {
+                      const r = await fetch('/api/chat/verify-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: customerEmail, code: verificationCode }),
+                      });
+                      const d = await r.json();
+                      if (d.verified) {
+                        setShowVerificationScreen(false);
+                        setShowEmailScreen(false);
+                      } else {
+                        setVerificationMsg(d.error || 'Invalid code');
+                      }
+                    } catch { setVerificationMsg('Network error'); }
+                    setVerifying(false);
+                  }
+                }}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '18px', letterSpacing: '6px', textAlign: 'center', boxSizing: 'border-box' }} />
+              <button disabled={verificationCode.length !== 6 || verifying}
+                onClick={async () => {
+                  setVerifying(true); setVerificationMsg('');
+                  try {
+                    const r = await fetch('/api/chat/verify-code', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: customerEmail, code: verificationCode }),
+                    });
+                    const d = await r.json();
+                    if (d.verified) {
+                      setShowVerificationScreen(false);
+                      setShowEmailScreen(false);
+                    } else {
+                      setVerificationMsg(d.error || 'Invalid code');
+                    }
+                  } catch { setVerificationMsg('Network error'); }
+                  setVerifying(false);
+                }}
+                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', borderRadius: '8px', border: 'none', background: verificationCode.length === 6 && !verifying ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: verificationCode.length === 6 && !verifying ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
+                {verifying ? 'Verifying...' : 'Verify'}
+              </button>
+              {verificationMsg && <p style={{ fontSize: '12px', color: 'var(--accent)', margin: '6px 0 0', textAlign: 'center' }}>{verificationMsg}</p>}
+              <button onClick={() => { setShowVerificationScreen(false); setVerificationCode(''); setVerificationMsg(''); }}
+                style={{ display: 'block', width: '100%', marginTop: '6px', padding: '6px', borderRadius: '8px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', textDecoration: 'underline' }}>
+                Use a different email
               </button>
             </div>
           ) : (
