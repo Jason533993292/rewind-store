@@ -624,13 +624,17 @@ async function computeOrder(items, promoCode, country) {
   if (promoCode) {
     try {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=discount,discount_type,label,uses,max_uses`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=discount,discount_type,label,uses,max_uses,used,expires_at`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
       const data = await r.json();
       if (Array.isArray(data) && data.length > 0) {
         const promo = data[0];
-        if (promo.max_uses == null || (promo.uses || 0) < promo.max_uses) {
+        // Anti-abuse: reject used, expired, or maxed-out promos
+        if (promo.used) { /* ignore code */ }
+        else if (promo.expires_at && new Date(promo.expires_at) < new Date()) { /* expired */ }
+        else if (promo.max_uses != null && (promo.uses || 0) >= promo.max_uses) { /* maxed out */ }
+        else {
           if (promo.discount_type === 'free_shipping') {
             discountPrice = subtotal;
             discountLabel = 'Free shipping';
