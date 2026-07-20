@@ -815,38 +815,13 @@ export default function App() {
     }).catch(() => {});
   }, [adminMode]);
 
-  if (adminMode) return (
-    <React.Suspense fallback={<div className="rw-loading-wrap"><TruckLoader /></div>}>
-      <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />
-    </React.Suspense>
-  );
-
-  // Blocked screen
-  if (blocked) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)', padding: '40px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</h1>
-        <h2 style={{ fontSize: '24px', color: 'var(--ink)', marginBottom: '8px' }}>Access restricted</h2>
-        <p style={{ fontSize: '16px', color: 'var(--muted)', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: '3px' }}>contact us</a>.</p>
-      </div>
-    );
-  }
-
-  // Track order page
+  // ── Track order state & hash handler ──
   const [showTrackOrder, setShowTrackOrder] = useState(() => window.location.hash === '#/track');
-
-  // Handle #/track hash
   useEffect(() => {
     const onHash = () => setShowTrackOrder(window.location.hash === '#/track');
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
-
-  if (showTrackOrder) return (
-    <React.Suspense fallback={null}>
-      <OrderTracking onClose={() => { setShowTrackOrder(false); window.location.hash = ''; }} />
-    </React.Suspense>
-  );
 
   // ── SEO: update page title & meta tags ──
   useEffect(() => {
@@ -864,8 +839,31 @@ export default function App() {
 
   const curPid = selectedProduct?.id || selectedProduct?.product_id;
 
-  // Show product detail page instead of shop
-  const viewContent = selectedProduct ? (
+  // Choose content — NO early returns (keeps hooks consistent)
+  let viewContent;
+
+  if (adminMode) {
+    viewContent = (
+      <React.Suspense fallback={<div className="rw-loading-wrap"><TruckLoader /></div>}>
+        <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />
+      </React.Suspense>
+    );
+  } else if (blocked) {
+    viewContent = (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)', padding: '40px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</h1>
+        <h2 style={{ fontSize: '24px', color: 'var(--ink)', marginBottom: '8px' }}>Access restricted</h2>
+        <p style={{ fontSize: '16px', color: 'var(--muted)', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: '3px' }}>contact us</a>.</p>
+      </div>
+    );
+  } else if (showTrackOrder) {
+    viewContent = (
+      <React.Suspense fallback={null}>
+        <OrderTracking onClose={() => { setShowTrackOrder(false); window.location.hash = ''; }} />
+      </React.Suspense>
+    );
+  } else if (selectedProduct) {
+    viewContent = (
     <>
     {/* Per-product JSON-LD for SEO */}
     {selectedProduct && (
@@ -919,7 +917,9 @@ export default function App() {
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} cats={availableCats} />
       </div>
     </>
-  ) : (
+  );
+  } else {
+    viewContent = (
     <div className="rw-app" key="shop">
       {t.showBanner && <Banner showCountdown={t.showCountdown} />}
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
@@ -1069,6 +1069,7 @@ export default function App() {
       <Footer onSizes={() => setShowSizes(true)} onInfo={(p) => setInfoPage(p)} onSetCat={(c) => { setCat(c); scrollToGrid(); }} cats={availableCats} />
     </div>
   );
+  }
 
   return (
     <ClickSpark sparkColor="#FF4D14" sparkSize={8} sparkRadius={16} sparkCount={10}>
