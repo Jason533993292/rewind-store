@@ -39,8 +39,10 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
     const interval = setInterval(async () => {
       try {
         const r = await fetch('/api/admin/chat/sessions');
+        if (!r.ok) return;
         const d = await r.json();
         const newSessions = Array.isArray(d.sessions) ? d.sessions : [];
+        if (newSessions.length === 0) return; // Don't clear on empty response (transient fetch glitch)
         setSessions(prev => {
           if (prev.length > 0 && newSessions.length > prev.length) {
             setChatUnread(newSessions.length - prev.length);

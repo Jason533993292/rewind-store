@@ -1273,12 +1273,39 @@ app.post('/api/admin/orders/update-status', async (req, res) => {
   if (!id || !status) return res.status(400).json({ error: 'id and status required' });
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`, {
-      method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+    await fetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + id, {
+      method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
     res.json({ ok: true });
   } catch { res.status(500).json({ error: 'Operation failed' }); }
+});
+
+// ── Create test order for debugging ──
+app.post('/api/debug/create-test-order', async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const orderNum = 'RW-TEST-' + Date.now().toString(36).toUpperCase();
+    await fetch(SUPABASE_URL + '/rest/v1/orders', {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        order_num: orderNum,
+        email: 'test@rewind-stores.com',
+        customer_name: 'Test Customer',
+        address: '123 Test Street, Test City',
+        items: [{ name: 'Test Product', price: 42, qty: 1 }],
+        total: 42,
+        shipping: 4,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      }),
+    });
+    res.json({ ok: true, order: orderNum });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to create test order' });
+  }
 });
 
 // ── Admin: mark order as shipped + send notification email ──
