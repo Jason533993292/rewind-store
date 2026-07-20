@@ -475,21 +475,30 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
     if (max_uses) body.max_uses = max_uses;
     if (expires_at) body.expires_at = expires_at;
     if (email) body.email = email;
+    // Remove undefined values before serialization
+    Object.keys(body).forEach(k => { if (body[k] === undefined) delete body[k]; });
     const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
       method: 'POST',
       headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify(body),
     });
     if (!promoRes.ok) {
+      const errText = await promoRes.text();
+      console.error('Create promo failed:', errText);
       // Retry without optional fields that may not exist in older DB schemas
       delete body.expires_at;
       delete body.email;
+      delete body.max_uses;
       const retryRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
         method: 'POST',
         headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify(body),
       });
-      if (!retryRes.ok) return res.status(500).json({ error: 'Failed to create promo code' });
+      if (!retryRes.ok) {
+        const retryErr = await retryRes.text();
+        console.error('Create promo retry failed:', retryErr);
+        return res.status(500).json({ error: 'Failed to create promo code' });
+      }
     }
     auditLog(getAdminEmailFromToken(req), 'create_promo', `${promoCode} (${finalDiscount}% off)`, req.ip);
     res.json({ code: promoCode, discount: finalDiscount });

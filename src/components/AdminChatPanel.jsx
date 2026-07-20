@@ -284,7 +284,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             </div>
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires</label>
-              <input className="rw-input" type="date" value={promoExpires} onChange={e => setPromoExpires(e.target.value)} style={{ marginBottom: '0' }} />
+              <input className="rw-input" type="date" min={new Date().toISOString().split('T')[0]} value={promoExpires} onChange={e => setPromoExpires(e.target.value)} style={{ marginBottom: '0' }} />
             </div>
             {generatedCode && (
               <div style={{ background: 'var(--line)', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
