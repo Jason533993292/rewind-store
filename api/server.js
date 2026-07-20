@@ -447,7 +447,7 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 
   // Check database for generated promo codes
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,uses`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,used`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
