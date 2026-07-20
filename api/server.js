@@ -9,7 +9,7 @@ import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
 import { buildReferralRouter } from './referral-routes.js';
 import { buildSettingsRouter } from './settings-routes.js';
-import pushRouter from './push-routes.js';
+import { getVapidPublicKey } from './push-routes.js';
 import { requireAdmin, signAdminSession, verifyAdminSession } from './middleware/requireAdmin.js';
 import cookieParser from 'cookie-parser';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -1377,8 +1377,30 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal error' });
 });
 
-// ── Push notification routes ──
-app.use(pushRouter);
+// ── Push notification VAPID key endpoint (lazy-loaded to avoid web-push crash on startup) ──
+app.get('/api/push/vapid-key', (req, res) => {
+  res.json({ publicKey: getVapidPublicKey() });
+});
+
+app.post('/api/push/subscribe', async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const sub = req.body;
+  if (!sub || !sub.endpoint) return res.status(400).json({ error: 'subscription required' });
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const checkRes = await fetch(SUPABASE_URL + '/rest/v1/push_subscriptions?endpoint=eq.' + encodeURIComponent(sub.endpoint) + '&select=id', {
+      headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+    });
+    const existing = await checkRes.json();
+    if (Array.isArray(existing) && existing.length > 0) return res.json({ ok: true });
+    await fetch(SUPABASE_URL + '/rest/v1/push_subscriptions', {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ subscription: sub }),
+    });
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Failed to save subscription' }); }
+});
 
 // ── Referral routes ──
 app.use('/api/referral', referralRouter);

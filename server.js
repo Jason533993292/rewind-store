@@ -6,4 +6,4 @@ import 'dotenv/config';
 import app from './api/server.js';
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`REWIND server running on :${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`REWIND server running on :${PORT}`));
