@@ -1411,6 +1411,46 @@ app.get('/api/admin/email-ips', async (req, res) => {
   } catch { res.json({ mappings: [] }); }
 });
 
+// ── Admin: bulk cleanup test accounts (requires CRON_SECRET_TOKEN) ──
+app.post('/api/admin/cleanup-test-emails', async (req, res) => {
+  const token = req.headers['x-cron-token'];
+  if (token !== process.env.CRON_SECRET_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  const testEmails = [
+    'test-ai-working@example.com', 'fullerror@example.com', 'errorspy@example.com',
+    'debug-save2@example.com', 'now-it-works@example.com', 'final-final@example.com',
+    'check@example.com', 'new-test@example.com', 'final-truth@example.com',
+    'debug-ai@example.com', 'final-real-test@example.com', 'real-test-now@example.com',
+    'longwait@test.com', 'final-test@example.com', 'test-ai@example.com',
+    'test-final@example.com', 'test999@example.com', 'test777@example.com',
+    'test@example.com', 'spammer@example.com', 'spam@test.com',
+  ];
+  let removed = 0;
+  try {
+    for (const email of testEmails) {
+      const encoded = encodeURIComponent(email);
+      const blockRes = await fetch(SUPABASE_URL + '/rest/v1/blocked_emails?email=eq.' + encoded, {
+        method: 'DELETE',
+        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+      });
+      if (blockRes.ok) removed++;
+      const chatRes = await fetch(SUPABASE_URL + '/rest/v1/chat_sessions?customer_email=eq.' + encoded, {
+        method: 'DELETE',
+        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+      });
+      // Also delete chat messages for these sessions
+      const chatMsgsRes = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?session_id=in.(select session_id from chat_sessions where customer_email=eq.' + encoded + ')', {
+        method: 'DELETE',
+        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+      });
+    }
+    res.json({ ok: true, removed });
+  } catch (e) {
+    res.status(500).json({ error: 'Cleanup failed', detail: e.message });
+  }
+});
+
 app.post('/api/push/subscribe', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const sub = req.body;
