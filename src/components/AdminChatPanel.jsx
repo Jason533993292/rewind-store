@@ -118,6 +118,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             <p style={{ color: 'var(--muted)', fontSize: '13px', padding: '8px' }}>No active chat sessions.</p>
           ) : sessions.map(s => (
             <button key={s.session_id} onClick={() => setSelectedId(s.session_id)}
+              onMouseOver={e => { if (selectedId !== s.session_id) { e.currentTarget.style.background = 'var(--line-2)'; e.currentTarget.style.transform = 'translateX(2px)'; } }}
+              onMouseOut={e => { if (selectedId !== s.session_id) { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.transform = ''; } }}
               style={{
                 padding: '10px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '12px',
                 fontWeight: selectedId === s.session_id ? 700 : 500,
