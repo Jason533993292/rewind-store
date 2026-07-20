@@ -112,8 +112,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '16px', minHeight: '300px' }}>
-        <div style={{ width: '200px', minWidth: '160px', flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto' }}>
+      <div style={{ display: 'flex', gap: '0', minHeight: '300px' }}>
+        <div style={{ width: '200px', minWidth: '160px', flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto', borderRight: '1px solid var(--line)', paddingRight: '12px' }}>
           {sessions.length === 0 ? (
             <p style={{ color: 'var(--muted)', fontSize: '13px', padding: '8px' }}>No active chat sessions.</p>
           ) : sessions.map(s => (
@@ -136,7 +136,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
           ))}
         </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, paddingLeft: '12px' }}>
           {!selectedId ? (
             <p style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '40px' }}>
               Select a chat session to view messages
@@ -174,7 +174,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                 })}
               </div>
               {/* ── Action buttons + reply ── */}
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexShrink: 0, overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '2px' }}>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexShrink: 0, overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '2px', maxWidth: '100%' }}>
                 <button onClick={() => setShowPromoPanel(true)}
                   onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
