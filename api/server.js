@@ -42,6 +42,28 @@ app.use(express.json({
   verify: (req, _res, buf) => { req.rawBody = buf.toString(); },
 }));
 
+// ── CSRF protection ──
+const ALLOWED_ORIGINS = ['https://rewind-stores.com', 'https://www.rewind-stores.com', 'http://localhost:3000', 'http://localhost:5173'];
+app.use((req, res, next) => {
+  if (['POST', 'DELETE', 'PUT', 'PATCH'].includes(req.method) && req.path.startsWith('/api/')) {
+    const origin = req.headers['origin'];
+    const referer = req.headers['referer'];
+    if (origin && !ALLOWED_ORIGINS.includes(origin)) return res.status(403).json({ error: 'Cross-origin request blocked' });
+    if (!origin && referer) {
+      try { const o = new URL(referer).origin; if (!ALLOWED_ORIGINS.includes(o)) return res.status(403).json({ error: 'Blocked' }); }
+      catch { return res.status(403).json({ error: 'Blocked' }); }
+    }
+  }
+  next();
+});
+
+// ── Request logging ──
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => { if (req.path.startsWith('/api/')) console.log(req.method, req.path, res.statusCode, Date.now() - start + 'ms'); });
+  next();
+});
+
 // ── IP blocker middleware ──
 const BLOCKED_IPS = new Map(); // in-memory cache, cleared on restart
 const BLOCKED_EMAILS = new Set();
@@ -157,7 +179,15 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
   const isMasterToken = ADMIN_TOKEN && token.length === ADMIN_TOKEN.length &&
     crypto.timingSafeEqual(Buffer.from(token), Buffer.from(ADMIN_TOKEN));
   const isValidSession = verifyAdminSession(token, email);
-  if (!isMasterToken && !isValidSession) return res.json({ verified: false });
+  if (!isMasterToken && !isValidSession) {
+    // Track failed attempts per IP
+    const ip = req.ip;
+    const attempts = (verifyAttempts.get(ip) || 0) + 1;
+    verifyAttempts.set(ip, attempts);
+    setTimeout(() => { const c = verifyAttempts.get(ip); if (c && c <= 1) verifyAttempts.delete(ip); else if (c) verifyAttempts.set(ip, c - 1); }, 60000);
+    if (attempts > 5) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+    return res.json({ verified: false });
+  }
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ verified: false });
@@ -173,7 +203,7 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      path: '/',
+      path: '/api',
       maxAge: 12 * 60 * 60 * 1000,
     });
     res.json({ verified: true });
