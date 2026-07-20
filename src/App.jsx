@@ -250,9 +250,12 @@ export default function App() {
   useEffect(() => { if (showReferral) window.dispatchEvent(new Event('referral-panel-open')); }, [showReferral]);
   useEffect(() => { if (wishlistOpen) window.dispatchEvent(new Event('wishlist-panel-open')); }, [wishlistOpen]);
 
-  // ── Desktop notifications for new chat messages (works on ANY page) ──
+  // ── Desktop notifications for new chat messages (only on admin page or when logged in) ──
   useEffect(() => {
     if (!('Notification' in window)) return;
+    const isAdminPage = window.location.hash === '#admin';
+    const hasAdminEmail = !!localStorage.getItem('rw_admin_email');
+    if (!isAdminPage && !hasAdminEmail) return;
     if (Notification.permission === 'default') Notification.requestPermission();
 
     let lastCount = 0;
