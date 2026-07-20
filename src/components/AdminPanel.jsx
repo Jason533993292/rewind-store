@@ -57,19 +57,18 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   }, []);
 
   useEffect(() => {
-    if (!supabase || chatUnread === 0) return;
+    if (chatUnread === 0) return;
     if (chatUnread > lastUnreadRef.current && Notification.permission === 'granted') {
       const diff = chatUnread - lastUnreadRef.current;
       try {
         new Notification('💬 New chat message' + (diff > 1 ? ` (${diff} unread)` : ''), {
           body: diff > 1 ? `${diff} unread messages from customers` : 'A customer sent a new message',
-          icon: '/favicon.png',
           tag: 'rewind-chat',
         });
       } catch {}
     }
     lastUnreadRef.current = chatUnread;
-  }, [chatUnread, supabase]);
+  }, [chatUnread]);
 
   // Keyboard shortcuts: 1-9 for tabs (skip when typing in inputs)
   useEffect(() => {
