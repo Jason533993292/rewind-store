@@ -25,7 +25,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [adminTab, setAdminTab] = useState('users');
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
-  const [adminToken] = useState('');
+  const [adminToken, setAdminToken] = useState('');
   const [showToken, setShowToken] = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [adminChecking, setAdminChecking] = useState(true);
