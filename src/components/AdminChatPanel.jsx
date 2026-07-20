@@ -221,7 +221,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
       {/* ── Block customer modal ── */}
       {showBlockPanel && (
         <div className="rw-modal-wrap" onClick={() => setShowBlockPanel(false)}>
-          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', gridTemplateColumns: '1fr' }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px', gridTemplateColumns: '1fr', padding: '32px' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>🚫 Block customer</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>Block {selectedEmail || 'this customer'} from contacting you again.</p>
             <select value={blockReason} onChange={e => setBlockReason(e.target.value)} className="rw-input" style={{ marginBottom: '8px' }}>
@@ -258,7 +258,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
       {/* ── Promo code modal ── */}
       {showPromoPanel && (
         <div className="rw-modal-wrap" onClick={() => setShowPromoPanel(false)}>
-          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', gridTemplateColumns: '1fr' }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px', gridTemplateColumns: '1fr', padding: '32px' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>🏷 Promo code for {selectedEmail || 'customer'}</h3>
             <div style={{ marginBottom: '10px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Discount type</label>
