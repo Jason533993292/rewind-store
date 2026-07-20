@@ -489,6 +489,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
       delete body.expires_at;
       delete body.email;
       delete body.max_uses;
+      delete body.discount_type;
       const retryRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
         method: 'POST',
         headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
