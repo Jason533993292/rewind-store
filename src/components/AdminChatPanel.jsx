@@ -7,6 +7,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
   const [showBlockPanel, setShowBlockPanel] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [blockReason, setBlockReason] = useState('');
   const [blockCustomReason, setBlockCustomReason] = useState('');
   const [blockMsg, setBlockMsg] = useState('');
@@ -177,6 +178,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
                   🚫 Block customer
                 </button>
+                {selectedEmail && (
+                  <a href={'mailto:' + selectedEmail}
+                    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, textDecoration: 'none', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center' }}>
+                    📧 Email
+                  </a>
+                )}
                 <button onClick={handleClose}
                   style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
                   ✕ Close chat
@@ -199,5 +206,87 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
         </div>
       </div>
     </div>
+
+      {/* ── Block customer modal ── */}
+      {showBlockPanel && (
+        <div className="rw-modal-wrap" onClick={() => setShowBlockPanel(false)}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', gridTemplateColumns: '1fr' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>🚫 Block customer</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>Block {selectedEmail || 'this customer'} from contacting you again.</p>
+            <select value={blockReason} onChange={e => setBlockReason(e.target.value)} className="rw-input" style={{ marginBottom: '8px' }}>
+              <option value="">Select reason...</option>
+              <option value="spam">Spam</option>
+              <option value="abuse">Abusive language</option>
+              <option value="other">Other</option>
+            </select>
+            {blockReason === 'other' && (
+              <input className="rw-input" placeholder="Custom reason..." value={blockCustomReason} onChange={e => setBlockCustomReason(e.target.value)} style={{ marginBottom: '8px' }} />
+            )}
+            {blockMsg && <p style={{ fontSize: '12px', color: 'var(--accent)', marginBottom: '8px' }}>{blockMsg}</p>}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="rw-btn" style={{ flex: 1 }} onClick={() => setShowBlockPanel(false)}>Cancel</button>
+              <button className="rw-btn rw-btn-pri" style={{ flex: 1 }} disabled={!blockReason}
+                onClick={async () => {
+                  try {
+                    const r = await fetch('/api/admin/chat/block-email', {
+                      method: 'POST', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: selectedEmail, reason: blockReason, customReason: blockReason === 'other' ? blockCustomReason : '' }),
+                    });
+                    const d = await r.json();
+                    if (d.ok) setBlockMsg('✅ Customer blocked');
+                    else setBlockMsg('❌ ' + (d.error || 'Failed'));
+                  } catch { setBlockMsg('❌ Network error'); }
+                }}>
+                Block
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Promo code modal ── */}
+      {showPromoPanel && (
+        <div className="rw-modal-wrap" onClick={() => setShowPromoPanel(false)}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', gridTemplateColumns: '1fr' }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>🏷 Promo code for {selectedEmail || 'customer'}</h3>
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Discount type</label>
+              <select value={promoPercent} onChange={e => setPromoPercent(Number(e.target.value))} className="rw-input">
+                <option value={10}>10% off</option>
+                <option value={15}>15% off</option>
+                <option value={20}>20% off</option>
+                <option value={0}>Custom amount (€)</option>
+              </select>
+            </div>
+            {promoPercent === 0 && (
+              <input className="rw-input" placeholder="€ amount" value={promoCustomValue} onChange={e => setPromoCustomValue(e.target.value)} style={{ marginBottom: '8px' }} />
+            )}
+            {generatedCode && (
+              <div style={{ background: 'var(--line)', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
+                <p style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '4px' }}>Generated code:</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '1px', fontFamily: 'monospace' }}>{generatedCode}</p>
+              </div>
+            )}
+            <button className="rw-btn rw-btn-pri rw-btn-full"
+              onClick={async () => {
+                try {
+                  const r = await fetch('/api/admin/create-promo', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      email: selectedEmail,
+                      percent: promoPercent || undefined,
+                      customAmount: promoPercent === 0 ? Number(promoCustomValue) : undefined,
+                    }),
+                  });
+                  const d = await r.json();
+                  if (d.code) setGeneratedCode(d.code);
+                  else setGeneratedCode('Error: ' + (d.error || 'Failed'));
+                } catch { setGeneratedCode('Network error'); }
+              }}>
+              Generate promo code
+            </button>
+          </div>
+        </div>
+      )}
   );
 }
