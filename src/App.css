@@ -16,7 +16,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 @keyframes rw-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
-html { overflow-x: hidden; width: 100%; scrollbar-color: var(--accent) transparent; scrollbar-width: thin; scrollbar-gutter: stable; }
+html { overflow-x: hidden; width: 100%; background: var(--bg); scrollbar-color: var(--accent) transparent; scrollbar-width: thin; scrollbar-gutter: stable; }
 /* Webkit scrollbar (Chrome, Safari, Edge) */
 html::-webkit-scrollbar { width: 5px; }
 html::-webkit-scrollbar-track { background: transparent; border: none; }
