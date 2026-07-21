@@ -63,6 +63,9 @@ export const adminApi = {
 
   // Check auth
   checkAuth: () => fetch('/api/admin/check-auth').then(r => r.json()).then(d => d.authed).catch(() => false),
+
+  // Debug
+  createTestOrder: () => adminFetch('/api/debug/create-test-order', { method: 'POST', body: JSON.stringify({ email: localStorage.getItem('rw_admin_email') || '' }) }),
 };
 
 // Toast helper for showing messages

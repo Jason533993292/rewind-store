@@ -125,6 +125,18 @@ export default function AdminOrdersPanel({ showToast }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📦 Orders ({total})</h3>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button onClick={async () => {
+            const r = await adminApi.createTestOrder();
+            if (r.ok) {
+              showToast?.('✅ Test order created: ' + r.data.orderNum, 'success');
+              loadOrders();
+            } else showToast?.(r.error || 'Failed', 'error');
+          }}
+            style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s' }}
+            onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
+            onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
+            🧪 Create Test Order
+          </button>
           <input placeholder="Search orders..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', width: '160px' }} />
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}

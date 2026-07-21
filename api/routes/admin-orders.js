@@ -192,17 +192,18 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
       const orderNum = 'RW-TEST-' + Date.now().toString(36).toUpperCase();
+      const email = req.body?.email || 'test@rewind-stores.com';
       await fetch(SUPABASE_URL + '/rest/v1/orders', {
         method: 'POST',
         headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           order_num: orderNum,
-          email: 'test@rewind-stores.com',
+          email,
           customer_name: 'Test Customer',
           address: '123 Test Street, Test City',
-          items: [{ name: 'Test Product', price: 42, qty: 1 }],
-          total: 42,
-          shipping: 4,
+          items: JSON.stringify([{ name: 'Test Product', price: 50, qty: 1 }]),
+          total: 50,
+          shipping: 0,
           status: 'pending',
           created_at: new Date().toISOString(),
         }),
