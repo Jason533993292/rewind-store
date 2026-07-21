@@ -1104,6 +1104,25 @@ app.post('/api/create-test-order', async (req, res) => {
   }
 });
 
+// ── Check if email is blocked (used at checkout and chat) ──
+app.post('/api/check-blocked-email', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.json({ blocked: false });
+  try {
+    const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails?email=eq.${encodeURIComponent(email)}`, {
+      headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+    });
+    const data = await r.json();
+    res.json({ blocked: data && data.length > 0 });
+  } catch { res.json({ blocked: false }); }
+});
+
+// ── Push VAPID public key ──
+app.get('/api/push/vapid-key', (req, res) => {
+  res.json({ publicKey: 'BNewrKRg9ASnQuZ5hBF-4I9_s-R9FKgh2CkhqZ9l9QFwJTnJyJByDfMM3-xvM8wDHCyAXnpbvkVqQdMDzmenNOw' });
+});
+
 app.post('/api/push/subscribe', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const sub = req.body;
