@@ -4,13 +4,13 @@ export default function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('rw_cookie_consent')) return;
+    if (localStorage.getItem('rw_cookie_notice')) return;
     const timer = setTimeout(() => setShow(true), 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  function accept() {
-    localStorage.setItem('rw_cookie_consent', 'true');
+  function dismiss() {
+    localStorage.setItem('rw_cookie_notice', 'true');
     setShow(false);
   }
 
@@ -24,10 +24,14 @@ export default function CookieBanner() {
       gap: '16px', flexWrap: 'wrap', fontSize: '13px',
       borderTop: '1px solid rgba(255,255,255,0.1)',
     }}>
-      <span style={{ opacity: 0.85 }}>
-        We use cookies for payments (Stripe), order emails (Resend), and essential store functions. No tracking or advertising cookies.
+      <span style={{ opacity: 0.85, textAlign: 'center' }}>
+        REWIND uses essential cookies for payments (Stripe), order emails (Resend), and store functions. No advertising or tracking cookies.
+        <br />
+        <a onClick={() => { window.location.hash = 'privacy'; setShow(false); }} style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
+          Read our Privacy Policy →
+        </a>
       </span>
-      <button onClick={accept}
+      <button onClick={dismiss}
         style={{
           padding: '8px 20px', borderRadius: '999px', border: 'none',
           background: 'var(--accent)', color: '#fff', cursor: 'pointer',
@@ -36,7 +40,7 @@ export default function CookieBanner() {
         }}
         onMouseOver={e => { e.target.style.opacity = '0.85'; }}
         onMouseOut={e => { e.target.style.opacity = '1'; }}>
-        Accept
+        Got it
       </button>
     </div>
   );
