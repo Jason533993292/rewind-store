@@ -1230,6 +1230,21 @@ export default function App() {
             <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Referrals</span>
           </button>
 
+          {/* Home */}
+          <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false); }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '6px', borderRadius: '16px', flexShrink: 0,
+            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink)',
+            fontSize: '13px', fontWeight: 700, transition: 'transform 0.2s ease',
+            transform: 'scale(1)',
+          }}
+          onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
+          onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
+        </button>
+
           {/* Track order */}
           <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = '#/track'; setDockHover(false); }}
             style={{
@@ -1247,21 +1262,6 @@ export default function App() {
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
             <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Track order</span>
           </button>
-
-          {/* Home */}
-          <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false); }}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '6px', borderRadius: '16px', flexShrink: 0,
-            background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink)',
-            fontSize: '13px', fontWeight: 700, transition: 'transform 0.2s ease',
-            transform: 'scale(1)',
-          }}
-          onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.12)'; }}
-          onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          {dockHover && <span style={{ fontSize: '13px', fontWeight: 600, marginLeft: '6px' }}>Home</span>}
-        </button>
 
         {/* Settings */}
         <button onClick={() => { setShowReferral(false); setShowSettings(true); }}
