@@ -53,7 +53,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
           return newSessions;
         });
       } catch {}
-    }, 30000);
+    }, 8000);
     return () => clearInterval(interval);
   }, [setChatUnread]);
 

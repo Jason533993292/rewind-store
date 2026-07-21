@@ -70,17 +70,15 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     lastUnreadRef.current = chatUnread;
   }, [chatUnread]);
 
-  // Keyboard shortcuts: 1-8 for tabs (skip when typing in inputs)
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e) => {
       const tag = e.target.tagName;
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
-      const map = { '1':'users','2':'email','3':'orders','4':'chats','5':'promo','6':'blocked','7':'products','8':'audit' };
-      if (map[e.key] && adminAuthed) setAdminTab(map[e.key]);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [adminAuthed]);
+  }, []);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
