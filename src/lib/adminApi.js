@@ -20,7 +20,7 @@ export const adminApi = {
   getOrders: (limit, offset) => adminFetch('/api/admin/orders?limit=' + (limit || 50) + '&offset=' + (offset || 0)),
   updateOrderStatus: (id, status) => adminFetch('/api/admin/orders/update-status', { method: 'POST', body: JSON.stringify({ id, status }) }),
   shipOrder: (id, trackingNumber, courier) => adminFetch('/api/admin/orders/ship', { method: 'POST', body: JSON.stringify({ id, trackingNumber, courier }) }),
-  cancelOrder: (id, reason) => adminFetch('/api/admin/cancel-order', { method: 'POST', body: JSON.stringify({ id, reason }) }),
+  cancelOrder: (id, reason, customReason) => adminFetch('/api/admin/cancel-order', { method: 'POST', body: JSON.stringify({ orderId: id, reason, customReason: customReason || '' }) }),
   lookupOrder: (orderNum, email) => adminFetch('/api/lookup-order', { method: 'POST', body: JSON.stringify({ orderNum, email }) }),
 
   // Products

@@ -33,6 +33,7 @@ export default function AuditLogPanel() {
     });
     setMsg(`🚫 ${email} blocked`);
     setTimeout(() => setMsg(''), 3000);
+    await load();
   }
 
   async function unblockEmail(email) {
@@ -43,6 +44,7 @@ export default function AuditLogPanel() {
     });
     setMsg(`✅ ${email} unblocked`);
     setTimeout(() => setMsg(''), 3000);
+    await load();
   }
 
   async function blockIp(ip) {
@@ -53,6 +55,7 @@ export default function AuditLogPanel() {
     });
     setMsg(`🚫 IP ${ip} blocked`);
     setTimeout(() => setMsg(''), 3000);
+    await load();
   }
 
   function isEmail(v) { return /^\S+@\S+\.\S+$/.test(v); }

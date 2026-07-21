@@ -65,6 +65,8 @@ export default function AdminOrdersPanel({ showToast }) {
     if (status === 'cancelled') {
       const o = orders.find(x => x.id === id);
       setConfirmAction({ type: 'cancel', id, order: o });
+      setCancelReason('');
+      setCustomReason('');
       return;
     }
     const r = await adminApi.updateOrderStatus(id, status);
@@ -75,15 +77,17 @@ export default function AdminOrdersPanel({ showToast }) {
   };
 
   const confirmCancel = async () => {
-    if (!confirmAction) return;
+    if (!confirmAction || !cancelReason) return;
     setCancelling(true);
-    const r = await adminApi.updateOrderStatus(confirmAction.id, 'cancelled');
+    const r = await adminApi.cancelOrder(confirmAction.id, cancelReason, customReason);
     if (r.ok) {
       setOrders(prev => prev.map(o => o.id === confirmAction.id ? { ...o, status: 'cancelled' } : o));
       setConfirmAction(null);
-      showToast?.('Order cancelled', 'success');
+      setCancelReason('');
+      setCustomReason('');
+      showToast?.('✅ Order cancelled & email sent to customer', 'success');
     } else {
-      showToast?.(r.error, 'error');
+      showToast?.(r.error || 'Failed to cancel', 'error');
     }
     setCancelling(false);
   };
@@ -227,13 +231,28 @@ export default function AdminOrdersPanel({ showToast }) {
       {/* ── Cancel confirmation ── */}
       {confirmAction?.type === 'cancel' && (
         <div className="rw-modal-wrap" onClick={() => setConfirmAction(null)}>
-          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', gridTemplateColumns: '1fr', padding: '24px' }}>
-            <h3 style={{ margin: '0 0 8px' }}>Cancel order {confirmAction.order?.order_num}?</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>Customer will receive a cancellation email. No refund will be processed here — do it in Stripe.</p>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>No, keep</button>
-              <button className="rw-btn rw-btn-pri" onClick={confirmCancel} disabled={cancelling} style={{ flex: 1, background: '#dc2626' }}>
-                {cancelling ? '...' : 'Yes, cancel'}
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px', gridTemplateColumns: '1fr', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 4px' }}>Cancel order {confirmAction.order?.order_num}?</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>An email will be sent to the customer. Refund must be done in Stripe.</p>
+            <label style={{ fontSize: '12px', fontWeight: 600, marginBottom: '6px', display: 'block' }}>Reason</label>
+            {[
+              { id: 'out_of_stock', label: 'Out of stock' },
+              { id: 'damaged', label: 'Damaged during handling' },
+              { id: 'customer_request', label: 'Customer requested cancellation' },
+              { id: 'other', label: 'Other' },
+            ].map(r => (
+              <button key={r.id} onClick={() => { setCancelReason(r.id); if (r.id !== 'other') setCustomReason(''); }}
+                style={{ display: 'block', width: '100%', padding: '8px 12px', marginBottom: '4px', borderRadius: '8px', border: cancelReason === r.id ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: cancelReason === r.id ? 'var(--ink)' : 'var(--surface)', color: cancelReason === r.id ? '#fff' : 'var(--ink)', cursor: 'pointer', fontWeight: 600, fontSize: '12px', textAlign: 'left' }}>
+                {r.label}
+              </button>
+            ))}
+            {cancelReason === 'other' && (
+              <input className="rw-input" placeholder="Describe why..." value={customReason} onChange={e => setCustomReason(e.target.value)} style={{ marginBottom: '12px', width: '100%' }} />
+            )}
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
+              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>Back</button>
+              <button className="rw-btn rw-btn-pri" onClick={confirmCancel} disabled={!cancelReason || (cancelReason === 'other' && !customReason.trim()) || cancelling} style={{ flex: 1, background: '#dc2626' }}>
+                {cancelling ? 'Cancelling...' : 'Send cancellation'}
               </button>
             </div>
           </div>
