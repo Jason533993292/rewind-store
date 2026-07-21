@@ -916,6 +916,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               </div>
             )}
             <div><span>Shipping</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? 'Free 🎉' : 'Free') : money(discountShipping)}</span></div>
+            {formFields.country && (() => {
+              const c = (formFields.country || '').toUpperCase().trim().substring(0, 2);
+              const est = { CN: '3-7d', JP: '3-7d', KR: '3-7d', SG: '5-10d', TH: '5-10d', VN: '5-10d', IN: '7-14d', PK: '7-14d',
+                GB: '7-14d', DE: '7-14d', FR: '7-14d', IT: '7-14d', ES: '7-14d', NL: '7-14d', BE: '7-14d', CH: '7-14d',
+                US: '7-14d', CA: '7-14d', MX: '10-18d', AU: '10-16d', NZ: '10-16d',
+                AE: '10-18d', SA: '10-18d', IL: '10-18d', TR: '10-18d',
+                BR: '14-21d', AR: '14-21d', ZA: '14-21d', NG: '14-21d', EG: '14-21d' }[c] || '10-18d';
+              return <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>Est. delivery: {est}</div>;
+            })()}
           </div>
           <div className="rw-sum-total">
             <div><span>Total</span><b>{money(finalTotal)}</b></div>
