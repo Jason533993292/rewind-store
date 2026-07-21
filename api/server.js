@@ -150,6 +150,25 @@ app.use(express.static(path.join(__dirname, '..', 'dist'), {
 }));
 console.log('[static]', path.join(__dirname, '..', 'dist'));
 
+// ── Sitemap — generate dynamically from product catalog ──
+app.get('/sitemap.xml', (_req, res) => {
+  const urls = [
+    'https://rewind-stores.com',
+    'https://rewind-stores.com/#/track',
+  ];
+  // Add all product pages
+  for (const p of SERVER_PRODUCTS) {
+    urls.push(`https://rewind-stores.com/?product=${encodeURIComponent(p.id)}`);
+  }
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url><loc>${u}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`).join('
+')}
+</urlset>`;
+  res.set('Content-Type', 'application/xml');
+  res.send(xml);
+});
+
 // ── Health check (must be before rate limiter so Railway healthchecks don't get blocked) ──
 app.get('/api/health', (_req, res) => {
   const distPath = path.join(__dirname, '..', 'dist');

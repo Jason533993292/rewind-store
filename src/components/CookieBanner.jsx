@@ -1,28 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function CookieBanner() {
-  const [accepted, setAccepted] = useState(() => {
-    try { return localStorage.getItem('rw_cookie_consent') === 'true'; } catch { return false; }
-  });
+  const [show, setShow] = useState(false);
 
-  if (accepted) return null;
+  useEffect(() => {
+    if (localStorage.getItem('rw_cookie_consent')) return;
+    const timer = setTimeout(() => setShow(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  function accept() {
+    localStorage.setItem('rw_cookie_consent', 'true');
+    setShow(false);
+  }
+
+  if (!show) return null;
 
   return (
     <div style={{
-      position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100001,
-      background: 'var(--surface)', borderTop: '1px solid var(--line)',
-      padding: '14px 20px', display: 'flex', gap: '12px', alignItems: 'center',
-      justifyContent: 'center', flexWrap: 'wrap', fontSize: '13px', color: 'var(--muted)',
-      boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
+      position: 'fixed', bottom: '0', left: '0', right: '0', zIndex: 100001,
+      background: 'var(--ink)', color: '#fff', padding: '16px 24px',
+      display: 'flex', justifyContent: 'center', alignItems: 'center',
+      gap: '16px', flexWrap: 'wrap', fontSize: '13px',
+      borderTop: '1px solid rgba(255,255,255,0.1)',
     }}>
-      <span>
-        We use essential cookies to process your orders.{' '}
-        <a href="#" onClick={e => { e.preventDefault(); window.location.hash = '#?info=cookies'; }}
-          style={{ color: 'var(--accent)', fontWeight: 600 }}>Cookie Policy</a>
+      <span style={{ opacity: 0.85 }}>
+        We use cookies for payments (Stripe), order emails (Resend), and essential store functions. No tracking or advertising cookies.
       </span>
-      <button onClick={() => { localStorage.setItem('rw_cookie_consent', 'true'); setAccepted(true); }}
-        style={{ padding: '8px 16px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-        OK
+      <button onClick={accept}
+        style={{
+          padding: '8px 20px', borderRadius: '999px', border: 'none',
+          background: 'var(--accent)', color: '#fff', cursor: 'pointer',
+          fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+          transition: 'all 0.15s',
+        }}
+        onMouseOver={e => { e.target.style.opacity = '0.85'; }}
+        onMouseOut={e => { e.target.style.opacity = '1'; }}>
+        Accept
       </button>
     </div>
   );

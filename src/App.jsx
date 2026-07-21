@@ -21,6 +21,7 @@ const CustomerMap = React.lazy(() => import('./components/CustomerMap.jsx'));
 const OrderTracking = React.lazy(() => import('./components/OrderTracking.jsx'));
 const SizeGuide = React.lazy(() => import('./components/SizeGuide'));
 const InfoModal = React.lazy(() => import('./components/InfoModal'));
+const LegalPage = React.lazy(() => import('./components/LegalPage'));
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -69,6 +70,22 @@ export default function App() {
   const [checkoutCount, setCheckoutCount] = useState(0);
   const [toast, setToast] = useState(null);
   const [infoPage, setInfoPage] = useState(null);
+  const [legalPage, setLegalPage] = useState(null);
+
+  // Hash routing for legal pages
+  useEffect(() => {
+    const onHash = () => {
+      const h = window.location.hash;
+      if (h === '#/privacy') setLegalPage('privacy');
+      else if (h === '#/terms') setLegalPage('terms');
+      else if (h === '#/returns') setLegalPage('returns');
+      else if (h === '#/shipping') setLegalPage('shipping');
+      else setLegalPage(null);
+    };
+    onHash();
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const [showReferral, setShowReferral] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
@@ -1106,6 +1123,7 @@ export default function App() {
       {/* These must stay here so header cart/wishlist icons work on the product detail page. */}
       {showSizes && <React.Suspense><SizeGuide onClose={() => setShowSizes(false)} /></React.Suspense>}
       {infoPage && <React.Suspense><InfoModal page={infoPage} onClose={() => setInfoPage(null)} /></React.Suspense>}
+      {legalPage && <React.Suspense><LegalPage page={legalPage} onClose={() => { setLegalPage(null); window.location.hash = ''; }} /></React.Suspense>}
 
       <QuickView p={quick} showCompare={t.showCompare} showStock={t.showStock}
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
