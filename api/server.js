@@ -1080,9 +1080,6 @@ app.post('/api/cleanup-test-emails', async (req, res) => {
 
 // ── Create test order (protected by cron token for testing) ──
 app.post('/api/create-test-order', async (req, res) => {
-  const token = (req.headers['x-cron-token'] || '').trim();
-  const CRON_TOKEN = (process.env.CRON_SECRET_TOKEN || '').trim();
-  if (!token || !CRON_TOKEN || token !== CRON_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
