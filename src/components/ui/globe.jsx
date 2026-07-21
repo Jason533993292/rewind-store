@@ -315,7 +315,7 @@ function CityBeacons({ data, radius, onHover }) {
     const seen = new Map();
     for (const d of data) {
       const key = `${d.endLat}-${d.endLng}`;
-      if (!seen.has(key)) seen.set(key, { lat: d.endLat, lng: d.endLng, city: d.city, count: d.count });
+      if (!seen.has(key)) seen.set(key, { lat: d.endLat, lng: d.endLng, city: d.city, country: d.country, count: d.count });
     }
     return [...seen.values()];
   }, [data]);
@@ -528,7 +528,7 @@ function buildArcs(locations) {
     arcs.push({
       order: 1, startLat: ORIGIN.lat, startLng: ORIGIN.lng,
       endLat: loc.lat, endLng: loc.lng,
-      color, city: loc.city, count: loc.count,
+      color, city: loc.city, country: loc.country, count: loc.count,
     });
   }
   return arcs;
@@ -602,18 +602,25 @@ export default function GlobePanel({ open, onClose, locations }) {
           </div>
         </div>
 
-        {hoveredCity && (
+        {hoveredCity && (() => {
+          const pct = totalOrders > 0 ? Math.round((hoveredCity.count / totalOrders) * 100) : 0;
+          return (
           <div style={{
             position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
             zIndex: 10, background: 'rgba(10,20,40,0.9)', border: '1px solid rgba(96,165,250,0.4)',
-            borderRadius: '10px', padding: '8px 16px', color: '#fff', fontSize: '13px',
-            display: 'flex', gap: '8px', alignItems: 'center', pointerEvents: 'none',
+            borderRadius: '10px', padding: '10px 18px', color: '#fff', fontSize: '14px',
+            display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', pointerEvents: 'none',
           }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#60a5fa', display: 'inline-block' }} />
-            <strong>{hoveredCity.city || 'Unknown city'}</strong>
-            <span style={{ opacity: 0.6 }}>· {hoveredCity.count} order{hoveredCity.count === 1 ? '' : 's'}</span>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#60a5fa', display: 'inline-block' }} />
+              <strong>{hoveredCity.city || 'Unknown city'}{hoveredCity.country ? `, ${hoveredCity.country}` : ''}</strong>
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.8 }}>
+              {hoveredCity.count} order{hoveredCity.count === 1 ? '' : 's'} · {pct}% of total
+            </div>
           </div>
-        )}
+          );
+        })()}
 
         {open && <World globeConfig={globeConfig} data={data} onHoverCity={setHoveredCity} />}
       </div>
