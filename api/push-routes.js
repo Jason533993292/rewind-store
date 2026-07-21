@@ -3,15 +3,14 @@ export function getVapidPublicKey() {
 }
 
 export async function sendPushNotification(title, body, url) {
+  const privateKey = process.env.VAPID_PRIVATE_KEY || '0MTkN7XNh8OdWAXHUwhrW-5o5Nf94nhw-nbD1junI5s';
   url = url || '/#admin';
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
   if (!SERVICE_KEY || !SUPABASE_URL) return;
-  // Lazy-import web-push only when needed (avoids crash if module fails to load)
-  let webPush;
   try {
-    webPush = (await import('web-push')).default;
-    webPush.setVapidDetails('mailto:orders@rewind-stores.com', getVapidPublicKey(), '0MTkN7XNh8OdWAXHUwhrW-5o5Nf94nhw-nbD1junI5s');
+    const webPush = (await import('web-push')).default;
+    webPush.setVapidDetails('mailto:orders@rewind-stores.com', getVapidPublicKey(), privateKey);
   } catch { return; }
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/push_subscriptions?select=*', {

@@ -423,7 +423,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
   // Generate order number when checkout opens
   useEffect(() => {
     if (open) {
-      setOrderNum('RW-' + String(Date.now()).slice(-8));
+      setOrderNum('RW-' + crypto.randomUUID().slice(0, 8).toUpperCase());
       // Restore saved checkout info
       try {
         const saved = localStorage.getItem('rw_checkout_info');

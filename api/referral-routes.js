@@ -31,7 +31,10 @@ const FRAUD = {
 const ipGenRate = new Map();
 setInterval(() => {
   const cutoff = Date.now() - 86400000;
-  for (const [k, v] of ipGenRate) if (v.ts < cutoff) ipGenRate.delete(k);
+  for (const [k, v] of ipGenRate) {
+    const ts = typeof v === 'object' && v.ts ? v.ts : v;
+    if (ts < cutoff) ipGenRate.delete(k);
+  }
 }, 600000);
 
 export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EMAIL, REPLY_TO, requireAdmin }) {
@@ -152,10 +155,11 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       const today = new Date().toISOString().slice(0, 10);
       const ipKey = `${ip}:${today}`;
       const genCount = ipGenRate.get(ipKey) || 0;
-      if (genCount >= FRAUD.MAX_CODES_PER_IP_DAY) {
-        return res.status(429).json({ error: 'Too many referral codes generated from this IP today. Please try again tomorrow.' });
+      const ipData = typeof genCount === 'object' ? genCount : { count: genCount, ts: Date.now() };
+      if (ipData.count >= FRAUD.MAX_CODES_PER_IP_DAY) {
+        return res.status(429).json({ error: 'Too many codes generated from this IP. Try again later.' });
       }
-
+      ipGenRate.set(ipKey, { count: ipData.count + 1, ts: Date.now() });
       // Check if email already has an active code
       const existing = await fetchSupabase('referral_codes', {
         params: `?email=eq.${encodeURIComponent(email)}&status=eq.active&select=code,created_at,used_count`,
@@ -202,7 +206,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
 
       // Update rate limiter
-      ipGenRate.set(ipKey, genCount + 1);
+      ipGenRate.set(ipKey, { count: (ipData?.count || genCount || 0) + 1, ts: Date.now() });
 
       const shareUrl = `https://rewind-stores.com?ref=${code}`;
 
@@ -522,7 +526,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       });
 
       // Track IP for rate limiting
-      ipGenRate.set(ipKey, (ipGenRate.get(ipKey) || 0) + 1);
+      ipGenRate.set(ipKey, { count: (ipGenRate.get(ipKey)?.count || 0) + 1, ts: Date.now() });
 
       // Return success
       return res.json({ applied: true, discount: parseInt(refCode.reward_discount || FRAUD.REFERRAL_DISCOUNT_PERCENT), type: refCode.reward_type || 'percent', flagged: !!flaggedReason, flaggedReason: flaggedReason || null });

@@ -414,6 +414,9 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   router.post('/api/chat/verify-code', async (req, res) => {
     const { email, code } = req.body;
     if (!email || !code) return res.status(400).json({ error: 'Email and code required' });
+    if (startLimited('verify-attempt:' + email.toLowerCase(), 10, 300000)) {
+      return res.status(429).json({ error: 'Too many attempts. Try again later.' });
+    }
     const entry = verificationCodes.get(email.toLowerCase());
     if (!entry) return res.json({ verified: false, error: 'No code sent. Request a new one.' });
     if (entry.expiresAt < Date.now()) {

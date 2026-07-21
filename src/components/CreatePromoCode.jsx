@@ -15,7 +15,7 @@ export default function CreatePromoCode({ showToast }) {
       const r = await fetch('/api/admin/create-promo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), label: `${Number(discount)}% off` }),
+        body: JSON.stringify({ code: code.trim().toUpperCase(), discount: Number(discount), label: `${Number(discount)}% off`, max_uses: Number(maxUses) || null, expires_at: Number(expiresIn) > 0 ? new Date(Date.now() + Number(expiresIn) * 86400000).toISOString() : null }),
       });
       const d = await r.json();
       if (d.code) {
