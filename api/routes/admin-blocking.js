@@ -4,25 +4,28 @@
 export function registerAdminBlockingRoutes({ app, SUPABASE_URL, SUPABASE_KEY, resend, FROM_EMAIL, REPLY_TO, escapeHtml, auditLog, getAdminEmailFromToken, BLOCKED_IPS, BLOCKED_EMAILS }) {
 
   app.get('/api/admin/blocked-ips', async (req, res) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
       res.json({ ips: await r.json() || [] });
     } catch { res.status(500).json({ error: 'Operation failed' }); }
   });
 
   app.post('/api/admin/block-ip', async (req, res) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const { ip } = req.body;
     if (!ip) return res.status(400).json({ error: 'IP required' });
-    await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ip_address: ip }) });
+    await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ip_address: ip }) });
     if (BLOCKED_IPS) BLOCKED_IPS.set(ip, true);
     auditLog(getAdminEmailFromToken(req), 'block_ip', ip, req.ip);
     res.json({ ok: true });
   });
 
   app.post('/api/admin/unblock-ip', async (req, res) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const { ip } = req.body;
     if (!ip) return res.status(400).json({ error: 'IP required' });
-    await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`, { method: 'DELETE', headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    await fetch(`${SUPABASE_URL}/rest/v1/blocked_ips?ip_address=eq.${encodeURIComponent(ip)}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
     if (BLOCKED_IPS) BLOCKED_IPS.delete(ip);
     auditLog(getAdminEmailFromToken(req), 'unblock_ip', ip, req.ip);
     res.json({ ok: true });

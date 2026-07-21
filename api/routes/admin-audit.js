@@ -20,11 +20,11 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
 
   // ── Admin: list all user emails from orders + wishlists ──
   app.get('/api/admin/user-emails', async (req, res) => {
-    const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     try {
       const [ords, wls] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/orders?select=email`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/rest/v1/wishlists?select=email`, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/orders?select=email`, { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/wishlists?select=email`, { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }).then(r => r.json()),
       ]);
       const emailSet = new Set();
       (Array.isArray(ords) ? ords : []).forEach(o => { if (o.email) emailSet.add(o.email.toLowerCase().trim()); });

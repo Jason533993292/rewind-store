@@ -1,7 +1,7 @@
 // Admin orders routes — cancel, undo, list, update status, test order, ship
 // Mounted AFTER the blanket requireAdmin middleware in server.js
 
-export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAIL, REPLY_TO, escapeHtml, auditLog, getAdminEmailFromToken }) {
+export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAIL, REPLY_TO, escapeHtml, auditLog, getAdminEmailFromToken, requireAdmin }) {
 
   // ── Admin: cancel order ──
   app.post('/api/admin/cancel-order', async (req, res) => {
@@ -187,7 +187,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
   });
 
   // ── Create test order for debugging ──
-  app.post('/api/debug/create-test-order', async (req, res) => {
+  app.post('/api/debug/create-test-order', requireAdmin, async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {

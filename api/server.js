@@ -171,7 +171,8 @@ const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders:
 
 // Load blocked IPs on startup
 
-// ── Verify admin email + token (server-side check) ──
+// Track failed login attempts per IP (5 → 1h ban)
+const verifyAttempts = new Map();
 // `token` is either the master secret (first login, typed by the admin) or a
 // previously-issued session token (silent re-check on page load). Either way,
 // the response hands back a fresh signed session token — that's what the
@@ -932,7 +933,7 @@ app.use('/api/admin', (req, res, next) => {
 // ── Admin route modules (registered after blanket auth) ──
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
-registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAIL, REPLY_TO, escapeHtml, auditLog, getAdminEmailFromToken });
+registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAIL, REPLY_TO, escapeHtml, auditLog, getAdminEmailFromToken, requireAdmin });
 registerAdminBlockingRoutes({ app, SUPABASE_URL, SUPABASE_KEY: anonKey, resend, FROM_EMAIL, REPLY_TO, escapeHtml, auditLog, getAdminEmailFromToken, BLOCKED_IPS, BLOCKED_EMAILS });
 registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdminEmailFromToken });
 registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdminEmailFromToken });

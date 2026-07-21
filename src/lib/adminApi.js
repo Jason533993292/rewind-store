@@ -40,7 +40,7 @@ export const adminApi = {
 
   // Promo codes
   createPromo: (data) => adminFetch('/api/admin/create-promo', { method: 'POST', body: JSON.stringify(data) }),
-  validatePromo: (code) => adminFetch('/api/validate-promo', { method: 'POST', body: JSON.stringify({ promo: code }) }),
+  validatePromo: (code) => adminFetch('/api/validate-promo', { method: 'POST', body: JSON.stringify({ code }) }),
 
   // Chat
   getChatSessions: () => adminFetch('/api/admin/chat/sessions'),
