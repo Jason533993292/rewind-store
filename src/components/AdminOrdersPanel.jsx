@@ -126,11 +126,18 @@ export default function AdminOrdersPanel({ showToast }) {
         <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📦 Orders ({total})</h3>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={async () => {
-            const r = await adminApi.createTestOrder();
-            if (r.ok) {
-              showToast?.('✅ Test order created: ' + r.data.orderNum, 'success');
-              loadOrders();
-            } else showToast?.(r.error || 'Failed', 'error');
+            console.log('Creating test order...');
+            try {
+              const r = await adminApi.createTestOrder();
+              console.log('Test order response:', r);
+              if (r.ok) {
+                showToast?.('✅ Test order created: ' + r.data.orderNum, 'success');
+                loadOrders();
+              } else showToast?.(r.error || 'Failed (check console)', 'error');
+            } catch (e) {
+              console.error('Test order error:', e);
+              showToast?.('Error: ' + e.message, 'error');
+            }
           }}
             style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s' }}
             onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
