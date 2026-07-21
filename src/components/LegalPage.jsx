@@ -5,7 +5,7 @@ export default function LegalPage({ page, onClose }) {
     privacy: {
       title: 'Privacy Policy',
       sections: [
-        { heading: 'Who We Are', text: 'REWIND is a vintage streetwear store. For questions about your data, contact us at orders@rewind-stores.com. If you are in the EU, you may also contact our EU representative at [EU-REPRESENTATIVE-EMAIL] (registered at [EU-REPRESENTATIVE-ADDRESS]).' },
+        { heading: 'Who We Are', text: 'REWIND is a vintage streetwear store operated by Philippe Anaman. For questions about your data, contact us at orders@rewind-stores.com.' },
         { heading: 'What We Collect', text: 'When you place an order, we collect your name, email address, shipping address, IP address, and payment information. When you use the chat feature, we collect your email address and IP address. We also store your wishlist to save items for later. We do not sell, rent, or share your personal data with third parties except as necessary to process your order.' },
         { heading: 'Why We Collect IP Addresses', text: 'We use IP addresses to detect and prevent fraud, block abusive users, and comply with applicable laws. Your IP address is stored alongside your order and any chat sessions.' },
         { heading: 'Who Processes Your Data', text: 'Your data is stored on Supabase (database hosting), payments are processed by Stripe, order emails are sent via Resend, and cancellation emails may be drafted with the assistance of Google\'s Gemini AI. These are our trusted service providers who are GDPR-compliant and process data under written agreements with us. Some of these providers (including Google and Stripe) may process data outside the EEA under Standard Contractual Clauses or equivalent safeguards.' },
@@ -20,7 +20,7 @@ export default function LegalPage({ page, onClose }) {
     terms: {
       title: 'Terms of Service',
       sections: [
-        { heading: 'About REWIND', text: 'REWIND is a vintage streetwear store. All items are pre-owned vintage pieces — minor wear and variation from product photos is normal and part of the vintage experience. Legal entity: [YOUR COMPANY NAME], registered at [YOUR REGISTERED ADDRESS], VAT number: [YOUR VAT NUMBER].' },
+        { heading: 'About REWIND', text: 'REWIND is a vintage streetwear store operated by Philippe Anaman. All items are pre-owned vintage pieces — minor wear and variation from product photos is normal and part of the vintage experience. Orders are fulfilled from our supplier partners in China.' },
         { heading: 'Orders', text: 'By placing an order, you agree to pay the listed price plus shipping. All prices are in Euros (€). We reserve the right to cancel orders for out-of-stock items, suspected fraud, or other valid reasons. If your order is cancelled, you will be notified with the reason.' },
         { heading: 'Shipping', text: 'Orders ship from China within 24 hours of payment confirmation. Delivery times vary by destination (see our Shipping page for estimates). We are not responsible for customs delays, duties, or import taxes.' },
         { heading: 'Right of Withdrawal', text: 'Under EU consumer law, you have the right to withdraw from your purchase within 14 days of receiving your order. This is your statutory right — you may exercise it by contacting orders@rewind-stores.com or by any clear statement. See our Returns & Refunds page for full details.' },
@@ -44,7 +44,7 @@ export default function LegalPage({ page, onClose }) {
     shipping: {
       title: 'Shipping Information',
       sections: [
-        { heading: 'Where We Ship From', text: 'All orders ship from China within 24 hours of payment confirmation. We use reliable international carriers with full tracking.' },
+        { heading: 'Where We Ship From', text: 'REWIND is based in Belgium. Orders are fulfilled from our supplier partners in China and shipped within 24 hours of payment confirmation. We use reliable international carriers with full tracking.' },
         { heading: 'Delivery Estimates', text: 'East Asia: 3-7 business days · Southeast Asia: 5-10 days · Europe & North America: 7-14 days · Middle East: 10-18 days · Oceania: 10-16 days · South America & Africa: 14-21 days.' },
         { heading: 'Customs, Duties & VAT', text: 'International orders may be subject to customs duties, import taxes, and handling fees on delivery. Since July 2021, all commercial imports into the EU include VAT regardless of value. Unless stated otherwise at checkout, these charges are the responsibility of the buyer and are not included in the price paid at REWIND. Carriers may charge an additional handling fee for processing customs clearance — typically €5–€25 depending on the carrier and country. Check your local customs office for current rates and policies.' },
         { heading: 'Tracking', text: 'All orders include tracking. You will receive a tracking number by email once your order ships. Track your package at 17track.net.' },
