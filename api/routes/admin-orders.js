@@ -193,7 +193,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
     try {
       const orderNum = 'RW-TEST-' + Date.now().toString(36).toUpperCase();
       const email = req.body?.email || 'test@rewind-stores.com';
-      await fetch(SUPABASE_URL + '/rest/v1/orders', {
+      const supRes = await fetch(SUPABASE_URL + '/rest/v1/orders', {
         method: 'POST',
         headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -208,7 +208,11 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
           created_at: new Date().toISOString(),
         }),
       });
-      res.json({ ok: true, order: orderNum });
+      const supData = await supRes.json();
+      if (supData.error) {
+        return res.status(500).json({ error: 'Supabase error: ' + (supData.message || supData.error) });
+      }
+      res.json({ ok: true, orderNum });
     } catch (e) {
       res.status(500).json({ error: 'Failed to create test order' });
     }
