@@ -2,7 +2,7 @@
 // Auto-closes when dock buttons (settings, referrals, etc.) are clicked.
 // Locks body scroll while the globe panel is open.
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 const GLOBE_OPEN_EVENT = 'globe-panel-open';
 const COLORS = ['#06b6d4', '#3b82f6', '#6366f1'];
@@ -141,7 +141,6 @@ function FullscreenMap({ locations, onClose }) {
   const total = useMemo(() => locations.reduce((s, l) => s + l.count, 0), [locations]);
   const maxCount = useMemo(() => Math.max(1, ...locations.map(l => l.count)), [locations]);
   const [activeCity, setActiveCity] = useState(null);
-  const dismissTimer = useRef(null);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -149,17 +148,9 @@ function FullscreenMap({ locations, onClose }) {
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  useEffect(() => () => clearTimeout(dismissTimer.current), []);
-
   function colorFor(count) {
     const ratio = Math.min(count / maxCount, 1);
     return COLORS[Math.floor(ratio * (COLORS.length - 1))];
-  }
-
-  function handleTap(loc) {
-    setActiveCity(loc);
-    clearTimeout(dismissTimer.current);
-    dismissTimer.current = setTimeout(() => setActiveCity(null), 3000);
   }
 
   const validLocations = useMemo(
@@ -223,46 +214,46 @@ function FullscreenMap({ locations, onClose }) {
             const path = `M 400 225 Q ${midX} ${midY} ${x} ${y}`;
             const color = colorFor(loc.count);
             const r = Math.min(2 + Math.log(loc.count + 1) * 1.6, 6);
-            const isActive = activeCity && activeCity.city === loc.city && activeCity.country === loc.country;
-
+            const pct = total > 0 ? Math.round((loc.count / total) * 100) : 0;
             return (
-              <g key={`${loc.city}-${loc.country}`}>
-                {/* Thin solid arc — no dashes, no heavy blur */}
+              <g key={`${loc.city}-${loc.country}`} style={{ cursor: 'pointer' }}>
+                {/* Thin solid arc */}
                 <path d={path} fill="none" stroke={color} strokeWidth={1.3} opacity={0.7} strokeLinecap="round" />
 
                 {/* Soft static halo behind the dot */}
                 <circle cx={x} cy={y} r={r * 2.6} fill={color} opacity={0.15} />
 
-                {/* Small solid core dot — tap target */}
+                {/* Small solid core dot */}
                 <circle
                   cx={x} cy={y} r={r} fill={color} opacity={0.95}
                   stroke="#fff" strokeWidth={0.6} strokeOpacity={0.4}
-                  style={{ cursor: 'pointer' }}
-                  onClick={(e) => { e.stopPropagation(); handleTap(loc); }}
+                  onMouseOver={(e) => { e.stopPropagation(); setActiveCity(loc); }}
+                  onMouseMove={(e) => { e.stopPropagation(); setActiveCity(loc); }}
+                  onMouseOut={() => setActiveCity(null)}
                 />
 
-                {isActive && (() => {
-                  const tooltipY = Math.max(y - 46, 4);
-                  return (
-                    <g style={{ pointerEvents: 'none' }}>
-                      <rect x={x - 55} y={tooltipY} width={110} height={34} rx={6}
-                        fill="rgba(10,20,40,0.95)" stroke="rgba(96,165,250,0.4)" />
-                      <text x={x} y={tooltipY + 15} fontSize={11} fontWeight={700} fill="#fff" textAnchor="middle">
-                        {loc.city}
-                      </text>
-                      <text x={x} y={tooltipY + 27} fontSize={9} fill="#93c5fd" textAnchor="middle">
-                        {loc.count} order{loc.count === 1 ? '' : 's'}
-                      </text>
-                    </g>
-                  );
-                })()}
+                {activeCity && activeCity.city === loc.city && activeCity.country === loc.country && (
+                  <g style={{ pointerEvents: 'none' }}>
+                    <rect x={x - 60} y={Math.max(y - 56, 4)} width={120} height={44} rx={6}
+                      fill="rgba(10,20,40,0.95)" stroke="rgba(96,165,250,0.4)" />
+                    <text x={x} y={Math.max(y - 56, 4) + 16} fontSize={11} fontWeight={700} fill="#fff" textAnchor="middle">
+                      {loc.city}, {loc.country}
+                    </text>
+                    <text x={x} y={Math.max(y - 56, 4) + 28} fontSize={9} fill="#93c5fd" textAnchor="middle">
+                      {loc.count} order{loc.count === 1 ? '' : 's'}
+                    </text>
+                    <text x={x} y={Math.max(y - 56, 4) + 39} fontSize={9} fill="#6B7280" textAnchor="middle">
+                      {pct}% of total
+                    </text>
+                  </g>
+                )}
               </g>
             );
           })}
         </svg>
 
         <div style={{ marginTop: '8px', fontSize: '12px', opacity: 0.6, textAlign: 'center' }}>
-          Tap a city to see its name and order count. Orange = warehouse (Brussels).
+          Hover a dot to see city, country, and order count. Orange = warehouse (Brussels).
         </div>
       </div>
     </div>
