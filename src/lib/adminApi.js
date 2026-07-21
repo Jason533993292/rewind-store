@@ -5,6 +5,7 @@ async function adminFetch(url, options = {}) {
   try {
     const r = await fetch(url, {
       headers: { 'Content-Type': 'application/json', ...options.headers },
+      credentials: 'include',
       ...options,
     });
     const data = await r.json();
