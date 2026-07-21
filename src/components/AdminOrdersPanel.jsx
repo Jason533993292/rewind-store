@@ -23,6 +23,7 @@ export default function AdminOrdersPanel({ showToast }) {
   const [courierName, setCourierName] = useState('');
   const [shipping, setShipping] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [orderNotes, setOrderNotes] = useState('');
 
   const LIMIT = 50;
 
@@ -209,6 +210,20 @@ export default function AdminOrdersPanel({ showToast }) {
                           ✕ Cancel
                         </button>
                       )}
+                      {o.status === 'cancelled' && (
+                        <button onClick={async () => {
+                          const r = await adminApi.undoCancelOrder(o.id);
+                          if (r.ok) {
+                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: 'pending' } : ord));
+                            showToast?.('✅ Order restored to pending', 'success');
+                          } else showToast?.(r.error || 'Failed to undo', 'error');
+                        }}
+                          style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--ink)', background: 'var(--surface)', color: 'var(--ink)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}
+                          onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                          onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; }}>
+                          ↩ Undo
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -247,8 +262,9 @@ export default function AdminOrdersPanel({ showToast }) {
               </button>
             ))}
             {cancelReason === 'other' && (
-              <input className="rw-input" placeholder="Describe why..." value={customReason} onChange={e => setCustomReason(e.target.value)} style={{ marginBottom: '12px', width: '100%' }} />
+              <input className="rw-input" placeholder="Describe why..." value={customReason} onChange={e => setCustomReason(e.target.value)} style={{ marginBottom: '10px', width: '100%' }} />
             )}
+            <input className="rw-input" placeholder="Order notes (internal)..." value={orderNotes} onChange={e => setOrderNotes(e.target.value)} style={{ marginBottom: '12px', width: '100%' }} />
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '12px' }}>
               <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>Back</button>
               <button className="rw-btn rw-btn-pri" onClick={confirmCancel} disabled={!cancelReason || (cancelReason === 'other' && !customReason.trim()) || cancelling} style={{ flex: 1, background: '#dc2626' }}>
@@ -271,7 +287,9 @@ export default function AdminOrdersPanel({ showToast }) {
             <input className="rw-input" type="text" placeholder="Courier name (e.g. PostNL, FedEx)"
               value={courierName} onChange={e => setCourierName(e.target.value)} style={{ marginBottom: '10px' }} />
             <input className="rw-input" type="text" placeholder="Tracking number"
-              value={trackingNum} onChange={e => setTrackingNum(e.target.value)} style={{ marginBottom: '14px' }} />
+              value={trackingNum} onChange={e => setTrackingNum(e.target.value)} style={{ marginBottom: '10px' }} />
+            <input className="rw-input" type="text" placeholder="Order notes (internal)..."
+              value={orderNotes} onChange={e => setOrderNotes(e.target.value)} style={{ marginBottom: '14px' }} />
             <p style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '16px' }}>
               Track at <a href="https://www.17track.net/en" target="_blank" style={{ color: 'var(--accent)' }}>17track.net</a>
             </p>

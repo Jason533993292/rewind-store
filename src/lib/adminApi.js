@@ -21,6 +21,7 @@ export const adminApi = {
   updateOrderStatus: (id, status) => adminFetch('/api/admin/orders/update-status', { method: 'POST', body: JSON.stringify({ id, status }) }),
   shipOrder: (id, trackingNumber, courier) => adminFetch('/api/admin/orders/ship', { method: 'POST', body: JSON.stringify({ id, trackingNumber, courier }) }),
   cancelOrder: (id, reason, customReason) => adminFetch('/api/admin/cancel-order', { method: 'POST', body: JSON.stringify({ orderId: id, reason, customReason: customReason || '' }) }),
+  undoCancelOrder: (id) => adminFetch('/api/admin/undo-cancel-order', { method: 'POST', body: JSON.stringify({ orderId: id }) }),
   lookupOrder: (orderNum, email) => adminFetch('/api/lookup-order', { method: 'POST', body: JSON.stringify({ orderNum, email }) }),
 
   // Products
