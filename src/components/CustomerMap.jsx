@@ -37,7 +37,14 @@ export default function CustomerMap() {
         const d = await r.json();
         if (cancelled) return;
         const real = Array.isArray(d.locations) ? d.locations : [];
-        setLocations(real.length > 0 ? real : FALLBACK_LOCATIONS);
+        const merged = [...FALLBACK_LOCATIONS];
+        for (const r of real) {
+          const key = r.city + '|' + r.country;
+          const idx = merged.findIndex(m => m.city + '|' + m.country === key);
+          if (idx >= 0) merged[idx].count += r.count;
+          else merged.push(r);
+        }
+        setLocations(merged);
       } catch {
         if (!cancelled) setLocations(FALLBACK_LOCATIONS);
       }
