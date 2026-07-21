@@ -93,7 +93,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
                     border: selectedImg === i ? '2px solid var(--ink)' : '2px solid transparent',
                     overflow: 'hidden',
                   }}>
-                  <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={img} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
               ))}
             </div>

@@ -70,16 +70,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     lastUnreadRef.current = chatUnread;
   }, [chatUnread]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e) => {
-      const tag = e.target.tagName;
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
   // is confirmed — prevents unnecessary API calls and potential data exposure

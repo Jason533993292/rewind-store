@@ -7,8 +7,6 @@ import ChatBubble from './components/ChatBubble';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from './lib/supabase';
-import SizeGuide from './components/SizeGuide';
-import InfoModal from './components/InfoModal';
 import ProductPage from './components/ProductPage';
 import RecentlyViewed from './components/RecentlyViewed';
 import { money } from './hooks/useCountdown';
@@ -20,6 +18,8 @@ const SettingsPanel = React.lazy(() => import('./components/SettingsPanel.jsx'))
 const Shop = React.lazy(() => import('./components/Shop.jsx'));
 const CustomerMap = React.lazy(() => import('./components/CustomerMap.jsx'));
 const OrderTracking = React.lazy(() => import('./components/OrderTracking.jsx'));
+const SizeGuide = React.lazy(() => import('./components/SizeGuide'));
+const InfoModal = React.lazy(() => import('./components/InfoModal'));
 
 const TWEAK_DEFAULTS = {
   accent: '#FF4D14',
@@ -1103,8 +1103,8 @@ export default function App() {
 
       {/* ── Shared overlays (rendered in BOTH product page view AND shop view) ── */}
       {/* These must stay here so header cart/wishlist icons work on the product detail page. */}
-      {showSizes && <SizeGuide onClose={() => setShowSizes(false)} />}
-      {infoPage && <InfoModal page={infoPage} onClose={() => setInfoPage(null)} />}
+      {showSizes && <React.Suspense><SizeGuide onClose={() => setShowSizes(false)} /></React.Suspense>}
+      {infoPage && <React.Suspense><InfoModal page={infoPage} onClose={() => setInfoPage(null)} /></React.Suspense>}
 
       <QuickView p={quick} showCompare={t.showCompare} showStock={t.showStock}
         onClose={() => setQuick(null)} onAdd={addFromQuick} />
