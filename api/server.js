@@ -162,8 +162,7 @@ app.get('/sitemap.xml', (_req, res) => {
   }
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url><loc>${u}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`).join('
-')}
+${urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>').join('\n')}
 </urlset>`;
   res.set('Content-Type', 'application/xml');
   res.send(xml);
