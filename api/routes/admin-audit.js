@@ -46,6 +46,19 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
     } catch { res.json({ entries: [] }); }
   });
 
+  // ── Admin: clear audit log ──
+  app.post('/api/admin/clear-audit', async (req, res) => {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ ok: false });
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/audit_log`, {
+        method: 'DELETE',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      });
+      res.json({ ok: true });
+    } catch { res.json({ ok: false }); }
+  });
+
   // ── Admin: preview cancellation email (generates text without sending) ──
   app.post('/api/admin/preview-cancel-email', async (req, res) => {
     const { reason, customReason, customerName } = req.body;

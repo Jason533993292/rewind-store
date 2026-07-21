@@ -125,13 +125,17 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                 fontWeight: selectedId === s.session_id ? 700 : 500,
                 background: selectedId === s.session_id ? 'var(--ink)' : 'var(--line)',
                 color: selectedId === s.session_id ? 'var(--surface)' : 'var(--ink)',
-                textAlign: 'left', transition: 'all 0.15s',
+                textAlign: 'left', transition: 'all 0.15s', position: 'relative',
               }}>
-              <div style={{ fontWeight: 600 }}>{s.customer_name || s.customer_email || 'Anonymous'}</div>
+              <div style={{ fontWeight: 600, paddingRight: '18px' }}>{s.customer_name || s.customer_email || 'Anonymous'}</div>
               <div style={{ fontSize: '11px', opacity: 0.7 }}>{s.last_message?.slice(0, 30) || '...'}</div>
               <div style={{ fontSize: '10px', opacity: 0.5, marginTop: '2px' }}>
                 {s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}
               </div>
+              <button onClick={async (e) => { e.stopPropagation(); if (!confirm('Close this chat session?')) return; await fetch('/api/admin/chat/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: s.session_id }) }); if (selectedId === s.session_id) { setSelectedId(null); setMessages([]); } await loadSessions(); }}
+                style={{ position: 'absolute', top: '4px', right: '4px', width: '18px', height: '18px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '11px', lineHeight: '1', color: 'var(--muted)', display: 'grid', placeItems: 'center', opacity: 0.6 }}
+                onMouseOver={e => { e.stopPropagation(); e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; e.currentTarget.style.opacity = '1'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = '0.6'; }}>✕</button>
             </button>
           ))}
         </div>
