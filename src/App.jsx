@@ -1123,7 +1123,7 @@ export default function App() {
       {/* These must stay here so header cart/wishlist icons work on the product detail page. */}
       {showSizes && <React.Suspense><SizeGuide onClose={() => setShowSizes(false)} /></React.Suspense>}
       {infoPage && <React.Suspense><InfoModal page={infoPage} onClose={() => setInfoPage(null)} /></React.Suspense>}
-      {legalPage && <React.Suspense><LegalPage page={legalPage} onClose={() => { setLegalPage(null); window.location.hash = ''; }} /></React.Suspense>}
+      {legalPage && <React.Suspense><LegalPage page={legalPage} onClose={() => { setLegalPage(null); history.replaceState(null, '', window.location.pathname); }} /></React.Suspense>}
 
       <QuickView p={quick} showCompare={t.showCompare} showStock={t.showStock}
         onClose={() => setQuick(null)} onAdd={addFromQuick} />

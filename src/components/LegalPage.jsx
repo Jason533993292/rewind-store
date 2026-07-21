@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 function T({ text }) {
   if (!text) return null;
   // Bold wrap certain keywords
-  const boldWords = ['encryption at rest and in transit', 'PCI-DSS Level 1', 'HttpOnly', 'rate limiting', 'GDPR', 'Standard Contractual Clauses', '30 days', 'access, correct, delete, or receive a portable copy', 'do not sell', 'no third party has direct database access'];
+  const boldWords = ['encryption at rest and in transit', 'PCI-DSS Level 1', 'HttpOnly', 'rate limiting', 'GDPR', 'Standard Contractual Clauses', '30 days', 'access, correct, delete, or receive a portable copy', 'do not sell', 'no third party has direct database access', 'do not sell, rent, or share your personal data', '14 days of delivery', '14 days of receiving your order', '2 years from delivery', 'statutory right', 'statutory legal guarantee', 'mandatory consumer protection laws', 'not responsible for customs delays, duties, or import taxes', 'fulfilled from our supplier partners in China', 'within 24 hours', 'All orders include tracking', 'free shipping worldwide', '€150'];
   let parts = [text];
   for (const word of boldWords) {
     parts = parts.flatMap(p => {

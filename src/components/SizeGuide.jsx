@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from './Shell';
 
-const CATEGORIES = ['Tops / Shirts', 'Jumpers', 'Shoes', 'Bottoms'];
+const CATEGORIES = ['Tops / Shirts', 'Jumpers', 'Shoes', 'Pants'];
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
 
@@ -39,7 +39,7 @@ const MEASUREMENTS = {
       XL: ['44', '9.5', '28.5'],
     }
   },
-  Bottoms: {
+  Pants: {
     unit: 'cm',
     cols: ['Waist (A)', 'Hips (B)', 'Inseam (C)'],
     data: {
@@ -56,13 +56,13 @@ function SizeDiagram({ cat }) {
   const images = {
     'Tops / Shirts': '/images/size-shirt.png',
     Jumpers: '/images/size-jumper.png',
-    Bottoms: '/images/size-pants.png',
+    Pants: '/images/size-pants.png',
     Shoes: '/images/size-shoe.png',
   };
   const labels = {
     'Tops / Shirts': ['A. Shoulder', 'B. Length', 'C. Sleeve'],
     Jumpers: ['A. Shoulder', 'B. Length', 'C. Sleeve'],
-    Bottoms: ['A. Waist', 'B. Hips', 'C. Inseam'],
+    Pants: ['A. Waist', 'B. Hips', 'C. Inseam'],
     Shoes: ['A. Foot length', 'B. Width'],
   };
   const img = images[cat];
