@@ -72,11 +72,11 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
         cached.set(`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng });
       }
 
-      // 4. Build response — only cached cities with 2+ orders (privacy threshold)
+      // 4. Build response
       const locations = [];
       for (const [key, count] of rawCounts) {
         const coord = cached.get(key);
-        if (coord && count >= 2) {
+        if (coord && count >= 1) {
           const [city, country] = key.split('|');
           locations.push({ city, country, count, lat: coord.lat, lng: coord.lng });
         }
