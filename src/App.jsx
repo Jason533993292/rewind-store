@@ -1207,7 +1207,7 @@ export default function App() {
           transition: 'max-width 0.6s cubic-bezier(0.32, 0.72, 0, 1), box-shadow 0.3s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1)',
           willChange: 'max-width, transform',
           cursor: 'default',
-          maxWidth: dockHover ? '420px' : '54px',
+          maxWidth: dockHover ? '520px' : '54px',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
         }}
@@ -1228,6 +1228,24 @@ export default function App() {
             onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 2v2m-4-2v2M7 2v2M3 8h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M12 11v4m-2-2h4"/><path d="M8 16h.01M16 16h.01"/></svg>
             <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Referrals</span>
+          </button>
+
+          {/* Admin */}
+          <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = 'admin'; setDockHover(false); }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: dockHover ? '8px 12px' : '8px 0',
+              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
+              fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap',
+              opacity: dockHover ? 1 : 0, overflow: 'hidden',
+              transition: 'opacity 0.8s ease 0.1s, padding 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.2s ease',
+              pointerEvents: dockHover ? 'auto' : 'none', maxWidth: dockHover ? '100px' : '0',
+              transform: 'scale(1)',
+            }}
+            onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.08)'; e.currentTarget.style.color = 'var(--ink)'; }}
+            onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/></svg>
+            <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Admin</span>
           </button>
 
           {/* Home */}
