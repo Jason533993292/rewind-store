@@ -770,7 +770,7 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
   if (!email || !orderNum) return res.status(400).json({ error: 'Email and order number required' });
   try {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&email=eq.${encodeURIComponent(email)}&select=order_num,status,total,items,shipping,customer_name,created_at,tracking_number,courier,tracking_url`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&email=eq.${encodeURIComponent(email)}&select=order_num,status,total,items,customer_name,created_at,tracking_number,courier,tracking_url`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
     const data = await r.json();
@@ -782,7 +782,6 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
         order_num: order.order_num,
         status: order.status,
         total: order.total,
-        shipping: order.shipping,
         customer_name: order.customer_name,
         items: typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []),
         created_at: order.created_at,

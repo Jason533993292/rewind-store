@@ -203,15 +203,15 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
           address: '123 Test Street, Test City',
           items: JSON.stringify([{ name: 'Test Product', price: 50, qty: 1 }]),
           total: 50,
-          shipping: 0,
           status: 'pending',
           created_at: new Date().toISOString(),
         }),
       });
       const supData = await supRes.json();
-      if (supData.error) {
-        return res.status(500).json({ error: 'Supabase error: ' + (supData.message || supData.error) });
+      if (!supRes.ok || supData.error) {
+        return res.status(500).json({ error: 'Supabase error: ' + (supData.message || supData.error || supRes.statusText) });
       }
+      console.log('Test order created in Supabase:', orderNum, 'for', email);
       res.json({ ok: true, orderNum });
     } catch (e) {
       res.status(500).json({ error: 'Failed to create test order' });
