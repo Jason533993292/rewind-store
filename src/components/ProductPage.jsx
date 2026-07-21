@@ -9,6 +9,15 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
   const [selectedImg, setSelectedImg] = useState(0);
   const [added, setAdded] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);
+  const [isRealAdmin, setIsRealAdmin] = useState(!!localStorage.getItem('rw_admin_email'));
+
+  // Verify admin status server-side — don't trust localStorage alone
+  useEffect(() => {
+    if (!localStorage.getItem('rw_admin_email')) return;
+    fetch('/api/admin/check-auth').then(r => r.json()).then(d => {
+      if (!d.authed) setIsRealAdmin(false);
+    }).catch(() => setIsRealAdmin(false));
+  }, []);
 
   // Reset selected thumbnail when navigating to a different product
   useEffect(() => { setSelectedImg(0); setSize(null); setQty(1); setAdded(false); }, [p?.id || p?.product_id]);
@@ -28,7 +37,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
         ← Back to shop
       </button>
 
-      {!!localStorage.getItem('rw_admin_email') && (
+      {isRealAdmin && (
         <div style={{ float: 'right', marginTop: '8px', position: 'relative' }}>
           <button onClick={() => setShowAdminMenu(v => !v)}
             style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--ink)', color: 'var(--surface)', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
@@ -47,10 +56,11 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
               ⭐ Save
             </button>
-            <button onClick={() => {
+            <button onClick={async () => {
               if (confirm('Delete this product?')) {
-                deleteCustomProduct(p.id || p.product_id);
-                onBack();
+                const ok = await deleteCustomProduct(p.id || p.product_id).catch(() => false);
+                if (ok) onBack();
+                else alert('❌ Failed to delete product — check admin session');
               }
             }}
               onMouseOver={e => e.target.style.background = 'var(--line)'}

@@ -117,6 +117,19 @@ export default function OrderTracking({ onClose }) {
               </p>
             )}
 
+            {result.status === 'shipped' && result.tracking_number && (
+              <div style={{ marginTop: '16px', padding: '12px', background: 'var(--line)', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>Tracking</p>
+                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '2px' }}>
+                  {result.courier}: {result.tracking_number}
+                </p>
+                <a href={result.tracking_url || 'https://www.17track.net/en'} target="_blank" rel="noopener"
+                  style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600 }}>
+                  Track package →
+                </a>
+              </div>
+            )}
+
             <button className="rw-btn rw-btn-pri rw-btn-full" style={{ marginTop: '20px' }}
               onClick={() => setResult(null)}>
               Track another order
