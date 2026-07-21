@@ -20,11 +20,9 @@ create table if not exists wishlists (
   updated_at timestamp with time zone default now()
 );
 
--- Note: anon INSERT/UPDATE/DELETE policies have been removed.
--- Wishlist writes now go through the Express API (service role).
+-- Note: anon INSERT/UPDATE/DELETE/SELECT policies have been removed.
+-- All wishlist access now goes through the Express API (service role).
 alter table wishlists enable row level security;
-create policy "anon can read wishlists" on wishlists
-  for select to anon using (true);
 create policy "service can manage wishlists" on wishlists
   for all to service_role using (true) with check (true);
 */

@@ -43,7 +43,7 @@ const PAGES = {
   payments: {
     title: 'Payment Methods',
     sections: [
-      { heading: 'Accepted Payments', text: 'We accept PayPal, Payconiq, Apple Pay, Bancontact, and Klarna. All payments are processed securely through our payment partners.' },
+      { heading: 'Accepted Payments', text: 'We accept Visa, Mastercard, Apple Pay, Google Pay, Bancontact, iDEAL, Klarna, and PayPal. All payments are processed securely through Stripe.' },
       { heading: 'When You Are Charged', text: 'Your payment is captured at the time you place your order. For Klarna Pay Later, you will receive payment instructions from Klarna directly.' },
       { heading: 'Payment Security', text: 'All transactions are encrypted with industry-standard SSL/TLS. We never store your full card details. Your payment data is handled by our PCI-compliant payment processors.' },
       { heading: 'Currency', text: 'All prices are in Euros (€). If your bank account uses a different currency, your bank will apply their exchange rate at the time of purchase.' },

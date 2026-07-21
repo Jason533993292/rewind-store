@@ -1,12 +1,9 @@
--- Lock down wishlists: remove anon write access, keep read
+-- Lock down wishlists: all access must go through Express API
+DROP POLICY IF EXISTS "anon can read by email" ON wishlists;
 DROP POLICY IF EXISTS "anon can upsert by email" ON wishlists;
 DROP POLICY IF EXISTS "anon can update by email" ON wishlists;
 DROP POLICY IF EXISTS "anon can insert by email" ON wishlists;
-
--- Anon can still read (query already filters by email in the app code)
--- This allows the wishlist display to work. The email+product_ids data
--- is low sensitivity, but removing unrestricted read would break the app.
--- Keep anon SELECT, remove anon INSERT/UPDATE/DELETE.
+DROP POLICY IF EXISTS "anon can read wishlists" ON wishlists;
 
 -- Service role (backend) can do everything
 CREATE POLICY "service can manage wishlists" ON wishlists

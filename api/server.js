@@ -877,11 +877,19 @@ app.post('/api/stripe-webhook', async (req, res) => {
                 headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ p_code: promoCode }),
               });
-              // Also mark as used for single-use promos
-              await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}`, {
-                method: 'PATCH',
-                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ used: true }),
+              // Only mark used=true for single-use promos (max_uses === 1 or null).
+              // Multi-use promos rely on the uses counter being checked instead.
+              await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=max_uses`, {
+                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+              }).then(r => r.json()).then(data => {
+                const promo = Array.isArray(data) ? data[0] : null;
+                if (promo && promo.max_uses === 1) {
+                  fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}`, {
+                    method: 'PATCH',
+                    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ used: true }),
+                  }).catch(() => {});
+                }
               });
             } catch (promoErr) {
               console.warn('Failed to increment promo uses:', promoErr.message);

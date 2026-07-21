@@ -970,7 +970,6 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           </div>
         )}
         <div className="rw-co-config">
-          {payment === 'payconiq' && 'Scan the QR code with Payconiq to complete payment.'}
           {payment === 'applepay' && 'Complete payment with Face ID or Touch ID.'}
           {payment === 'klarna' && 'Pay in 3 interest-free instalments.'}
           {payment === 'bancontact' && 'You will be redirected to your bank to confirm.'}

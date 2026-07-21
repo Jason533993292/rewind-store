@@ -167,7 +167,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
       if (Array.isArray(existing) && existing.length > 0) {
         // Return existing code instead of creating a duplicate
         const existingCode = existing[0];
-        ipGenRate.set(ipKey, genCount + 1);
+        ipGenRate.set(ipKey, { count: ipData.count + 1, ts: Date.now() });
         const shareUrl = `https://rewind-stores.com?ref=${existingCode.code}`;
         return res.json({
           code: existingCode.code,
