@@ -942,6 +942,15 @@ app.use('/api/admin', (req, res, next) => {
   requireAdmin(req, res, next);
 });
 
+// ── Public sitemap ──
+app.get('/sitemap.xml', async (_req, res) => {
+  res.set('Content-Type', 'application/xml');
+  const STATIC = ['', '#shop', '#track'];
+  const urls = STATIC.map(p => `<url><loc>https://rewind-stores.com${p}</loc></url>`).join('')
+    + SERVER_PRODUCTS.map(p => `<url><loc>https://rewind-stores.com/${p.id}</loc></url>`).join('');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
+});
+
 // ── Admin route modules (registered after blanket auth) ──
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
 

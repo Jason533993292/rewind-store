@@ -52,7 +52,30 @@ const PAGES = {
   orders: {
     title: 'Your Orders',
     component: 'orders',
-  }
+  },
+  terms: {
+    title: 'Terms of Service',
+    sections: [
+      { heading: 'Introduction', text: 'These Terms govern your use of the REWIND website and the purchase of products. By placing an order, you agree to these Terms.' },
+      { heading: 'Products', text: 'All items are vintage or pre-owned and may show signs of wear consistent with age. We describe each item\'s condition accurately. Colors may vary slightly due to screen settings.' },
+      { heading: 'Pricing', text: 'All prices are in Euros (€) and include VAT where applicable. We reserve the right to change prices at any time, but changes will not affect orders already placed.' },
+      { heading: 'Orders', text: 'By placing an order, you make an offer to purchase. We reserve the right to cancel orders for any reason, including stock unavailability, pricing errors, or suspected fraud. You will receive a full refund if we cancel your order.' },
+      { heading: 'Payment', text: 'Payment is processed through Stripe. By providing payment details, you confirm you are authorized to use the payment method. All payments are processed in Euros.' },
+      { heading: 'Shipping', text: 'We ship from China to the destinations listed in our Shipping page. Delivery times vary by region. Shipping costs are calculated at checkout based on destination. We are not responsible for customs duties, import taxes, or carrier delays.' },
+      { heading: 'Limitation of Liability', text: 'REWIND is not liable for: (a) indirect or consequential loss, (b) loss of data or profits, (c) damage from misuse of products. Our total liability is limited to the purchase price of the order.' },
+      { heading: 'Governing Law', text: 'These Terms are governed by Belgian law. Any disputes shall be resolved in the courts of Brussels, Belgium.' },
+    ]
+  },
+  cookies: {
+    title: 'Cookie Policy',
+    sections: [
+      { heading: 'What Are Cookies', text: 'Cookies are small text files stored on your device when you visit a website. They help the site remember your preferences and improve your experience.' },
+      { heading: 'Essential Cookies', text: 'We use essential cookies to keep your shopping cart and checkout process working. These are necessary for the site to function and cannot be disabled.' },
+      { heading: 'Third-Party Cookies', text: 'Stripe (payment processing) and Google (AI and analytics) may set cookies. These are governed by their respective privacy policies. We do not control these cookies.' },
+      { heading: 'Managing Cookies', text: 'You can disable cookies in your browser settings. However, the site may not function correctly without essential cookies. You can also delete all cookies stored by REWIND through your browser preferences.' },
+      { heading: 'No Tracking Cookies', text: 'REWIND does not use advertising or tracking cookies. We do not sell your data or use it for targeted advertising.' },
+    ]
+  },
 };
 
 export default function InfoModal({ page, onClose }) {

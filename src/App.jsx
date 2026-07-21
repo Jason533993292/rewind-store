@@ -4,6 +4,7 @@ import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDraw
 import { ReferralDialog } from './components/Referral';
 import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
+import CookieBanner from './components/CookieBanner';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from './lib/supabase';
@@ -1285,6 +1286,7 @@ export default function App() {
           options={['Bricolage Grotesque', 'Space Grotesk']}
           onChange={(v) => setTweak('headingFont', v)} />
       </TweaksPanel>}
+      <CookieBanner />
     </ClickSpark>
   );
 }
