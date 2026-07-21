@@ -8,12 +8,21 @@ const GLOBE_OPEN_EVENT = 'globe-panel-open';
 const COLORS = ['#06b6d4', '#3b82f6', '#6366f1'];
 
 const FALLBACK_LOCATIONS = [
-  { city: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, count: 8 },
-  { city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278, count: 6 },
-  { city: 'Berlin', country: 'Germany', lat: 52.52, lng: 13.405, count: 5 },
-  { city: 'Amsterdam', country: 'Netherlands', lat: 52.3676, lng: 4.9041, count: 4 },
-  { city: 'Barcelona', country: 'Spain', lat: 41.3874, lng: 2.1686, count: 3 },
-  { city: 'Milan', country: 'Italy', lat: 45.4642, lng: 9.19, count: 2 },
+  { city: 'New York', country: 'US', lat: 40.7128, lng: -74.006, count: 5 },
+  { city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278, count: 4 },
+  { city: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, count: 3 },
+  { city: 'Sydney', country: 'Australia', lat: -33.8688, lng: 151.2093, count: 3 },
+  { city: 'Moscow', country: 'Russia', lat: 55.7558, lng: 37.6173, count: 3 },
+  { city: 'Berlin', country: 'Germany', lat: 52.52, lng: 13.405, count: 3 },
+  { city: 'Tokyo', country: 'Japan', lat: 35.6762, lng: 139.6503, count: 3 },
+  { city: 'Helsinki', country: 'Finland', lat: 60.1699, lng: 24.9384, count: 2 },
+  { city: 'Amsterdam', country: 'Netherlands', lat: 52.3676, lng: 4.9041, count: 2 },
+  { city: 'Barcelona', country: 'Spain', lat: 41.3874, lng: 2.1686, count: 2 },
+  { city: 'Dubai', country: 'UAE', lat: 25.2048, lng: 55.2708, count: 2 },
+  { city: 'Bangkok', country: 'Thailand', lat: 13.7563, lng: 100.5018, count: 2 },
+  { city: 'Milan', country: 'Italy', lat: 45.4642, lng: 9.19, count: 1 },
+  { city: 'Seoul', country: 'South Korea', lat: 37.5665, lng: 126.978, count: 1 },
+  { city: 'Los Angeles', country: 'US', lat: 34.0522, lng: -118.2437, count: 1 },
 ];
 
 function supportsWebGL() {
