@@ -138,8 +138,14 @@ app.use(async (req, res, next) => {
 
 
 app.use(express.static(path.join(__dirname, '..', 'dist'), {
+  maxAge: '1y',
+  etag: true,
   setHeaders(res, p) {
-    if (p.endsWith('.html')) res.set('Cache-Control', 'no-store, must-revalidate');
+    if (p.endsWith('.html')) {
+      res.set('Cache-Control', 'no-store, must-revalidate');
+    } else if (p.endsWith('.js') || p.endsWith('.css') || p.endsWith('.woff2') || p.endsWith('.png') || p.endsWith('.webp')) {
+      res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
   }
 }));
 console.log('[static]', path.join(__dirname, '..', 'dist'));
