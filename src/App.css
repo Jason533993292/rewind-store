@@ -751,8 +751,8 @@ a { color: inherit; cursor: pointer; }
   padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,.12);
 }
 .rw-footer-cols h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 14px; color: color-mix(in oklab, var(--bg) 60%, transparent); }
-.rw-footer-cols a { display: block; font-size: 14.5px; margin-bottom: 9px; color: color-mix(in oklab, var(--bg) 88%, transparent); transition: color .15s, text-decoration-color .15s; text-decoration: underline transparent; text-underline-offset: 3px; }
-.rw-footer-cols a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.rw-footer-cols a, .rw-footer-cols button { display: block; font-size: 14.5px; margin-bottom: 9px; color: color-mix(in oklab, var(--bg) 88%, transparent); transition: color .15s, text-decoration-color .15s; text-decoration: underline transparent; text-underline-offset: 3px; }
+.rw-footer-cols a:hover, .rw-footer-cols button:hover { color: var(--accent); text-decoration-color: var(--accent); }
 .rw-footer-base { max-width: var(--maxw); margin: 24px auto 0; font-size: 12.5px; color: color-mix(in oklab, var(--bg) 50%, transparent); }
 
 @media (max-width: 640px) {
