@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+
+function T({ text }) {
+  if (!text) return null;
+  // Bold wrap certain keywords
+  const boldWords = ['encryption at rest and in transit', 'PCI-DSS Level 1', 'HttpOnly', 'rate limiting', 'GDPR', 'Standard Contractual Clauses', '30 days', 'access, correct, delete, or receive a portable copy', 'do not sell', 'no third party has direct database access'];
+  let parts = [text];
+  for (const word of boldWords) {
+    parts = parts.flatMap(p => {
+      if (typeof p !== 'string') return p;
+      const idx = p.indexOf(word);
+      if (idx === -1) return p;
+      return [p.slice(0, idx), React.createElement('strong', { key: word }, word), p.slice(idx + word.length)];
+    });
+  }
+  return React.createElement('p', { style: { fontSize: '14px', lineHeight: '1.7', color: 'var(--muted)', margin: 0 } }, ...parts);
+}
 
 export default function LegalPage({ page, onClose }) {
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   const pages = {
     privacy: {
       title: 'Privacy Policy',
@@ -35,7 +57,7 @@ export default function LegalPage({ page, onClose }) {
       title: 'Returns & Refunds',
       sections: [
         { heading: 'Your Right of Withdrawal', text: 'Under EU law, you have a statutory right to withdraw from your purchase within 14 days of delivery. To exercise this right, contact orders@rewind-stores.com with your order number. You may also use any other clear statement of your intent to withdraw — our email process is just the easiest way to get started.' },
-        { heading: 'Return Shipping', text: 'Return shipping is paid by the buyer unless the item was damaged or incorrect. We recommend using a tracked shipping method — we are not responsible for lost return packages. The return address will be provided in your return confirmation email. Please note that return shipping from the EU to China may involve costs that are disproportionate to the item price — please consider this before purchasing.' },
+        { heading: 'Return Shipping', text: 'Return shipping is paid by the buyer unless the item was damaged or incorrect. We recommend using a tracked shipping method — we are not responsible for lost return packages. The return address will be provided in your return confirmation email.' },
         { heading: 'Condition Requirements', text: 'You may handle the item to inspect it as you would in a physical store (for example, trying on clothing). We may deduct from your refund for any diminished value caused by handling beyond what is necessary to establish the nature, characteristics, and functioning of the goods. Items must be returned in the condition they were received, with all tags attached.' },
         { heading: 'Refund Timeline', text: 'Refunds are processed within 14 days of us receiving the returned goods or receiving proof of return shipment (whichever is earlier). The refund is issued to the original payment method. We use the standard 14-day window to inspect and process your return — you will receive an email when the refund is initiated.' },
         { heading: 'Damaged or Incorrect Items', text: 'If you received a damaged or incorrect item, contact us within 48 hours of delivery with photos. We will provide a prepaid return label and send a replacement or full refund including your original shipping costs.' },
@@ -47,7 +69,7 @@ export default function LegalPage({ page, onClose }) {
       sections: [
         { heading: 'Where We Ship From', text: 'REWIND is based in Belgium. Orders are fulfilled from our supplier partners in China and shipped within 24 hours of payment confirmation. We use reliable international carriers with full tracking.' },
         { heading: 'Delivery Estimates', text: 'East Asia: 3-7 business days · Southeast Asia: 5-10 days · Europe & North America: 7-14 days · Middle East: 10-18 days · Oceania: 10-16 days · South America & Africa: 14-21 days.' },
-        { heading: 'Customs, Duties & VAT', text: 'International orders may be subject to customs duties, import taxes, and handling fees on delivery. Since July 2021, all commercial imports into the EU include VAT regardless of value. Unless stated otherwise at checkout, these charges are the responsibility of the buyer and are not included in the price paid at REWIND. Carriers may charge an additional handling fee for processing customs clearance — typically €5–€25 depending on the carrier and country. Check your local customs office for current rates and policies.' },
+        { heading: 'Customs, Duties & VAT', text: 'International orders may be subject to customs duties, import taxes, and handling fees on delivery. Since July 2021, all commercial imports into the EU include VAT regardless of value. Unless stated otherwise at checkout, these charges are the responsibility of the buyer and are not included in the price paid at REWIND. Carriers may charge an additional handling fee for processing customs clearance — typically €5–€25 depending on the carrier and country.' },
         { heading: 'Tracking', text: 'All orders include tracking. You will receive a tracking number by email once your order ships. Track your package at 17track.net.' },
         { heading: 'Free Shipping', text: 'Orders over €150 qualify for free shipping worldwide. This is applied automatically at checkout.' },
       ],
@@ -67,7 +89,7 @@ export default function LegalPage({ page, onClose }) {
         {content.sections.map((s, i) => (
           <div key={i} style={{ marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 6px' }}>{s.heading}</h3>
-            <p style={{ fontSize: '14px', lineHeight: '1.7', color: 'var(--muted)', margin: 0 }}>{s.text}</p>
+            <T text={s.text} />
           </div>
         ))}
         <button onClick={onClose}
