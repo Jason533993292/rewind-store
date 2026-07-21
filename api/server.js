@@ -768,11 +768,12 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
 });
 
 app.post('/api/get-orders', strictLimiter, async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email required' });
+  const { email, orderNum } = req.body;
+  if (!email || !orderNum) return res.status(400).json({ error: 'Email and order number required' });
   try {
-    const response = await fetch(`${SUPABASE_URL || SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}&order=created_at.desc`, {
-      headers: { apikey: process.env.SUPABASE_KEY || SUPABASE_KEY, Authorization: `Bearer ${process.env.SUPABASE_KEY || SUPABASE_KEY}` },
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}&order_num=eq.${encodeURIComponent(orderNum)}&order=created_at.desc`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const orders = await response.json();
     res.json({ orders: orders || [] });
@@ -938,10 +939,53 @@ registerAdminBlockingRoutes({ app, SUPABASE_URL, SUPABASE_KEY: anonKey, resend, 
 registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdminEmailFromToken });
 registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdminEmailFromToken });
 
+// ── Wishlist API (replaces direct Supabase client writes) ──
+app.get('/api/wishlist', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    res.json({ items: Array.isArray(data) ? data : [] });
+  } catch { res.json({ items: [] }); }
+});
+
+app.post('/api/wishlist', async (req, res) => {
+  const { email, product_ids } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const existing = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    }).then(r => r.json());
+    if (Array.isArray(existing) && existing.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
+        method: 'PATCH',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ product_ids, updated_at: new Date().toISOString() }),
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/wishlists`, {
+        method: 'POST',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ email, product_ids: product_ids || [], created_at: new Date().toISOString(), updated_at: new Date().toISOString() }),
+      });
+    }
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Failed to save wishlist' }); }
+});
+
 // ── Cleanup test accounts (before admin blanket middleware, uses cron token) ──
 app.post('/api/cleanup-test-emails', async (req, res) => {
-  const token = req.headers['x-cron-token'];
-  if (token !== process.env.CRON_SECRET_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
+  const token = (req.headers['x-cron-token'] || '').trim();
+  const storedToken = (process.env.CRON_SECRET_TOKEN || '').trim();
+  if (!storedToken) return res.status(500).json({ error: 'CRON_SECRET_TOKEN not configured' });
+  if (!token || token.length !== storedToken.length || !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(storedToken))) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   const testEmails = [
@@ -962,15 +1006,26 @@ app.post('/api/cleanup-test-emails', async (req, res) => {
         headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
       });
       if (blockRes.ok) removed++;
-      const chatRes = await fetch(SUPABASE_URL + '/rest/v1/chat_sessions?customer_email=eq.' + encoded, {
-        method: 'DELETE',
+      const chatSessionsRes = await fetch(SUPABASE_URL + '/rest/v1/chat_sessions?customer_email=eq.' + encoded + '&select=session_id', {
+        method: 'GET',
         headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
       });
-      // Also delete chat messages for these sessions
-      const chatMsgsRes = await fetch(SUPABASE_URL + '/rest/v1/chat_messages?session_id=in.(select session_id from chat_sessions where customer_email=eq.' + encoded + ')', {
-        method: 'DELETE',
-        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
-      });
+      const sessionsData = await chatSessionsRes.json();
+      const sessionIds = (Array.isArray(sessionsData) ? sessionsData : []).map(s => s.session_id).filter(Boolean);
+      if (sessionIds.length > 0) {
+        // Delete chat messages for these sessions
+        await fetch(SUPABASE_URL + '/rest/v1/chat_messages?session_id=in.(' + sessionIds.map(id => encodeURIComponent(id)).join(',') + ')', {
+          method: 'DELETE',
+          headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+        });
+        // Delete sessions
+        for (const sid of sessionIds) {
+          await fetch(SUPABASE_URL + '/rest/v1/chat_sessions?session_id=eq.' + encodeURIComponent(sid), {
+            method: 'DELETE',
+            headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY },
+          });
+        }
+      }
     }
     res.json({ ok: true, removed });
   } catch (e) {

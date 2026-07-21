@@ -48,7 +48,7 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
     if (!id) return res.status(400).json({ error: 'id required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${id}`, {
+      await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}`, {
         method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
       });
       res.json({ ok: true });

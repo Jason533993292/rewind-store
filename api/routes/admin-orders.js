@@ -9,7 +9,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
     if (!orderId || !reason) return res.status(400).json({ error: 'orderId and reason required' });
     try {
       const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}`, {
         method: 'PATCH',
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'cancelled' }),
@@ -19,7 +19,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
         console.error('Supabase PATCH failed:', errBody);
         return res.status(500).json({ error: 'Failed to update order in database. Check server logs.' });
       }
-      const orderData = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
+      const orderData = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}`, {
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
       }).then(r => r.json());
       const order = Array.isArray(orderData) ? orderData[0] : null;
@@ -91,7 +91,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
     if (!orderId) return res.status(400).json({ error: 'orderId required' });
     try {
       const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}`, {
         method: 'PATCH',
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'pending' }),
@@ -146,12 +146,12 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
     if (!id || !trackingNumber || !courier) return res.status(400).json({ error: 'id, trackingNumber, and courier required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
-      const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}`, {
+      const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'shipped', tracking_number: trackingNumber, courier, tracking_url: trackingUrl || 'https://www.17track.net/en' }),
       });
       if (!updateRes.ok) return res.status(500).json({ error: 'Failed to update order' });
-      const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=*`, {
+      const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=*`, {
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
       });
       const orderData = await orderRes.json();

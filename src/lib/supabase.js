@@ -20,14 +20,13 @@ create table if not exists wishlists (
   updated_at timestamp with time zone default now()
 );
 
--- Allow anonymous read/upsert by email
+-- Note: anon INSERT/UPDATE/DELETE policies have been removed.
+-- Wishlist writes now go through the Express API (service role).
 alter table wishlists enable row level security;
-create policy "anon can read by email" on wishlists
+create policy "anon can read wishlists" on wishlists
   for select to anon using (true);
-create policy "anon can upsert by email" on wishlists
-  for insert to anon with check (true);
-create policy "anon can update by email" on wishlists
-  for update to anon using (true);
+create policy "service can manage wishlists" on wishlists
+  for all to service_role using (true) with check (true);
 */
 
 /* ── Wishlist API ── */
@@ -38,13 +37,12 @@ export async function getWishlist(email) {
     try { return JSON.parse(localStorage.getItem('rw_wishlist') || '[]'); }
     catch { return []; }
   }
-  const { data, error } = await supabase
-    .from('wishlists')
-    .select('product_ids')
-    .eq('email', email)
-    .single();
-  if (error && error.code !== 'PGRST116') console.warn('Supabase getWishlist:', error.message);
-  return data?.product_ids || [];
+  try {
+    const r = await fetch('/api/wishlist?email=' + encodeURIComponent(email));
+    const d = await r.json();
+    const items = Array.isArray(d.items) ? d.items : [];
+    return items[0]?.product_ids || [];
+  } catch { return []; }
 }
 
 export async function saveWishlist(email, productIds, marketingOptin) {
@@ -52,11 +50,13 @@ export async function saveWishlist(email, productIds, marketingOptin) {
     localStorage.setItem('rw_wishlist', JSON.stringify(productIds));
     return;
   }
-  const { error } = await supabase
-    .from('wishlists')
-    .upsert({ email, product_ids: productIds, marketing_optin: marketingOptin ?? false, updated_at: new Date().toISOString() },
-      { onConflict: 'email' });
-  if (error) console.warn('Supabase setWishlist:', error.message);
+  try {
+    await fetch('/api/wishlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, product_ids: productIds }),
+    });
+  } catch {}
 }
 
 export async function signupUser(email, marketingOptin) {
@@ -66,14 +66,8 @@ export async function signupUser(email, marketingOptin) {
   }
   // IMPORTANT: Do NOT include product_ids in the upsert — that would reset
   // the user's existing wishlist to empty when a returning user signs in
-  // again (e.g. after clearing localStorage). Supabase preserves the
-  // existing product_ids when they're omitted, and for new rows the DB
-  // default `'[]'::jsonb` is used.
-  const { error } = await supabase
-    .from('wishlists')
-    .upsert({ email, marketing_optin: marketingOptin ?? false, updated_at: new Date().toISOString() },
-      { onConflict: 'email' });
-  if (error) console.warn('Supabase signup:', error.message);
+  // again (e.g. after clearing localStorage). The API preserves existing data.
+  await saveWishlist(email, undefined, marketingOptin);
 }
 
 /* ── Custom Products API (read-only public; write operations route through server API) ── */
@@ -88,21 +82,13 @@ export async function getCustomProducts() {
   return data || [];
 }
 
-/* ── Admin-only operations (route through server API with admin token) ── */
-
-function getAdminToken() {
-  try {
-    return localStorage.getItem('rw_admin_token') || '';
-  } catch { return ''; }
-}
+/* ── Admin-only operations (route through server API — HttpOnly cookie handles auth) ── */
 
 export async function addCustomProduct(product) {
-  const token = getAdminToken();
-  if (!token) return null;
   try {
     const r = await fetch('/api/admin/products/add', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product),
     });
     const d = await r.json();
@@ -111,12 +97,10 @@ export async function addCustomProduct(product) {
 }
 
 export async function updateCustomProduct(productId, updates) {
-  const token = getAdminToken();
-  if (!token) return null;
   try {
     const r = await fetch('/api/admin/products/update', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ product_id: productId, ...updates }),
     });
     const d = await r.json();
@@ -125,12 +109,10 @@ export async function updateCustomProduct(productId, updates) {
 }
 
 export async function deleteCustomProduct(id) {
-  const token = getAdminToken();
-  if (!token) return false;
   try {
     const r = await fetch('/api/admin/products/delete', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     });
     const d = await r.json();
@@ -139,15 +121,11 @@ export async function deleteCustomProduct(id) {
 }
 
 export async function uploadProductImage(file, productId) {
-  const token = getAdminToken();
-  if (!token) return null;
   try {
-    // Convert file to base64 on the client
     const b64 = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result;
-        // Strip data: URL prefix if present
         const base64 = typeof result === 'string' ? result.split(',')[1] || result : result;
         resolve(base64);
       };
@@ -157,7 +135,7 @@ export async function uploadProductImage(file, productId) {
     const ext = file.name.split('.').pop() || 'webp';
     const r = await fetch('/api/admin/products/upload-image', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId, imageBase64: b64, ext }),
     });
     const d = await r.json();
@@ -168,24 +146,18 @@ export async function uploadProductImage(file, productId) {
 /* ── Orders API (admin-only, route through server API) ── */
 
 export async function getOrders() {
-  const token = getAdminToken();
-  if (!token) return [];
   try {
-    const r = await fetch('/api/admin/orders', {
-      headers: { 'x-admin-token': token },
-    });
+    const r = await fetch('/api/admin/orders');
     const d = await r.json();
     return d.orders || [];
   } catch { return []; }
 }
 
 export async function updateOrderStatus(id, status) {
-  const token = getAdminToken();
-  if (!token) return;
   try {
     await fetch('/api/admin/orders/update-status', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status }),
     });
   } catch {}
