@@ -1078,6 +1078,27 @@ app.post('/api/cleanup-test-emails', async (req, res) => {
   }
 });
 
+// ── Create test order (protected by cron token for testing) ──
+app.post('/api/create-test-order', async (req, res) => {
+  const token = (req.headers['x-cron-token'] || '').trim();
+  const CRON_TOKEN = (process.env.CRON_SECRET_TOKEN || '').trim();
+  if (!token || !CRON_TOKEN || token !== CRON_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const orderNum = 'RW-TEST-' + String(Date.now()).slice(-6);
+    await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_num: orderNum, email, customer_name: 'Test User', address: 'Test Street 1, Brussels', items: JSON.stringify([{ id: 'reward-hoodie', name: 'Rewind Hoodie', qty: 1, price: 50 }]), total: 50, shipping: 0, status: 'pending', created_at: new Date().toISOString() }),
+    });
+    res.json({ orderNum });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/push/subscribe', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const sub = req.body;
