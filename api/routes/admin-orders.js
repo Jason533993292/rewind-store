@@ -120,7 +120,8 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
         }),
       ]);
       const orders = await ordersRes.json();
-      const count = Array.isArray(await countRes.json()) ? (await countRes.json())[0]?.count : 0;
+      const countArr = await countRes.json();
+      const count = Array.isArray(countArr) ? (countArr[0]?.count || 0) : 0;
       res.json({ orders: orders || [], total: count, limit, offset });
     } catch { res.json({ orders: [], total: 0 }); }
   });
