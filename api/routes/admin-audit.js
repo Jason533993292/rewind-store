@@ -51,7 +51,7 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ ok: false });
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/audit_log`, {
+      await fetch(`${SUPABASE_URL}/rest/v1/audit_log?id=gte.0`, {
         method: 'DELETE',
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
       });

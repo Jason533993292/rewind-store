@@ -191,6 +191,9 @@ function FullscreenMap({ locations, onClose }) {
           <span style={{ fontSize: '13px', opacity: 0.6, marginLeft: '8px' }}>
             {locations.length} cities · {total} orders
           </span>
+          <span style={{ fontSize: '11px', opacity: 0.4, marginLeft: '8px' }}>
+            · Avg delivery 10–18 days
+          </span>
         </div>
 
         <svg viewBox="0 0 800 450" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>

@@ -598,7 +598,7 @@ export default function GlobePanel({ open, onClose, locations }) {
         <div style={{ position: 'absolute', top: '16px', left: '20px', zIndex: 10, color: '#fff' }}>
           <div style={{ fontSize: '18px', fontWeight: 700, opacity: 0.9 }}>Our reach</div>
           <div style={{ fontSize: '13px', opacity: 0.5, marginTop: '2px' }}>
-            {locations.length} cities · {totalOrders} orders · Brussels
+            {locations.length} cities · {totalOrders} orders · Brussels · 10–18 days avg
           </div>
         </div>
 
