@@ -647,9 +647,10 @@ async function computeOrder(items, promoCode, country) {
   let discountLabel = null;
   // Validate promo code against DB
   if (promoCode) {
+    const upperCode = promoCode.toUpperCase().trim();
     try {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=discount,discount_type,label,uses,max_uses,used,expires_at`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}&select=discount,discount_type,label,uses,max_uses,used,expires_at`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
       const data = await r.json();
@@ -900,8 +901,9 @@ app.post('/api/stripe-webhook', async (req, res) => {
           if (promoCode) {
             try {
               const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+              const upperCode = promoCode.toUpperCase().trim();
               // Fetch current promo to get uses count
-              const pcRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=uses,max_uses`, {
+              const pcRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}&select=uses,max_uses`, {
                 headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
               });
               const pcData = await pcRes.json();
@@ -909,7 +911,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
               if (promo) {
                 const nextUses = (promo.uses || 0) + 1;
                 // Mark used=true for single-use, otherwise just increment counter
-                await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}`, {
+                await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}`, {
                   method: 'PATCH',
                   headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
                   body: JSON.stringify({
