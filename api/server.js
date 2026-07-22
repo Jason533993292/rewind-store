@@ -701,7 +701,7 @@ async function decrementStockByIds(items) {
 }
 
 // ── Stripe Payment Intent (for Elements) ──
-app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
+app.post('/api/create-payment-intent', async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
   const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
