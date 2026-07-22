@@ -24,6 +24,7 @@ export default function AdminOrdersPanel({ showToast }) {
   const [shipping, setShipping] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [orderNotes, setOrderNotes] = useState('');
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const LIMIT = 50;
 
@@ -68,6 +69,14 @@ export default function AdminOrdersPanel({ showToast }) {
       setConfirmAction({ type: 'cancel', id, order: o });
       setCancelReason('');
       setCustomReason('');
+      return;
+    }
+    if (status === 'shipped') {
+      const o = orders.find(x => x.id === id);
+      setShipOrder(o);
+      setCourierName('');
+      setTrackingNum('');
+      setOrderNotes('');
       return;
     }
     const r = await adminApi.updateOrderStatus(id, status);
@@ -199,7 +208,7 @@ export default function AdminOrdersPanel({ showToast }) {
               </tr>
             </thead>
             <tbody>
-              {sorted.map(o => (
+              {sorted.filter(o => o.status !== 'cancelled').map(o => (
                 <tr key={o.id} style={{ borderBottom: '1px solid var(--line)' }}>
                   <td style={{ padding: '8px 10px', fontWeight: 700, whiteSpace: 'nowrap' }}>{o.order_num}</td>
                   <td style={{ padding: '8px 10px' }}>
@@ -278,6 +287,51 @@ export default function AdminOrdersPanel({ showToast }) {
           <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{offset + 1}–{Math.min(offset + LIMIT, total)} of {total}</span>
           <button disabled={offset + LIMIT >= total} onClick={() => setOffset(offset + LIMIT)}
             style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: offset + LIMIT >= total ? 'not-allowed' : 'pointer', fontSize: '12px', opacity: offset + LIMIT >= total ? 0.5 : 1 }}>Next →</button>
+        </div>
+      )}
+
+      {/* ── Cancelled orders (collapsed) ── */}
+      {sorted.filter(o => o.status === 'cancelled').length > 0 && (
+        <div style={{ marginTop: '16px' }}>
+          <button onClick={() => setShowCancelled(v => !v)}
+            style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--muted)', width: '100%', textAlign: 'left', transition: 'all 0.15s' }}
+            onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
+            onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
+            ❌ Cancelled ({sorted.filter(o => o.status === 'cancelled').length}) {showCancelled ? '▲' : '▼'}
+          </button>
+          {showCancelled && (
+            <div style={{ overflowX: 'auto', marginTop: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', opacity: 0.7 }}>
+                <tbody>
+                  {sorted.filter(o => o.status === 'cancelled').map(o => (
+                    <tr key={o.id} style={{ borderBottom: '1px solid var(--line)' }}>
+                      <td style={{ padding: '8px 10px', fontWeight: 700 }}>{o.order_num}</td>
+                      <td style={{ padding: '8px 10px' }}>{o.customer_name || '—'}</td>
+                      <td style={{ padding: '8px 10px', fontWeight: 700, textAlign: 'right' }}>{money(o.total)}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center', color: '#991b1b', fontWeight: 600 }}>❌ Cancelled</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', color: 'var(--muted)' }}>
+                        {o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}
+                      </td>
+                      <td style={{ padding: '8px 10px', textAlign: 'center' }}>
+                        <button onClick={async () => {
+                          const r = await adminApi.undoCancelOrder(o.id);
+                          if (r.ok) {
+                            setOrders(prev => prev.map(ord => ord.id === o.id ? { ...ord, status: 'pending' } : ord));
+                            showToast?.('✅ Order restored to pending', 'success');
+                          } else showToast?.(r.error || 'Failed to undo', 'error');
+                        }}
+                          style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--ink)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--ink)' }}
+                          onMouseOver={e => { e.target.style.background = 'var(--ink)'; e.target.style.color = '#fff'; }}
+                          onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--ink)'; }}>
+                          ↩ Undo
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
