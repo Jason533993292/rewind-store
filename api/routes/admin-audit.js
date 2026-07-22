@@ -59,6 +59,41 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
     } catch { res.json({ ok: false }); }
   });
 
+  // ── Admin: delete customer data (GDPR deletion request) ──
+  app.post('/api/admin/delete-customer', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+    const headers = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+    try {
+      // Get session IDs for this email (chat data)
+      const sessionsRes = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions?select=session_id&customer_email=eq.${encodeURIComponent(email)}&limit=500`, { headers });
+      const sessions = await sessionsRes.json();
+      const sessionIds = (Array.isArray(sessions) ? sessions : []).map(s => s.session_id).filter(Boolean);
+      // Delete chat messages
+      if (sessionIds.length > 0) {
+        await Promise.all(sessionIds.map(sid =>
+          fetch(`${SUPABASE_URL}/rest/v1/chat_messages?session_id=eq.${encodeURIComponent(sid)}`, { method: 'DELETE', headers })
+        ));
+      }
+      // Delete chat sessions
+      await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions?customer_email=eq.${encodeURIComponent(email)}`, { method: 'DELETE', headers });
+      // Delete wishlist
+      await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, { method: 'DELETE', headers });
+      // Anonymize orders (keep for tax records but remove PII)
+      await fetch(`${SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}`, {
+        method: 'PATCH',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer_name: '[deleted]', address: '[deleted]', email: '[deleted]@redacted' }),
+      });
+      auditLog(getAdminEmailFromToken(req), 'delete_customer', email, req.ip);
+      res.json({ ok: true, sessionsRemoved: sessionIds.length });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // ── Admin: preview cancellation email (generates text without sending) ──
   app.post('/api/admin/preview-cancel-email', async (req, res) => {
     const { reason, customReason, customerName } = req.body;

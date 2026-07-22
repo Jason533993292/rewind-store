@@ -42,9 +42,15 @@ export function registerAdminBlockingRoutes({ app, SUPABASE_URL, SUPABASE_KEY, r
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });
     try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { method: 'POST', headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }) });
-      const d = await r.json();
-      if (d.error) return res.status(500).json({ error: d.error });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, {
+        method: 'POST',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ email: email.toLowerCase().trim(), created_at: new Date().toISOString() }),
+      });
+      if (!r.ok) {
+        const errText = await r.text().catch(() => '');
+        return res.status(500).json({ error: 'Supabase error: ' + (errText || r.statusText) });
+      }
       auditLog(getAdminEmailFromToken(req), 'block_email', email, req.ip);
       res.json({ ok: true });
     } catch { res.status(500).json({ error: 'Operation failed' }); }

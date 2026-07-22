@@ -144,6 +144,21 @@ export default function AdminOrdersPanel({ showToast }) {
             onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
             🧪 Create Test Order
           </button>
+          <button onClick={() => {
+            const csv = ['Order,Customer,Email,Items,Total,Status,Date'];
+            sorted.forEach(o => {
+              const items = (Array.isArray(o.items) ? o.items : []).map(it => (it.name || '').replace(/,/g,'')).join('; ');
+              csv.push([o.order_num, (o.customer_name||'').replace(/,/g,''), (o.email||'').replace(/,/g,''), items, o.total, o.status, o.created_at?.slice(0,10)].join(','));
+            });
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rewind-orders.csv'; a.click();
+            showToast?.('📋 Downloaded ' + sorted.length + ' orders', 'success');
+          }}
+            style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s' }}
+            onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
+            onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
+            📥 CSV
+          </button>
           <input placeholder="Search orders..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', width: '160px' }} />
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}

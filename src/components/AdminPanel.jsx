@@ -22,7 +22,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [selectedUser, setSelectedUser] = useState(null);
   const [emailText, setEmailText] = useState('');
   const [productSearch, setProductSearch] = useState('');
-  const [adminTab, setAdminTab] = useState('users');
+  const [adminTab, setAdminTab] = useState(localStorage.getItem('rw_admin_tab') || 'users');
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
   const [adminToken, setAdminToken] = useState('');
@@ -260,7 +260,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           { id: 'products', label: '🛍️ Products' },
           { id: 'audit', label: '📜 Audit Log' },
         ].filter(t => t.label).map((t) => (
-          <button key={t.id} onClick={() => setAdminTab(t.id)}
+          <button key={t.id} onClick={() => { setAdminTab(t.id); localStorage.setItem('rw_admin_tab', t.id); }}
             style={{
               padding: '10px 20px', borderRadius: '999px', border: 'none',
               background: adminTab === t.id ? 'var(--ink)' : 'var(--line)',
@@ -350,6 +350,20 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                         onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 3px 10px rgba(0,0,0,0.2)'; }}
                         onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
                         {u.blocked ? '✅ Unblock' : '🚫 Block'}
+                      </button>
+                      <button onClick={async () => {
+                        if (!window.confirm(`Delete all data for ${u.email}? This cannot be undone.`)) return;
+                        try {
+                          const r = await fetch('/api/admin/delete-customer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: u.email }) });
+                          const d = await r.json();
+                          if (r.ok) alert('✅ Deleted data for ' + u.email + (d.sessionsRemoved ? ' (' + d.sessionsRemoved + ' chat sessions)' : ''));
+                          else alert('❌ ' + d.error);
+                        } catch { alert('❌ Network error'); }
+                      }}
+                        style={{ marginLeft: '4px', padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 700, transition: 'transform 0.15s, box-shadow 0.15s' }}
+                        onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 3px 10px rgba(0,0,0,0.2)'; }}
+                        onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
+                        🗑️ Delete
                       </button>
                     </td>
                   </tr>

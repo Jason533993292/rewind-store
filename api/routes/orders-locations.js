@@ -40,7 +40,7 @@ export function buildLocationsRouter({ SUPABASE_URL, SERVICE_KEY }) {
     try {
       // 1. Get all non-cancelled orders
       const ordersRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?select=address&status=in.(pending,ordered,shipped)`,
+        `${SUPABASE_URL}/rest/v1/orders?select=address&status=in.(pending,ordered,shipped)&limit=500`,
         { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
       );
       const ordersData = await ordersRes.json();

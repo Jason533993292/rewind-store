@@ -112,7 +112,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
       const limit = Math.min(parseInt(req.query.limit) || 100, 500);
       const offset = parseInt(req.query.offset) || 0;
       const [ordersRes, countRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc&limit=${limit}&offset=${offset}`, {
+        fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc&limit=${limit}&offset=${offset}&select=id,order_num,email,customer_name,total,status,items,created_at`, {
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         }),
         fetch(`${SUPABASE_URL}/rest/v1/orders?select=count`, {
