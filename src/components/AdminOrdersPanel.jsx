@@ -194,6 +194,7 @@ export default function AdminOrdersPanel({ showToast }) {
                 <th style={{ padding: '8px 10px', textAlign: 'left' }}>Items</th>
                 <th style={{ padding: '8px 10px', textAlign: 'right' }}>Total</th>
                 <th style={{ padding: '8px 10px', textAlign: 'center' }}>Status</th>
+                <th style={{ padding: '8px 10px', textAlign: 'center' }}>Created</th>
                 <th style={{ padding: '8px 10px', textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
@@ -223,6 +224,9 @@ export default function AdminOrdersPanel({ showToast }) {
                       <option value="delivered">✅ Delivered</option>
                       <option value="cancelled">❌ Cancel</option>
                     </select>
+                  </td>
+                  <td style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                    {o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}
                   </td>
                   <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
