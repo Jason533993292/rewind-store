@@ -225,12 +225,13 @@ export default function ChatBubble() {
               <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 8px' }}>Enter your email to start chatting</p>
               <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
                 placeholder="your@email.com" type="email"
+                onKeyDown={e => { if (e.key === 'Enter' && customerEmail.includes('@')) setShowEmailScreen(false); }}
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '16px', boxSizing: 'border-box' }} />
               <button onClick={() => setShowEmailScreen(false)}
-                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                disabled={!customerEmail.includes('@')}
+                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '10px', borderRadius: '8px', border: 'none', background: customerEmail.includes('@') ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: customerEmail.includes('@') ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
                 Start chatting
               </button>
-              <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '6px 0 0', textAlign: 'center' }}>Email is optional — you can skip it.</p>
             </div>
           ) : (
           <div style={{ display: 'flex', gap: '8px', padding: '10px', borderTop: '1px solid rgba(0,0,0,.06)', flexShrink: 0 }}>

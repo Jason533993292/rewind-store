@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
+import dns from 'dns';
 import { sendPushNotification } from './push-routes.js';
 
 const MAX_MESSAGE_LEN = 2000;
@@ -75,6 +76,17 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     return null;
   }
 
+  // Check if a domain has valid MX records (mail servers) — catches fake
+  // domains like @gmaill.com without sending a verification email.
+  function hasValidMx(domain) {
+    return new Promise((resolve) => {
+      dns.resolveMx(domain, (err, addresses) => {
+        if (err || !addresses || addresses.length === 0) resolve(false);
+        else resolve(true);
+      });
+    });
+  }
+
   // ── Customer: start a new chat session ──
   router.post('/api/chat/start', async (req, res) => {
     const ip = getIp(req);
@@ -92,12 +104,22 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     let verifiedEmail = null;
     if (customer_email) {
       const normalizedEmail = String(customer_email).toLowerCase().trim();
-      // Basic email format validation — just checks it looks like an email
-      // (has @ and a valid domain pattern). No verification code needed;
-      // the session_id UUID is the real access control.
-      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        verifiedEmail = normalizedEmail;
+      // Validate email format and check domain has mail servers (MX records).
+      // This catches fake domains like @gmail.com (typo) without sending
+      // a verification code to the customer. The session_id UUID is the
+      // real access control for the conversation.
+      const match = /^([^\s@]+)@([^\s@]+\.[^\s@]+)$/.exec(normalizedEmail);
+      if (!match) {
+        return res.status(400).json({ error: 'Invalid email format' });
       }
+      const domain = match[2];
+      const mxValid = await hasValidMx(domain);
+      if (!mxValid) {
+        return res.status(400).json({ error: 'This email domain does not appear to accept mail. Please use a valid email address.' });
+      }
+      verifiedEmail = normalizedEmail;
+    } else {
+      return res.status(400).json({ error: 'Email is required to start a chat' });
     }
 
     // Check if email is blocked
