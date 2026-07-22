@@ -65,6 +65,17 @@ export default function AdminOrdersPanel({ showToast }) {
   });
 
   const updateStatus = async (id, status) => {
+    if (status === 'undo') {
+      const o = orders.find(x => x.id === id);
+      const prev = { shipped: 'pending', handed_courier: 'shipped', cleared_customs: 'handed_courier', local_courier: 'cleared_customs', delivered: 'local_courier' }[o.status];
+      if (!prev) return;
+      const r = await adminApi.updateOrderStatus(id, prev);
+      if (r.ok) {
+        setOrders(prevOrders => prevOrders.map(po => po.id === id ? { ...po, status: prev } : po));
+        showToast?.('↩ Reverted to previous step', 'success');
+      } else showToast?.(r.error, 'error');
+      return;
+    }
     if (status === 'cancelled') {
       const o = orders.find(x => x.id === id);
       setConfirmAction({ type: 'cancel', id, order: o });
@@ -233,6 +244,12 @@ export default function AdminOrdersPanel({ showToast }) {
                         {o.status === 'cleared_customs' && '🛃 Cleared customs'}
                         {o.status === 'local_courier' && '📬 Local courier'}
                         {o.status === 'delivered' && '✅ Delivered'}
+                        <button onClick={() => updateStatus(o.id, 'undo')}
+                          style={{ display: 'block', marginTop: '3px', padding: '1px 6px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '9px', fontWeight: 600, color: 'var(--muted)' }}
+                          onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
+                          onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
+                          ↩ Undo
+                        </button>
                       </div>
                     ) : o.status === 'cancelled' ? (
                       <span style={{ color: '#991b1b', fontWeight: 600, fontSize: '12px' }}>❌ Cancelled</span>
@@ -431,7 +448,7 @@ export default function AdminOrdersPanel({ showToast }) {
               An email will be sent to the customer with estimated delivery of <b>10–30 days</b>.
             </p>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1, border: '2px solid var(--ink)', color: 'var(--ink)', background: 'var(--surface)' }}>Cancel</button>
               <button className="rw-btn rw-btn-pri rw-btn-full" disabled={shipping} onClick={async () => {
                 setShipping(true);
                 const r = await adminApi.updateOrderStatus(confirmAction.id, 'shipped');
@@ -464,7 +481,7 @@ export default function AdminOrdersPanel({ showToast }) {
               The courier name will be included in the email to the customer.
             </p>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1, border: '2px solid var(--ink)', color: 'var(--ink)', background: 'var(--surface)' }}>Cancel</button>
               <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!localCourierName.trim() || shipping} onClick={async () => {
                 setShipping(true);
                 const r = await adminApi.updateOrderStatus(confirmAction.id, 'local_courier', localCourierName.trim());
