@@ -35,11 +35,11 @@ export default function OrderTracking({ onClose }) {
   }
 
   const statusLabels = {
-    pending: '⏳ Pending',
-    ordered: '📦 Ordered',
-    shipped: '🚚 Shipped',
-    delivered: '✅ Delivered',
-    cancelled: '❌ Cancelled',
+    pending: '[PENDING]',
+    ordered: '[ORDERED]',
+    shipped: '[SHIPPED]',
+    delivered: '[DELIVERED]',
+    cancelled: '[CANCELLED]',
   };
 
   return (
@@ -79,10 +79,7 @@ export default function OrderTracking({ onClose }) {
                 <button onClick={async () => {
                   setLoading(true);
                   try {
-                    const r = await fetch('/api/lookup-order', {
-                      method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: email.trim(), orderNum: orderNum.trim() }),
-                    });
+                    const r = await fetch('/api/lookup-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), orderNum: orderNum.trim() }) });
                     const d = await r.json();
                     if (d.found) setResult(d.order);
                     else setError('Order no longer found');
@@ -96,13 +93,14 @@ export default function OrderTracking({ onClose }) {
                 </button>
                 <span style={{
                   padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,
-                background: result.status === 'shipped' || result.status === 'delivered' ? '#d1fae5' :
-                            result.status === 'cancelled' ? '#fee2e2' : '#fef3c7',
-                color: result.status === 'shipped' || result.status === 'delivered' ? '#065f46' :
-                       result.status === 'cancelled' ? '#991b1b' : '#92400e',
-              }}>
-                {statusLabels[result.status] || result.status}
-              </span>
+                  background: result.status === 'shipped' || result.status === 'delivered' ? '#d1fae5' :
+                              result.status === 'cancelled' ? '#fee2e2' : '#fef3c7',
+                  color: result.status === 'shipped' || result.status === 'delivered' ? '#065f46' :
+                         result.status === 'cancelled' ? '#991b1b' : '#92400e',
+                }}>
+                  {statusLabels[result.status] || result.status}
+                </span>
+              </div>
             </div>
 
             {result.items && Array.isArray(result.items) && result.items.length > 0 && (
@@ -139,20 +137,12 @@ export default function OrderTracking({ onClose }) {
             {result.status === 'shipped' && result.tracking_number && (
               <div style={{ marginTop: '16px', padding: '12px', background: 'var(--line)', borderRadius: '8px' }}>
                 <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '4px' }}>Tracking</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>
-                    {result.courier ? result.courier + ': ' : ''}{result.tracking_number}
-                  </p>
-                  <button onClick={() => { navigator.clipboard.writeText(result.tracking_number); }}
-                    style={{ padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)' }}
-                    onMouseOver={e => { e.target.style.color = 'var(--ink)'; }}
-                    onMouseOut={e => { e.target.style.color = 'var(--muted)'; }}>
-                    ⎘
-                  </button>
-                </div>
-                <a href={result.tracking_url || `https://www.17track.net/en?nums=${result.tracking_number}`} target="_blank" rel="noopener"
-                  style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600, display: 'inline-block', marginTop: '4px' }}>
-                  Track package on 17track →
+                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '2px' }}>
+                  {result.courier}: {result.tracking_number}
+                </p>
+                <a href={result.tracking_url || 'https://www.17track.net/en'} target="_blank" rel="noopener"
+                  style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: 600 }}>
+                  Track package →
                 </a>
               </div>
             )}
