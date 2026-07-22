@@ -195,7 +195,12 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
       const email = req.body?.email || 'test@rewind-stores.com';
       const supRes = await fetch(SUPABASE_URL + '/rest/v1/orders', {
         method: 'POST',
-        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json' },
+        headers: {
+          apikey: SERVICE_KEY,
+          Authorization: 'Bearer ' + SERVICE_KEY,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
         body: JSON.stringify({
           order_num: orderNum,
           email,
@@ -207,14 +212,15 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
           created_at: new Date().toISOString(),
         }),
       });
-      const supData = await supRes.json();
-      if (!supRes.ok || supData.error) {
-        return res.status(500).json({ error: 'Supabase error: ' + (supData.message || supData.error || supRes.statusText) });
+      if (!supRes.ok) {
+        const errText = await supRes.text().catch(() => '');
+        return res.status(500).json({ error: 'Supabase error: ' + (errText || supRes.statusText) });
       }
       console.log('Test order created in Supabase:', orderNum, 'for', email);
       res.json({ ok: true, orderNum });
     } catch (e) {
-      res.status(500).json({ error: 'Failed to create test order' });
+      console.error('Test order error:', e.message);
+      res.status(500).json({ error: 'Test order failed: ' + e.message });
     }
   });
 }
