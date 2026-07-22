@@ -92,11 +92,12 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     let verifiedEmail = null;
     if (customer_email) {
       const normalizedEmail = String(customer_email).toLowerCase().trim();
-      const verification = verificationCodes.get(normalizedEmail);
-      if (!verification?.verified || verification.expiresAt < Date.now()) {
-        return res.status(403).json({ error: 'Please verify your email before starting a chat.' });
+      // Basic email format validation — just checks it looks like an email
+      // (has @ and a valid domain pattern). No verification code needed;
+      // the session_id UUID is the real access control.
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        verifiedEmail = normalizedEmail;
       }
-      verifiedEmail = normalizedEmail;
     }
 
     // Check if email is blocked

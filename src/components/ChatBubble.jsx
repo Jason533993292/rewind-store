@@ -31,12 +31,8 @@ export default function ChatBubble() {
   const [unread, setUnread] = useState(0);
   const [sessionStatus, setSessionStatus] = useState('open');
   const [customerEmail, setCustomerEmail] = useState('');
-  const [showEmailScreen, setShowEmailScreen] = useState(true);
+  const [showEmailScreen, setShowEmailScreen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [showVerificationScreen, setShowVerificationScreen] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [verificationMsg, setVerificationMsg] = useState('');
   const [continuingClosed, setContinuingClosed] = useState(false);
   const [isNarrowViewport, setIsNarrowViewport] = useState(false);
   const [cookieBannerLikelyVisible, setCookieBannerLikelyVisible] = useState(false);
@@ -224,93 +220,13 @@ export default function ChatBubble() {
                 Continue anyway
               </button>
             </div>
-          ) : !sessionId && showEmailScreen && !showVerificationScreen ? (
+          ) : !sessionId && showEmailScreen ? (
             <div style={{ padding: '14px' }}>
               <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 8px' }}>Enter your email to start chatting</p>
               <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
                 placeholder="your@email.com" type="email"
-                onKeyDown={(e) => { if (e.key === 'Enter' && customerEmail.includes('@')) document.getElementById('rw-send-code-btn')?.click(); }}
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '16px', boxSizing: 'border-box' }} />
-              <button id="rw-send-code-btn" onClick={async () => {
-                if (!customerEmail.includes('@')) return;
-                setVerifying(true);
-                setVerificationMsg('');
-                try {
-                  const r = await fetch('/api/chat/send-verification', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: customerEmail }),
-                  });
-                  const d = await r.json();
-                  if (d.ok) {
-                    setShowVerificationScreen(true);
-                    setVerificationMsg('');
-                  } else {
-                    setVerificationMsg(d.error || 'Failed to send code');
-                  }
-                } catch { setVerificationMsg('Network error'); }
-                setVerifying(false);
-              }}
-                disabled={!customerEmail.includes('@') || verifying}
-                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', borderRadius: '8px', border: 'none', background: customerEmail.includes('@') && !verifying ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: customerEmail.includes('@') && !verifying ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
-                {verifying ? 'Sending code...' : 'Send verification code'}
-              </button>
-              {verificationMsg && <p style={{ fontSize: '12px', color: 'var(--accent)', margin: '6px 0 0', textAlign: 'center' }}>{verificationMsg}</p>}
-            </div>
-          ) : !sessionId && showVerificationScreen ? (
-            <div style={{ padding: '14px' }}>
-              <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 4px' }}>A 6-digit code was sent to</p>
-              <p style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 8px', wordBreak: 'break-all' }}>{customerEmail}</p>
-              <input value={verificationCode} onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="Enter 6-digit code" type="text" inputMode="numeric"
-                onKeyDown={async (e) => {
-                  if (e.key === 'Enter' && verificationCode.length === 6) {
-                    setVerifying(true); setVerificationMsg('');
-                    try {
-                      const r = await fetch('/api/chat/verify-code', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: customerEmail, code: verificationCode }),
-                      });
-                      const d = await r.json();
-                      if (d.verified) {
-                        setShowVerificationScreen(false);
-                        setShowEmailScreen(false);
-                      } else {
-                        setVerificationMsg(d.error || 'Invalid code');
-                      }
-                    } catch { setVerificationMsg('Network error'); }
-                    setVerifying(false);
-                  }
-                }}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '18px', letterSpacing: '6px', textAlign: 'center', boxSizing: 'border-box' }} />
-              <button disabled={verificationCode.length !== 6 || verifying}
-                onClick={async () => {
-                  setVerifying(true); setVerificationMsg('');
-                  try {
-                    const r = await fetch('/api/chat/verify-code', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: customerEmail, code: verificationCode }),
-                    });
-                    const d = await r.json();
-                    if (d.verified) {
-                      setShowVerificationScreen(false);
-                      setShowEmailScreen(false);
-                    } else {
-                      setVerificationMsg(d.error || 'Invalid code');
-                    }
-                  } catch { setVerificationMsg('Network error'); }
-                  setVerifying(false);
-                }}
-                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '8px', borderRadius: '8px', border: 'none', background: verificationCode.length === 6 && !verifying ? 'var(--accent)' : 'var(--line-2)', color: '#fff', cursor: verificationCode.length === 6 && !verifying ? 'pointer' : 'not-allowed', fontWeight: 600, fontSize: '13px' }}>
-                {verifying ? 'Verifying...' : 'Verify'}
-              </button>
-              {verificationMsg && <p style={{ fontSize: '12px', color: 'var(--accent)', margin: '6px 0 0', textAlign: 'center' }}>{verificationMsg}</p>}
-              <button onClick={() => { setShowVerificationScreen(false); setVerificationCode(''); setVerificationMsg(''); }}
-                style={{ display: 'block', width: '100%', marginTop: '6px', padding: '6px', borderRadius: '8px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--muted)', textDecoration: 'underline' }}>
-                Use a different email
-              </button>
+              <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '6px 0 0' }}>We'll check if this email is valid. Optional — you can chat without one.</p>
             </div>
           ) : (
           <div style={{ display: 'flex', gap: '8px', padding: '10px', borderTop: '1px solid rgba(0,0,0,.06)', flexShrink: 0 }}>
