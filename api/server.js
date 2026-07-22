@@ -472,7 +472,7 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 
   // Check database for generated promo codes with anti-abuse checks
   try {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,used,uses,max_uses,expires_at`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,used,expires_at`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
     });
     const data = await r.json();
@@ -650,7 +650,7 @@ async function computeOrder(items, promoCode, country) {
     const upperCode = promoCode.toUpperCase().trim();
     try {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}&select=discount,discount_type,label,uses,max_uses,used,expires_at`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}&select=discount,discount_type,label,used,expires_at`, {
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
       const data = await r.json();
@@ -897,31 +897,18 @@ app.post('/api/stripe-webhook', async (req, res) => {
           // Decrement stock — atomic RPC
           await decrementStockByIds(items);
 
-          // Increment promo uses if a promo was applied
+          // Mark promo as used after successful payment
           if (promoCode) {
             try {
               const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
               const upperCode = promoCode.toUpperCase().trim();
-              // Fetch current promo to get uses count
-              const pcRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}&select=uses,max_uses`, {
-                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+              await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}`, {
+                method: 'PATCH',
+                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ used: true, used_at: new Date().toISOString() }),
               });
-              const pcData = await pcRes.json();
-              const promo = Array.isArray(pcData) ? pcData[0] : null;
-              if (promo) {
-                const nextUses = (promo.uses || 0) + 1;
-                // Mark used=true for single-use, otherwise just increment counter
-                await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}`, {
-                  method: 'PATCH',
-                  headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    uses: nextUses,
-                    ...(promo.max_uses != null && nextUses >= promo.max_uses ? { used: true } : {}),
-                  }),
-                }).catch(() => {});
-              }
             } catch (promoErr) {
-              console.warn('Failed to increment promo uses:', promoErr.message);
+              console.warn('Failed to mark promo used:', promoErr.message);
             }
           }
 

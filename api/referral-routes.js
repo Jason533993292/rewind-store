@@ -328,7 +328,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
         // (admin-generated promo codes from settings panel live there)
         try {
           const promoRes = await fetchSupabase('promo_codes', {
-            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,used,uses,max_uses,expires_at`,
+            params: `?code=eq.${encodeURIComponent(normalizedCode)}&select=code,discount,label,used,expires_at`,
           });
           if (Array.isArray(promoRes) && promoRes.length > 0) {
             const p = promoRes[0];
