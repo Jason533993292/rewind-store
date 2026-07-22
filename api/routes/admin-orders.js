@@ -126,6 +126,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
     } catch { res.json({ orders: [], total: 0 }); }
   });
 
+  // ── Admin: update order status + send step email ──
   app.post('/api/admin/orders/update-status', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const { id, status } = req.body;
@@ -136,8 +137,43 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
         method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
+      // Send step email if applicable
+      const stepEmails = {
+        shipped: { subject: 'Your REWIND order has shipped', body: 'Your order has been shipped and is on its way. Estimated delivery: <b>10–30 days</b> depending on your location and customs processing.' },
+        handed_courier: { subject: 'Your REWIND order has been handed to the courier', body: 'Your order has been handed over to the international courier and is now in transit.' },
+        cleared_customs: { subject: 'Your REWIND order has cleared customs', body: 'Your order has cleared customs in your country and will be handed over to your local courier shortly.' },
+        local_courier: { subject: 'Your REWIND order is with your local courier', body: 'Your order has been handed over to your local courier for final delivery. Expect delivery within the next few days.' },
+        delivered: { subject: 'Your REWIND order has been delivered', body: 'Your order has been delivered. We hope you love it! If you have any questions, reply to this email or contact us at orders@rewind-stores.com.' },
+      };
+      const step = stepEmails[status];
+      if (step) {
+        const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${id}&select=*`, {
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        });
+        const orderData = await orderRes.json();
+        const order = Array.isArray(orderData) ? orderData[0] : null;
+        if (order?.email && resend) {
+          await resend.emails.send({
+            from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
+            subject: `${step.subject} — ${order.order_num}`,
+            html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:40px 20px;background:#FAF6EF">
+              <h1 style="font-size:24px;color:#16130F">REWIND<span style="color:#FF4D14">.</span></h1>
+              <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
+                <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">${step.subject}</h2>
+                <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${escapeHtml(order.customer_name || 'there')},</p>
+                <p style="color:#6E665A;font-size:15px;line-height:1.6">Order <b>${escapeHtml(order.order_num)}</b></p>
+                <p style="color:#6E665A;font-size:15px;line-height:1.6">${step.body}</p>
+                <p style="color:#6E665A;font-size:14px;margin-top:20px">— REWIND team</p>
+              </div></div>`,
+          });
+          auditLog(getAdminEmailFromToken(req), `status_${status}`, order.order_num, req.ip);
+        }
+      }
       res.json({ ok: true });
-    } catch { res.status(500).json({ error: 'Operation failed' }); }
+    } catch (e) {
+      console.error('Update status error:', e);
+      res.status(500).json({ error: 'Operation failed' });
+    }
   });
 
   // ── Admin: mark order as shipped + send notification email ──

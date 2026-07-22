@@ -73,10 +73,7 @@ export default function AdminOrdersPanel({ showToast }) {
     }
     if (status === 'shipped') {
       const o = orders.find(x => x.id === id);
-      setShipOrder(o);
-      setCourierName('');
-      setTrackingNum('');
-      setOrderNotes('');
+      setConfirmAction({ type: 'ship', id, order: o });
       return;
     }
     const r = await adminApi.updateOrderStatus(id, status);
@@ -222,17 +219,64 @@ export default function AdminOrdersPanel({ showToast }) {
                   </td>
                   <td style={{ padding: '8px 10px', fontWeight: 700, textAlign: 'right', whiteSpace: 'nowrap' }}>{money(o.total)}</td>
                   <td style={{ padding: '8px 10px', textAlign: 'center' }}>
-                    <select value={o.status} onChange={e => updateStatus(o.id, e.target.value)}
-                      style={{
-                        padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--line-2)', fontSize: '12px', fontWeight: 600,
-                        background: statusColors[o.status] || 'transparent',
-                      }}>
-                      <option value="pending">⏳ Pending</option>
-                      <option value="ordered">📦 Ordered</option>
-                      <option value="shipped">🚚 Shipped</option>
-                      <option value="delivered">✅ Delivered</option>
-                      <option value="cancelled">❌ Cancel</option>
-                    </select>
+                    {['shipped','handed_courier','cleared_customs','local_courier','delivered'].includes(o.status) ? (
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', maxWidth: '160px' }}>
+                        {o.status === 'shipped' && '🚚 Shipped'}
+                        {o.status === 'handed_courier' && '📮 Handed to courier'}
+                        {o.status === 'cleared_customs' && '🛃 Cleared customs'}
+                        {o.status === 'local_courier' && '📬 Local courier'}
+                        {o.status === 'delivered' && '✅ Delivered'}
+                      </div>
+                    ) : o.status === 'cancelled' ? (
+                      <span style={{ color: '#991b1b', fontWeight: 600, fontSize: '12px' }}>❌ Cancelled</span>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' }}>
+                        {['shipped','cancelled'].map(s => (
+                          <button key={s} onClick={() => updateStatus(o.id, s)}
+                            style={{
+                              padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)',
+                              cursor: 'pointer', fontSize: '10px', fontWeight: 600,
+                              color: s === 'cancelled' ? '#991b1b' : 'var(--ink)',
+                            }}
+                            onMouseOver={e => { e.target.style.background = s === 'cancelled' ? '#fee2e2' : '#d1fae5'; }}
+                            onMouseOut={e => { e.target.style.background = 'var(--surface)'; }}>
+                            {s === 'shipped' ? '🚚 Ship' : '❌ Cancel'}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {o.status === 'shipped' && !['handed_courier','cleared_customs','local_courier','delivered'].includes(o.status) && (
+                      <button onClick={() => updateStatus(o.id, 'handed_courier')}
+                        style={{ marginTop: '2px', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: 'var(--muted)', display: 'block', width: '100%' }}
+                        onMouseOver={e => { e.target.style.color = 'var(--ink)'; }}
+                        onMouseOut={e => { e.target.style.color = 'var(--muted)'; }}>
+                        📮 Handed to courier →
+                      </button>
+                    )}
+                    {o.status === 'handed_courier' && (
+                      <button onClick={() => updateStatus(o.id, 'cleared_customs')}
+                        style={{ marginTop: '2px', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: 'var(--muted)', display: 'block', width: '100%' }}
+                        onMouseOver={e => { e.target.style.color = 'var(--ink)'; }}
+                        onMouseOut={e => { e.target.style.color = 'var(--muted)'; }}>
+                        🛃 Cleared customs →
+                      </button>
+                    )}
+                    {o.status === 'cleared_customs' && (
+                      <button onClick={() => updateStatus(o.id, 'local_courier')}
+                        style={{ marginTop: '2px', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: 'var(--muted)', display: 'block', width: '100%' }}
+                        onMouseOver={e => { e.target.style.color = 'var(--ink)'; }}
+                        onMouseOut={e => { e.target.style.color = 'var(--muted)'; }}>
+                        📬 Local courier →
+                      </button>
+                    )}
+                    {o.status === 'local_courier' && (
+                      <button onClick={() => updateStatus(o.id, 'delivered')}
+                        style={{ marginTop: '2px', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '10px', fontWeight: 600, color: 'var(--muted)', display: 'block', width: '100%' }}
+                        onMouseOver={e => { e.target.style.color = 'var(--ink)'; }}
+                        onMouseOut={e => { e.target.style.color = 'var(--muted)'; }}>
+                        ✅ Mark delivered →
+                      </button>
+                    )}
                   </td>
                   <td style={{ padding: '8px 10px', textAlign: 'center', fontSize: '11px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
                     {o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}
@@ -367,21 +411,30 @@ export default function AdminOrdersPanel({ showToast }) {
         </div>
       )}
 
-      {/* ── Ship order modal ── */}
-      {shipOrder && (
-        <div className="rw-modal-wrap" onClick={() => { if (!shipping) setShipOrder(null); }}>
+      {/* ── Ship confirm modal ── */}
+      {confirmAction?.type === 'ship' && (
+        <div className="rw-modal-wrap" onClick={() => { if (!shipping) setConfirmAction(null); }}>
           <div className="rw-modal" onClick={e => e.stopPropagation()}
             style={{ maxWidth: '420px', gridTemplateColumns: '1fr', background: 'var(--surface)', borderRadius: '14px', padding: '32px', position: 'relative' }}>
-            <button onClick={() => setShipOrder(null)}
+            <button onClick={() => setConfirmAction(null)}
               style={{ position: 'absolute', top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>✕</button>
             <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>🚚 Confirm shipped</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 20px' }}>Order {shipOrder.order_num} · {shipOrder.customer_name}</p>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 20px' }}>Order {confirmAction.order?.order_num} · {confirmAction.order?.customer_name}</p>
             <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>
-              An email will be sent to the customer with estimated delivery of <b>10–30 days</b>. No tracking number will be shared.
+              An email will be sent to the customer with estimated delivery of <b>10–30 days</b>.
             </p>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button className="rw-btn" onClick={() => setShipOrder(null)} style={{ flex: 1 }}>Cancel</button>
-              <button className="rw-btn rw-btn-pri rw-btn-full" disabled={shipping} onClick={handleShip} style={{ flex: 1 }}>
+              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn rw-btn-pri rw-btn-full" disabled={shipping} onClick={async () => {
+                setShipping(true);
+                const r = await adminApi.updateOrderStatus(confirmAction.id, 'shipped');
+                if (r.ok) {
+                  setOrders(prev => prev.map(o => o.id === confirmAction.id ? { ...o, status: 'shipped' } : o));
+                  showToast?.('✅ Order shipped — email sent', 'success');
+                } else showToast?.(r.error || 'Failed', 'error');
+                setConfirmAction(null);
+                setShipping(false);
+              }} style={{ flex: 1 }}>
                 {shipping ? 'Shipping...' : 'Mark as shipped'}
               </button>
             </div>

@@ -137,8 +137,40 @@ export default function OrderTracking({ onClose }) {
             {result.status === 'shipped' && (
               <div style={{ marginTop: '16px', padding: '12px', background: 'var(--line)', borderRadius: '8px' }}>
                 <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0, lineHeight: '1.6' }}>
-                  Your order has been shipped and is on its way. Estimated delivery: <b>10–30 days</b> depending on your location.
+                  Your order has been shipped and is on its way. Estimated delivery: <b>10\u201330 days</b> depending on your location.
                 </p>
+              </div>
+            )}
+
+            {/* ── Progress steps ── */}
+            {['shipped','handed_courier','cleared_customs','local_courier','delivered'].includes(result.status) && (
+              <div style={{ marginTop: '16px' }}>
+                {[
+                  { key: 'shipped', label: 'Shipped from warehouse' },
+                  { key: 'handed_courier', label: 'Handed to international courier' },
+                  { key: 'cleared_customs', label: 'Cleared customs' },
+                  { key: 'local_courier', label: 'With local courier' },
+                  { key: 'delivered', label: 'Delivered' },
+                ].map((step, i) => {
+                  const done = ['shipped','handed_courier','cleared_customs','local_courier','delivered'].indexOf(result.status) >= i;
+                  const current = ['shipped','handed_courier','cleared_customs','local_courier','delivered'].indexOf(result.status) === i;
+                  return (
+                    <div key={step.key} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', opacity: done ? 1 : 0.3 }}>
+                      <div style={{
+                        width: '20px', height: '20px', borderRadius: '50%',
+                        background: done ? (current ? 'var(--accent)' : '#d1fae5') : 'var(--line-2)',
+                        display: 'grid', placeItems: 'center',
+                        color: done ? (current ? '#fff' : '#065f46') : 'var(--muted)',
+                        fontSize: '10px', fontWeight: 700, flexShrink: 0,
+                      }}>
+                        {done ? (current ? '●' : '✓') : i + 1}
+                      </div>
+                      <span style={{ fontSize: '13px', fontWeight: current ? 600 : 400, color: done ? 'var(--ink)' : 'var(--muted)' }}>
+                        {step.label}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
