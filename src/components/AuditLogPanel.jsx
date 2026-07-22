@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
-export default function AuditLogPanel() {
+export default function AuditLogPanel({ showToast }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState('');
+  const [showClearPrompt, setShowClearPrompt] = useState(false);
+  const [masterToken, setMasterToken] = useState('');
 
   const load = async () => {
     try {
@@ -68,13 +70,7 @@ export default function AuditLogPanel() {
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{entries.length} entries</span>
           {entries.length > 0 && (
-            <button onClick={async () => {
-              if (!confirm('Clear the entire audit log?')) return;
-              await fetch('/api/admin/clear-audit', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-              setMsg('🧹 Audit log cleared');
-              setTimeout(() => setMsg(''), 3000);
-              await load();
-            }}
+            <button onClick={() => setShowClearPrompt(true)}
               style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid #dc2626', background: 'var(--surface)', color: '#dc2626', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all 0.15s' }}
               onMouseOver={e => { e.target.style.background = '#fee2e2'; }}
               onMouseOut={e => { e.target.style.background = 'var(--surface)'; }}>
@@ -126,6 +122,39 @@ export default function AuditLogPanel() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Clear audit token prompt ── */}
+      {showClearPrompt && (
+        <div className="rw-modal-wrap" onClick={() => { setShowClearPrompt(false); setMasterToken(''); }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '380px', gridTemplateColumns: '1fr', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px' }}>Clear audit log?</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>This requires the master admin token.</p>
+            <input className="rw-input" type="password" placeholder="Enter master admin token" value={masterToken}
+              onChange={e => setMasterToken(e.target.value)} style={{ marginBottom: '14px' }} />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="rw-btn" onClick={() => { setShowClearPrompt(false); setMasterToken(''); }} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn rw-btn-pri" onClick={async () => {
+                if (!masterToken.trim()) return;
+                try {
+                  const r = await fetch('/api/admin/clear-audit', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': masterToken.trim() },
+                  });
+                  const d = await r.json();
+                  if (d.ok) {
+                    setMsg('🧹 Audit log cleared');
+                    setTimeout(() => setMsg(''), 3000);
+                    await load();
+                  } else alert(d.error || 'Failed');
+                } catch { alert('Network error'); }
+                setShowClearPrompt(false);
+                setMasterToken('');
+              }} disabled={!masterToken.trim()} style={{ flex: 1, background: '#dc2626' }}>
+                Clear log
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
