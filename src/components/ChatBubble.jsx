@@ -38,8 +38,30 @@ export default function ChatBubble() {
   const [verifying, setVerifying] = useState(false);
   const [verificationMsg, setVerificationMsg] = useState('');
   const [continuingClosed, setContinuingClosed] = useState(false);
+  const [isNarrowViewport, setIsNarrowViewport] = useState(false);
+  const [cookieBannerLikelyVisible, setCookieBannerLikelyVisible] = useState(false);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
+
+  useEffect(() => {
+    const check = () => setIsNarrowViewport(window.innerWidth < 480);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem('rw_cookie_consent')) return;
+    setCookieBannerLikelyVisible(true);
+    const poll = setInterval(() => {
+      if (localStorage.getItem('rw_cookie_consent')) {
+        setCookieBannerLikelyVisible(false);
+        clearInterval(poll);
+      }
+    }, 500);
+    const timeout = setTimeout(() => clearInterval(poll), 60000);
+    return () => { clearInterval(poll); clearTimeout(timeout); };
+  }, []);
 
   useEffect(() => {
     if (open) setMounted(true);
@@ -132,14 +154,22 @@ export default function ChatBubble() {
 
   const showGreeting = messages.length === 0;
 
-  // Don't render on admin pages
   if (typeof window !== 'undefined' && window.location.hash === '#admin') return null;
 
   return (
-    <div style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 10000, fontFamily: 'inherit' }}>
+    <div style={{
+      position: 'fixed',
+      bottom: `calc(${(isNarrowViewport && cookieBannerLikelyVisible) ? '90px' : '20px'} + env(safe-area-inset-bottom, 0px))`,
+      right: 'max(20px, env(safe-area-inset-right, 0px))',
+      zIndex: 10000, fontFamily: 'inherit',
+      transition: 'bottom 0.2s ease',
+    }}>
       {mounted && (
         <div style={{
-          width: '360px', height: '480px', background: '#fff', borderRadius: '16px',
+          width: 'min(360px, calc(100vw - 40px))',
+          height: 'min(480px, calc(100vh - 140px))',
+          maxHeight: '480px',
+          background: '#fff', borderRadius: '16px',
           boxShadow: '0 8px 30px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column',
           marginBottom: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,.06)',
           opacity: open ? 1 : 0, transition: 'opacity 0.3s ease',
@@ -200,7 +230,7 @@ export default function ChatBubble() {
               <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
                 placeholder="your@email.com" type="email"
                 onKeyDown={(e) => { if (e.key === 'Enter' && customerEmail.includes('@')) document.getElementById('rw-send-code-btn')?.click(); }}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '16px', boxSizing: 'border-box' }} />
               <button id="rw-send-code-btn" onClick={async () => {
                 if (!customerEmail.includes('@')) return;
                 setVerifying(true);
@@ -289,7 +319,7 @@ export default function ChatBubble() {
               onChange={(e) => setInput(e.target.value.slice(0, 2000))}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
               placeholder={sessionId ? "Type a message..." : "Type your first message..."}
-              style={{ flex: 1, border: '1px solid #ddd', borderRadius: '8px', padding: '8px 10px', fontSize: '13px' }}
+              style={{ flex: 1, border: '1px solid #ddd', borderRadius: '8px', padding: '8px 10px', fontSize: '16px' }}
             />
             <button onClick={handleSend} disabled={sending || !input.trim()}
               style={{

@@ -18,6 +18,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const [promoMaxUses, setPromoMaxUses] = useState('');
   const [promoExpires, setPromoExpires] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
+  const [isNarrow, setIsNarrow] = useState(false);
   const scrollRef = useRef(null);
 
   const loadSessions = useCallback(async () => {
@@ -37,6 +38,13 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   }, []);
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
+
+  useEffect(() => {
+    const check = () => setIsNarrow(window.innerWidth < 720);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -111,8 +119,17 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '0', minHeight: '300px' }}>
-        <div style={{ width: '200px', minWidth: '160px', flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '400px', overflowY: 'auto', borderRight: '1px solid var(--line)', paddingRight: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: isNarrow ? 'column' : 'row', gap: isNarrow ? '12px' : '0', minHeight: '300px' }}>
+        <div style={{
+          width: isNarrow ? '100%' : '200px',
+          minWidth: isNarrow ? 'auto' : '160px',
+          flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: '6px',
+          maxHeight: isNarrow ? '180px' : '400px', overflowY: 'auto',
+          borderRight: isNarrow ? 'none' : '1px solid var(--line)',
+          borderBottom: isNarrow ? '1px solid var(--line)' : 'none',
+          paddingRight: isNarrow ? '0' : '12px',
+          paddingBottom: isNarrow ? '12px' : '0',
+        }}>
           {sessions.length === 0 ? (
             <p style={{ color: 'var(--muted)', fontSize: '13px', padding: '8px' }}>No active chat sessions.</p>
           ) : sessions.map(s => (
@@ -139,7 +156,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
           ))}
         </div>
 
-        <div style={{ flex: 1, minWidth: 0, paddingLeft: '12px' }}>
+        <div style={{ flex: 1, minWidth: 0, paddingLeft: isNarrow ? '0' : '12px' }}>
           {!selectedId ? (
             <p style={{ color: 'var(--muted)', fontSize: '14px', textAlign: 'center', padding: '40px' }}>
               Select a chat session to view messages
