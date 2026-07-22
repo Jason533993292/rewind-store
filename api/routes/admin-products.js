@@ -3,11 +3,22 @@
 
 export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdminEmailFromToken }) {
 
+  // Only these fields may ever be written to custom_products — prevents
+  // mass assignment via stray/unexpected fields in the request body.
+  const ALLOWED_PRODUCT_FIELDS = ['name', 'cat', 'brand', 'price', 'was', 'stock', 'sizes', 'hue', 'note', 'img'];
+  function pickAllowedFields(body) {
+    const out = {};
+    for (const key of ALLOWED_PRODUCT_FIELDS) {
+      if (body[key] !== undefined) out[key] = body[key];
+    }
+    return out;
+  }
+
   // ── Admin: product CRUD with input validation ──
   app.post('/api/admin/products/add', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
-    const { name, cat, price, stock, sizes, ...rest } = req.body;
+    const { name, cat, price, stock, sizes } = req.body;
     if (!name || !cat || typeof price !== 'number' || price < 0) {
       return res.status(400).json({ error: 'name, cat, and non-negative price are required' });
     }
@@ -20,7 +31,7 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
     try {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products`, {
         method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify({ name, cat, price, stock, sizes, ...rest }),
+        body: JSON.stringify(pickAllowedFields(req.body)),
       });
       const data = await r.json();
       res.json({ ok: r.ok, data });
@@ -29,7 +40,8 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
 
   app.post('/api/admin/products/update', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const { product_id, ...updates } = req.body;
+    const { product_id } = req.body;
+    const updates = pickAllowedFields(req.body);
     if (!product_id) return res.status(400).json({ error: 'product_id required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {

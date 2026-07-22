@@ -46,8 +46,13 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
     } catch { res.json({ entries: [] }); }
   });
 
-  // ── Admin: clear audit log ──
+  // ── Admin: clear audit log (requires master API token) ──
   app.post('/api/admin/clear-audit', async (req, res) => {
+    const masterToken = process.env.ADMIN_API_TOKEN || '';
+    const clientToken = (req.headers['x-admin-token'] || '').trim();
+    if (!masterToken || !clientToken || clientToken !== masterToken) {
+      return res.status(403).json({ error: 'Master admin token required to clear audit log' });
+    }
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SERVICE_KEY || !SUPABASE_URL) return res.json({ ok: false });
     try {
@@ -81,11 +86,11 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
       await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions?customer_email=eq.${encodeURIComponent(email)}`, { method: 'DELETE', headers });
       // Delete wishlist
       await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, { method: 'DELETE', headers });
-      // Anonymize orders (keep for tax records but remove PII)
+      // Anonymize orders (keep for tax records but remove PII, including IP)
       await fetch(`${SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}`, {
         method: 'PATCH',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer_name: '[deleted]', address: '[deleted]', email: '[deleted]@redacted' }),
+        body: JSON.stringify({ customer_name: '[deleted]', address: '[deleted]', email: '[deleted]@redacted', ip_address: null }),
       });
       auditLog(getAdminEmailFromToken(req), 'delete_customer', email, req.ip);
       res.json({ ok: true, sessionsRemoved: sessionIds.length });
