@@ -975,7 +975,7 @@ export default function App() {
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
       <React.Suspense fallback={null}>
-        <CustomerMap />
+        {typeof window !== 'undefined' && window.innerWidth > 768 && <CustomerMap />}
       </React.Suspense>
       {/* Mobile scroll hint */}
       <main className="rw-shop">
@@ -1198,7 +1198,7 @@ export default function App() {
         onTouchStart={(e) => { e.preventDefault(); setDockHover(v => !v); }}
         style={{
           position: 'fixed', bottom: '28px', left: '50%', zIndex: 99999,
-          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
+          display: typeof window !== 'undefined' && window.innerWidth <= 768 ? 'none' : 'flex', justifyContent: 'center', alignItems: 'center', gap: '0',
           background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(24px) saturate(1.4)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.4)',
           borderRadius: '24px', boxShadow: dockHover ? '0 8px 30px rgba(0,0,0,0.09)' : '0 2px 12px rgba(0,0,0,0.08)',

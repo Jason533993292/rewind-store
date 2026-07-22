@@ -83,8 +83,8 @@ export function Photo({ id, hue, label, h = 320, img }) {
 export function Banner({ showCountdown }) {
   const msgs = [
     "Summer drop is live — curated vintage, restocked weekly",
-    "Free returns within 14 days · Ships from EU in 24h",
-    "Every piece authenticated & steam-cleaned before it ships",
+    "Summer sale ends Sunday 23:59 — shop now before it's gone",
+    "Summer sale ends Sunday 23:59 — shop now before it’s gone",
   ];
   const [i, setI] = useState(0);
   useEffect(() => {

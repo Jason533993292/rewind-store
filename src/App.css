@@ -1105,3 +1105,9 @@ input:focus:not(:focus-visible) {
   margin: 0 auto;
 }
 @keyframes splashSpin { to { transform: rotate(360deg); } }
+
+
+/* Mobile category buttons */
+@media (max-width: 768px) {
+  .rw-cat-btn { background: var(--line) !important; }
+}

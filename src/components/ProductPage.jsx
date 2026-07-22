@@ -194,11 +194,11 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
           <div style={{ marginBottom: '20px' }}>
             <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>Quantity</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button onClick={() => setQty(Math.max(1, qty - 1))}
-                disabled={qty <= 1}
+              <button onClick={() => setQty(Math.max(0, qty - 1))}
+                disabled={qty <= 0}
                 onMouseOver={e => { if (!e.target.disabled) e.target.style.background = 'var(--line)'; }}
                 onMouseOut={e => { if (!e.target.disabled) e.target.style.background = 'var(--surface)'; }}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty <= 1 ? 'not-allowed' : 'pointer', transition: 'background 0.15s, opacity 0.15s', opacity: qty <= 1 ? 0.35 : 1, display: 'grid', placeItems: 'center' }}><Icon name="minus" size={14} /></button>
+                style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty <= 0 ? 'not-allowed' : 'pointer', transition: 'background 0.15s, opacity 0.15s', opacity: qty <= 0 ? 0.35 : 1, display: 'grid', placeItems: 'center' }}><Icon name="minus" size={14} /></button>
               <span style={{ fontSize: '16px', fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>{qty}</span>
               <button onClick={() => setQty(Math.min(p.stock || 99, qty + 1))}
                 disabled={qty >= (p.stock || 99)}
