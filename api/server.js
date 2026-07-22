@@ -902,11 +902,24 @@ app.post('/api/stripe-webhook', async (req, res) => {
             try {
               const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
               const upperCode = promoCode.toUpperCase().trim();
-              await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}`, {
-                method: 'PATCH',
-                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ used: true, used_at: new Date().toISOString() }),
+              // Fetch current promo to check max_uses
+              const pcRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}&select=uses,max_uses,used`, {
+                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
               });
+              const pcData = await pcRes.json();
+              const promo = Array.isArray(pcData) ? pcData[0] : null;
+              if (promo) {
+                const nextUses = (promo.uses || 0) + 1;
+                // Mark as used if max_uses reached or single-use, otherwise increment counter
+                await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upperCode)}`, {
+                  method: 'PATCH',
+                  headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    uses: nextUses,
+                    ...(promo.max_uses != null && nextUses >= promo.max_uses ? { used: true, used_at: new Date().toISOString() } : {}),
+                  }),
+                });
+              }
             } catch (promoErr) {
               console.warn('Failed to mark promo used:', promoErr.message);
             }
