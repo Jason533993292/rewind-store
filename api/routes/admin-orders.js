@@ -143,13 +143,13 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
   // ── Admin: mark order as shipped + send notification email ──
   app.post('/api/admin/orders/ship', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const { id, trackingNumber, courier, trackingUrl } = req.body;
-    if (!id || !trackingNumber || !courier) return res.status(400).json({ error: 'id, trackingNumber, and courier required' });
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'id required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
       const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'shipped', tracking_number: trackingNumber, courier, tracking_url: trackingUrl || 'https://www.17track.net/en' }),
+        body: JSON.stringify({ status: 'shipped', updated_at: new Date().toISOString() }),
       });
       if (!updateRes.ok) return res.status(500).json({ error: 'Failed to update order' });
       const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=*`, {
@@ -168,18 +168,14 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
             <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
               <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Your order is on the way! 📦</h2>
               <p style="color:#6E665A;font-size:15px">Hi ${escapeHtml(order.customer_name || 'there')},</p>
-              <p style="color:#6E665A;font-size:15px">Order <b>${escapeHtml(order.order_num)}</b> has shipped.</p>
+              <p style="color:#6E665A;font-size:15px">Order <b>${escapeHtml(order.order_num)}</b> has been shipped and is on its way to you.</p>
+              <p style="color:#6E665A;font-size:15px">Estimated delivery: <b>10–30 days</b> depending on your location and customs processing.</p>
               ${itemsList ? `<p style="color:#6E665A;font-size:14px"><b>Items:</b> ${escapeHtml(itemsList)}</p>` : ''}
-              <div style="background:#F5F0E8;border-radius:10px;padding:16px;margin:16px 0">
-                <p style="margin:0 0 4px;font-size:13px;color:#6E665A"><b>Courier:</b> ${escapeHtml(courier)}</p>
-                <p style="margin:0 0 4px;font-size:13px;color:#6E665A"><b>Tracking:</b> ${escapeHtml(trackingNumber)}</p>
-                <p style="margin:0;font-size:13px"><a href="${escapeHtml(trackingUrl || 'https://www.17track.net/en')}" style="color:#FF4D14;font-weight:600" target="_blank">Track your package →</a></p>
-              </div>
-              <p style="color:#6E665A;font-size:14px;margin-top:16px">Thanks for shopping at REWIND.</p>
+              <p style="color:#6E665A;font-size:14px;margin-top:16px">If you have any questions, reply to this email or contact us at orders@rewind-stores.com. Thank you for shopping at REWIND.</p>
             </div></div>`,
         });
       }
-      auditLog(getAdminEmailFromToken(req), 'ship_order', `${order?.order_num || id} via ${courier} (${trackingNumber})`, req.ip);
+      auditLog(getAdminEmailFromToken(req), 'ship_order', `${order?.order_num || id}`, req.ip);
       res.json({ ok: true });
     } catch (e) {
       console.error('Ship order error:', e);

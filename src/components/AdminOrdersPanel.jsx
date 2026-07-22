@@ -371,23 +371,20 @@ export default function AdminOrdersPanel({ showToast }) {
       {shipOrder && (
         <div className="rw-modal-wrap" onClick={() => { if (!shipping) setShipOrder(null); }}>
           <div className="rw-modal" onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '460px', gridTemplateColumns: '1fr', background: 'var(--surface)', borderRadius: '14px', padding: '32px', position: 'relative' }}>
+            style={{ maxWidth: '420px', gridTemplateColumns: '1fr', background: 'var(--surface)', borderRadius: '14px', padding: '32px', position: 'relative' }}>
             <button onClick={() => setShipOrder(null)}
               style={{ position: 'absolute', top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>✕</button>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>🚚 Mark as shipped</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>🚚 Confirm shipped</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 20px' }}>Order {shipOrder.order_num} · {shipOrder.customer_name}</p>
-            <input className="rw-input" type="text" placeholder="Courier name (e.g. PostNL, FedEx)"
-              value={courierName} onChange={e => setCourierName(e.target.value)} style={{ marginBottom: '10px' }} />
-            <input className="rw-input" type="text" placeholder="Tracking number"
-              value={trackingNum} onChange={e => setTrackingNum(e.target.value)} style={{ marginBottom: '10px' }} />
-            <input className="rw-input" type="text" placeholder="Order notes (internal)..."
-              value={orderNotes} onChange={e => setOrderNotes(e.target.value)} style={{ marginBottom: '14px' }} />
-            <p style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '16px' }}>
-              Track at <a href="https://www.17track.net/en" target="_blank" style={{ color: 'var(--accent)' }}>17track.net</a>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>
+              An email will be sent to the customer with estimated delivery of <b>10–30 days</b>. No tracking number will be shared.
             </p>
-            <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!trackingNum.trim() || !courierName.trim() || shipping} onClick={handleShip}>
-              {shipping ? 'Shipping...' : 'Mark shipped & notify customer'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="rw-btn" onClick={() => setShipOrder(null)} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn rw-btn-pri rw-btn-full" disabled={shipping} onClick={handleShip} style={{ flex: 1 }}>
+                {shipping ? 'Shipping...' : 'Mark as shipped'}
+              </button>
+            </div>
           </div>
         </div>
       )}
