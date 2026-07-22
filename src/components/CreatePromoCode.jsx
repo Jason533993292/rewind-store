@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 
+const btnStyle = {
+  padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)',
+  cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s',
+};
+
 export default function CreatePromoCode({ showToast }) {
   const [code, setCode] = useState('');
   const [discount, setDiscount] = useState(10);
@@ -7,6 +12,14 @@ export default function CreatePromoCode({ showToast }) {
   const [expiresIn, setExpiresIn] = useState(90);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
+
+  const generateCode = () => {
+    const prefix = 'RW';
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let rand = '';
+    for (let i = 0; i < 6; i++) rand += chars[Math.floor(Math.random() * chars.length)];
+    setCode(prefix + rand);
+  };
 
   const handleCreate = async () => {
     if (!code.trim()) { setMsg('Enter a code'); return; }
@@ -34,20 +47,44 @@ export default function CreatePromoCode({ showToast }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
         <div>
           <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Code</label>
-          <input className="rw-input" placeholder="e.g. SUMMER20" value={code} onChange={e => setCode(e.target.value.toUpperCase())} style={{ width: '100%' }} />
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <input className="rw-input" placeholder="e.g. SUMMER20" value={code} onChange={e => setCode(e.target.value.toUpperCase())} style={{ flex: 1 }} />
+            <button onClick={generateCode}
+              style={{ ...btnStyle, padding: '6px 12px', fontSize: '12px' }}
+              onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
+              onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
+              🎲 Random
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Discount %</label>
-            <input className="rw-input" type="number" value={discount} onChange={e => setDiscount(e.target.value)} min={1} max={100} style={{ width: '100%' }} />
+        <div>
+          <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Discount</label>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {[10, 15, 20, 25, 30, 50].map(pct => (
+              <button key={pct} onClick={() => setDiscount(pct)}
+                style={{ ...btnStyle, background: discount === pct ? 'var(--ink)' : 'var(--surface)', color: discount === pct ? '#fff' : 'var(--muted)', borderColor: discount === pct ? 'var(--ink)' : 'var(--line-2)' }}>
+                {pct}%
+              </button>
+            ))}
+            <input className="rw-input" type="number" value={discount} onChange={e => setDiscount(e.target.value)} min={1} max={100}
+              style={{ width: '60px', padding: '4px 8px', fontSize: '11px' }} />
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Max uses</label>
-            <input className="rw-input" type="number" value={maxUses} onChange={e => setMaxUses(e.target.value)} min={1} style={{ width: '100%' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires (days)</label>
-            <input className="rw-input" type="number" value={expiresIn} onChange={e => setExpiresIn(e.target.value)} min={1} style={{ width: '100%' }} />
+        </div>
+        <div>
+          <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Max uses</label>
+          <input className="rw-input" type="number" value={maxUses} onChange={e => setMaxUses(e.target.value)} min={1} style={{ width: '100%' }} />
+        </div>
+        <div>
+          <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires</label>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {[1, 2, 7, 14, 30, 90].map(days => (
+              <button key={days} onClick={() => setExpiresIn(days)}
+                style={{ ...btnStyle, background: expiresIn === days ? 'var(--ink)' : 'var(--surface)', color: expiresIn === days ? '#fff' : 'var(--muted)', borderColor: expiresIn === days ? 'var(--ink)' : 'var(--line-2)' }}>
+                {days}d
+              </button>
+            ))}
+            <input className="rw-input" type="number" value={expiresIn} onChange={e => setExpiresIn(e.target.value)} min={1}
+              style={{ width: '60px', padding: '4px 8px', fontSize: '11px' }} />
           </div>
         </div>
         <button className="rw-btn rw-btn-pri" onClick={handleCreate} disabled={loading}
