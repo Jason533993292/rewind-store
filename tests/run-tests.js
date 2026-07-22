@@ -16,12 +16,12 @@ export async function runTests() {
   } catch (launchErr) {
     // Browser can't launch (missing system deps on this server — e.g. libglib)
     return {
-      results: [{ name: 'Browser launch', status: '⚠️', detail: `Playwright browser unavailable on this server. Run tests locally: npx playwright test tests/comprehensive.spec.js. (${launchErr.message?.slice(0, 80)})` }],
+      results: [{ name: 'Browser launch', status: '⚠️', detail: `Playwright needs system deps. Run locally: npx playwright test tests/comprehensive.spec.js (${launchErr.message?.slice(0, 80)})` }],
       passed: 0,
-      failed: 0,
-      total: 0,
+      failed: 1,
+      total: 1,
       skipped: true,
-      hint: 'Missing system libraries for headless Chromium. Run `npx playwright install --with-deps chromium` on the server, or test locally.',
+      hint: 'Missing system libraries for headless Chromium. Run locally: npx playwright install --with-deps chromium && npx playwright test tests/comprehensive.spec.js',
     };
   }
   const results = [];

@@ -454,16 +454,21 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                 const r = await fetch('/api/run-tests');
                 const d = await r.json();
                 if (d.error) throw new Error(d.error);
-                btn.textContent = `✅ ${d.passed}/${d.total} passed`;
+                btn.textContent = `✅ ${d.passed}/${d.total} passed` + (d.skipped ? ' (server test unavailable)' : '');
                 // Show results inline
                 const resultsDiv = document.getElementById('test-results');
                 if (resultsDiv) {
                   resultsDiv.textContent = '';
-                  d.results.forEach(r => {
+                  (d.results || []).forEach(r => {
                     const row = Object.assign(document.createElement('div'), { style: 'padding:6px 0;border-bottom:1px solid var(--line);font-size:13px' });
-                    row.textContent = r.status + ' ' + r.endpoint;
+                    row.textContent = (r.status || '⚠️') + ' ' + (r.name || r.endpoint || 'Test') + ': ' + (r.detail || '');
                     resultsDiv.appendChild(row);
                   });
+                  if (d.hint) {
+                    const hint = Object.assign(document.createElement('div'), { style: 'padding:8px 0;font-size:12px;color:var(--muted)' });
+                    hint.textContent = '💡 ' + d.hint;
+                    resultsDiv.appendChild(hint);
+                  }
                 }
               } catch (e) {
                 btn.textContent = '❌ Tests failed';
