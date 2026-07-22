@@ -12,7 +12,6 @@ function escapeHtml(str) {
 
 function makeLimiter() {
   const hits = new Map();
-  // Cleanup stale entries every 10 minutes
   setInterval(() => {
     const now = Date.now();
     for (const [key, arr] of hits) {
@@ -34,16 +33,6 @@ function getIp(req) {
   return req.ip;
 }
 
-/**
- * @param {object} opts
- * @param {string} opts.SUPABASE_URL
- * @param {string} opts.SUPABASE_SERVICE_ROLE_KEY
- * @param {object|null} opts.resend
- * @param {string} opts.FROM_EMAIL
- * @param {string} opts.REPLY_TO
- * @param {string} opts.notifyEmail
- * @param {function} opts.requireAdmin - the admin auth middleware function
- */
 export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resend, FROM_EMAIL, REPLY_TO, notifyEmail, requireAdmin }) {
   if (!SUPABASE_SERVICE_ROLE_KEY) {
     console.warn('buildChatRouter: SUPABASE_SERVICE_ROLE_KEY missing — chat routes will fail at runtime.');
@@ -71,11 +60,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   const startLimited = makeLimiter();
   const sendLimited = makeLimiter();
   const readLimited = makeLimiter();
-  // Daily AI reply cap per IP (resets on server restart — fine for solo shop)
   const aiReplyCount = new Map();
-  // Email verification codes: email → { code, expiresAt }
   const verificationCodes = new Map();
-  // Clean expired codes every 5 minutes
   setInterval(() => {
     const now = Date.now();
     for (const [email, entry] of verificationCodes) {
@@ -99,10 +85,24 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     const err = validateMessage(message);
     if (err) return res.status(400).json({ error: err });
 
-    // Check if email is blocked
+    // If an email is claimed, it must have actually been verified via
+    // /api/chat/send-verification + /api/chat/verify-code — otherwise
+    // anyone could claim any email address just by calling this endpoint
+    // directly (the verification UI alone is not enforcement).
+    let verifiedEmail = null;
     if (customer_email) {
+      const normalizedEmail = String(customer_email).toLowerCase().trim();
+      const verification = verificationCodes.get(normalizedEmail);
+      if (!verification?.verified || verification.expiresAt < Date.now()) {
+        return res.status(403).json({ error: 'Please verify your email before starting a chat.' });
+      }
+      verifiedEmail = normalizedEmail;
+    }
+
+    // Check if email is blocked
+    if (verifiedEmail) {
       try {
-        const emailCheck = await sfetch(`/blocked_emails?email=eq.${encodeURIComponent(customer_email.toLowerCase().trim())}`);
+        const emailCheck = await sfetch(`/blocked_emails?email=eq.${encodeURIComponent(verifiedEmail)}`);
         const blockedData = await emailCheck.json();
         if (Array.isArray(blockedData) && blockedData.length > 0) {
           const reason = blockedData[0].reason || 'Blocked by admin';
@@ -127,7 +127,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         method: 'POST',
         body: JSON.stringify({
           session_id,
-          customer_email: customer_email ? String(customer_email).slice(0, 200) : null,
+          customer_email: verifiedEmail,
           customer_name: customer_name ? String(customer_name).slice(0, 200) : null,
           customer_ip: ip,
           status: 'open',
@@ -143,15 +143,11 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
           from: FROM_EMAIL,
           reply_to: REPLY_TO,
           to: notifyEmail,
-          subject: `\u{1F4AC} New chat from ${customer_name || customer_email || 'a customer'}`,
+          subject: `\u{1F4AC} New chat from ${customer_name || verifiedEmail || 'a customer'}`,
           html: `<p style="font-family:sans-serif">${escapeHtml(message.trim())}</p>
                  <p style="font-family:sans-serif"><a href="https://rewind-stores.com/#admin">Open admin chat panel</a></p>`,
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
-
-      // Auto-reply is handled by an external cron job (Hermes Agent)
-      // that checks for unanswered customer messages every few minutes.
-      // This keeps the chat system self-hosted without needing an API key.
 
       res.json({ session_id });
     } catch (e) {
@@ -178,7 +174,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         method: 'PATCH',
         body: JSON.stringify({ last_message_at: new Date().toISOString(), status: 'open' }),
       });
-      // Notify admin of new follow-up message
       if (resend && notifyEmail) {
         try {
           const sessRes = await sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}&select=customer_name,customer_email`);
@@ -192,7 +187,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
           }).catch(() => {});
         } catch {}
       }
-      // Push notification to browser (works even when site is closed)
       sendPushNotification('New customer message', message.trim().substring(0, 120)).catch(() => {});
       res.json({ ok: true });
     } catch (e) {
@@ -202,8 +196,12 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   });
 
   // ── Customer: poll messages ──
-  // Protected: only the customer who owns the session (by IP) can read messages.
-  // Admin can read via /api/admin/chat/messages (requireAdmin-gated).
+  // Access control is the session_id itself — a crypto.randomUUID(), i.e.
+  // 128 bits of randomness the customer's browser holds. That's the actual
+  // credential; there's no separate IP check here (one used to exist, but
+  // it broke real customers whenever their IP changed mid-conversation —
+  // routine on mobile networks — while adding no real protection, since
+  // every other route below already trusts session_id alone).
   router.get('/api/chat/messages', async (req, res) => {
     const { session_id } = req.query;
     if (!session_id) return res.status(400).json({ error: 'session_id required' });
@@ -211,21 +209,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       return res.status(429).json({ error: 'Polling too frequently' });
     }
     try {
-      // Verify the requesting IP owns this session
-      const reqIp = getIp(req);
-      let sessionOwnerIp = null;
-      try {
-        const ownerRes = await sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}&select=customer_ip`);
-        const ownerData = await ownerRes.json();
-        sessionOwnerIp = Array.isArray(ownerData) && ownerData.length > 0 ? ownerData[0].customer_ip : null;
-      } catch {}
-
-      // If the requesting IP doesn't match the session owner, reject
-      // (admin uses /api/admin/chat/messages instead — already requireAdmin-gated)
-      if (sessionOwnerIp && sessionOwnerIp !== reqIp) {
-        return res.json({ messages: [], status: 'unknown' });
-      }
-
       const [msgRes, sessRes] = await Promise.all([
         sfetch('/chat_messages?session_id=eq.' + encodeURIComponent(session_id) + '&order=created_at.asc&select=sender,message,created_at,read_by_customer'),
         sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id) + '&select=status'),
@@ -278,7 +261,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     }
   });
 
-  // ── Admin: reply ──
+  // ── Admin: reply (optionally close after final reply) ──
   router.post('/api/admin/chat/reply', requireAdmin, async (req, res) => {
     const { session_id, message, close } = req.body || {};
     if (!session_id) return res.status(400).json({ error: 'session_id required' });
@@ -299,7 +282,22 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     }
   });
 
-  // ── Admin: delete a session and all its messages ──
+  // ── Admin: close a session without deleting it (reversible) ──
+  router.post('/api/admin/chat/close', requireAdmin, async (req, res) => {
+    const { session_id } = req.body || {};
+    if (!session_id) return res.status(400).json({ error: 'session_id required' });
+    try {
+      await sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(session_id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'closed' }),
+      });
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: 'Could not close session' });
+    }
+  });
+
+  // ── Admin: delete a session and all its messages (PERMANENT) ──
   router.delete('/api/admin/chat/session', requireAdmin, async (req, res) => {
     const { session_id } = req.body;
     if (!session_id) return res.status(400).json({ error: 'session_id required' });
@@ -312,7 +310,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     } catch (e) { res.status(500).json({ error: 'Could not delete session' }); }
   });
 
-  // ── Diagnostic endpoint to check chat system health ──
+  // ── Diagnostic endpoint ──
   router.get('/api/chat/ai-status', async (req, res) => {
     res.json({
       mode: 'cron',
@@ -322,12 +320,20 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     });
   });
 
-  // ── Internal endpoint for Hermes cron job: get pending messages ──
-  router.get('/api/cron/chat/pending', async (req, res) => {
-    const token = req.headers['x-cron-token'];
-    if (token !== process.env.CRON_SECRET_TOKEN) {
+  function requireCronToken(req, res, next) {
+    const storedToken = (process.env.CRON_SECRET_TOKEN || '').trim();
+    if (!storedToken) return res.status(500).json({ error: 'CRON_SECRET_TOKEN not configured' });
+    const token = (req.headers['x-cron-token'] || '').trim();
+    const a = Buffer.from(token);
+    const b = Buffer.from(storedToken);
+    if (!token || a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
+    next();
+  }
+
+  // ── Cron: get pending messages ──
+  router.get('/api/cron/chat/pending', requireCronToken, async (req, res) => {
     try {
       const sessions = await sfetch('/chat_sessions?status=eq.open&order=last_message_at.desc.nullslast&limit=20&select=session_id,customer_email,customer_name,last_message_at');
       const sessionsData = await sessions.json();
@@ -358,12 +364,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     }
   });
 
-  // ── Internal endpoint for Hermes cron job: post a reply ──
-  router.post('/api/cron/chat/reply', async (req, res) => {
-    const token = req.headers['x-cron-token'];
-    if (token !== process.env.CRON_SECRET_TOKEN) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
+  // ── Cron: post a reply ──
+  router.post('/api/cron/chat/reply', requireCronToken, async (req, res) => {
     const { session_id, message } = req.body || {};
     if (!session_id || !message) return res.status(400).json({ error: 'session_id and message required' });
     try {
@@ -382,7 +384,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     }
   });
 
-  // ── Send email verification code ──
+  // ── Send verification code (CSPRNG) ──
   router.post('/api/chat/send-verification', async (req, res) => {
     const { email } = req.body;
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Valid email required' });
@@ -390,14 +392,14 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       return res.status(429).json({ error: 'Too many attempts. Try again later.' });
     }
     if (!resend) return res.status(500).json({ error: 'Email service not configured' });
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = crypto.randomInt(100000, 1000000).toString();
     verificationCodes.set(email.toLowerCase(), { code, expiresAt: Date.now() + 5 * 60 * 1000 });
     try {
       await resend.emails.send({
         from: FROM_EMAIL, reply_to: REPLY_TO, to: email,
         subject: 'Your REWIND chat verification code',
         html: `<div style="font-family:sans-serif;max-width:480px;margin:40px auto;padding:32px;background:#FAF6EF;border-radius:14px;text-align:center">
-          <h1 style="font-size:24px;color:#16130F;margin:0">REWIND<span style="color:#FF4D14">.</span></h1>
+          <h1 style="font-size:24px;color:#16130F;margin:0"><img src="https://rewind-stores.com/rewind-logo.svg" width="120" height="120" alt="REWIND" style="display:block;margin:0 auto" /></h1>
           <p style="color:#6E665A;font-size:15px;margin:20px 0 8px">Your chat verification code is:</p>
           <div style="font-size:40px;font-weight:700;letter-spacing:8px;color:#16130F;background:#fff;border-radius:10px;padding:16px;margin:0 auto;max-width:280px">${code}</div>
           <p style="color:#6E665A;font-size:13px;margin:20px 0 0">This code expires in 5 minutes.</p>
@@ -430,6 +432,3 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
 
   return router;
 }
-
-// The cron job uses /api/chat/messages and /api/admin/chat/reply
-// (both are defined above and already requireAdmin-gated)

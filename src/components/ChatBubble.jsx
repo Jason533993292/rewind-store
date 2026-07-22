@@ -37,6 +37,7 @@ export default function ChatBubble() {
   const [showVerificationScreen, setShowVerificationScreen] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verificationMsg, setVerificationMsg] = useState('');
+  const [continuingClosed, setContinuingClosed] = useState(false);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
 
@@ -56,6 +57,7 @@ export default function ChatBubble() {
       const msgs = Array.isArray(d.messages) ? d.messages : [];
       setMessages(msgs);
       setSessionStatus(d.status || 'open');
+      if ((d.status || 'open') !== 'closed') setContinuingClosed(false);
 
       const unreadAdmin = msgs.filter(m => (m.sender === 'admin' || m.sender === 'ai') && !m.read_by_customer).length;
       if (!open) {
@@ -180,16 +182,16 @@ export default function ChatBubble() {
             ))}
           </div>
 
-          {sessionStatus === 'closed' ? (
+          {sessionStatus === 'closed' && !continuingClosed ? (
             <div style={{ padding: '14px', textAlign: 'center' }}>
-              <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 12px' }}>💬 Session closed</p>
-              <button onClick={() => setOpen(false)}
+              <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 12px' }}>Admin has closed this chat.</p>
+              <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); setContinuingClosed(false); }}
                 style={{ padding: '8px 16px', marginRight: '8px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px' }}>
-                Close
+                Start new chat
               </button>
-              <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); }}
+              <button onClick={() => setContinuingClosed(true)}
                 style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontSize: '13px' }}>
-                Open a new one
+                Continue anyway
               </button>
             </div>
           ) : !sessionId && showEmailScreen && !showVerificationScreen ? (

@@ -45,7 +45,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
         if (!r.ok) return;
         const d = await r.json();
         const newSessions = Array.isArray(d.sessions) ? d.sessions : [];
-        if (newSessions.length === 0) return; // Don't clear on empty response (transient fetch glitch)
+        if (newSessions.length === 0) return;
         setSessions(prev => {
           if (prev.length > 0 && newSessions.length > prev.length) {
             setChatUnread(newSessions.length - prev.length);
@@ -79,13 +79,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const handleClose = async () => {
     if (!selectedId) return;
     try {
-      await fetch('/api/admin/chat/session', {
-        method: 'DELETE',
+      await fetch('/api/admin/chat/close', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: selectedId }),
       });
-      setSelectedId(null);
-      setMessages([]);
+      await loadMessages(selectedId);
       await loadSessions();
     } catch {}
     setShowCloseConfirm(false);
@@ -132,7 +131,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
               <div style={{ fontSize: '10px', opacity: 0.5, marginTop: '2px' }}>
                 {s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}
               </div>
-              <button onClick={async (e) => { e.stopPropagation(); if (!confirm('Close this chat session?')) return; await fetch('/api/admin/chat/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: s.session_id }) }); if (selectedId === s.session_id) { setSelectedId(null); setMessages([]); } await loadSessions(); }}
+              <button onClick={async (e) => { e.stopPropagation(); if (!confirm('Delete this chat session and all its messages? This cannot be undone.')) return; await fetch('/api/admin/chat/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: s.session_id }) }); if (selectedId === s.session_id) { setSelectedId(null); setMessages([]); } await loadSessions(); }}
                 style={{ position: 'absolute', top: '4px', right: '4px', width: '18px', height: '18px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '11px', lineHeight: '1', color: 'var(--muted)', display: 'grid', placeItems: 'center', opacity: 0.6 }}
                 onMouseOver={e => { e.stopPropagation(); e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; e.currentTarget.style.opacity = '1'; }}
                 onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = '0.6'; }}>✕</button>
@@ -177,7 +176,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   );
                 })}
               </div>
-              {/* ── Action buttons + reply ── */}
+
               <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexShrink: 0, overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '2px', maxWidth: '100%' }}>
                 <button onClick={() => setShowPromoPanel(true)}
                   onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
@@ -192,20 +191,27 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   🚫 Block
                 </button>
                 {selectedEmail && (
-                  <button onClick={() => { navigator.clipboard?.writeText(selectedEmail).then(() => { e => e.currentTarget.textContent = '✓ Copied'; setTimeout(() => { e => e.currentTarget.textContent = '📧 Copy email'; }, 1500); }).catch(() => {}); }}
+                  <button onClick={(e) => { navigator.clipboard?.writeText(selectedEmail).then(() => { e.currentTarget.textContent = '✓ Copied'; setTimeout(() => { e.currentTarget.textContent = '📧 Copy email'; }, 1500); }).catch(() => {}); }}
                     onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                     onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
                     style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
                     📧 Copy email
                   </button>
                 )}
-                <button onClick={handleClose}
+                <button onClick={() => setShowCloseConfirm(true)}
                   onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
                   style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
                   ✕ Close
                 </button>
+                <button onClick={async (e) => { if (!confirm('Delete this chat session and all its messages? This cannot be undone.')) return; await fetch('/api/admin/chat/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: selectedId }) }); setSelectedId(null); setMessages([]); await loadSessions(); }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.transform = ''; }}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #dc2626', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#dc2626', transition: 'all 0.15s', flexShrink: 0 }}>
+                  🗑️ Delete
+                </button>
               </div>
+
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input value={reply} onChange={e => setReply(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply(); } }}
@@ -223,6 +229,22 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
         </div>
       </div>
     </div>
+
+      {/* ── Close confirm modal ── */}
+      {showCloseConfirm && (
+        <div className="rw-modal-wrap" onClick={() => setShowCloseConfirm(false)}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', gridTemplateColumns: '1fr', padding: '24px' }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px' }}>Close this chat?</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>
+              The customer will see "Admin has closed this chat" and can choose to continue the conversation or start a new one.
+            </p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="rw-btn" onClick={() => setShowCloseConfirm(false)} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn rw-btn-pri" onClick={handleClose} style={{ flex: 1 }}>Close chat</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Block customer modal ── */}
       {showBlockPanel && (
