@@ -142,7 +142,9 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
         shipped: { subject: 'Your REWIND order has shipped', body: 'Your order has been shipped and is on its way. Estimated delivery: <b>10–30 days</b> depending on your location and customs processing.' },
         handed_courier: { subject: 'Your REWIND order has been handed to the courier', body: 'Your order has been handed over to the international courier and is now in transit.' },
         cleared_customs: { subject: 'Your REWIND order has cleared customs', body: 'Your order has cleared customs in your country and will be handed over to your local courier shortly.' },
-        local_courier: { subject: 'Your REWIND order is with your local courier', body: 'Your order has been handed over to your local courier for final delivery. Expect delivery within the next few days.' },
+        local_courier: { subject: 'Your REWIND order is with your local courier', bodyFn: (order, courierName) => courierName
+          ? `Your order has been handed over to <b>${escapeHtml(courierName)}</b> for final delivery. Expect delivery within the next few days.`
+          : 'Your order has been handed over to your local courier for final delivery. Expect delivery within the next few days.' },
         delivered: { subject: 'Your REWIND order has been delivered', body: 'Your order has been delivered. We hope you love it! If you have any questions, reply to this email or contact us at orders@rewind-stores.com.' },
       };
       const step = stepEmails[status];
@@ -152,6 +154,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
         });
         const orderData = await orderRes.json();
         const order = Array.isArray(orderData) ? orderData[0] : null;
+        const bodyText = step.bodyFn ? step.bodyFn(order, req.body?.courier_name) : step.body;
         if (order?.email && resend) {
           await resend.emails.send({
             from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,

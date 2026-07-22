@@ -19,7 +19,7 @@ async function adminFetch(url, options = {}) {
 export const adminApi = {
   // Orders
   getOrders: (limit, offset) => adminFetch('/api/admin/orders?limit=' + (limit || 50) + '&offset=' + (offset || 0)),
-  updateOrderStatus: (id, status) => adminFetch('/api/admin/orders/update-status', { method: 'POST', body: JSON.stringify({ id, status }) }),
+  updateOrderStatus: (id, status, courierName) => adminFetch('/api/admin/orders/update-status', { method: 'POST', body: JSON.stringify({ id, status, courier_name: courierName }) }),
   shipOrder: (id, trackingNumber, courier) => adminFetch('/api/admin/orders/ship', { method: 'POST', body: JSON.stringify({ id, trackingNumber, courier }) }),
   cancelOrder: (id, reason, customReason) => adminFetch('/api/admin/cancel-order', { method: 'POST', body: JSON.stringify({ orderId: id, reason, customReason: customReason || '' }) }),
   undoCancelOrder: (id) => adminFetch('/api/admin/undo-cancel-order', { method: 'POST', body: JSON.stringify({ orderId: id }) }),

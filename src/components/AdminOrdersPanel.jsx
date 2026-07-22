@@ -10,6 +10,7 @@ export default function AdminOrdersPanel({ showToast }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [localCourierName, setLocalCourierName] = useState('');
   const [cancelOrder, setCancelOrder] = useState(null);
   const [cancelStep, setCancelStep] = useState(0);
   const [cancelReason, setCancelReason] = useState('');
@@ -74,6 +75,12 @@ export default function AdminOrdersPanel({ showToast }) {
     if (status === 'shipped') {
       const o = orders.find(x => x.id === id);
       setConfirmAction({ type: 'ship', id, order: o });
+      return;
+    }
+    if (status === 'local_courier') {
+      const o = orders.find(x => x.id === id);
+      setLocalCourierName('');
+      setConfirmAction({ type: 'local_courier', id, order: o });
       return;
     }
     const r = await adminApi.updateOrderStatus(id, status);
@@ -436,6 +443,39 @@ export default function AdminOrdersPanel({ showToast }) {
                 setShipping(false);
               }} style={{ flex: 1 }}>
                 {shipping ? 'Shipping...' : 'Mark as shipped'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Local courier modal ── */}
+      {confirmAction?.type === 'local_courier' && (
+        <div className="rw-modal-wrap" onClick={() => { if (!shipping) setConfirmAction(null); }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '420px', gridTemplateColumns: '1fr', background: 'var(--surface)', borderRadius: '14px', padding: '32px', position: 'relative' }}>
+            <button onClick={() => setConfirmAction(null)}
+              style={{ position: 'absolute', top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}>✕</button>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 4px' }}>📬 Local courier</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 20px' }}>Order {confirmAction.order?.order_num} · {confirmAction.order?.customer_name}</p>
+            <input className="rw-input" type="text" placeholder="Courier name (e.g. PostNL, Bpost, La Poste...)"
+              value={localCourierName} onChange={e => setLocalCourierName(e.target.value)} style={{ marginBottom: '14px' }} />
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>
+              The courier name will be included in the email to the customer.
+            </p>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="rw-btn" onClick={() => setConfirmAction(null)} style={{ flex: 1 }}>Cancel</button>
+              <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!localCourierName.trim() || shipping} onClick={async () => {
+                setShipping(true);
+                const r = await adminApi.updateOrderStatus(confirmAction.id, 'local_courier', localCourierName.trim());
+                if (r.ok) {
+                  setOrders(prev => prev.map(o => o.id === confirmAction.id ? { ...o, status: 'local_courier', courier_name: localCourierName.trim() } : o));
+                  showToast?.('📬 Courier noted — email sent', 'success');
+                } else showToast?.(r.error || 'Failed', 'error');
+                setConfirmAction(null);
+                setShipping(false);
+              }} style={{ flex: 1 }}>
+                {shipping ? 'Saving...' : 'Notify customer'}
               </button>
             </div>
           </div>
