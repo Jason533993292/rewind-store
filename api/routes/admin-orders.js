@@ -63,7 +63,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
           from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
           subject: `Order ${order.order_num} cancelled — refund initiated`,
           html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:40px 20px;background:#FAF6EF">
-            <h1 style="font-size:24px;color:#16130F">REWIND<span style="color:#FF4D14">.</span></h1>
+            <h1 style="font-size:24px;color:#16130F">↻ REWIND<span style="color:#FF4D14">.</span></h1>
             <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
               <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Order cancelled</h2>
               <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${escapeHtml(order.customer_name || 'there')},</p>
@@ -160,7 +160,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
             from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
             subject: `${step.subject} — ${order.order_num}`,
             html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:40px 20px;background:#FAF6EF">
-              <h1 style="font-size:24px;color:#16130F">REWIND<span style="color:#FF4D14">.</span></h1>
+              <h1 style="font-size:24px;color:#16130F">↻ REWIND<span style="color:#FF4D14">.</span></h1>
               <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
                 <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">${step.subject}</h2>
                 <p style="color:#6E665A;font-size:15px;line-height:1.6">Hi ${escapeHtml(order.customer_name || 'there')},</p>
@@ -203,7 +203,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
           from: FROM_EMAIL, reply_to: REPLY_TO, to: order.email,
           subject: `Your REWIND order has shipped — ${order.order_num}`,
           html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:40px 20px;background:#FAF6EF">
-            <h1 style="font-size:24px;color:#16130F">REWIND<span style="color:#FF4D14">.</span></h1>
+            <h1 style="font-size:24px;color:#16130F">↻ REWIND<span style="color:#FF4D14">.</span></h1>
             <div style="background:#fff;border-radius:14px;padding:32px;margin-top:20px">
               <h2 style="font-size:20px;color:#16130F;margin:0 0 8px">Your order is on the way! 📦</h2>
               <p style="color:#6E665A;font-size:15px">Hi ${escapeHtml(order.customer_name || 'there')},</p>
