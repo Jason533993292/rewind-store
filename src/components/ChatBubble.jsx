@@ -226,7 +226,11 @@ export default function ChatBubble() {
               <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
                 placeholder="your@email.com" type="email"
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '16px', boxSizing: 'border-box' }} />
-              <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '6px 0 0' }}>We'll check if this email is valid. Optional — you can chat without one.</p>
+              <button onClick={() => setShowEmailScreen(false)}
+                style={{ display: 'block', width: '100%', marginTop: '8px', padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                Start chatting
+              </button>
+              <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '6px 0 0', textAlign: 'center' }}>Email is optional — you can skip it.</p>
             </div>
           ) : (
           <div style={{ display: 'flex', gap: '8px', padding: '10px', borderTop: '1px solid rgba(0,0,0,.06)', flexShrink: 0 }}>
