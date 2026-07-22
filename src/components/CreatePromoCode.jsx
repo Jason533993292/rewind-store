@@ -44,7 +44,7 @@ export default function CreatePromoCode({ showToast }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div>
           <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Code</label>
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -72,7 +72,7 @@ export default function CreatePromoCode({ showToast }) {
         </div>
         <div>
           <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Max uses</label>
-          <input className="rw-input" type="number" value={maxUses} onChange={e => setMaxUses(e.target.value)} min={1} style={{ width: '100%' }} />
+          <input className="rw-input" type="number" value={maxUses} onChange={e => setMaxUses(e.target.value)} min={1} style={{ width: '100%', maxWidth: '200px' }} />
         </div>
         <div>
           <label style={{ fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Expires</label>
