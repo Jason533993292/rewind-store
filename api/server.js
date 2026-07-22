@@ -899,25 +899,25 @@ app.post('/api/stripe-webhook', async (req, res) => {
           // Increment promo uses if a promo was applied
           if (promoCode) {
             try {
-              await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_promo_uses`, {
-                method: 'POST',
-                headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ p_code: promoCode }),
-              });
-              // Only mark used=true for single-use promos (max_uses === 1 or null).
-              // Multi-use promos rely on the uses counter being checked instead.
-              await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=max_uses`, {
+              const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+              // Fetch current promo to get uses count
+              const pcRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}&select=uses,max_uses`, {
                 headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-              }).then(r => r.json()).then(data => {
-                const promo = Array.isArray(data) ? data[0] : null;
-                if (promo && promo.max_uses === 1) {
-                  fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}`, {
-                    method: 'PATCH',
-                    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ used: true }),
-                  }).catch(() => {});
-                }
               });
+              const pcData = await pcRes.json();
+              const promo = Array.isArray(pcData) ? pcData[0] : null;
+              if (promo) {
+                const nextUses = (promo.uses || 0) + 1;
+                // Mark used=true for single-use, otherwise just increment counter
+                await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(promoCode)}`, {
+                  method: 'PATCH',
+                  headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    uses: nextUses,
+                    ...(promo.max_uses != null && nextUses >= promo.max_uses ? { used: true } : {}),
+                  }),
+                }).catch(() => {});
+              }
             } catch (promoErr) {
               console.warn('Failed to increment promo uses:', promoErr.message);
             }
