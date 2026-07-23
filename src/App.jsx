@@ -872,12 +872,14 @@ export default function App() {
     }).catch(() => {});
   }, [adminMode]);
 
-  // ── Track order state & hash handler ──
-  const [showTrackOrder, setShowTrackOrder] = useState(() => window.location.hash === '#/track');
+  // ── Track order state ──
+  const [showTrackOrder, setShowTrackOrder] = useState(() => getRoute() === 'track');
   useEffect(() => {
-    const onHash = () => setShowTrackOrder(window.location.hash === '#/track');
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    const fn = () => setShowTrackOrder(getRoute() === 'track');
+    fn();
+    window.addEventListener('spa-navigate', fn);
+    window.addEventListener('popstate', fn);
+    return () => { window.removeEventListener('spa-navigate', fn); window.removeEventListener('popstate', fn); };
   }, []);
 
   // ── SEO: update page title & meta tags ──
