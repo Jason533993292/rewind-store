@@ -15,6 +15,7 @@ export function getRoute() {
   if (p.startsWith('/terms')) return 'terms';
   if (p.startsWith('/returns')) return 'returns';
   if (p.startsWith('/shipping')) return 'shipping';
+  if (p.startsWith('/track')) return 'track';
   if (p.startsWith('/product/')) return 'product/' + p.replace('/product/', '');
   if (p.startsWith('/payment-complete')) return 'payment-complete';
   return '';

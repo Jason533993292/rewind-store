@@ -777,7 +777,7 @@ export default function App() {
 
   useEffect(() => {
     const onPop = () => {
-      if (!getRoute().startsWith('product/')) {
+      if (getRoute() !== 'admin' && !getRoute().startsWith('product/')) {
         setSelectedProduct(null);
       }
     };
@@ -840,7 +840,7 @@ export default function App() {
       }
       // Handle return from redirect payment methods (Klarna, Bancontact, iDEAL, PayPal)
       if (getRoute().startsWith('payment-complete')) {
-        const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+        const params = new URLSearchParams(window.location.search.slice(1));
         const order = params.get('order');
         if (order) {
           setOrderNumber(order);
@@ -848,10 +848,15 @@ export default function App() {
         }
       }
     };
-    // Handle initial URL hash immediately (direct navigation to #/product/xxx)
     onHash();
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    window.addEventListener('spa-navigate', onHash);
+    window.addEventListener('popstate', onHash);
+    return () => {
+      window.removeEventListener('hashchange', onHash);
+      window.removeEventListener('spa-navigate', onHash);
+      window.removeEventListener('popstate', onHash);
+    };
   }, []);
 
   // Check if current user is blocked via server endpoint
@@ -910,8 +915,8 @@ export default function App() {
     );
   } else if (showTrackOrder) {
     viewContent = (
-      <React.Suspense fallback={null}>
-        <OrderTracking onClose={() => { setShowTrackOrder(false); window.location.hash = ''; }} />
+      <React.Suspense fallback={<div style={{ padding: '40px', textAlign: 'center', fontSize: '14px', color: 'var(--muted)' }}>Loading...</div>}>
+        <OrderTracking onClose={() => { setShowTrackOrder(false); nav('/'); }} />
       </React.Suspense>
     );
   } else if (selectedProduct) {
@@ -1239,7 +1244,7 @@ export default function App() {
           </button>
 
           {/* Admin */}
-          <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = 'admin'; setDockHover(false); }}
+          <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/admin'); setDockHover(false); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: dockHover ? '8px 12px' : '8px 0',
@@ -1257,7 +1262,7 @@ export default function App() {
           </button>
 
           {/* Home */}
-          <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = ''; setDockHover(false); }}
+          <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/'); setDockHover(false); }}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: '16px', flexShrink: 0,
@@ -1272,7 +1277,7 @@ export default function App() {
         </button>
 
           {/* Track order */}
-          <button onClick={() => { setShowReferral(false); setShowSettings(false); window.location.hash = '#/track'; setDockHover(false); }}
+          <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/track'); setDockHover(false); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: dockHover ? '8px 12px' : '8px 0',
