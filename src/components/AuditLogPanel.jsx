@@ -91,7 +91,7 @@ export default function AuditLogPanel({ showToast }) {
       ) : (
         <div style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {entries.map((e, i) => (
-            <div key={e.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--line)', borderRadius: '8px', fontSize: '13px' }}>
+            <div key={e.id || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--line)', borderRadius: '8px', fontSize: '13px', wordBreak: 'break-word' }}>
               <div style={{ flex: 1 }}>
                 <span style={{ fontWeight: 600 }}>{actionLabels[e.action] || e.action}</span>
                 {e.details && <span style={{ color: 'var(--muted)', marginLeft: '8px' }}>{e.details}</span>}
