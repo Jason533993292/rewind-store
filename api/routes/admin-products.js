@@ -5,7 +5,7 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
 
   // Only these fields may ever be written to custom_products — prevents
   // mass assignment via stray/unexpected fields in the request body.
-  const ALLOWED_PRODUCT_FIELDS = ['name', 'cat', 'brand', 'price', 'was', 'stock', 'sizes', 'hue', 'note', 'img'];
+  const ALLOWED_PRODUCT_FIELDS = ['name', 'cat', 'brand', 'price', 'was', 'stock', 'sizes', 'hue', 'note', 'img', 'imgs'];
   function pickAllowedFields(body) {
     const out = {};
     for (const key of ALLOWED_PRODUCT_FIELDS) {
