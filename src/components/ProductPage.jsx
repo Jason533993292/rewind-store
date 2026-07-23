@@ -6,6 +6,7 @@ import { money } from '../hooks/useCountdown';
 export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, showCompare = true, showStock = true, onSizeGuide }) {
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
+  const productImgs = (() => { const imgs = p.imgs || p.img; if (Array.isArray(imgs)) return imgs; if (typeof imgs === 'string' && imgs.startsWith('[')) { try { return JSON.parse(imgs); } catch {} } return imgs ? [imgs] : []; })();
   const [selectedImg, setSelectedImg] = useState(0);
   const [added, setAdded] = useState(false);
   const [showAdminMenu, setShowAdminMenu] = useState(false);

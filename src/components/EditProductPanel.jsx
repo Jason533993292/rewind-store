@@ -12,6 +12,14 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
   }));
   const [showCustomCat, setShowCustomCat] = useState(form.cat === 'Other' || isCustomCat);
   const [catCustom, setCatCustom] = useState(isCustomCat ? form.cat : '');
+  const [images, setImages] = useState(() => {
+    const imgs = product.imgs || product.img;
+    if (Array.isArray(imgs)) return imgs;
+    if (typeof imgs === 'string' && imgs.startsWith('[')) {
+      try { return JSON.parse(imgs); } catch { return imgs ? [imgs] : []; }
+    }
+    return imgs ? [imgs] : [];
+  });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -19,7 +27,7 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
     e.preventDefault();
     setSaving(true); setMsg('');
     const result = await updateCustomProduct(product.product_id || product.id, {
-      name: form.name, brand: form.brand, cat: form.cat,
+      name: form.name, brand: form.brand, cat: form.cat, imgs: JSON.stringify(images),
       price: parseFloat(form.price) || 0, was: form.was ? parseFloat(form.was) : null,
       stock: (() => { const n = parseInt(form.stock); return isNaN(n) ? 10 : n; })(),
       sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),

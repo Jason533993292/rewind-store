@@ -22,7 +22,10 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [selectedUser, setSelectedUser] = useState(null);
   const [emailText, setEmailText] = useState('');
   const [productSearch, setProductSearch] = useState('');
-  const [adminTab, setAdminTab] = useState(localStorage.getItem('rw_admin_tab') || 'users');
+  const [adminTab, setAdminTab] = useState(() => {
+    const editPending = typeof localStorage !== 'undefined' && localStorage.getItem('rw_edit_product');
+    return editPending ? 'edit' : (localStorage.getItem('rw_admin_tab') || 'users');
+  });
   const [editProduct, setEditProduct] = useState(null); // direct product for editing
   const [adminEmail, setAdminEmail] = useState('');
   const [adminToken, setAdminToken] = useState('');
@@ -110,6 +113,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
       if (found) {
         setEditProduct(found);
         setAdminTab('edit');
+      } else {
+        setMsg('Product not found — it may not be a custom product');
       }
     }
   }, [customProducts]);
