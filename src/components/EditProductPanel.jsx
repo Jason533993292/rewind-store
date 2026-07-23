@@ -71,34 +71,38 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
       )}
 
       <form onSubmit={handleSave}>
-        {/* Image */}
+        {/* Photos (multi-image) */}
         <div style={{ marginBottom: '28px' }}>
-          <div style={labelStyle}>Product photo</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '16px' }}>
-            <div style={{ width: '160px', height: '200px', borderRadius: '12px', overflow: 'hidden', background: product.hue ? `hsl(${product.hue},50%,88%)` : 'var(--line)', flexShrink: 0 }}>
-              {product.img
-                ? <img src={product.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '13px', color: 'var(--muted)' }}>No photo</div>
-              }
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'inline-block', padding: '10px 18px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'all 0.15s' }}
-                onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
-                onMouseOut={e => { e.target.style.background = 'var(--surface)'; }}>
-                📷 Upload new photo
-                <input type="file" accept="image/*" style={{ display: 'none' }}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const url = await uploadProductImage(file, product.product_id || product.id);
-                    if (url) { product.img = url; setSaving(v => v); setMsg('✅ Photo uploaded'); } else setMsg('❌ Upload failed');
-                  }} />
-              </label>
-              <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--muted)' }}>
-                Upload a new photo. Supported: JPG, PNG, WebP.
-              </p>
-            </div>
+          <div style={labelStyle}>Product photos</div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+            {images.map((url, i) => (
+              <div key={i} style={{ position: 'relative', width: '100px', height: '130px', borderRadius: '10px', overflow: 'hidden', background: '#f0f0f0', flexShrink: 0, border: '2px solid var(--line-2)' }}>
+                <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button type="button" onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
+                  style={{ position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'grid', placeItems: 'center' }}>&times;</button>
+                {i > 0 && <button type="button" onClick={() => { const a = [...images]; [a[i-1], a[i]] = [a[i], a[i-1]]; setImages(a); }}
+                  style={{ position: 'absolute', bottom: '4px', left: '4px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: 'pointer', fontSize: '11px', display: 'grid', placeItems: 'center' }}>&#9664;</button>}
+                {i < images.length - 1 && <button type="button" onClick={() => { const a = [...images]; [a[i], a[i+1]] = [a[i+1], a[i]]; setImages(a); }}
+                  style={{ position: 'absolute', bottom: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: 'pointer', fontSize: '11px', display: 'grid', placeItems: 'center' }}>&#9654;</button>}
+                <div style={{ position: 'absolute', bottom: '4px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', color: '#fff', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', padding: '1px 6px' }}>{i + 1}</div>
+              </div>
+            ))}
+            <label style={{ width: '100px', height: '130px', borderRadius: '10px', border: '2px dashed var(--line-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: 'var(--muted)', flexShrink: 0, transition: 'all 0.15s' }}
+              onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--line-2)'; e.currentTarget.style.color = 'var(--muted)'; }}>
+              +
+              <input type="file" accept="image/*" style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const url = await uploadProductImage(file, product.product_id || product.id);
+                  if (url) { setImages(prev => [...prev, url]); setMsg('✅ Photo added'); } else setMsg('❌ Upload failed');
+                }} />
+            </label>
           </div>
+          <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0 }}>
+            Upload multiple photos. Use the arrow buttons to reorder. The first photo is the main product image.
+          </p>
         </div>
 
         {/* Name + Brand row */}

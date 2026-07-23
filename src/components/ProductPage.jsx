@@ -26,7 +26,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
   if (!p) return null;
 
   // Mock multiple images — replace with real photos
-  const images = [p.img || ''];
+  const images = productImgs;
 
   const low = p.stock > 0 && p.stock <= 5;
   const soldOut = p.stock === 0;
