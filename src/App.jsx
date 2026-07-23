@@ -255,11 +255,6 @@ export default function App() {
   }, [checkout, drawer, showSettings, showReferral, wishlistOpen, quick, signupOpen, showSizes, infoPage, promoOpen]);
 
   useEffect(() => {
-    // Push an initial stay state so the very first back press
-    // doesn't navigate away from the site.
-    window.history.replaceState({ stay: true }, '');
-    window.history.pushState({ stay: true }, '');
-
     const onPop = () => {
       if (checkout) { setCheckout(false); popHandled.current = false; return; }
       if (drawer) { setDrawer(false); popHandled.current = false; return; }
@@ -271,9 +266,6 @@ export default function App() {
       if (showSizes) { setShowSizes(false); popHandled.current = false; return; }
       if (infoPage) { setInfoPage(null); popHandled.current = false; return; }
       if (promoOpen) { setPromoOpen(false); popHandled.current = false; return; }
-      // No overlay open — user would leave the site. Push fresh state so
-      // the next back press stays here instead of going to Google.
-      window.history.pushState({ stay: true }, '');
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
