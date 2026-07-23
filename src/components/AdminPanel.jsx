@@ -388,7 +388,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                   const product = [...REWIND_PRODUCTS, ...customProducts].find((p) => p.id === pid || p.product_id === pid);
                   return (
                     <a key={pid} href="#"
-                      onClick={(e) => { e.preventDefault(); window.location.hash = ''; onSelect(product); }}
+                      onClick={(e) => { e.preventDefault(); nav('/'); onSelect(product); }}
                       style={{ padding: '6px 12px', background: 'var(--line)', borderRadius: '6px', fontSize: '13px', textDecoration: 'none', color: 'var(--ink)', display: 'inline-block', cursor: 'pointer', transition: 'background 0.15s' }}
                       onMouseOver={e => e.target.style.background = 'var(--line-2)'}
                       onMouseOut={e => e.target.style.background = 'var(--line)'}

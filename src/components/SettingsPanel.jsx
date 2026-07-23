@@ -125,7 +125,7 @@ function Pulse() {
           <p style={SP_STYLES.statValue}>{data.todayOrders}</p>
           <p style={SP_STYLES.statLabel}>Orders</p>
         </div>
-        <div style={{ ...SP_STYLES.statBox, cursor: 'pointer' }} onClick={() => { window.location.hash = '#admin'; }}>
+        <div style={{ ...SP_STYLES.statBox, cursor: 'pointer' }} onClick={() => { nav('/admin'); }}>
           <p style={SP_STYLES.statValue}>{data.unreadChats}</p>
           <p style={SP_STYLES.statLabel}>Unread</p>
         </div>

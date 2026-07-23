@@ -46,8 +46,8 @@ export default function OrderTracking({ onClose }) {
     <div className="rw-checkout" style={{ minHeight: '100vh' }}>
       <div className="rw-checkout-bar">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location.hash = ''; if (onClose) onClose(); }}>REWIND<span>.</span></div>
-        <button className="rw-btn rw-btn-ghost" onClick={() => { window.location.hash = ''; if (onClose) onClose(); }}>Back</button>
+          onClick={() => { nav('/'); if (onClose) onClose(); }}>REWIND<span>.</span></div>
+        <button className="rw-btn rw-btn-ghost" onClick={() => { nav('/'); if (onClose) onClose(); }}>Back</button>
       </div>
       <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 20px' }}>
         <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>Track your order</h2>

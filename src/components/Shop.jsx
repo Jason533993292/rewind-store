@@ -259,7 +259,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
             </button>
             <button onClick={() => {
               localStorage.setItem('rw_edit_product', p.id || p.product_id);
-              window.location.hash = '#admin';
+              nav('/admin');
             }}
               onMouseOver={e => e.target.style.background = 'var(--line)'}
               onMouseOut={e => e.target.style.background = 'transparent'}
@@ -507,7 +507,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         ))}
         <div className="rw-checkout-bar" style={{ position: 'relative', zIndex: 1 }}>
           <div className="rw-logo" style={{ cursor: 'pointer' }}
-            onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); onPlaced(); }}>REWIND<span>.</span></div>
+            onClick={() => { nav('/'); window.dispatchEvent(new CustomEvent('reset-store')); onPlaced(); }}>REWIND<span>.</span></div>
           <button className="rw-btn rw-btn-ghost" onClick={onPlaced}>Close</button>
         </div>
         <div className="rw-confirm">
@@ -754,7 +754,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     <div className="rw-checkout">
       <div className="rw-checkout-bar">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location.hash = ''; window.dispatchEvent(new CustomEvent('reset-store')); onClose(); }}>REWIND<span>.</span></div>
+          onClick={() => { nav('/'); window.dispatchEvent(new CustomEvent('reset-store')); onClose(); }}>REWIND<span>.</span></div>
         <button className="rw-btn rw-btn-ghost" onClick={onClose}>Back</button>
       </div>
       <div className="rw-checkout-grid">

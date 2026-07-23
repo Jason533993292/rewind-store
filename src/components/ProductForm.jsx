@@ -345,7 +345,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
             color: msg.includes('✅') ? 'var(--ink)' : 'var(--accent)',
           }}>
             {msg}
-          {showProduct && <button onClick={() => { window.location.hash = '#/product/' + showProduct; window.location.reload(); }}
+          {showProduct && <button onClick={() => { nav('/product/' + showProduct); }}
             style={{ marginLeft: '8px', padding: '4px 10px', borderRadius: '6px', background: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}
             onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
             onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>

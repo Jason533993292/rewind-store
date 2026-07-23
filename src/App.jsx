@@ -4,6 +4,7 @@ import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDraw
 import { ReferralDialog } from './components/Referral';
 import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
+import { nav, getRoute, initRouter } from './lib/router';
 import CookieBanner from './components/CookieBanner';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
@@ -72,20 +73,27 @@ export default function App() {
   const [infoPage, setInfoPage] = useState(null);
   const [legalPage, setLegalPage] = useState(null);
 
-  // Hash routing for legal pages
+  // Pathname routing for SPA pages
   useEffect(() => {
-    const onHash = () => {
-      const h = window.location.hash;
-      if (h === '#/privacy') setLegalPage('privacy');
-      else if (h === '#/terms') setLegalPage('terms');
-      else if (h === '#/returns') setLegalPage('returns');
-      else if (h === '#/shipping') setLegalPage('shipping');
+    const onRoute = () => {
+      const route = getRoute();
+      if (route === 'privacy') setLegalPage('privacy');
+      else if (route === 'terms') setLegalPage('terms');
+      else if (route === 'returns') setLegalPage('returns');
+      else if (route === 'shipping') setLegalPage('shipping');
       else setLegalPage(null);
     };
-    onHash();
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    onRoute();
+    window.addEventListener('spa-navigate', onRoute);
+    window.addEventListener('popstate', onRoute);
+    return () => {
+      window.removeEventListener('spa-navigate', onRoute);
+      window.removeEventListener('popstate', onRoute);
+    };
   }, []);
+
+  // Initialize router on mount — converts any existing hash URL to pathname
+  useEffect(() => { initRouter(); }, []);
   const [showReferral, setShowReferral] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);
@@ -161,8 +169,8 @@ export default function App() {
       // handler from the other effect only fires on *changes* to the hash,
       // so a direct navigation to #/product/<custom-id> on first page load
       // would miss custom products that hadn't loaded from Supabase yet.
-      if (window.location.hash.startsWith('#/product/')) {
-        const pid = window.location.hash.replace('#/product/', '');
+      if (getRoute().startsWith('product/')) {
+        const pid = getRoute().replace('product/', '');
         const allProds = [...REWIND_PRODUCTS, ...prods];
         const p = allProds.find(x => (x.id || x.product_id) === pid);
         if (p) setSelectedProduct(p);
@@ -309,7 +317,7 @@ export default function App() {
 
     // Also poll for unread messages when on admin page
     let lastCount = 0;
-    const isAdmin = window.location.hash === '#admin' || !!localStorage.getItem('rw_admin_email');
+    const isAdmin = getRoute() === 'admin' || !!localStorage.getItem('rw_admin_email');
     if (!isAdmin) return;
     const interval = setInterval(async () => {
       try {
@@ -603,7 +611,7 @@ export default function App() {
     try {
       const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
       const d = await r.json();
-      if (d.admin) { window.location.hash = 'admin'; }
+      if (d.admin) { nav('/admin'); }
       else { setPromoMsg('✅ Promo applied!'); }
     } catch {
       setPromoMsg('❌ Network error — try again');
@@ -777,7 +785,7 @@ export default function App() {
 
   useEffect(() => {
     const onPop = () => {
-      if (!window.location.hash.startsWith('#/product/')) {
+      if (!getRoute().startsWith('product/')) {
         setSelectedProduct(null);
       }
     };
@@ -823,23 +831,23 @@ export default function App() {
   }, [selectedProduct]);
   useEffect(() => {
     const onHash = () => {
-      const isAdminHash = window.location.hash === '#admin';
+      const isAdminHash = getRoute() === 'admin';
       if (isAdminHash) {
         // Show the AdminPanel component — it handles its own auth internally
         // via server-verified email check + admin API token.
         // The AdminPanel will show a login form until the user authenticates.
         setAdminMode(true);
-      } else if (window.location.hash === '') {
+      } else if (getRoute() === '') {
         setAdminMode(false);
       }
-      if (window.location.hash.startsWith('#/product/')) {
-        const pid = window.location.hash.replace('#/product/', '');
+      if (getRoute().startsWith('product/')) {
+        const pid = getRoute().replace('product/', '');
         const allProds = [...REWIND_PRODUCTS, ...customProductsRef.current];
         const p = allProds.find(x => (x.id || x.product_id) === pid);
         if (p) setSelectedProduct(p);
       }
       // Handle return from redirect payment methods (Klarna, Bancontact, iDEAL, PayPal)
-      if (window.location.hash.startsWith('#/payment-complete')) {
+      if (getRoute().startsWith('payment-complete')) {
         const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
         const order = params.get('order');
         if (order) {

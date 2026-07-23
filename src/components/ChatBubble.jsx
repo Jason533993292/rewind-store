@@ -150,7 +150,7 @@ export default function ChatBubble() {
 
   const showGreeting = messages.length === 0;
 
-  if (typeof window !== 'undefined' && window.location.hash === '#admin') return null;
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) return null;
 
   return (
     <div style={{

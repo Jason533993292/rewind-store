@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCountdown, pad, money } from '../hooks/useCountdown';
 import { IMG_BASE_URL } from '../data';
+import { nav } from '../lib/router';
 
 /* ---------- Icon ---------- */
 export function Icon({ name, size = 20 }) {
@@ -154,7 +155,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
     <header className="rw-header">
       <div className="rw-header-row">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
-          onClick={() => { window.location.hash = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
+          onClick={() => { nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
         <nav className="rw-nav">
           {cats.map((c) => (
             <button key={c} className={"rw-navlink" + (cat === c ? " is-on" : "")}
@@ -358,7 +359,7 @@ export function Footer({ onSizes, onInfo, onSetCat, cats }) {
         </div>
         <div><h4>Help</h4><button onClick={onSizes} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit', textAlign: 'left' }}>Sizing</button><button onClick={() => onInfo('shipping')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Shipping</button><button onClick={() => onInfo('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Returns</button><button onClick={() => onInfo('tracking')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Track order</button><button onClick={() => onInfo('orders')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Orders</button></div>
         <div><h4>Pay with</h4><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>PayPal</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Apple Pay</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Bancontact</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>iDEAL</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Klarna</button></div>
-        <div><h4>Legal</h4><button onClick={() => { window.location.hash = '/privacy'; }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Privacy Policy</button><button onClick={() => { window.location.hash = '/terms'; }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Terms of Service</button><button onClick={() => { window.location.hash = '/returns'; }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Returns & Refunds</button><button onClick={() => { window.location.hash = '/shipping'; }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Shipping</button></div>
+        <div><h4>Legal</h4><button onClick={() => { nav('/privacy'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Privacy Policy</button><button onClick={() => { nav('/terms'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Terms of Service</button><button onClick={() => { nav('/returns'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Returns & Refunds</button><button onClick={() => { nav('/shipping'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Shipping</button></div>
       </div>
       <div className="rw-footer-base">© 2026 REWIND. Vintage streetwear — curated, authenticated, shipped in 24h.</div>
     </footer>
