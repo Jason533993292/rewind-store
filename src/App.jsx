@@ -904,7 +904,7 @@ export default function App() {
   if (adminMode) {
     viewContent = (
       <React.Suspense fallback={<div className="rw-loading-wrap"><TruckLoader /></div>}>
-        <AdminPanel onExit={() => { window.location.hash = ''; }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />
+        <AdminPanel onExit={() => { nav('/'); }} onSelect={setSelectedProduct} customProducts={customProducts} setCustomProducts={setCustomProducts} />
       </React.Suspense>
     );
   } else if (blocked) {
