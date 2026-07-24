@@ -108,14 +108,15 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   useEffect(() => {
     const editId = localStorage.getItem('rw_edit_product');
     if (editId) {
-      localStorage.removeItem('rw_edit_product');
       const allProds = [...REWIND_PRODUCTS, ...customProducts];
       const found = allProds.find(p => (p.id || p.product_id) === editId);
       if (found) {
+        localStorage.removeItem('rw_edit_product');
         setEditProduct(found);
         setAdminTab('edit');
       } else {
-        setAdminMsg('Product not found — it may not be a custom product');
+        setAdminTab('products');
+        setAdminMsg('Product not found — switching to products tab');
       }
     }
   }, [customProducts]);
