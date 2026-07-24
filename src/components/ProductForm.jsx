@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react';
+import { nav } from '../lib/router';
 import { addCustomProduct, getCustomProducts, updateCustomProduct, uploadProductImage } from '../lib/supabase';
 import { REWIND_CATS } from '../data';
 
