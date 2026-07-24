@@ -73,6 +73,9 @@ export default function App() {
   const [infoPage, setInfoPage] = useState(null);
   const [legalPage, setLegalPage] = useState(null);
 
+  // Initialize router on mount — converts any existing hash URL to pathname
+  useEffect(() => { initRouter(); }, []);
+
   // Pathname routing for SPA pages
   useEffect(() => {
     const onRoute = () => {
@@ -91,9 +94,6 @@ export default function App() {
       window.removeEventListener('popstate', onRoute);
     };
   }, []);
-
-  // Initialize router on mount — converts any existing hash URL to pathname
-  useEffect(() => { initRouter(); }, []);
   const [showReferral, setShowReferral] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [dockHover, setDockHover] = useState(false);

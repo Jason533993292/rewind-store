@@ -26,12 +26,16 @@ export function initRouter() {
   const hash = window.location.hash;
   if (hash) {
     let path = hash.replace('#', '');
-    if (path === '/privacy') path = '/privacy';
-    else if (path === '/terms') path = '/terms';
-    else if (path === '/returns') path = '/returns';
-    else if (path === '/shipping') path = '/shipping';
-    else if (path.startsWith('/product/')) path = path;
+    if (path === '/privacy' || path === 'privacy') path = '/privacy';
+    else if (path === '/terms' || path === 'terms') path = '/terms';
+    else if (path === '/returns' || path === 'returns') path = '/returns';
+    else if (path === '/shipping' || path === 'shipping') path = '/shipping';
+    else if (path === '/track' || path === 'track') path = '/track';
+    else if (path.startsWith('/product/') || path.startsWith('product/')) {
+      path = '/product/' + path.replace(/^\/?product\//, '');
+    }
     else if (path === '#admin' || path === 'admin') path = '/admin';
+    else if (path.startsWith('/payment-complete') || path.startsWith('payment-complete')) path = path;
     else path = '/';
     window.history.replaceState({}, '', path);
   }
