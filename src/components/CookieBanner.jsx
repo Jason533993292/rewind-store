@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { nav } from '../lib/router';
 
 export default function CookieBanner() {
   const [show, setShow] = useState(false);

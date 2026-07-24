@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { nav } from '../lib/router';
 import { Icon, Header } from './Shell';
 import { QuickView } from './Shop';
 import ChatBubble from './ChatBubble';

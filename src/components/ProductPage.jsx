@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Photo, Icon } from './Shell';
+import { nav } from '../lib/router';
 import { deleteCustomProduct } from '../lib/supabase';
 import { money } from '../hooks/useCountdown';
 
