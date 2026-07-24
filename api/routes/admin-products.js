@@ -50,7 +50,8 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
         body: JSON.stringify(updates),
       });
       const data = await r.json();
-      res.json({ ok: r.ok, data });
+      const updated = r.ok && Array.isArray(data) && data.length > 0;
+      res.json({ ok: updated, data: updated ? data[0] : null });
     } catch { res.status(500).json({ error: 'Operation failed' }); }
   });
 

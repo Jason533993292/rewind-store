@@ -102,8 +102,9 @@ export async function updateCustomProduct(productId, updates) {
       body: JSON.stringify({ product_id: productId, ...updates }),
     });
     const d = await r.json();
-    return d.data || null;
-  } catch { return null; }
+    if (!r.ok) { console.warn('updateCustomProduct failed:', d); return null; }
+    return d.data || true;
+  } catch (e) { console.warn('updateCustomProduct error:', e); return null; }
 }
 
 export async function deleteCustomProduct(id) {
@@ -137,8 +138,9 @@ export async function uploadProductImage(file, productId) {
       body: JSON.stringify({ productId, imageBase64: b64, ext }),
     });
     const d = await r.json();
+    if (!r.ok) { console.warn('uploadProductImage failed:', d); return null; }
     return d.url || null;
-  } catch { return null; }
+  } catch (e) { console.warn('uploadProductImage error:', e); return null; }
 }
 
 /* ── Orders API (admin-only, route through server API) ── */
