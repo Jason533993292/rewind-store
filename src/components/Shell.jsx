@@ -3,10 +3,10 @@ import { useCountdown, pad, money } from '../hooks/useCountdown';
 import { IMG_BASE_URL } from '../data';
 
 function parseImgs(p) {
-  const imgs = parseImgs(p)[0] || p.imgs || parseImgs(p)[0] || p.img;
-  if (Array.isArray(imgs)) return imgs;
-  if (typeof imgs === 'string' && imgs.startsWith('[')) { try { return JSON.parse(imgs); } catch {} }
-  return imgs ? [imgs] : [];
+  const raw = p.imgs || p.img;
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string' && raw.startsWith('[')) { try { return JSON.parse(raw); } catch {} }
+  return raw ? [raw] : [];
 }
 import { nav } from '../lib/router';
 
