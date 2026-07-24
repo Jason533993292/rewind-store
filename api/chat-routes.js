@@ -202,13 +202,13 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     muteMsgCount.set(session_id, msgTimes);
     if (msgTimes.length > 10) {
       try {
-        const muteUntil = new Date(now + 3600000).toISOString();
+        const muteUntil = new Date(now + 600000).toISOString();
         await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id), {
           method: 'PATCH',
           body: JSON.stringify({ muted_until: muteUntil }),
         });
         muteMsgCount.delete(session_id);
-        return res.status(403).json({ error: 'muted', mutedFor: 60, message: 'Auto-muted for sending too many messages. Try again in 60 minutes.' });
+        return res.status(403).json({ error: 'muted', mutedFor: 10, message: 'Auto-muted for sending too many messages. Try again in 10 minutes.' });
       } catch {}
     }
     try {
