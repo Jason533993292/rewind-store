@@ -102,7 +102,7 @@ export async function updateCustomProduct(productId, updates) {
       body: JSON.stringify({ id: productId, ...updates }),
     });
     const d = await r.json();
-    if (!r.ok) { console.warn('updateCustomProduct failed:', d); return null; }
+    if (!d.ok) { console.warn('updateCustomProduct failed:', d); return null; }
     return d.data || true;
   } catch (e) { console.warn('updateCustomProduct error:', e); return null; }
 }

@@ -48,7 +48,7 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
       getCustomProducts().then(setCustomProducts);
       setTimeout(onDone, 600);
     } else {
-      setMsg('❌ Failed');
+      setMsg('❌ Save failed — check console (F12) for details');
     }
   };
 
