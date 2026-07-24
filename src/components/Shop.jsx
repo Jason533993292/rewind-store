@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { nav } from '../lib/router';
 import { money, discountPct } from '../hooks/useCountdown';
+
+function parseImgs(p) {
+  const imgs = parseImgs(p)[0] || p.imgs || parseImgs(p)[0] || p.img;
+  if (Array.isArray(imgs)) return imgs;
+  if (typeof imgs === 'string' && imgs.startsWith('[')) { try { return JSON.parse(imgs); } catch {} }
+  return imgs ? [imgs] : [];
+}
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import PaymentCard from './PaymentCard';
@@ -51,7 +58,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
   return (
     <article className="rw-card" style={{ opacity: soldOut ? 0.5 : 1 }}>
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
-        <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={p.img} />
+        <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={parseImgs(p)[0] || p.img} />
         <div className="rw-card-tags">
           {showCompare && discountPct(p) > 0 && <span className="rw-tag rw-tag-sale">-{discountPct(p)}%</span>}
           {showStock && soldOut && <span className="rw-tag rw-tag-low">Sold out</span>}
@@ -271,7 +278,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
         </div>
         )}
         <div className="rw-modal-media">
-          <Photo id={(p.id || p.product_id) + "-qv"} hue={p.hue} label={p.name.toUpperCase()} h={500} img={p.img} />
+          <Photo id={(p.id || p.product_id) + "-qv"} hue={p.hue} label={p.name.toUpperCase()} h={500} img={parseImgs(p)[0] || p.img} />
         </div>
         <div className="rw-modal-info">
           <span className="rw-card-cat">{p.cat}</span>

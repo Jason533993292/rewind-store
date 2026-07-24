@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const SESSION_KEY = 'rw_chat_session';
-const OPEN_POLL_MS = 5000;
+const OPEN_POLL_MS = 3000;
 const BADGE_POLL_MS = 30000;
 const WELCOME = "Hey! Ask us anything about sizing, an item, or your order. We usually reply within a few hours — this isn't 24/7 live support.";
 
@@ -126,13 +126,17 @@ export default function ChatBubble() {
           setMessages([{ sender: 'customer', message: text, created_at: new Date().toISOString() }]);
         }
       } else {
-        setMessages((prev) => [...prev, { sender: 'customer', message: text, created_at: new Date().toISOString() }]);
-        await fetch('/api/chat/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sessionId, message: text }),
-        });
-        fetchMessages(true);
+        const optimistic = { sender: 'customer', message: text, created_at: new Date().toISOString() };
+        setMessages((prev) => [...prev, optimistic]);
+        try {
+          await fetch('/api/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, message: text }),
+          });
+        } catch {}
+        // Don't refetch immediately — server may not have indexed it yet.
+        // The next poll tick will pick it up.
       }
     } catch {
       setInput(text);

@@ -22,9 +22,14 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const isCatalogProduct = !product.product_id && REWIND_CATS.length > 0;
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (isCatalogProduct) {
+      setMsg('❌ Catalog products cannot be edited here — add a custom product instead');
+      return;
+    }
     setSaving(true); setMsg('');
     const result = await updateCustomProduct(product.product_id || product.id, {
       name: form.name, brand: form.brand, cat: form.cat, imgs: JSON.stringify(images),
