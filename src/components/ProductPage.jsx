@@ -71,7 +71,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               🗑 Delete
             </button>
             <button onClick={() => {
-              localStorage.setItem('rw_edit_product', p.id || p.product_id);
+              sessionStorage.setItem('rw_edit_product_obj', JSON.stringify(p));
               nav('/admin');
             }}
               onMouseOver={e => e.target.style.background = 'var(--line)'}

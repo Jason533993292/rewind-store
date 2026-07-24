@@ -106,20 +106,37 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
   // Check if we were directed here to edit a specific product (from QuickView or ProductPage "Edit" button)
   useEffect(() => {
+    // First try: full product object stored in sessionStorage (most reliable)
+    const stored = sessionStorage.getItem('rw_edit_product_obj');
+    if (stored) {
+      try {
+        const product = JSON.parse(stored);
+        if (product && (product.id || product.product_id)) {
+          sessionStorage.removeItem('rw_edit_product_obj');
+          localStorage.removeItem('rw_edit_product');
+          setEditProduct(product);
+          setAdminTab('edit');
+          return;
+        }
+      } catch {}
+    }
+    // Fallback: look up product by ID from localStorage (for backward compat)
     const editId = localStorage.getItem('rw_edit_product');
     if (editId) {
       const allProds = [...REWIND_PRODUCTS, ...customProducts];
-      const found = allProds.find(p => (p.id || p.product_id) === editId);
+      const found = allProds.find(p => String(p.id || p.product_id) === editId);
       if (found) {
         localStorage.removeItem('rw_edit_product');
         setEditProduct(found);
         setAdminTab('edit');
       } else {
-        setAdminTab('products');
-        setAdminMsg('Product not found — switching to products tab');
+        // Don't switch away from edit — product data may not be loaded yet
+        if (adminAuthed && customProducts.length > 0) {
+          setAdminMsg('Product not found in catalogue — switching to products tab');
+        }
       }
     }
-  }, [customProducts]);
+  }, [customProducts, adminAuthed]);
 
   async function toggleBlockUser(email, blocked) {
     const msg = blocked ? 'Block this user from the store?' : 'Unblock this user?';
