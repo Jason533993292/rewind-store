@@ -76,15 +76,15 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
           <div style={labelStyle}>Product photos</div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
             {images.map((url, i) => (
-              <div key={i} style={{ position: 'relative', width: '100px', height: '130px', borderRadius: '10px', overflow: 'hidden', background: '#f0f0f0', flexShrink: 0, border: '2px solid var(--line-2)' }}>
+              <div key={url} style={{ position: 'relative', width: '100px', height: '130px', borderRadius: '10px', overflow: 'visible', background: '#f0f0f0', flexShrink: 0, border: '2px solid var(--line-2)' }}>
                 <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <button type="button" onClick={() => setImages(prev => prev.filter((_, j) => j !== i))}
-                  style={{ position: 'absolute', top: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'grid', placeItems: 'center' }}>&times;</button>
+                  style={{ position: 'absolute', top: '4px', right: '4px', width: '22px', height: '22px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', color: '#fff', cursor: 'pointer', fontSize: '13px', display: 'grid', placeItems: 'center', lineHeight: '1', zIndex: 2 }}>&times;</button>
                 {i > 0 && <button type="button" onClick={() => { const a = [...images]; [a[i-1], a[i]] = [a[i], a[i-1]]; setImages(a); }}
-                  style={{ position: 'absolute', bottom: '4px', left: '4px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: 'pointer', fontSize: '11px', display: 'grid', placeItems: 'center' }}>&#9664;</button>}
+                  style={{ position: 'absolute', top: '50%', left: '-1px', transform: 'translateY(-50%)', width: '22px', height: '40px', borderRadius: '0 6px 6px 0', border: 'none', background: 'rgba(0,0,0,0.4)', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'grid', placeItems: 'center', zIndex: 2 }}>&lsaquo;</button>}
                 {i < images.length - 1 && <button type="button" onClick={() => { const a = [...images]; [a[i], a[i+1]] = [a[i+1], a[i]]; setImages(a); }}
-                  style={{ position: 'absolute', bottom: '4px', right: '4px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.5)', color: '#fff', cursor: 'pointer', fontSize: '11px', display: 'grid', placeItems: 'center' }}>&#9654;</button>}
-                <div style={{ position: 'absolute', bottom: '4px', left: '50%', transform: 'translateX(-50%)', fontSize: '10px', color: '#fff', background: 'rgba(0,0,0,0.5)', borderRadius: '4px', padding: '1px 6px' }}>{i + 1}</div>
+                  style={{ position: 'absolute', top: '50%', right: '-1px', transform: 'translateY(-50%)', width: '22px', height: '40px', borderRadius: '6px 0 0 6px', border: 'none', background: 'rgba(0,0,0,0.4)', color: '#fff', cursor: 'pointer', fontSize: '12px', display: 'grid', placeItems: 'center', zIndex: 2 }}>&rsaquo;</button>}
+                <div style={{ position: 'absolute', top: '4px', left: '4px', fontSize: '10px', fontWeight: 700, color: '#fff', background: 'var(--accent)', borderRadius: '4px', padding: '1px 6px', lineHeight: '1.4', zIndex: 1 }}>{i + 1}</div>
               </div>
             ))}
             <label style={{ width: '100px', height: '130px', borderRadius: '10px', border: '2px dashed var(--line-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '24px', color: 'var(--muted)', flexShrink: 0, transition: 'all 0.15s' }}
