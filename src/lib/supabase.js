@@ -99,7 +99,7 @@ export async function updateCustomProduct(productId, updates) {
     const r = await fetch('/api/admin/products/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ product_id: productId, ...updates }),
+      body: JSON.stringify({ id: productId, ...updates }),
     });
     const d = await r.json();
     if (!r.ok) { console.warn('updateCustomProduct failed:', d); return null; }

@@ -100,12 +100,13 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
               onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
               onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--line-2)'; e.currentTarget.style.color = 'var(--muted)'; }}>
               +
-              <input type="file" accept="image/*" style={{ display: 'none' }}
+              <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                 onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const url = await uploadProductImage(file, product.product_id || product.id);
-                  if (url) { setImages(prev => [...prev, url]); setMsg('✅ Photo added'); } else setMsg('❌ Upload failed');
+                  const files = Array.from(e.target.files || []);
+                  for (const file of files) {
+                    const url = await uploadProductImage(file, product.product_id || product.id);
+                    if (url) { setImages(prev => [...prev, url]); setMsg('✅ Photo added'); } else setMsg('❌ Upload failed');
+                  }
                 }} />
             </label>
           </div>

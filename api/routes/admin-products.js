@@ -40,12 +40,12 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
 
   app.post('/api/admin/products/update', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const { product_id } = req.body;
+    const { id } = req.body;
     const updates = pickAllowedFields(req.body);
-    if (!product_id) return res.status(400).json({ error: 'product_id required' });
+    if (!id) return res.status(400).json({ error: 'id required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(product_id)}`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
         body: JSON.stringify(updates),
       });
