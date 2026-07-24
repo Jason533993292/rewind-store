@@ -115,7 +115,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
         setEditProduct(found);
         setAdminTab('edit');
       } else {
-        setMsg('Product not found — it may not be a custom product');
+        setAdminMsg('Product not found — it may not be a custom product');
       }
     }
   }, [customProducts]);
