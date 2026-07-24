@@ -829,7 +829,7 @@ export default function App() {
         // via server-verified email check + admin API token.
         // The AdminPanel will show a login form until the user authenticates.
         setAdminMode(true);
-      } else if (getRoute() === '') {
+      } else {
         setAdminMode(false);
       }
       if (getRoute().startsWith('product/')) {
