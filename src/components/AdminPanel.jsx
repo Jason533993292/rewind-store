@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { nav } from '../lib/router';
 import { Icon, Header } from './Shell';
 import { QuickView } from './Shop';
@@ -141,12 +141,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     // Optimistic UI update — reload data from server
     setUsers(prev => prev.map(u => u.email === email ? { ...u, blocked } : u));
   }
-
-  // Stats
-  const totalFavs = users.reduce((s, u) => s + (u.product_ids?.length || 0), 0);
-
-  const allEmails = users.map((u) => u.email).join(', ');
-  const marketingEmails = users.filter((u) => u.marketing_optin).map((u) => u.email).join(', ');
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: '1000px', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
