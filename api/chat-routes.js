@@ -322,6 +322,9 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
         method: 'PATCH',
         body: JSON.stringify({ last_message_at: new Date().toISOString(), status: close ? 'closed' : 'open' }),
       });
+      // Admin replied — reset customer's auto-mute counter so they can
+      // keep chatting without hitting the 10-msg/min limit.
+      muteMsgCount.delete(session_id);
       res.json({ ok: true });
     } catch (e) {
       res.status(500).json({ error: 'Could not send reply' });
