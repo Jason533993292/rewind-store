@@ -16,8 +16,10 @@ export default function CreatePromoCode({ showToast }) {
   const generateCode = () => {
     const prefix = 'RW';
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const arr = new Uint8Array(6);
+    crypto.getRandomValues(arr);
     let rand = '';
-    for (let i = 0; i < 6; i++) rand += chars[Math.floor(Math.random() * chars.length)];
+    for (let i = 0; i < 6; i++) rand += chars[arr[i] % chars.length];
     setCode(prefix + rand);
   };
 

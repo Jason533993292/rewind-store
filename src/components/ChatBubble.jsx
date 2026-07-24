@@ -129,11 +129,19 @@ export default function ChatBubble() {
         const optimistic = { sender: 'customer', message: text, created_at: new Date().toISOString() };
         setMessages((prev) => [...prev, optimistic]);
         try {
-          await fetch('/api/chat/send', {
+          const r = await fetch('/api/chat/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session_id: sessionId, message: text }),
           });
+          if (!r.ok) {
+            const d = await r.json().catch(() => ({}));
+            if (d.error === 'muted') {
+              // Remove optimistic message and show mute notice
+              setMessages((prev) => prev.filter(m => m !== optimistic));
+              setMessages((prev) => [...prev, { sender: 'system', message: '🔇 ' + (d.message || 'You are muted'), created_at: new Date().toISOString() }]);
+            }
+          }
         } catch {}
         // Don't refetch immediately — server may not have indexed it yet.
         // The next poll tick will pick it up.
@@ -201,11 +209,12 @@ export default function ChatBubble() {
             )}
             {messages.map((m, i) => (
               <div key={i} style={{
-                alignSelf: m.sender === 'admin' || m.sender === 'ai' ? 'flex-start' : 'flex-end',
-                background: m.sender === 'admin' || m.sender === 'ai' ? '#F1EEE7' : 'var(--accent, #FF4D14)',
-                color: m.sender === 'admin' || m.sender === 'ai' ? '#16130F' : '#fff',
-                borderRadius: '12px', padding: '8px 12px', fontSize: '13px', maxWidth: '80%',
-                whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                alignSelf: m.sender === 'system' ? 'center' : (m.sender === 'admin' || m.sender === 'ai' ? 'flex-start' : 'flex-end'),
+                background: m.sender === 'system' ? '#FEF2F2' : (m.sender === 'admin' || m.sender === 'ai' ? '#F1EEE7' : 'var(--accent, #FF4D14)'),
+                color: m.sender === 'system' ? '#dc2626' : (m.sender === 'admin' || m.sender === 'ai' ? '#16130F' : '#fff'),
+                borderRadius: '12px', padding: m.sender === 'system' ? '6px 12px' : '8px 12px', fontSize: m.sender === 'system' ? '12px' : '13px', maxWidth: m.sender === 'system' ? '90%' : '80%',
+                whiteSpace: 'pre-wrap', wordBreak: 'break-word', textAlign: m.sender === 'system' ? 'center' : 'left',
+                border: m.sender === 'system' ? '1px solid #fecaca' : 'none',
               }}>
                 {m.message}
               </div>

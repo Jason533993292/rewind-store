@@ -257,7 +257,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
                     };
                     img.src = url;
                   });
-                  const r = await fetch('/api/generate-description', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ imageBase64: base64 }) });
+                  const r = await fetch('/api/generate-description', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: form.name, brand: form.brand, imageBase64: base64 }) });
                   const d = await r.json();
                   if (d.description || d.title) {
                     setForm(prev => ({ ...prev, name: d.title || prev.name, note: d.description || '' }));

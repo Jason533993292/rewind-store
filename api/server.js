@@ -255,7 +255,24 @@ app.get('/api/admin/check-auth', async (req, res) => {
 
 // ── Generate product description (fallback — AI was removed for security) ──
 app.post('/api/generate-description', async (req, res) => {
-  res.json({ title: 'Vintage Streetwear Piece', description: 'Hand-picked vintage item. Authenticated, steam-cleaned, and ready to wear.' });
+  const { name, brand } = req.body || {};
+  if (!name) return res.json({ title: 'Vintage Streetwear Piece', description: 'Hand-picked vintage item. Authenticated, steam-cleaned, and ready to wear.' });
+  const suggestions = {
+    'cotton': '100% cotton construction for breathable comfort and lasting durability.',
+    'jersey': 'Soft cotton jersey knit with a smooth, lightweight feel perfect for layering.',
+    'windbreaker': 'Lightweight nylon shell with water-resistant finish. Original zipper hardware.',
+    'knit': 'Heavyweight knit with ribbed cuffs and hem. Pre-shrunk for consistent fit.',
+    'denim': 'Sturdy denim with authentic fading. Triple-stitched seams throughout.',
+    'leather': 'Genuine leather with natural patina. Fully lined interior.',
+  };
+  const lower = name.toLowerCase();
+  let desc = '';
+  for (const [keyword, text] of Object.entries(suggestions)) {
+    if (lower.includes(keyword)) { desc = text; break; }
+  }
+  if (!desc) desc = 'Authenticated vintage piece, steam-cleaned and ready to wear.';
+  if (brand) desc = brand + ' ' + desc.charAt(0).toLowerCase() + desc.slice(1);
+  res.json({ title: name, description: desc });
 });
 
 const RESEND_KEY = process.env.RESEND_API_KEY;

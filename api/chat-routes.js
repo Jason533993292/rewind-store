@@ -61,14 +61,8 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   const startLimited = makeLimiter();
   const sendLimited = makeLimiter();
   const readLimited = makeLimiter();
+  const muteMsgCount = new Map(); // session_id -> [{timestamp}]
   const aiReplyCount = new Map();
-  const verificationCodes = new Map();
-  setInterval(() => {
-    const now = Date.now();
-    for (const [email, entry] of verificationCodes) {
-      if (entry.expiresAt < now) verificationCodes.delete(email);
-    }
-  }, 300000);
 
   function validateMessage(message) {
     if (!message || typeof message !== 'string' || !message.trim()) return 'Message required';
@@ -187,6 +181,35 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     if (err) return res.status(400).json({ error: err });
     if (sendLimited(session_id, 20, 60 * 1000)) {
       return res.status(429).json({ error: 'Slow down a little.' });
+    }
+    // Check if session is muted
+    try {
+      const sessCheck = await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id) + '&select=muted_until,status');
+      const sessData = await sessCheck.json();
+      const sess = Array.isArray(sessData) && sessData.length > 0 ? sessData[0] : null;
+      if (sess && sess.muted_until) {
+        const until = new Date(sess.muted_until).getTime();
+        if (Date.now() < until) {
+          const remaining = Math.ceil((until - Date.now()) / 60000);
+          return res.status(403).json({ error: 'muted', mutedFor: remaining, message: 'You are muted for ' + remaining + ' more minute(s).' });
+        }
+      }
+    } catch {}
+    // Auto-mute: if >10 messages in the last 60 seconds, mute for 1 hour
+    const now = Date.now();
+    const msgTimes = (muteMsgCount.get(session_id) || []).filter(t => now - t < 60000);
+    msgTimes.push(now);
+    muteMsgCount.set(session_id, msgTimes);
+    if (msgTimes.length > 10) {
+      try {
+        const muteUntil = new Date(now + 3600000).toISOString();
+        await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id), {
+          method: 'PATCH',
+          body: JSON.stringify({ muted_until: muteUntil }),
+        });
+        muteMsgCount.delete(session_id);
+        return res.status(403).json({ error: 'muted', mutedFor: 60, message: 'Auto-muted for sending too many messages. Try again in 60 minutes.' });
+      } catch {}
     }
     try {
       await sfetch('/chat_messages', {
@@ -333,6 +356,39 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     } catch (e) { res.status(500).json({ error: 'Could not delete session' }); }
   });
 
+  // ── Admin: mute a session for a duration ──
+  router.post('/api/admin/chat/mute', requireAdmin, async (req, res) => {
+    const { session_id, duration_minutes } = req.body || {};
+    if (!session_id || !duration_minutes) return res.status(400).json({ error: 'session_id and duration_minutes required' });
+    try {
+      const muteUntil = new Date(Date.now() + duration_minutes * 60000).toISOString();
+      await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id), {
+        method: 'PATCH',
+        body: JSON.stringify({ muted_until: muteUntil }),
+      });
+      muteMsgCount.delete(session_id);
+      res.json({ ok: true, muted_until: muteUntil });
+    } catch (e) {
+      res.status(500).json({ error: 'Could not mute session' });
+    }
+  });
+
+  // ── Admin: unmute a session ──
+  router.post('/api/admin/chat/unmute', requireAdmin, async (req, res) => {
+    const { session_id } = req.body || {};
+    if (!session_id) return res.status(400).json({ error: 'session_id required' });
+    try {
+      await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id), {
+        method: 'PATCH',
+        body: JSON.stringify({ muted_until: null }),
+      });
+      muteMsgCount.delete(session_id);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: 'Could not unmute session' });
+    }
+  });
+
   // ── Diagnostic endpoint ──
   router.get('/api/chat/ai-status', async (req, res) => {
     res.json({
@@ -405,52 +461,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       console.error('Cron reply error:', e);
       res.status(500).json({ error: 'Could not post reply' });
     }
-  });
-
-  // ── Send verification code (CSPRNG) ──
-  router.post('/api/chat/send-verification', async (req, res) => {
-    const { email } = req.body;
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Valid email required' });
-    if (startLimited('verify:' + email.toLowerCase(), 3, 3600000)) {
-      return res.status(429).json({ error: 'Too many attempts. Try again later.' });
-    }
-    if (!resend) return res.status(500).json({ error: 'Email service not configured' });
-    const code = crypto.randomInt(100000, 1000000).toString();
-    verificationCodes.set(email.toLowerCase(), { code, expiresAt: Date.now() + 5 * 60 * 1000 });
-    try {
-      await resend.emails.send({
-        from: FROM_EMAIL, reply_to: REPLY_TO, to: email,
-        subject: 'Your REWIND chat verification code',
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:40px auto;padding:32px;background:#FAF6EF;border-radius:14px;text-align:center">
-          <h1 style="font-size:24px;color:#16130F;margin:0"><img src="https://rewind-stores.com/rewind-logo.svg" width="120" height="120" alt="REWIND" style="display:block;margin:0 auto" /></h1>
-          <p style="color:#6E665A;font-size:15px;margin:20px 0 8px">Your chat verification code is:</p>
-          <div style="font-size:40px;font-weight:700;letter-spacing:8px;color:#16130F;background:#fff;border-radius:10px;padding:16px;margin:0 auto;max-width:280px">${code}</div>
-          <p style="color:#6E665A;font-size:13px;margin:20px 0 0">This code expires in 5 minutes.</p>
-        </div>`,
-      });
-      res.json({ ok: true });
-    } catch (e) {
-      console.error('Send verification error:', e);
-      res.status(500).json({ error: 'Failed to send verification email' });
-    }
-  });
-
-  // ── Verify email code ──
-  router.post('/api/chat/verify-code', async (req, res) => {
-    const { email, code } = req.body;
-    if (!email || !code) return res.status(400).json({ error: 'Email and code required' });
-    if (startLimited('verify-attempt:' + email.toLowerCase(), 10, 300000)) {
-      return res.status(429).json({ error: 'Too many attempts. Try again later.' });
-    }
-    const entry = verificationCodes.get(email.toLowerCase());
-    if (!entry) return res.json({ verified: false, error: 'No code sent. Request a new one.' });
-    if (entry.expiresAt < Date.now()) {
-      verificationCodes.delete(email.toLowerCase());
-      return res.json({ verified: false, error: 'Code expired. Request a new one.' });
-    }
-    if (entry.code !== code) return res.json({ verified: false, error: 'Invalid code' });
-    verificationCodes.set(email.toLowerCase(), { verified: true, expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
-    res.json({ verified: true });
   });
 
   return router;

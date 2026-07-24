@@ -19,6 +19,9 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const [promoExpires, setPromoExpires] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isNarrow, setIsNarrow] = useState(false);
+  const [showMutePanel, setShowMutePanel] = useState(false);
+  const [muteDuration, setMuteDuration] = useState(60);
+  const [muteMsg, setMuteMsg] = useState('');
   const scrollRef = useRef(null);
 
   const loadSessions = useCallback(async () => {
@@ -215,6 +218,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                     📧 Copy email
                   </button>
                 )}
+                <button onClick={() => setShowMutePanel(true)}
+                  onMouseOver={e => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = ''; }}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: '#f59e0b', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#fff', transition: 'all 0.15s', flexShrink: 0 }}>
+                  🔇 Mute
+                </button>
                 <button onClick={() => setShowCloseConfirm(true)}
                   onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
@@ -298,6 +307,56 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                 Block
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mute panel ── */}
+      {showMutePanel && (
+        <div className="rw-modal-wrap" onClick={() => { setShowMutePanel(false); setMuteMsg(''); }}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', gridTemplateColumns: '1fr', padding: '28px', position: 'relative' }}>
+            <button onClick={() => { setShowMutePanel(false); setMuteMsg(''); }}
+              style={{ position: 'absolute', top: '14px', right: '14px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '16px', color: 'var(--muted)' }}>✕</button>
+            <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>🔇 Mute customer</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px' }}>Prevent {selectedEmail || 'this customer'} from sending messages for a duration.</p>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              {[{label:'1h',min:60},{label:'3h',min:180},{label:'5h',min:300},{label:'10h',min:600},{label:'24h',min:1440}].map(opt => (
+                <button key={opt.min} onClick={() => setMuteDuration(opt.min)}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: muteDuration === opt.min ? '2px solid var(--ink)' : '1px solid var(--line-2)', background: muteDuration === opt.min ? 'var(--ink)' : 'var(--surface)', color: muteDuration === opt.min ? '#fff' : 'var(--ink)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {muteMsg && <p style={{ fontSize: '13px', color: muteMsg.includes('✅') ? 'var(--ink)' : 'var(--accent)', marginBottom: '12px' }}>{muteMsg}</p>}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="rw-btn" style={{ flex: 1 }} onClick={() => { setShowMutePanel(false); setMuteMsg(''); }}>Cancel</button>
+              <button className="rw-btn rw-btn-pri" style={{ flex: 1 }} onClick={async () => {
+                try {
+                  const r = await fetch('/api/admin/chat/mute', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: selectedId, duration_minutes: muteDuration }),
+                  });
+                  const d = await r.json();
+                  if (d.ok) setMuteMsg('✅ Customer muted for ' + muteDuration + ' minutes');
+                  else setMuteMsg('❌ ' + (d.error || 'Failed'));
+                } catch { setMuteMsg('❌ Network error'); }
+              }}>Mute</button>
+            </div>
+            <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid var(--line)' }} />
+            <button className="rw-btn rw-btn-pri" style={{ width: '100%', background: '#16a34a' }}
+              onClick={async () => {
+                try {
+                  const r = await fetch('/api/admin/chat/unmute', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: selectedId }),
+                  });
+                  const d = await r.json();
+                  if (d.ok) setMuteMsg('✅ Customer unmuted');
+                  else setMuteMsg('❌ ' + (d.error || 'Failed'));
+                } catch { setMuteMsg('❌ Network error'); }
+              }}>
+              ✅ Unmute
+            </button>
           </div>
         </div>
       )}
