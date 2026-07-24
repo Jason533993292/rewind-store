@@ -177,7 +177,7 @@ export default function ChatBubble() {
             <strong style={{ fontSize: '14px' }}>Chat with REWIND</strong>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               {sessionId && (
-                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); setShowVerificationScreen(false); setVerificationCode(''); setVerificationMsg(''); }}
+                <button onClick={() => { localStorage.removeItem(SESSION_KEY); setSessionId(null); setMessages([]); setSessionStatus('open'); setCustomerEmail(''); setShowEmailScreen(true); }}
                   style={{ background: 'none', border: '1px solid rgba(255,255,255,.3)', color: '#fff', fontSize: '11px', cursor: 'pointer', borderRadius: '6px', padding: '3px 8px' }}>
                   New
                 </button>
