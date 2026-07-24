@@ -76,7 +76,7 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
       const buf = Buffer.from(imageBase64, 'base64');
       const allowed = ['jpg','jpeg','png','webp'];
       const fileExt = ext && allowed.includes(ext) ? ext : 'webp';
-      const filePath = `${productId}.${fileExt}`;
+      const filePath = `${productId}_${Date.now()}.${fileExt}`;
       const r = await fetch(`${SUPABASE_URL}/storage/v1/object/product-images/${filePath}`, {
         method: 'POST',
         headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' },
