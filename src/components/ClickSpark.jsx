@@ -8,6 +8,7 @@ const ClickSpark = ({
   duration = 400,
   easing = 'ease-out',
   extraScale = 1.0,
+  disabled = false,
   children
 }) => {
   const canvasRef = useRef(null);
@@ -80,6 +81,7 @@ const ClickSpark = ({
   }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
 
   const handleClick = e => {
+    if (disabled) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();

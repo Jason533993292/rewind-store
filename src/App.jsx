@@ -1131,7 +1131,7 @@ export default function App() {
   }
 
   return (
-    <ClickSpark sparkColor="#FF4D14" sparkSize={8} sparkRadius={16} sparkCount={10}>
+    <ClickSpark sparkColor="#FF4D14" sparkSize={8} sparkRadius={16} sparkCount={10} disabled={adminMode}>
       {viewContent}
 
       {/* ── Shared overlays (rendered in BOTH product page view AND shop view) ── */}
