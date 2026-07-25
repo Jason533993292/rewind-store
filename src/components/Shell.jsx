@@ -92,7 +92,7 @@ export function Banner({ showCountdown }) {
   const msgs = [
     "Summer drop is live — curated vintage, restocked weekly",
     "Summer sale ends Sunday 23:59 — shop now before it's gone",
-    "Summer sale ends Sunday 23:59 — shop now before it’s gone",
+    "Free shipping on all EU orders over €150",
   ];
   const [i, setI] = useState(0);
   useEffect(() => {
@@ -172,7 +172,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
         <div className="rw-header-actions">
           <div className="rw-search" ref={suggestRef} style={{position:'relative'}}>
             <Icon name="search" size={17} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" aria-label="Search products" />
             {query && (
             <button onClick={() => setQuery('')}
               aria-label="Clear search"

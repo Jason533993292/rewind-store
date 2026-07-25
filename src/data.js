@@ -34,7 +34,7 @@ export const REWIND_PRODUCTS = [
   { id: "set-track",        name: "Track Set — Navy",        cat: "Sets",    brand: "Nike Tech", price: 78, was: null, stock: 2, sizes: ["S","M","L","XL"],  hue: 210, note: "Matching zip-up + pants. Full Nike Tech set." },
   { id: "set-jogger",       name: "Jogger Set — Grey",       cat: "Sets",    brand: "Nike Tech", price: 68, was: 95,   stock: 3, sizes: ["M","L","XL"],       hue: 330, note: "Fleece jogger set, tonal branding." },
   { id: "set-polo",        name: "Polo Set — Ivory",        cat: "Sets",    brand: "Ralph Lauren", price: 85, was: null, stock: 2, sizes: ["M","L"],            hue: 45,  note: "Short-sleeve polo + matching shorts." },
-  { id: "gtg",             name: "GTG",                     cat: "Sets",    brand: "Nike",   price: 55, was: 75,   stock: 3, sizes: ["S","M","L","XL"],  hue: 150, note: "Just added — check it out." },
+  { id: "gtg",             name: "GTG",                     cat: "Sets",    brand: "Nike",   price: 55, was: 75,   stock: 3, sizes: ["S","M","L","XL"],  hue: 150, note: "Nike GTG set — tonal Dri-FIT with zip hood and matching shorts. Lightweight layering piece for warm-weather fits." },
 
   // ── Shoes ──
   { id: "shoe-court",       name: "Court Classic Lo",        cat: "Shoes",   brand: "Asics", price: 72, was: null, stock: 4, sizes: ["39","40","41","42","43","44"], hue: 25,  note: "Minimal court sneaker — gum sole." },
