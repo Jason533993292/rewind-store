@@ -603,7 +603,8 @@ export default function App() {
       const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
       const d = await r.json();
       if (d.admin) { nav('/admin'); }
-      else { setPromoMsg('✅ Promo applied!'); }
+      else if (d.valid) { setPromoMsg('✅ Promo applied!'); }
+      else { setPromoMsg(d.error || '❌ Invalid promo code'); }
     } catch {
       setPromoMsg('❌ Network error — try again');
     }
@@ -1029,18 +1030,21 @@ export default function App() {
 
           {/* Mobile nav slide-out */}
           <div className={"rw-mobile-nav-overlay" + (showMobileNav ? ' open' : '')} onClick={() => setShowMobileNav(false)} />
-          <div className={"rw-mobile-nav-sheet" + (showMobileNav ? ' open' : '')}>
+          <nav className={"rw-mobile-nav-sheet" + (showMobileNav ? ' open' : '')} aria-label="Product filters">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <strong style={{ fontSize: '16px' }}>Filters</strong>
               <button onClick={() => setShowMobileNav(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', fontSize: '16px', display: 'grid', placeItems: 'center', color: 'var(--muted)' }} aria-label="Close filters">&times;</button>
             </div>
-            <h3>Category</h3>
+            <h3 id="rw-mob-cat-heading">Category</h3>
+            <div role="list" aria-labelledby="rw-mob-cat-heading">
             {availableCats.map((c) => (
               <button key={c} onClick={() => { setCat(c); setShowMobileNav(false); scrollToGrid(); }}
-                style={{ fontWeight: cat === c ? 700 : 400, color: cat === c ? 'var(--surface)' : 'var(--ink)', background: cat === c ? 'var(--ink)' : 'transparent' }}>
+                style={{ fontWeight: cat === c ? 700 : 400, color: cat === c ? 'var(--surface)' : 'var(--ink)', background: cat === c ? 'var(--ink)' : 'transparent' }}
+                role="listitem" aria-current={cat === c ? 'true' : undefined}>
                 {c === 'All' ? 'All' : c}
               </button>
             ))}
+            </div>
             {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
               <>
                 <h3>Brand</h3>
@@ -1058,7 +1062,7 @@ export default function App() {
                 Clear filters
               </button>
             )}
-          </div>
+          </nav>
 
           <div className="rw-shop-content">
             {products.length > 0 && (

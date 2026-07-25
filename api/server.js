@@ -168,6 +168,22 @@ ${urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><prio
   res.send(xml);
 });
 
+// ── Survey — save first-visit attribution data ──
+app.post('/api/survey', async (req, res) => {
+  const { source } = req.body || {};
+  if (!source) return res.json({ ok: false });
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key || !SUPABASE_URL) return res.json({ ok: true, note: 'Supabase not configured' });
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/surveys`, {
+      method: 'POST',
+      headers: { apikey: 'Bearer ' + key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ source, created_at: new Date().toISOString() }),
+    });
+  } catch {}
+  res.json({ ok: true });
+});
+
 // ── Health check (must be before rate limiter so Railway healthchecks don't get blocked) ──
 app.get('/api/health', (_req, res) => {
   const distPath = path.join(__dirname, '..', 'dist');
@@ -787,7 +803,7 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
   const { email, orderNum } = req.body;
   if (!email || !orderNum) return res.status(400).json({ error: 'Email and order number required' });
   try {
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+    const key = process.env.VITE_SUPABASE_ANON_KEY;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&email=eq.${encodeURIComponent(email)}&select=order_num,status,total,items,customer_name,created_at,tracking_number,courier,tracking_url`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
