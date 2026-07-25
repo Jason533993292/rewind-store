@@ -11,3 +11,6 @@ uptime-errors.log
 dist/
 # silence desktop attachments
 .hermes/
+# generated doc dumps — not production code
+REWIND-*.txt
+scripts/

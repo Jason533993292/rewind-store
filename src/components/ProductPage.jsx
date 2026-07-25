@@ -52,10 +52,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               const savedIds = JSON.parse(localStorage.getItem('rw_admin_saved') || '[]');
               if (savedIds.includes(id)) { localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id))); alert('Removed from saved'); }
               else { localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id])); alert('Saved!'); }
-            }}
-              onMouseOver={e => e.target.style.background = 'var(--line)'}
-              onMouseOut={e => e.target.style.background = 'transparent'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+            }} className="rw-dd-btn">
               ⭐ Save
             </button>
             <button onClick={async () => {
@@ -64,19 +61,13 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
                 if (ok) onBack();
                 else alert('❌ Failed to delete product — check admin session');
               }
-            }}
-              onMouseOver={e => e.target.style.background = 'var(--line)'}
-              onMouseOut={e => e.target.style.background = 'transparent'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+            }} className="rw-dd-btn">
               🗑 Delete
             </button>
             <button onClick={() => {
               sessionStorage.setItem('rw_edit_product_obj', JSON.stringify(p));
               nav('/admin');
-            }}
-              onMouseOver={e => e.target.style.background = 'var(--line)'}
-              onMouseOut={e => e.target.style.background = 'transparent'}
-              style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
+            }} className="rw-dd-btn">
               ✏️ Edit
             </button>
           </div>}
@@ -126,15 +117,13 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             <button
               aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
               onClick={(e) => { e.stopPropagation(); onWishlist && onWishlist(p); }}
+              className={wishlisted ? '' : 'rw-heart-btn'}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
-                color: wishlisted ? 'var(--accent)' : 'var(--muted)',
+                color: wishlisted ? 'var(--accent)' : '',
                 transition: 'color 0.15s, transform 0.15s',
                 marginTop: '-2px',
-              }}
-              onMouseOver={e => { if (!wishlisted) e.target.style.color = 'var(--accent)'; e.target.style.transform = 'scale(1.15)'; }}
-              onMouseOut={e => { if (!wishlisted) e.target.style.color = 'var(--muted)'; e.target.style.transform = 'scale(1)'; }}
-            >
+              }}>
               <Icon name={wishlisted ? 'heartFilled' : 'heart'} size={20} />
             </button>
           </div>
@@ -170,10 +159,8 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ fontSize: '13px', fontWeight: 600 }}>Size</div>
               {onSizeGuide && (
-                <button onClick={onSizeGuide}
-                  style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', textDecoration: 'underline', textUnderlineOffset: '3px', transition: 'color 0.15s' }}
-                  onMouseOver={e => e.target.style.color = 'var(--accent)'}
-                  onMouseOut={e => e.target.style.color = 'var(--muted)'}>
+                <button onClick={onSizeGuide} className="rw-size-guide-btn"
+                  style={{ fontSize: '12px', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', textDecoration: 'underline', textUnderlineOffset: '3px', transition: 'color 0.15s' }}>
                   Size guide →
                 </button>
               )}

@@ -17,7 +17,6 @@ import { money } from './hooks/useCountdown';
 // needed behind #admin, so anonymous shoppers shouldn't download it.
 const AdminPanel = React.lazy(() => import('./components/AdminPanel.jsx'));
 const SettingsPanel = React.lazy(() => import('./components/SettingsPanel.jsx'));
-const Shop = React.lazy(() => import('./components/Shop.jsx'));
 const CustomerMap = React.lazy(() => import('./components/CustomerMap.jsx'));
 const OrderTracking = React.lazy(() => import('./components/OrderTracking.jsx'));
 const SizeGuide = React.lazy(() => import('./components/SizeGuide'));
