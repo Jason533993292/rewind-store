@@ -960,19 +960,19 @@ app.post('/api/stripe-webhook', async (req, res) => {
   // Payment succeeded — this is the live checkout path (Stripe Elements)
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object;
-    const { orderNum, email, name, address, itemsJson, promoCode } = pi.metadata || {};
+    const { orderNum, email, name, address, itemsJson, promoCode, country } = pi.metadata || {};
     if (orderNum && email) {
       try {
         // Webhook idempotency: skip if order already exists
         const check = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&select=id`, {
-          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+          headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
         });
         const existing = await check.json();
         if (Array.isArray(existing) && existing.length > 0) {
           console.log('Order already exists (duplicate webhook):', orderNum);
         } else {
           const items = itemsJson ? JSON.parse(itemsJson) : [];
-          const { subtotal, shipping, discountPrice } = await computeOrder(items, promoCode);
+          const { subtotal, shipping, discountPrice } = await computeOrder(items, promoCode, country);
           const total = discountPrice + shipping;
           await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
             method: 'POST',
