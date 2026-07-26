@@ -318,9 +318,9 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
           clearTimeout(timer);
           if (!r.ok) {
             let msg = `Server responded with ${r.status}`;
-            try { const body = await r.json(); if (body?.error) msg = body.error; } catch { msg = `Server responded with ${r.status} — payment service temporarily unavailable. Please try again later.`; }
-            // Auto-retry once on 5xx server errors
-            if (r.status >= 500 && r.status < 600 && retries < MAX_RETRIES) {
+            try { const body = await r.json(); if (body?.error) msg = body.error; else if (body?.code) msg += ` (${body.code})`; } catch { msg = `Server responded with ${r.status} — payment service temporarily unavailable. Please try again later.`; }
+            // Auto-retry once on 5xx server errors (but not if Stripe sent us a clear rejection)
+            if (r.status >= 500 && r.status < 600 && retries < MAX_RETRIES && !msg.includes('StripeError')) {
               retries++;
               await new Promise(r => setTimeout(r, 1000));
               continue;

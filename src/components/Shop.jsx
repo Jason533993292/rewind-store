@@ -665,7 +665,12 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       if (payment === 'card' || payment === 'applepay' || payment === 'googlepay') {
         console.log('REWIND PAY: calling paymentRef.pay()');
         // Card/Apple Pay: use Elements inline
-        payResult = await paymentRef.current?.pay({
+        if (!paymentRef.current) {
+          setPayError('Payment form not loaded — please wait and try again.');
+          setProcessing(false);
+          return;
+        }
+        payResult = await paymentRef.current.pay({
           name: formFields.name,
           email: formFields.email,
           address: formFields.address,
