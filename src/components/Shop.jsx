@@ -54,12 +54,14 @@ function LazyImage({ src, alt, className }) {
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, onCart }) {
   const low = p.stock > 0 && p.stock <= 5;
   const soldOut = p.stock === 0;
+  const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   return (
     <article className="rw-card" style={{ opacity: soldOut ? 0.5 : 1 }}>
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
         <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={parseImgs(p)[0] || p.img} />
         <div className="rw-card-tags">
+          {soldOut && <span className="rw-badge-sold">SOLD OUT</span>}
           {showCompare && discountPct(p) > 0 && <span className="rw-tag rw-tag-sale">-{discountPct(p)}%</span>}
           {showStock && soldOut && <span className="rw-tag rw-tag-low">Sold out</span>}
           {showStock && low && !soldOut && <span className="rw-tag rw-tag-low">Only {p.stock} left</span>}
@@ -92,13 +94,18 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
               <Icon name="bag" size={16} />
             </button>
           ) : (
-          <button className="rw-add" onClick={() => { onAdd(p); setAdded(true); setTimeout(() => setAdded(false), 2000); }} aria-label={"Add " + p.name}>
-            <Icon name="plus" size={18} />
+          <button className="rw-add" onClick={async () => {
+            if (adding) return;
+            setAdding(true);
+            try { await onAdd(p); setAdded(true); setTimeout(() => setAdded(false), 2000); } catch {}
+            setAdding(false);
+          }} aria-label={"Add " + p.name}>
+            {adding ? <span className="rw-spinner" /> : <Icon name="plus" size={18} />}
           </button>
           )}
         </div>
         {soldOut ? (
-          <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>Unavailable</div>
+          <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>Sold Out</div>
         ) : (
         <div className="rw-card-ship">
           <Icon name="retrn" size={13} /> Free returns <span className="rw-price-was">€8</span>

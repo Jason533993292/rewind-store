@@ -1124,3 +1124,75 @@ input:focus:not(:focus-visible) {
 @media (max-width: 768px) {
   .rw-cat-btn { background: var(--line) !important; }
 }
+
+/* Spinner for Add to Bag */
+.rw-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rw-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+@keyframes rw-spin { to { transform: rotate(360deg); } }
+
+/* Cart badge */
+.rw-cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--accent, #FF4D14);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* Sold out badge */
+.rw-badge-sold {
+  background: #16130F;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Page transition */
+.rw-main {
+  animation: rw-fadeIn 0.2s ease;
+}
+@keyframes rw-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Dock button animation */
+.rw-dock-btn {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.rw-dock-btn:active {
+  transform: scale(0.92);
+}
+
+/* Confetti animation */
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.rw-confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: 0;
+  animation: confetti-fall 3s ease-in forwards;
+  pointer-events: none;
+  z-index: 9999;
+}
