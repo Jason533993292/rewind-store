@@ -307,9 +307,13 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
       body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '', paymentMethod: paymentMethod || 'card', country: country || '' }),
       signal: controller.signal,
     })
-      .then((r) => {
+      .then(async (r) => {
         clearTimeout(timer);
-        if (!r.ok) throw new Error(`Server responded with ${r.status}`);
+        if (!r.ok) {
+          let msg = `Server responded with ${r.status}`;
+          try { const body = await r.json(); if (body?.error) msg = body.error; } catch {}
+          throw new Error(msg);
+        }
         return r.json();
       })
       .then((data) => {
