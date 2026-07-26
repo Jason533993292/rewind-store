@@ -151,7 +151,7 @@ export default function ChatBubble() {
             if (d.error === 'muted') {
               // Remove optimistic message and show mute notice
               setMessages((prev) => prev.filter(m => m !== optimistic));
-              setMessages((prev) => [...prev, { sender: 'system', message: '🔇 ' + (d.message || 'You are muted'), created_at: new Date().toISOString() }]);
+              setMessages((prev) => [...prev, { sender: 'system', message: 'MUTED: ' + (d.message || 'You are muted'), created_at: new Date().toISOString() }]);
             }
           }
         } catch {}

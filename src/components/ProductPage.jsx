@@ -68,7 +68,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               sessionStorage.setItem('rw_edit_product_obj', JSON.stringify(p));
               nav('/admin');
             }} className="rw-dd-btn">
-              ✏️ Edit
+              Edit
             </button>
           </div>}
         </div>

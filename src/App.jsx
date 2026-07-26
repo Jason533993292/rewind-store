@@ -1370,7 +1370,7 @@ export default function App() {
       {showBugBounty && (
         <div className="rw-modal-wrap" onClick={() => setShowBugBounty(false)}>
           <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px', gridTemplateColumns: '1fr', padding: '32px', textAlign: 'center' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🐛</div>
+            <div style={{ fontSize: '36px', marginBottom: '12px' }}>🐛</div>
             <h3 style={{ margin: '0 0 8px', fontSize: '18px' }}>Found a bug? Tell us!</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '16px' }}>
               If you encounter an error or bug while navigating this site, please tell us and we will fix it.<br />

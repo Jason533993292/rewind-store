@@ -316,8 +316,8 @@ export default function SettingsPanel({ onClose, showToast }) {
       {/* Main Admin / Customer tabs */}
       <div style={{ display: 'flex', gap: '6px', padding: '12px 24px 0', maxWidth: '560px', margin: '0 auto' }}>
         {[
-          { id: 'admin', label: '🔐 Admin' },
-          { id: 'customer', label: '👤 Customer' },
+          { id: 'admin', label: 'Admin' },
+          { id: 'customer', label: 'Customer' },
         ].map(t => (
           <button key={t.id} onClick={() => setAdminTab(t.id)} style={{
             flex: 1, padding: '10px 6px', borderRadius: '10px',
@@ -388,8 +388,8 @@ export default function SettingsPanel({ onClose, showToast }) {
                     </button>
                   ))}
                 </div>
-                {adminSection === 'pulse' && <div style={SP_STYLES.card}><h3 style={SP_STYLES.cardTitle}>📊 Store Pulse</h3><Pulse /></div>}
-                {adminSection === 'lookup' && <div style={SP_STYLES.card}><h3 style={SP_STYLES.cardTitle}>🔍 Order Lookup</h3><OrderLookup /></div>}
+                {adminSection === 'pulse' && <div style={SP_STYLES.card}><h3 style={SP_STYLES.cardTitle}>Store Pulse</h3><Pulse /></div>}
+                {adminSection === 'lookup' && <div style={SP_STYLES.card}><h3 style={SP_STYLES.cardTitle}>Order Lookup</h3><OrderLookup /></div>}
                 {adminSection === 'promo' && <div style={SP_STYLES.card}><h3 style={SP_STYLES.cardTitle}>🎁 Promo Generator</h3><PromoGenerator showToast={showToast} /></div>}
               </>
             )}
@@ -399,7 +399,7 @@ export default function SettingsPanel({ onClose, showToast }) {
         {/* ── CUSTOMER TAB ── */}
         {adminTab === 'customer' && (
           <div style={SP_STYLES.card}>
-            <h3 style={SP_STYLES.cardTitle}>👤 Your Preferences</h3>
+            <h3 style={SP_STYLES.cardTitle}>Your Preferences</h3>
             <ThemeSettings />
           </div>
         )}

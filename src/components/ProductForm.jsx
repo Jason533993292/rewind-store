@@ -38,7 +38,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
         hue: editProduct.hue ?? Math.floor(Math.random() * 360),
       });
       setEditingId(editProduct.product_id || editProduct.id);
-      setMsg('✏️ Editing: ' + editProduct.name);
+      setMsg('Editing: ' + editProduct.name);
     }
   }, [editProduct]);
 
@@ -93,7 +93,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
   return (
     <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
       <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>
-        {editingId ? '✏️ Edit product' : '📦 Add new product'}
+        {editingId ? 'Edit product' : 'Add new product'}
         {editingId && <button onClick={() => { setEditingId(null); setForm({ name: '', brand: '', cat: '', catCustom: '', price: '', was: '', stock: 10, sizes: 'S,M,L,XL', material: '', note: '', file: null, files: [], hue: Math.floor(Math.random() * 360) }); if (onClearEdit) onClearEdit(); }}
           style={{ marginLeft: '10px', padding: '4px 10px', borderRadius: '6px', background: 'var(--line)', border: 'none', cursor: 'pointer', fontSize: '12px', transition: 'all 0.15s' }}
           onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
@@ -217,7 +217,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
               style={{ padding: '8px 16px', borderRadius: '999px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap', transition: 'all 0.15s' }}
               onMouseOver={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = '#fff'; e.target.style.transform = 'translateY(-1px)'; }}
               onMouseOut={e => { e.target.style.background = 'var(--surface)'; e.target.style.color = 'var(--accent)'; e.target.style.transform = ''; }}>
-              📋 Copy to Gemini
+              Copy to Gemini
             </button>
             <button type="button"
               onClick={async () => {
@@ -294,7 +294,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
           }}
             onMouseOver={e => { e.target.style.transform = 'scale(1.05)'; e.target.style.boxShadow = '0 4px 12px color-mix(in oklab, var(--accent) 40%, transparent)'; }}
             onMouseOut={e => { e.target.style.transform = ''; e.target.style.boxShadow = ''; }}>
-            📁 Choose files
+            Choose files
             <input ref={fileRef} type="file" accept="image/*,.png,.jpg,.jpeg,.webp,.pdf,.svg"
               multiple
               onChange={e => {
@@ -316,7 +316,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
         </div>
         {form.file && (
           <div style={{ marginTop: '16px', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', background: 'var(--bg)' }}>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '12px' }}>📱 Storefront preview</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '12px' }}>Storefront preview</p>
             <div style={{ background: 'var(--surface)', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,.06)' }}>
               <div style={{ background: form.hue ? `hsl(${form.hue},60%,85%)` : 'var(--line)', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 {previewUrl ? <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} /> : <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Upload a photo</span>}
@@ -359,7 +359,7 @@ export default function ProductForm({ editProduct, onClearEdit, customProducts, 
         style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
         onMouseOver={e => { if (!e.target.disabled) { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; } }}
         onMouseOut={e => { if (!e.target.disabled) { e.target.style.opacity = '1'; e.target.style.transform = ''; } }}>
-        {saving ? 'Saving...' : editingId ? '💾 Save changes' : '➕ Add product'}
+        {saving ? 'Saving...' : editingId ? '💾 Save changes' : 'Add product'}
         </button>
         </div>
       </form>

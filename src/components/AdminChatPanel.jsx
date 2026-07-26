@@ -200,7 +200,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
                   style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
-                  🏷️ Promo
+                  Promo
                 </button>
                 <button onClick={() => setShowBlockPanel(true)}
                   onMouseOver={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
@@ -209,11 +209,11 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   🚫 Block
                 </button>
                 {selectedEmail && (
-                  <button onClick={(e) => { navigator.clipboard?.writeText(selectedEmail).then(() => { e.currentTarget.textContent = '✓ Copied'; setTimeout(() => { e.currentTarget.textContent = '📧 Copy email'; }, 1500); }).catch(() => {}); }}
+                  <button onClick={(e) => { navigator.clipboard?.writeText(selectedEmail).then(() => { e.currentTarget.textContent = '✓ Copied'; setTimeout(() => { e.currentTarget.textContent = 'Copy email'; }, 1500); }).catch(() => {}); }}
                     onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
                     onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
                     style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
-                    📧 Copy email
+                    Copy email
                   </button>
                 )}
                 <button onClick={() => setShowMutePanel(true)}

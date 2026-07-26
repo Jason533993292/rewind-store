@@ -65,7 +65,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     if (chatUnread > lastUnreadRef.current && Notification.permission === 'granted') {
       const diff = chatUnread - lastUnreadRef.current;
       try {
-        new Notification('💬 New chat message' + (diff > 1 ? ` (${diff} unread)` : ''), {
+        new Notification('New chat message' + (diff > 1 ? ` (${diff} unread)` : ''), {
           body: diff > 1 ? `${diff} unread messages from customers` : 'A customer sent a new message',
           tag: 'rewind-chat',
         });
@@ -180,7 +180,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
       {!adminChecking && !adminAuthed && (
         <div style={{ maxWidth: '400px', margin: '60px auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>🔐 Admin Access</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Admin Access</h2>
         <p style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '16px' }}>Enter your admin email and secret token.</p>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
           <input className="rw-input" placeholder="your@email.com" value={adminEmail}
