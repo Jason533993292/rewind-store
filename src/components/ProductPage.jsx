@@ -216,7 +216,6 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
               <span>Free shipping on orders over €150</span>
-              <span>14-day returns</span>
             </div>
           </div>
         </div>
