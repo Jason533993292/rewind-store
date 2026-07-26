@@ -788,6 +788,10 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
   const { subtotal, discountPrice } = await computeOrder(items, promoCode, country);
   const finalTotal = Math.round(discountPrice * 100);
 
+  if (!finalTotal || finalTotal < 50) {
+    return res.status(400).json({ error: 'Order total too low for payment processing.' });
+  }
+
   // Map frontend payment method IDs to Stripe payment method types.
   // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
   // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
@@ -808,8 +812,8 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     });
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
-    console.error('PaymentIntent error:', e);
-    res.status(500).json({ error: 'Could not create payment' });
+    console.error('PaymentIntent error:', e.message || e);
+    res.status(500).json({ error: 'Could not create payment. Please try again or contact support.' });
   }
 });
 

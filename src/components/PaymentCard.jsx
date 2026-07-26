@@ -259,6 +259,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [fetchError, setFetchError] = useState('');
   const [isFetching, setIsFetching] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const cardSceneRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -331,7 +332,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
       clearTimeout(timer);
       controller.abort();
     };
-  }, [amount, orderNum, email, name, address, items, promoProp, paymentMethod, country]);
+  }, [amount, orderNum, email, name, address, items, promoProp, paymentMethod, country, retryCount]);
 
   // Store the pay function from inside Elements so the ref can call it
   const [payFn, setPayFn] = useState(null);
@@ -438,6 +439,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
                 onClick={() => {
                   setFetchError('');
                   setClientSecret(null);
+                  setRetryCount(k => k + 1);
                 }}
                 style={{ marginTop: '8px', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--line-2)', cursor: 'pointer' }}
               >Retry</button>
