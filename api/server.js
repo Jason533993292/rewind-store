@@ -691,7 +691,7 @@ async function computeOrder(items, promoCode, country) {
     subtotal += (realPrice ?? 0) * (it.qty || 1);
   }
   const zoneRate = SHIPPING_ZONES[resolveCountry(country)] || DEFAULT_SHIPPING;
-  const shipping = subtotal >= 150 ? 0 : zoneRate;
+  let shipping = subtotal >= 150 ? 0 : zoneRate;
   let discountPrice = subtotal;
   let discountLabel = null;
   // Validate promo code against DB
