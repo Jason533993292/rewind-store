@@ -104,7 +104,7 @@ export function Banner({ showCountdown }) {
   return (
     <div className="rw-banner">
       <div className="rw-banner-track" key={i}>
-        <Icon name="bolt" size={14} /> <span>{msgs[i]}</span>
+        <Icon name="bolt" size={14} /> <span>{BANNER_MSGS[i]}</span>
       </div>
       {showCountdown && (
         <div className="rw-banner-count" title="Sale ends Sunday 23:59">
