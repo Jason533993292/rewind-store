@@ -813,7 +813,19 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
     console.error('PaymentIntent error:', e.message || e);
-    res.status(500).json({ error: 'Could not create payment. Please try again or contact support.' });
+    const stripeMsg = e.type === 'StripeError' ? e.message : null;
+    // Log to webhook events so the Bug Watcher can detect failures
+    try {
+      const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (SERVICE_KEY) {
+        fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
+          method: 'POST',
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ error: stripeMsg || e.message, code: e.code, amount: finalTotal, orderNum }) }),
+        }).catch(() => {});
+      }
+    } catch {}
+    res.status(500).json({ error: stripeMsg || 'Could not create payment. Please try again or contact support.', code: e.code || null });
   }
 });
 
