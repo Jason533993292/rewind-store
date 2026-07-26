@@ -7,10 +7,19 @@ const WELCOME = "Hey! Ask us anything about sizing, an item, or your order. We u
 
 let _beepCtx = null;
 
+// Create AudioContext on first user gesture to avoid Chrome autoplay warning
+function initAudioContext() {
+  if (!_beepCtx) {
+    try {
+      _beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch {}
+  }
+  return _beepCtx;
+}
+
 function beep() {
   try {
-    if (!_beepCtx) _beepCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (_beepCtx.state === 'suspended') _beepCtx.resume();
+    if (!_beepCtx || _beepCtx.state === 'suspended') return; // No gesture yet — skip silently
     const osc = _beepCtx.createOscillator();
     const gain = _beepCtx.createGain();
     osc.type = 'sine';
@@ -157,6 +166,7 @@ export default function ChatBubble() {
   }
 
   function handleOpen() {
+    initAudioContext(); // Initialize audio on user gesture to avoid Chrome autoplay warning
     setOpen(true);
     setUnread(0);
     if (!sessionId) setShowEmailScreen(true);
