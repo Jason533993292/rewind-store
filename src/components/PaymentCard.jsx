@@ -471,7 +471,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
             </div>
           )}
           {amount && !isFetching && !fetchError && (
-            <div className="rw-cc-amount"><span>Payment amount</span><b>{amount}</b></div>
+            <div className="rw-cc-amount"><span>Payment amount</span><b>&ensp;{amount}</b></div>
           )}
         </div>
       )}
