@@ -35,7 +35,7 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
       return;
     }
     setSaving(true); setMsg('');
-    const result = await updateCustomProduct(product.product_id || product.id, {
+    const result = await updateCustomProduct(product.id || product.product_id, {
       name: form.name, brand: form.brand, cat: form.cat, imgs: JSON.stringify(images),
       price: parseFloat(form.price) || 0, was: form.was ? parseFloat(form.was) : null,
       stock: (() => { const n = parseInt(form.stock); return isNaN(n) ? 10 : n; })(),
@@ -104,7 +104,7 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
                 onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
                   for (const file of files) {
-                    const url = await uploadProductImage(file, product.product_id || product.id);
+                    const url = await uploadProductImage(file, product.id || product.product_id);
                     if (url) { setImages(prev => [...prev, url]); setMsg('✅ Photo added'); } else setMsg('❌ Upload failed');
                   }
                 }} />
