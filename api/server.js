@@ -818,6 +818,19 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
       currency: 'eur',
       metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
       payment_method_types: methodTypes,
+    }).catch(async (stripeErr) => {
+      // Retry once on transient Stripe errors (rate limit, service unavailable)
+      if (stripeErr.type === 'StripeError' && (stripeErr.statusCode === 429 || stripeErr.statusCode >= 500)) {
+        console.warn('Stripe transient error, retrying in 1s:', stripeErr.code);
+        await new Promise(r => setTimeout(r, 1000));
+        return stripe.paymentIntents.create({
+          amount: finalTotal,
+          currency: 'eur',
+          metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
+          payment_method_types: methodTypes,
+        });
+      }
+      throw stripeErr;
     });
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (e) {

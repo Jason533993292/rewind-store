@@ -286,6 +286,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
   // Fetch PaymentIntent clientSecret when amount changes
   useEffect(() => {
     if (!amount) return;
+    if (!orderNum) return; // Wait for real orderNum — prevents race with empty initial state
     const numAmount = typeof amount === 'string'
       ? parseFloat(amount.replace(/[^0-9.,]/g, '').replace(',', '.'))
       : amount;
