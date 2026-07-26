@@ -802,6 +802,11 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Order total too low for payment processing.' });
     }
 
+    // Validate payment method — return 400 for unknown ones before Stripe
+    const KNOWN_METHODS = ['card', 'bancontact', 'klarna', 'ideal', 'paypal'];
+    if (!paymentMethod || !KNOWN_METHODS.includes(paymentMethod)) {
+      return res.status(400).json({ error: 'Unknown payment method selected.' });
+    }
     // Map frontend payment method IDs to Stripe payment method types.
     // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
     // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
@@ -841,9 +846,14 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     // Build a human-friendly error message that includes Stripe context
     let userMsg = stripeMsg;
     if (!userMsg) {
-      userMsg = 'Could not create payment';
-      if (errCode) userMsg += ' (' + errCode + ')';
-      userMsg += '. Please try again or contact support.';
+      // Detect unsupported payment methods by error code
+      if (errCode === 'payment_intent_invalid_parameter') {
+        userMsg = 'This payment method is not supported yet. Please try a different payment method (Card, Bancontact, Klarna, or PayPal).';
+      } else {
+        userMsg = 'Could not create payment';
+        if (errCode) userMsg += ' (' + errCode + ')';
+        userMsg += '. Please try again or contact support.';
+      }
     }
     // Log to webhook events so the Bug Watcher can detect failures
     try {
