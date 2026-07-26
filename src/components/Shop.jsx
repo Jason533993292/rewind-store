@@ -689,22 +689,38 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         }
       } else {
         // Redirect-based methods (Klarna, Bancontact, iDEAL, PayPal)
-        // Create payment intent first via the API
-        const piRes = await fetch('/api/create-payment-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: items.map(i => ({ id: i.id || i.product_id, qty: i.qty })),
-            orderNum: currentOrderNum,
-            email: formFields.email,
-            name: formFields.name,
-            address: formFields.address,
-            promoCode: promo,
-            paymentMethod: payment,
-            country: formFields.country,
-          }),
-        });
-        const piData = await piRes.json();
+        // Create payment intent first via the API with auto-retry on 5xx
+        let piRes;
+        let piData;
+        let piRetries = 0;
+        const PI_MAX_RETRIES = 1;
+        while (piRetries <= PI_MAX_RETRIES) {
+          piRes = await fetch('/api/create-payment-intent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              items: items.map(i => ({ id: i.id || i.product_id, qty: i.qty })),
+              orderNum: currentOrderNum,
+              email: formFields.email,
+              name: formFields.name,
+              address: formFields.address,
+              promoCode: promo,
+              paymentMethod: payment,
+              country: formFields.country,
+            }),
+          });
+          if (piRes.ok) break;
+          if (piRes.status >= 500 && piRes.status < 600 && piRetries < PI_MAX_RETRIES) {
+            piRetries++;
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+          piData = await piRes.json().catch(() => ({}));
+          setPayError(piData?.error || `Server responded with ${piRes.status}`);
+          setProcessing(false);
+          return;
+        }
+        piData = await piRes.json();
         if (!piData.clientSecret) {
           setPayError(piData.error || 'Failed to create payment');
           setProcessing(false);
