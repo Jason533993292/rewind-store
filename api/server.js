@@ -788,6 +788,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
 
     // Server-side price recompute — never trust client amounts
     let orderComputed;
+    let finalTotal = 0;
     try {
       orderComputed = await computeOrder(items, promoCode, country);
     } catch (e) {
@@ -795,7 +796,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
       return res.status(500).json({ error: 'Could not calculate order total. Please try again or contact support.' });
     }
     const { subtotal, discountPrice, shipping } = orderComputed;
-    const finalTotal = Math.round((discountPrice + shipping) * 100);
+    finalTotal = Math.round((discountPrice + shipping) * 100);
 
     if (!finalTotal || finalTotal < 50) {
       return res.status(400).json({ error: 'Order total too low for payment processing.' });
@@ -815,7 +816,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalTotal,
       currency: 'eur',
-      metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
+      metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '', country: country || '' },
       payment_method_types: methodTypes,
     }).catch(async (stripeErr) => {
       // Retry once on transient Stripe errors (rate limit, service unavailable)
@@ -825,7 +826,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         return stripe.paymentIntents.create({
           amount: finalTotal,
           currency: 'eur',
-          metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
+          metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '', country: country || '' },
           payment_method_types: methodTypes,
         });
       }
