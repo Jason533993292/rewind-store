@@ -258,7 +258,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
   const [firstDigits, setFirstDigits] = useState('');
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [fetchError, setFetchError] = useState('');
-  const [isFetching, setIsFetching] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const cardSceneRef = useRef(null);
 
@@ -318,7 +318,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
           clearTimeout(timer);
           if (!r.ok) {
             let msg = `Server responded with ${r.status}`;
-            try { const body = await r.json(); if (body?.error) msg = body.error; } catch {}
+            try { const body = await r.json(); if (body?.error) msg = body.error; } catch { msg = `Server responded with ${r.status} — payment service temporarily unavailable. Please try again later.`; }
             // Auto-retry once on 5xx server errors
             if (r.status >= 500 && r.status < 600 && retries < MAX_RETRIES) {
               retries++;
