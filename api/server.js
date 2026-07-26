@@ -990,6 +990,8 @@ app.post('/api/stripe-webhook', async (req, res) => {
         }
       } catch (e) { console.error('Failed to fulfill from PaymentIntent:', e); }
     }
+    // Notify Hermes about the new order
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'payment.succeeded', payload: JSON.stringify({ orderNum, email, amount: pi.amount_received }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch (e) { console.warn('webhook log failed:', e.message); }
   }
   if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
     const session = event.data.object;
