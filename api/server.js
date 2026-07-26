@@ -1008,6 +1008,17 @@ app.post('/api/stripe-webhook', async (req, res) => {
         }
       } catch {}
     }
+    // Notify Hermes about the failed payment
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ orderNum, email: session.metadata?.email }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
+  }
+  // Track refunds and disputes
+  if (event.type === 'charge.refunded') {
+    const charge = event.data.object;
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'charge.refunded', payload: JSON.stringify({ amount: charge.amount_refunded, currency: charge.currency }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
+  }
+  if (event.type === 'charge.dispute.created') {
+    const dispute = event.data.object;
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'dispute.created', payload: JSON.stringify({ amount: dispute.amount, reason: dispute.reason }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
   }
 
   res.json({ received: true });
