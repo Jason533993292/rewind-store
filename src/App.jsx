@@ -1261,8 +1261,8 @@ export default function App() {
             <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Referrals</span>
           </button>
 
-          {/* Admin */}
-          <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/admin'); setDockHover(false); }}
+          {/* Admin — only visible when authenticated */}
+          {isAdmin && <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/admin'); setDockHover(false); }}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: dockHover ? '8px 12px' : '8px 0',
@@ -1277,7 +1277,7 @@ export default function App() {
             onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.color = 'var(--muted)'; }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/></svg>
             <span style={{ opacity: dockHover ? 1 : 0, transition: 'opacity 0.3s ease 0.2s', overflow: 'hidden' }}>Admin</span>
-          </button>
+          </button>}
 
           {/* Home */}
           <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/'); setDockHover(false); }}
