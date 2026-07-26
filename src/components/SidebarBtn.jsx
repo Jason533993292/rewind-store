@@ -3,6 +3,7 @@ import React from 'react';
 export default function SidebarBtn({ label, isOn, onClick, count }) {
   return (
     <button className={`rw-sb-btn${isOn ? ' is-on' : ''}`} onClick={onClick}
+      aria-current={isOn ? 'true' : undefined}
       onMouseOver={e => { if (!isOn) { e.currentTarget.style.background = 'var(--line)'; } }}
       onMouseOut={e => { if (!isOn) { e.currentTarget.style.background = ''; } }}>
       <span className="rw-sb-label">{label}</span>

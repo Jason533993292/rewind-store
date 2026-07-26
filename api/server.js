@@ -26,6 +26,7 @@ app.use(helmet({
       connectSrc: ["'self'", "https://luiqimsfvllgsmzedncw.supabase.co", "https://api.stripe.com", "https://api.resend.com", "https://generativelanguage.googleapis.com", "https://*.stripe.com"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co", "https://*.stripe.com"],
       scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
+      workerSrc: ["'self'", "blob:"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
@@ -150,16 +151,31 @@ app.use(express.static(path.join(__dirname, '..', 'dist'), {
 }));
 console.log('[static]', path.join(__dirname, '..', 'dist'));
 
-// ── Sitemap — generate dynamically from product catalog ──
-app.get('/sitemap.xml', (_req, res) => {
+// ── Sitemap — generate dynamically from product catalog (incl. custom products) ──
+app.get('/sitemap.xml', async (_req, res) => {
   const urls = [
     'https://rewind-stores.com',
     'https://rewind-stores.com/#/track',
   ];
-  // Add all product pages
+  // Add static product pages
   for (const p of SERVER_PRODUCTS) {
     urls.push(`https://rewind-stores.com/?product=${encodeURIComponent(p.id)}`);
   }
+  // Add custom products from Supabase
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (SUPABASE_URL && SERVICE_KEY) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?select=product_id&order=created_at.desc`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      });
+      const custom = await r.json();
+      if (Array.isArray(custom)) {
+        custom.forEach(p => {
+          if (p.product_id) urls.push(`https://rewind-stores.com/?product=${encodeURIComponent(p.product_id)}`);
+        });
+      }
+    }
+  } catch {}
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>').join('\n')}
@@ -734,7 +750,7 @@ async function decrementStockByIds(items) {
 }
 
 // ── Stripe Payment Intent (for Elements) ──
-app.post('/api/create-payment-intent', async (req, res) => {
+app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
   if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
   const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
   if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
@@ -999,15 +1015,6 @@ app.post('/api/stripe-webhook', async (req, res) => {
 app.use('/api/admin', (req, res, next) => {
   res.set('Cache-Control', 'no-store, must-revalidate');
   requireAdmin(req, res, next);
-});
-
-// ── Public sitemap ──
-app.get('/sitemap.xml', async (_req, res) => {
-  res.set('Content-Type', 'application/xml');
-  const STATIC = ['', '#shop', '#track'];
-  const urls = STATIC.map(p => `<url><loc>https://rewind-stores.com${p}</loc></url>`).join('')
-    + SERVER_PRODUCTS.map(p => `<url><loc>https://rewind-stores.com/${p.id}</loc></url>`).join('');
-  res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
 });
 
 // ── Admin route modules (registered after blanket auth) ──
