@@ -1094,6 +1094,55 @@ app.post('/api/wishlist', strictLimiter, async (req, res) => {
   } catch { res.status(500).json({ error: 'Failed to save wishlist' }); }
 });
 
+// ── Wishlist sync to Supabase (upsert by email) ──
+app.post('/api/wishlist/sync', async (req, res) => {
+  const { email, product_ids } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  if (!Array.isArray(product_ids)) return res.status(400).json({ error: 'product_ids must be an array' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const existing = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}&select=id`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    }).then(r => r.json());
+    if (Array.isArray(existing) && existing.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
+        method: 'PATCH',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ product_ids, updated_at: new Date().toISOString() }),
+      });
+    } else {
+      await fetch(`${SUPABASE_URL}/rest/v1/wishlists`, {
+        method: 'POST',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ email, product_ids, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }),
+      });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Wishlist sync error:', e);
+    res.status(500).json({ error: 'Failed to sync wishlist' });
+  }
+});
+
+app.get('/api/wishlist/sync', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}&select=product_ids,updated_at`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    const entry = Array.isArray(data) && data.length > 0 ? data[0] : null;
+    res.json({ wishlist: entry || { product_ids: [], updated_at: null } });
+  } catch (e) {
+    console.error('Wishlist sync fetch error:', e);
+    res.status(500).json({ error: 'Failed to fetch wishlist' });
+  }
+});
+
 // ── Cleanup test accounts (before admin blanket middleware, uses cron token) ──
 app.post('/api/cleanup-test-emails', async (req, res) => {
   const token = (req.headers['x-cron-token'] || '').trim();
@@ -1146,6 +1195,85 @@ app.post('/api/cleanup-test-emails', async (req, res) => {
     res.json({ ok: true, removed });
   } catch (e) {
     res.status(500).json({ error: 'Cleanup failed', detail: e.message });
+  }
+});
+
+// ── Abandoned cart recovery — send "Still interested?" email ──
+// Queries checkout.session.expired / payment.failed events from the
+// webhook_events table, extracts the customer email (stored in the JSON
+// payload), and sends a recovery email via Resend with a link back to the
+// store. Protected by x-cron-token / CRON_SECRET_TOKEN.
+app.post('/api/cron/abandoned-cart', async (req, res) => {
+  const token = (req.headers['x-cron-token'] || '').trim();
+  const CRON_TOKEN = (process.env.CRON_SECRET_TOKEN || '').trim();
+  if (!CRON_TOKEN) return res.status(500).json({ error: 'CRON_SECRET_TOKEN not configured' });
+  const a = Buffer.from(token);
+  const b = Buffer.from(CRON_TOKEN);
+  if (!token || a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(403).json({ error: 'Unauthorized' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!resend) return res.status(500).json({ error: 'Resend not configured' });
+  try {
+    // Query recent payment.failed events from Stripe (includes checkout.session.expired)
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/webhook_events?source=eq.stripe&event=eq.payment.failed&received_at=gte.${encodeURIComponent(threeDaysAgo)}&order=received_at.desc&limit=50`,
+      { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+    );
+    const events = await r.json();
+    if (!Array.isArray(events)) return res.json({ ok: true, sent: 0, note: 'No events found' });
+    let sent = 0;
+    const seenEmails = new Set();
+    for (const evt of events) {
+      if (!evt.payload) continue;
+      try {
+        const payload = typeof evt.payload === 'string' ? JSON.parse(evt.payload) : evt.payload;
+        const email = payload.email;
+        if (!email || seenEmails.has(email)) continue;
+        seenEmails.add(email);
+        // Skip if this email already completed an order after the expired session
+        const orderCheck = await fetch(
+          `${SUPABASE_URL}/rest/v1/orders?email=eq.${encodeURIComponent(email)}&select=id&limit=1`,
+          { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+        );
+        const existingOrders = await orderCheck.json();
+        if (Array.isArray(existingOrders) && existingOrders.length > 0) continue;
+        // Send the recovery email
+        await resend.emails.send({
+          from: FROM_EMAIL,
+          reply_to: REPLY_TO,
+          to: email,
+          subject: 'Still interested? Your REWIND cart is waiting 🛒',
+          html: `<!DOCTYPE html>
+<html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#FAF6EF">
+<table width="100%" style="max-width:560px;margin:0 auto;padding:40px 20px">
+<tr><td style="text-align:center;padding-bottom:20px">
+  <h1 style="font-size:28px;color:#16130F;margin:0">REWIND<span style="color:#FF4D14">.</span></h1>
+</td></tr>
+<tr><td style="background:#fff;border-radius:14px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+  <h2 style="font-size:22px;color:#16130F;margin:0 0 6px">You left something behind ⏳</h2>
+  <p style="color:#6E665A;font-size:15px;margin:0 0 12px">Hey there,</p>
+  <p style="color:#6E665A;font-size:15px;margin:0 0 20px">We noticed you started checking out but didn't complete your order. No pressure — your cart is still saved.</p>
+  <table width="100%"><tr>
+    <td style="text-align:center;padding:16px 0">
+      <a href="https://rewind-stores.com" style="display:inline-block;background:#FF4D14;color:#fff;text-decoration:none;padding:14px 32px;border-radius:10px;font-size:16px;font-weight:700">Return to your cart →</a>
+    </td>
+  </tr></table>
+  <p style="color:#6E665A;font-size:14px;margin:16px 0 0">Grab your pieces before they're gone — our vintage stock moves fast.</p>
+</td></tr>
+<tr><td style="text-align:center;padding:20px 0;color:#6E665A;font-size:13px">
+  <p style="margin:0">REWIND — <a href="https://rewind-stores.com" style="color:#FF4D14">rewind-stores.com</a></p>
+</td></tr></table></body></html>`,
+        });
+        sent++;
+      } catch (parseErr) {
+        console.warn('Failed to parse webhook event payload:', parseErr.message);
+      }
+    }
+    res.json({ ok: true, sent, total: events.length });
+  } catch (e) {
+    console.error('Abandoned cart cron error:', e);
+    res.status(500).json({ error: 'Abandoned cart cron failed', detail: e.message });
   }
 });
 

@@ -81,9 +81,20 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--bg)',
             borderRadius: '16px', overflow: 'hidden', marginBottom: '12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            minHeight: '400px',
-          }}>
-            <Photo id={(p.id || p.product_id) + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={images[selectedImg]} />
+            minHeight: '400px', cursor: 'crosshair',
+          }}
+            onMouseMove={e => {
+              const r = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
+              const y = ((e.clientY - r.top) / r.height * 100).toFixed(1);
+              const img = e.currentTarget.querySelector('img');
+              if (img) { img.style.transformOrigin = x + '% ' + y + '%'; img.style.transform = 'scale(1.8)'; }
+            }}
+            onMouseLeave={e => {
+              const img = e.currentTarget.querySelector('img');
+              if (img) { img.style.transform = 'scale(1)'; }
+            }}>
+            <Photo id={(p.id || p.product_id) + '-page'} hue={p.hue} label={p.name?.toUpperCase() || ''} h={500} img={images[selectedImg]} style={{ transition: 'transform 0.15s' }} />
           </div>
           {/* Thumbnail strip — only show when there are multiple distinct images */}
           {images.filter(Boolean).length > 1 && (

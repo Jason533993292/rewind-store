@@ -4,6 +4,7 @@ import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDraw
 import { ReferralDialog } from './components/Referral';
 import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
+import OrderConfirmed from './components/OrderConfirmed';
 import { nav, getRoute, initRouter } from './lib/router';
 import CookieBanner from './components/CookieBanner';
 import { adminFetch } from './lib/adminApi';
@@ -122,6 +123,9 @@ export default function App() {
   const [orderNumber, setOrderNumber] = useState('');
   const [showTweaks, setShowTweaks] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [showOrderConfirmed, setShowOrderConfirmed] = useState(false);
+  const [confirmedOrderNum, setConfirmedOrderNum] = useState('');
+  const [showBugBounty, setShowBugBounty] = useState(false);
 
   // ── ALL useEffects below ──
 
@@ -545,7 +549,7 @@ export default function App() {
     });
   }, [cart, showToast]);
   const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); setPromoOpen(false); setPromoClosing(false); setOrderNumber(''); }, []);
-  const orderPlaced = useCallback(() => { setCart([]); setCheckout(false); setOrderNumber(''); }, []);
+  const orderPlaced = useCallback((orderNum) => { setCart([]); setCheckout(false); setOrderNumber(''); setConfirmedOrderNum(orderNum || ''); setShowOrderConfirmed(true); }, []);
 
   const handleWishlist = useCallback((p) => {
     const pid = p.id || p.product_id;
@@ -1137,6 +1141,15 @@ export default function App() {
     <ClickSpark sparkColor="#FF4D14" sparkSize={8} sparkRadius={16} sparkCount={10} disabled={adminMode}>
       {viewContent}
 
+      {/* ── Order confirmed overlay ── */}
+      {showOrderConfirmed && (
+        <div className="rw-modal-wrap" onClick={() => setShowOrderConfirmed(false)}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px', padding: 0, overflow: 'visible', background: 'none', boxShadow: 'none' }}>
+            <OrderConfirmed orderNum={confirmedOrderNum} onClose={() => setShowOrderConfirmed(false)} />
+          </div>
+        </div>
+      )}
+
       {/* ── Shared overlays (rendered in BOTH product page view AND shop view) ── */}
       {/* These must stay here so header cart/wishlist icons work on the product detail page. */}
       {showSizes && <React.Suspense><SizeGuide onClose={() => setShowSizes(false)} /></React.Suspense>}
@@ -1341,6 +1354,35 @@ export default function App() {
           onChange={(v) => setTweak('headingFont', v)} />
       </TweaksPanel>}
       <CookieBanner />
+
+      {/* ── Bug bounty floating button ── */}
+      {!adminMode && (
+        <button onClick={() => setShowBugBounty(true)}
+          title="Report a bug"
+          style={{ position: 'fixed', bottom: '84px', right: '80px', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
+          onMouseOut={e => { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.transform = 'scale(1)'; }}>
+          🐛
+        </button>
+      )}
+
+      {/* ── Bug bounty modal ── */}
+      {showBugBounty && (
+        <div className="rw-modal-wrap" onClick={() => setShowBugBounty(false)}>
+          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px', gridTemplateColumns: '1fr', padding: '32px', textAlign: 'center' }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🐛</div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px' }}>Found a bug? Tell us!</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '16px' }}>
+              If you encounter an error or bug while navigating this site, please tell us and we will fix it.<br />
+              You may possibly receive a reward for it!
+            </p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <button className="rw-btn" onClick={() => setShowBugBounty(false)}>Close</button>
+              <button className="rw-btn rw-btn-pri" onClick={() => { setShowBugBounty(false); document.querySelector('.rw-cat-btn')?.click(); }}>Report a bug</button>
+            </div>
+          </div>
+        </div>
+      )}
     </ClickSpark>
   );
 }
