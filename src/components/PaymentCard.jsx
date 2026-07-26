@@ -443,6 +443,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
                 onClick={() => {
                   setFetchError('');
                   setClientSecret(null);
+                  setIsFetching(true);
                   setRetryCount(k => k + 1);
                 }}
                 style={{ marginTop: '8px', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--line-2)', cursor: 'pointer' }}

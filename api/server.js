@@ -1284,6 +1284,12 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 
+// ── Global error handler — Express 5 default is HTML; return JSON instead ──
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err?.message || err);
+  res.status(500).json({ error: 'Internal server error. Please try again or contact support.' });
+});
+
 // Export for Vercel serverless
 export default app;
 
