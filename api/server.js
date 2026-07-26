@@ -1228,14 +1228,17 @@ app.use('/api/orders', buildLocationsRouter({
 // to pick up and report.
 app.post('/api/webhook/events', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const { source, event, data } = req.body || {};
-  if (!source || !event) return res.status(400).json({ error: 'source and event required' });
+  const body = req.body || {};
+  // Accept both our custom format { source, event, data } and native Railway/GitHub formats
+  const source = body.source || 'webhook';
+  const eventName = body.event || body.type || 'unknown';
+  const payload = body.data || body;
+  if (!eventName || eventName === 'unknown') return res.status(400).json({ error: 'event type required' });
   try {
-    // Try to log to Supabase; silently fail if table doesn't exist
     await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
       method: 'POST',
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ source, event, payload: JSON.stringify(data || {}), received_at: new Date().toISOString() }),
+      body: JSON.stringify({ source, event: eventName, payload: JSON.stringify(payload), received_at: new Date().toISOString() }),
     }).catch(() => {});
     res.json({ ok: true });
   } catch { res.json({ ok: true }); }
