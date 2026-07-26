@@ -803,7 +803,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalTotal,
       currency: 'eur',
-      metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty, price: i.price }))), promoCode: promoCode || '' },
+      metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
       payment_method_types: methodTypes,
     });
     res.json({ clientSecret: paymentIntent.client_secret });
@@ -1039,7 +1039,7 @@ app.get('/api/wishlist', async (req, res) => {
   } catch { res.json({ items: [] }); }
 });
 
-app.post('/api/wishlist', async (req, res) => {
+app.post('/api/wishlist', strictLimiter, async (req, res) => {
   const { email, product_ids } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -1167,10 +1167,16 @@ app.get('/api/push/vapid-key', (req, res) => {
   res.json({ publicKey: 'BNewrKRg9ASnQuZ5hBF-4I9_s-R9FKgh2CkhqZ9l9QFwJTnJyJByDfMM3-xvM8wDHCyAXnpbvkVqQdMDzmenNOw' });
 });
 
-app.post('/api/push/subscribe', async (req, res) => {
+app.post('/api/push/subscribe', strictLimiter, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const sub = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'subscription required' });
+  // Validate subscription structure — must have valid endpoint and keys
+  if (typeof sub.endpoint !== 'string' || !sub.endpoint.startsWith('https://')) return res.status(400).json({ error: 'Invalid endpoint' });
+  if (!sub.keys || typeof sub.keys !== 'object' || !sub.keys.p256dh || !sub.keys.auth) return res.status(400).json({ error: 'Missing push keys' });
+  // Limit subscription data size to prevent abuse
+  const bodyStr = JSON.stringify({ subscription: sub });
+  if (bodyStr.length > 4096) return res.status(400).json({ error: 'Subscription too large' });
   if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
   try {
     const checkRes = await fetch(SUPABASE_URL + '/rest/v1/push_subscriptions?endpoint=eq.' + encodeURIComponent(sub.endpoint) + '&select=id', {
