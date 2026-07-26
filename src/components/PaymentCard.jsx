@@ -292,6 +292,10 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
       : amount;
     if (!numAmount || numAmount <= 0) return;
 
+    let cancelled = false;
+    let retries = 0;
+    const MAX_RETRIES = 1;
+
     setFetchError('');
     setIsFetching(true);
     setClientSecret(null);
@@ -302,38 +306,53 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
 
-    fetch('/api/create-payment-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '', paymentMethod: paymentMethod || 'card', country: country || '' }),
-      signal: controller.signal,
-    })
-      .then(async (r) => {
-        clearTimeout(timer);
-        if (!r.ok) {
-          let msg = `Server responded with ${r.status}`;
-          try { const body = await r.json(); if (body?.error) msg = body.error; } catch {}
-          throw new Error(msg);
+    async function doFetch() {
+      while (!cancelled) {
+        try {
+          const r = await fetch('/api/create-payment-intent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '', paymentMethod: paymentMethod || 'card', country: country || '' }),
+            signal: controller.signal,
+          });
+          clearTimeout(timer);
+          if (!r.ok) {
+            let msg = `Server responded with ${r.status}`;
+            try { const body = await r.json(); if (body?.error) msg = body.error; } catch {}
+            // Auto-retry once on 5xx server errors
+            if (r.status >= 500 && r.status < 600 && retries < MAX_RETRIES) {
+              retries++;
+              await new Promise(r => setTimeout(r, 1000));
+              continue;
+            }
+            throw new Error(msg);
+          }
+          const data = await r.json();
+          if (!cancelled) {
+            if (data.clientSecret) {
+              setClientSecret(data.clientSecret);
+            } else {
+              setFetchError(data.error || 'Payment system unavailable');
+            }
+          }
+        } catch (e) {
+          if (cancelled) return;
+          if (e.name === 'AbortError') {
+            setFetchError('Payment server timed out. Please try again.');
+          } else {
+            setFetchError(e.message || 'Network error connecting to payment gateway.');
+          }
+        } finally {
+          if (!cancelled) setIsFetching(false);
         }
-        return r.json();
-      })
-      .then((data) => {
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret);
-        } else {
-          setFetchError(data.error || 'Payment system unavailable');
-        }
-      })
-      .catch((e) => {
-        if (e.name === 'AbortError') {
-          setFetchError('Payment server timed out. Please try again.');
-        } else {
-          setFetchError(e.message || 'Network error connecting to payment gateway.');
-        }
-      })
-      .finally(() => setIsFetching(false));
+        break;
+      }
+    }
+
+    doFetch();
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
       controller.abort();
     };
