@@ -693,7 +693,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         let piRes;
         let piData;
         let piRetries = 0;
-        const PI_MAX_RETRIES = 1;
+        const PI_MAX_RETRIES = 2;
         while (piRetries <= PI_MAX_RETRIES) {
           piRes = await fetch('/api/create-payment-intent', {
             method: 'POST',

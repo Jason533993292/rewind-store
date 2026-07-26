@@ -7,8 +7,9 @@ const WELCOME = "Hey! Ask us anything about sizing, an item, or your order. We u
 
 let _beepCtx = null;
 
-// Create AudioContext on first user gesture to avoid Chrome autoplay warning
-function initAudioContext() {
+// Create AudioContext only when first beep is actually needed, to avoid
+// Chrome autoplay warnings for unused AudioContext creation.
+function getAudioContext() {
   if (!_beepCtx) {
     try {
       _beepCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -19,16 +20,17 @@ function initAudioContext() {
 
 function beep() {
   try {
-    if (!_beepCtx || _beepCtx.state === 'suspended') return; // No gesture yet — skip silently
-    const osc = _beepCtx.createOscillator();
+    const ctx = getAudioContext();
+    if (!ctx || ctx.state === 'suspended') return; // No gesture yet — skip silently
+    const osc = ctx.createOscillator();
     const gain = _beepCtx.createGain();
     osc.type = 'sine';
     osc.frequency.value = 880;
     gain.gain.value = 0.05;
     osc.connect(gain);
-    gain.connect(_beepCtx.destination);
+    gain.connect(ctx.destination);
     osc.start();
-    osc.stop(_beepCtx.currentTime + 0.12);
+    osc.stop(ctx.currentTime + 0.12);
   } catch {}
 }
 
@@ -166,7 +168,6 @@ export default function ChatBubble() {
   }
 
   function handleOpen() {
-    initAudioContext(); // Initialize audio on user gesture to avoid Chrome autoplay warning
     setOpen(true);
     setUnread(0);
     if (!sessionId) setShowEmailScreen(true);

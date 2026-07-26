@@ -294,7 +294,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
 
     let cancelled = false;
     let retries = 0;
-    const MAX_RETRIES = 1;
+    const MAX_RETRIES = 2;
 
     setFetchError('');
     setIsFetching(true);
