@@ -88,15 +88,16 @@ export function Photo({ id, hue, label, h = 320, img }) {
 }
 
 /* ---------- Banner ---------- */
+const BANNER_MSGS = [
+  "Summer drop is live — curated vintage, restocked weekly",
+  "Summer sale ends Sunday 23:59 — shop now before it's gone",
+  "Free shipping on all EU orders over €150",
+];
+
 export function Banner({ showCountdown }) {
-  const msgs = [
-    "Summer drop is live — curated vintage, restocked weekly",
-    "Summer sale ends Sunday 23:59 — shop now before it's gone",
-    "Free shipping on all EU orders over €150",
-  ];
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((v) => (v + 1) % msgs.length), 4200);
+    const t = setInterval(() => setI((v) => (v + 1) % BANNER_MSGS.length), 4200);
     return () => clearInterval(t);
   }, []);
   const c = useCountdown();

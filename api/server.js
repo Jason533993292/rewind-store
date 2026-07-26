@@ -1123,7 +1123,10 @@ app.post('/api/cleanup-test-emails', async (req, res) => {
 app.post('/api/create-test-order', async (req, res) => {
   const token = (req.headers['x-cron-token'] || '').trim();
   const CRON_TOKEN = (process.env.CRON_SECRET_TOKEN || '').trim();
-  if (!token || !CRON_TOKEN || token !== CRON_TOKEN) return res.status(403).json({ error: 'Unauthorized' });
+  if (!CRON_TOKEN) return res.status(500).json({ error: 'CRON_SECRET_TOKEN not configured' });
+  const a = Buffer.from(token);
+  const b = Buffer.from(CRON_TOKEN);
+  if (!token || a.length !== b.length || !crypto.timingSafeEqual(a, b)) return res.status(403).json({ error: 'Unauthorized' });
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -1146,7 +1149,7 @@ app.post('/api/create-test-order', async (req, res) => {
 });
 
 // ── Check if email is blocked (used at checkout and chat) ──
-app.post('/api/check-blocked-email', async (req, res) => {
+app.post('/api/check-blocked-email', strictLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.json({ blocked: false });
   try {
