@@ -1229,9 +1229,12 @@ app.use('/api/orders', buildLocationsRouter({
 app.post('/api/webhook/events', async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const body = req.body || {};
-  // Accept both our custom format { source, event, data } and native Railway/GitHub formats
-  const source = body.source || 'webhook';
-  const eventName = body.event || body.type || 'unknown';
+  // Check headers first (GitHub sends event type as X-GitHub-Event header)
+  const eventName = req.headers['x-github-event'] || req.headers['x-railway-event'] || body.event || body.type || 'unknown';
+  // Determine source from header or body
+  const source = req.headers['user-agent']?.includes('GitHub') ? 'github'
+    : req.headers['user-agent']?.includes('Railway') ? 'railway'
+    : body.source || 'webhook';
   const payload = body.data || body;
   if (!eventName || eventName === 'unknown') return res.status(400).json({ error: 'event type required' });
   try {
