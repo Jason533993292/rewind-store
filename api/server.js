@@ -1221,6 +1221,24 @@ app.use('/api/orders', buildLocationsRouter({
   SERVICE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 }));
 
+// ── Webhook event sink — accepts events from Stripe, GitHub, Railway ──
+// Events are logged to Supabase webhook_events table for the Hermes cron
+// to pick up and report.
+app.post('/api/webhook/events', async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { source, event, data } = req.body || {};
+  if (!source || !event) return res.status(400).json({ error: 'source and event required' });
+  try {
+    // Try to log to Supabase; silently fail if table doesn't exist
+    await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ source, event, payload: JSON.stringify(data || {}), received_at: new Date().toISOString() }),
+    }).catch(() => {});
+    res.json({ ok: true });
+  } catch { res.json({ ok: true }); }
+});
+
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
