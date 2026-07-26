@@ -6,6 +6,7 @@ import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
 import { nav, getRoute, initRouter } from './lib/router';
 import CookieBanner from './components/CookieBanner';
+import { adminFetch } from './lib/adminApi';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from './lib/supabase';
@@ -312,10 +313,9 @@ export default function App() {
     if (!isAdmin) return;
     const interval = setInterval(async () => {
       try {
-        const r = await fetch('/api/admin/chat/sessions');
+        const r = await adminFetch('/api/admin/chat/sessions');
         if (!r.ok) return;
-        const d = await r.json();
-        const sessions = Array.isArray(d.sessions) ? d.sessions : [];
+        const sessions = Array.isArray(r.data?.sessions) ? r.data.sessions : [];
         const unread = sessions.filter(s => s.last_message_sender === 'customer' || !s.last_read_admin).length;
         if (unread > lastCount && lastCount > 0 && Notification.permission === 'granted') {
           const diff = unread - lastCount;

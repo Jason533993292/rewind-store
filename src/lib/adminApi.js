@@ -1,7 +1,7 @@
 // Shared admin API client with error handling
 // Every function returns { ok, data, error }
 
-async function adminFetch(url, options = {}) {
+export async function adminFetch(url, options = {}) {
   try {
     const r = await fetch(url, {
       headers: { 'Content-Type': 'application/json', ...options.headers },

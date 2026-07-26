@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { adminFetch } from '../lib/adminApi';
 
 export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const [sessions, setSessions] = useState([]);
@@ -26,17 +27,17 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
 
   const loadSessions = useCallback(async () => {
     try {
-      const r = await fetch('/api/admin/chat/sessions');
-      const d = await r.json();
-      setSessions(Array.isArray(d.sessions) ? d.sessions : []);
+      const r = await adminFetch('/api/admin/chat/sessions');
+      if (!r.ok) return;
+      setSessions(Array.isArray(r.data?.sessions) ? r.data.sessions : []);
     } catch {}
   }, []);
 
   const loadMessages = useCallback(async (sessionId) => {
     try {
-      const r = await fetch('/api/admin/chat/messages?session_id=' + encodeURIComponent(sessionId));
-      const d = await r.json();
-      setMessages(Array.isArray(d.messages) ? d.messages : []);
+      const r = await adminFetch('/api/admin/chat/messages?session_id=' + encodeURIComponent(sessionId));
+      if (!r.ok) return;
+      setMessages(Array.isArray(r.data?.messages) ? r.data.messages : []);
     } catch {}
   }, []);
 
@@ -52,10 +53,9 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const r = await fetch('/api/admin/chat/sessions');
+        const r = await adminFetch('/api/admin/chat/sessions');
         if (!r.ok) return;
-        const d = await r.json();
-        const newSessions = Array.isArray(d.sessions) ? d.sessions : [];
+        const newSessions = Array.isArray(r.data?.sessions) ? r.data.sessions : [];
         if (newSessions.length === 0) return;
         setSessions(prev => {
           if (prev.length > 0 && newSessions.length > prev.length) {
@@ -76,9 +76,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
     if (!reply.trim() || !selectedId || sending) return;
     setSending(true);
     try {
-      await fetch('/api/admin/chat/reply', {
+      await adminFetch('/api/admin/chat/reply', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: selectedId, message: reply.trim() }),
       });
       setReply('');
@@ -90,9 +89,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const handleClose = async () => {
     if (!selectedId) return;
     try {
-      await fetch('/api/admin/chat/close', {
+      await adminFetch('/api/admin/chat/close', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: selectedId }),
       });
       await loadMessages(selectedId);
@@ -151,7 +149,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
               <div style={{ fontSize: '10px', opacity: 0.5, marginTop: '2px' }}>
                 {s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}
               </div>
-              <button onClick={async (e) => { e.stopPropagation(); if (!confirm('Delete this chat session and all its messages? This cannot be undone.')) return; await fetch('/api/admin/chat/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: s.session_id }) }); if (selectedId === s.session_id) { setSelectedId(null); setMessages([]); } await loadSessions(); }}
+              <button onClick={async (e) => { e.stopPropagation(); if (!confirm('Delete this chat session and all its messages? This cannot be undone.')) return; const del = await adminFetch('/api/admin/chat/session', { method: 'DELETE', body: JSON.stringify({ session_id: s.session_id }) }); if (!del.ok) return; if (selectedId === s.session_id) { setSelectedId(null); setMessages([]); } await loadSessions(); }}
                 style={{ position: 'absolute', top: '4px', right: '4px', width: '18px', height: '18px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '11px', lineHeight: '1', color: 'var(--muted)', display: 'grid', placeItems: 'center', opacity: 0.6 }}
                 onMouseOver={e => { e.stopPropagation(); e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; e.currentTarget.style.opacity = '1'; }}
                 onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = '0.6'; }}>✕</button>
@@ -295,13 +293,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
               <button className="rw-btn rw-btn-pri" style={{ flex: 1 }} disabled={!blockReason}
                 onClick={async () => {
                   try {
-                    const r = await fetch('/api/admin/chat/block-email', {
-                      method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    const r = await adminFetch('/api/admin/chat/block-email', {
+                      method: 'POST',
                       body: JSON.stringify({ email: selectedEmail, reason: blockReason, customReason: blockReason === 'other' ? blockCustomReason : '' }),
                     });
-                    const d = await r.json();
-                    if (d.ok) setBlockMsg('✅ Customer blocked');
-                    else setBlockMsg('❌ ' + (d.error || 'Failed'));
+                    if (r.ok) setBlockMsg('✅ Customer blocked');
+                    else setBlockMsg('❌ ' + (r.data?.error || 'Failed'));
                   } catch { setBlockMsg('❌ Network error'); }
                 }}>
                 Block
@@ -332,13 +329,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
               <button className="rw-btn" style={{ flex: 1 }} onClick={() => { setShowMutePanel(false); setMuteMsg(''); }}>Cancel</button>
               <button className="rw-btn rw-btn-pri" style={{ flex: 1 }} onClick={async () => {
                 try {
-                  const r = await fetch('/api/admin/chat/mute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  const r = await adminFetch('/api/admin/chat/mute', {
+                    method: 'POST',
                     body: JSON.stringify({ session_id: selectedId, duration_minutes: muteDuration }),
                   });
-                  const d = await r.json();
-                  if (d.ok) setMuteMsg('✅ Customer muted for ' + muteDuration + ' minutes');
-                  else setMuteMsg('❌ ' + (d.error || 'Failed'));
+                  if (r.ok) setMuteMsg('✅ Customer muted for ' + muteDuration + ' minutes');
+                  else setMuteMsg('❌ ' + (r.data?.error || 'Failed'));
                 } catch { setMuteMsg('❌ Network error'); }
               }}>Mute</button>
             </div>
@@ -346,13 +342,12 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             <button className="rw-btn rw-btn-pri" style={{ width: '100%', background: '#16a34a' }}
               onClick={async () => {
                 try {
-                  const r = await fetch('/api/admin/chat/unmute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  const r = await adminFetch('/api/admin/chat/unmute', {
+                    method: 'POST',
                     body: JSON.stringify({ session_id: selectedId }),
                   });
-                  const d = await r.json();
-                  if (d.ok) setMuteMsg('✅ Customer unmuted');
-                  else setMuteMsg('❌ ' + (d.error || 'Failed'));
+                  if (r.ok) setMuteMsg('✅ Customer unmuted');
+                  else setMuteMsg('❌ ' + (r.data?.error || 'Failed'));
                 } catch { setMuteMsg('❌ Network error'); }
               }}>
               ✅ Unmute
@@ -428,8 +423,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             <button className="rw-btn rw-btn-pri rw-btn-full"
               onClick={async () => {
                 try {
-                  const r = await fetch('/api/admin/create-promo', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  const r = await adminFetch('/api/admin/create-promo', {
+                    method: 'POST',
                     body: JSON.stringify({
                       email: selectedEmail,
                       percent: promoPercent === 0 ? Number(promoCustomValue) : promoPercent,
@@ -437,9 +432,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                       expires_at: promoExpires || undefined,
                     }),
                   });
-                  const d = await r.json();
-                  if (d.code) setGeneratedCode(d.code);
-                  else setGeneratedCode('Error: ' + (d.error || 'Failed'));
+                  if (r.data?.code) setGeneratedCode(r.data.code);
+                  else setGeneratedCode('Error: ' + (r.data?.error || 'Failed'));
                 } catch { setGeneratedCode('Network error'); }
               }}>
               Generate promo code
