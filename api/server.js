@@ -712,6 +712,7 @@ async function computeOrder(items, promoCode, country) {
         else {
           if (promo.discount_type === 'free_shipping') {
             discountPrice = subtotal;
+            shipping = 0;
             discountLabel = 'Free shipping';
           } else {
             discountPrice = Math.round(subtotal * (100 - promo.discount)) / 100;
@@ -785,8 +786,8 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
   }
 
   // Server-side price recompute — never trust client amounts
-  const { subtotal, discountPrice } = await computeOrder(items, promoCode, country);
-  const finalTotal = Math.round(discountPrice * 100);
+  const { subtotal, discountPrice, shipping } = await computeOrder(items, promoCode, country);
+  const finalTotal = Math.round((discountPrice + shipping) * 100);
 
   if (!finalTotal || finalTotal < 50) {
     return res.status(400).json({ error: 'Order total too low for payment processing.' });
