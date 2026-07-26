@@ -485,7 +485,7 @@ export default function App() {
       return;
     }
     const sz = size || p.sizes?.[0] || 'One size';
-    const pid = p.id || p.product_id;
+    const pid = p.product_id || p.id;
     const key = pid + '-' + sz;
     setCart((c) => {
       const found = c.find((it) => it.key === key);

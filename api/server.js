@@ -684,7 +684,7 @@ async function computeOrder(items, promoCode, country) {
   let subtotal = 0;
   for (const it of (items || [])) {
     const pid = it.id || it.product_id;
-    const realPrice = pid ? await lookupProductPrice(pid) : null;
+    const realPrice = pid ? await lookupProductPrice(String(pid)) : null;
     // Never fall back to the client-supplied price. If the product ID
     // isn't found in the server catalog or custom_products, treat it as
     // free/ignored rather than trusting whatever price the client sent.
@@ -734,7 +734,7 @@ async function decrementStockByIds(items) {
   if (!key || !url || !items?.length) return;
   const headers = { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
   for (const item of items) {
-    const pid = item.id || item.product_id;
+    const pid = String(item.id || item.product_id || '');
     const qty = item.qty || 1;
     if (!pid) continue;
     try {
@@ -759,8 +759,8 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     
     // Validate items array — each must have a valid id and positive qty
     for (const it of items) {
-      const pid = it.id || it.product_id;
-      if (!pid || typeof pid !== 'string') return res.status(400).json({ error: 'Each item must have a valid product id' });
+      const pid = String(it.id || it.product_id || '');
+      if (!pid) return res.status(400).json({ error: 'Each item must have a valid product id' });
       const qty = it.qty || 1;
       if (!Number.isInteger(qty) || qty < 1 || qty > 99) return res.status(400).json({ error: `Item "${pid}" has invalid quantity` });
     }
@@ -768,7 +768,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     // Check stock before creating PaymentIntent — prevents overselling
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     for (const it of items) {
-      const pid = it.id || it.product_id;
+      const pid = String(it.id || it.product_id || '');
       const qty = it.qty || 1;
       try {
         // Check custom_products first (these have variable stock)
