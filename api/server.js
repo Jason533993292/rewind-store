@@ -752,64 +752,84 @@ async function decrementStockByIds(items) {
 
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
-  if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
-  const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
-  if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
-  
-  // Validate items array — each must have a valid id and positive qty
-  for (const it of items) {
-    const pid = it.id || it.product_id;
-    if (!pid || typeof pid !== 'string') return res.status(400).json({ error: 'Each item must have a valid product id' });
-    const qty = it.qty || 1;
-    if (!Number.isInteger(qty) || qty < 1 || qty > 99) return res.status(400).json({ error: `Item "${pid}" has invalid quantity` });
-  }
-  
-  // Check stock before creating PaymentIntent — prevents overselling
-  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  for (const it of items) {
-    const pid = it.id || it.product_id;
-    const qty = it.qty || 1;
-    try {
-      // Check custom_products first (these have variable stock)
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}&select=stock,name`, {
-        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-      });
-      const data = await r.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const product = data[0];
-        if (product.stock != null && product.stock < qty) {
-          return res.status(400).json({ error: `"${product.name || pid}" only has ${product.stock} in stock` });
-        }
-      }
-      // If not found in custom_products, it's a static SERVER_PRODUCT — no stock to check
-    } catch {}
-  }
-
-  // Server-side price recompute — never trust client amounts
-  const { subtotal, discountPrice, shipping } = await computeOrder(items, promoCode, country);
-  const finalTotal = Math.round((discountPrice + shipping) * 100);
-
-  if (!finalTotal || finalTotal < 50) {
-    return res.status(400).json({ error: 'Order total too low for payment processing.' });
-  }
-
-  // Map frontend payment method IDs to Stripe payment method types.
-  // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
-  // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
-  // wallets produce a standard 'card' PaymentMethod under the hood via the
-  // Payment Request Button, so they're covered by the 'card' fallback below.
-  const methodTypes = paymentMethod === 'bancontact' ? ['bancontact']
-    : paymentMethod === 'klarna' ? ['klarna']
-    : paymentMethod === 'ideal' ? ['ideal']
-    : paymentMethod === 'paypal' ? ['paypal']
-    : ['card'];
-
   try {
+    if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
+    const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
+    if (!items || !items.length || !orderNum || !email) return res.status(400).json({ error: 'Missing required fields' });
+    
+    // Validate items array — each must have a valid id and positive qty
+    for (const it of items) {
+      const pid = it.id || it.product_id;
+      if (!pid || typeof pid !== 'string') return res.status(400).json({ error: 'Each item must have a valid product id' });
+      const qty = it.qty || 1;
+      if (!Number.isInteger(qty) || qty < 1 || qty > 99) return res.status(400).json({ error: `Item "${pid}" has invalid quantity` });
+    }
+    
+    // Check stock before creating PaymentIntent — prevents overselling
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    for (const it of items) {
+      const pid = it.id || it.product_id;
+      const qty = it.qty || 1;
+      try {
+        // Check custom_products first (these have variable stock)
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}&select=stock,name`, {
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        });
+        const data = await r.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const product = data[0];
+          if (product.stock != null && product.stock < qty) {
+            return res.status(400).json({ error: `"${product.name || pid}" only has ${product.stock} in stock` });
+          }
+        }
+        // If not found in custom_products, it's a static SERVER_PRODUCT — no stock to check
+      } catch {}
+    }
+
+    // Server-side price recompute — never trust client amounts
+    let orderComputed;
+    try {
+      orderComputed = await computeOrder(items, promoCode, country);
+    } catch (e) {
+      console.error('computeOrder error:', e.message || e);
+      return res.status(500).json({ error: 'Could not calculate order total. Please try again or contact support.' });
+    }
+    const { subtotal, discountPrice, shipping } = orderComputed;
+    const finalTotal = Math.round((discountPrice + shipping) * 100);
+
+    if (!finalTotal || finalTotal < 50) {
+      return res.status(400).json({ error: 'Order total too low for payment processing.' });
+    }
+
+    // Map frontend payment method IDs to Stripe payment method types.
+    // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
+    // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
+    // wallets produce a standard 'card' PaymentMethod under the hood via the
+    // Payment Request Button, so they're covered by the 'card' fallback below.
+    const methodTypes = paymentMethod === 'bancontact' ? ['bancontact']
+      : paymentMethod === 'klarna' ? ['klarna']
+      : paymentMethod === 'ideal' ? ['ideal']
+      : paymentMethod === 'paypal' ? ['paypal']
+      : ['card'];
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalTotal,
       currency: 'eur',
       metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
       payment_method_types: methodTypes,
+    }).catch(async (stripeErr) => {
+      // Retry once on transient Stripe errors (rate limit, service unavailable)
+      if (stripeErr.type === 'StripeError' && (stripeErr.statusCode === 429 || stripeErr.statusCode >= 500)) {
+        console.warn('Stripe transient error, retrying in 1s:', stripeErr.code);
+        await new Promise(r => setTimeout(r, 1000));
+        return stripe.paymentIntents.create({
+          amount: finalTotal,
+          currency: 'eur',
+          metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '' },
+          payment_method_types: methodTypes,
+        });
+      }
+      throw stripeErr;
     });
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (e) {
@@ -822,7 +842,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
           method: 'POST',
           headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-          body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ error: stripeMsg || e.message, code: e.code, amount: finalTotal, orderNum }) }),
+          body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ error: stripeMsg || e.message, code: e.code, amount: finalTotal || 0, orderNum: req.body?.orderNum || 'unknown' }) }),
         }).catch(() => {});
       }
     } catch {}
