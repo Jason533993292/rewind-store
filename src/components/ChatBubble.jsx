@@ -5,18 +5,21 @@ const OPEN_POLL_MS = 3000;
 const BADGE_POLL_MS = 30000;
 const WELCOME = "Hey! Ask us anything about sizing, an item, or your order. We usually reply within a few hours — this isn't 24/7 live support.";
 
+let _beepCtx = null;
+
 function beep() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    if (!_beepCtx) _beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_beepCtx.state === 'suspended') _beepCtx.resume();
+    const osc = _beepCtx.createOscillator();
+    const gain = _beepCtx.createGain();
     osc.type = 'sine';
     osc.frequency.value = 880;
     gain.gain.value = 0.05;
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(_beepCtx.destination);
     osc.start();
-    osc.stop(ctx.currentTime + 0.12);
+    osc.stop(_beepCtx.currentTime + 0.12);
   } catch {}
 }
 
