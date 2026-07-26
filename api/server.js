@@ -1231,6 +1231,8 @@ app.post('/api/webhook/events', async (req, res) => {
   const body = req.body || {};
   // Check headers first (GitHub sends event type as X-GitHub-Event header)
   const eventName = req.headers['x-github-event'] || req.headers['x-railway-event'] || body.event || body.type || 'unknown';
+  // Ping events from GitHub are just connection tests — accept silently
+  if (eventName === 'ping') return res.json({ ok: true });
   // Determine source from header or body
   const source = req.headers['user-agent']?.includes('GitHub') ? 'github'
     : req.headers['user-agent']?.includes('Railway') ? 'railway'
