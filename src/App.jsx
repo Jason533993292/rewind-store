@@ -1359,7 +1359,7 @@ export default function App() {
       {!adminMode && (
         <button onClick={() => setShowBugBounty(true)}
           title="Report a bug"
-          style={{ position: 'fixed', bottom: '84px', right: '80px', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          style={{ position: 'fixed', bottom: '70px', right: 'max(20px, env(safe-area-inset-right, 0px))', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
           onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
           onMouseOut={e => { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.transform = 'scale(1)'; }}>
           🐛
@@ -1377,8 +1377,8 @@ export default function App() {
               You may possibly receive a reward for it!
             </p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              <button className="rw-btn" onClick={() => setShowBugBounty(false)}>Close</button>
-              <button className="rw-btn rw-btn-pri" onClick={() => { setShowBugBounty(false); window.location.href = 'mailto:phil@rewind-stores.com?subject=Bug%20Report%20-%20REWIND%20Store&body=Describe%20the%20bug%20you%20found%3A%0A%0A1.%20What%20happened%3F%0A2.%20What%20did%20you%20expect%3F%0A3.%20What%20page%20were%20you%20on%3F'; }}>Report a bug</button>
+              <button className="rw-btn" style={{ outline: '2px solid var(--line-2)', outlineOffset: '2px' }} onClick={() => setShowBugBounty(false)}>Close</button>
+              <button className="rw-btn rw-btn-pri" onClick={() => { setShowBugBounty(false); setTimeout(function(){ window.open('mailto:phil@rewind-stores.com?subject=Bug%20Report%20-%20REWIND%20Store&body=Describe%20the%20bug%20you%20found:%0A%0A1.%20What%20happened?%0A2.%20What%20did%20you%20expect?%0A3.%20What%20page%20were%20you%20on?'); }, 100); }}>Report a bug</button>
             </div>
           </div>
         </div>
