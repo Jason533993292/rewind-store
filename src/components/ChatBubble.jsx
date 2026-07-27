@@ -24,8 +24,6 @@ function initAudioOnGesture() {
   document.addEventListener('click', handler, { once: true });
   document.addEventListener('touchstart', handler, { once: true });
   document.addEventListener('keydown', handler, { once: true });
-  // Also try immediately if gestures already happened
-  if (document.visibilityState !== 'hidden') handler();
 }
 
 // Lazy AudioContext getter — never creates the context outside a gesture.
