@@ -296,7 +296,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     if (!numAmount || numAmount <= 0) return;
 
     let cancelled = false;
-    let retries = 0;
+    let attempt = 0;
     const MAX_RETRIES = 3;
 
     setFetchError('');
@@ -307,26 +307,27 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     const currentEmail = email || 'checkout@rewind-stores.com';
     const cleanItems = (items || []).map(it => ({ id: it.id || it.product_id, qty: it.qty }));
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000);
-
     async function doFetch() {
       let lastError = null;
-      while (!cancelled) {
+      while (!cancelled && attempt <= MAX_RETRIES) {
+        // Fresh AbortController per attempt so a timeout on one doesn't
+        // poison the next retry — each gets a full 15-second window.
+        const ac = new AbortController();
+        const t = setTimeout(() => ac.abort(), 15000);
         try {
           const r = await fetch('/api/create-payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ items: cleanItems, orderNum, email: currentEmail, name: name || '', address: address || '', promoCode: promoProp || '', paymentMethod: paymentMethod || 'card', country: country || '' }),
-            signal: controller.signal,
+            signal: ac.signal,
           });
-          clearTimeout(timer);
+          clearTimeout(t);
           if (!r.ok) {
             let msg = `Server responded with ${r.status}`;
             try { const body = await r.json(); if (body?.error) msg = body.error; else if (body?.code) msg += ` (${body.code})`; } catch { msg = `Server responded with ${r.status} — payment service temporarily unavailable. Please try again later.`; }
             // Auto-retry on 5xx server errors (but not if Stripe sent a clear rejection)
-            if (r.status >= 500 && r.status < 600 && retries < MAX_RETRIES && !msg.includes('StripeError')) {
-              retries++;
+            if (r.status >= 500 && r.status < 600 && attempt < MAX_RETRIES && !msg.includes('StripeError')) {
+              attempt++;
               await new Promise(r => setTimeout(r, 1000));
               continue;
             }
@@ -342,14 +343,22 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
               setEverHadError(true);
             }
           }
-          return; // success — exit doFetch entirely (finally still runs)
+          return; // success — exit doFetch entirely
         } catch (e) {
+          clearTimeout(t);
           if (cancelled) return;
-          if (e.name === 'AbortError') {
-            lastError = new Error('Payment server timed out. Please try again.');
-          } else {
-            lastError = e;
+          // Retry on AbortError (timeout / slow Stripe) and other network
+          // errors, not just on 5xx HTTP responses. Each attempt gets a
+          // fresh 15-second window so a single slow Stripe call doesn't
+          // abort all subsequent retries.
+          if (attempt < MAX_RETRIES) {
+            attempt++;
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
           }
+          lastError = e.name === 'AbortError'
+            ? new Error('Payment server timed out. Please try again.')
+            : e;
           break;
         }
       }
@@ -365,8 +374,6 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
-      controller.abort();
     };
   }, [amount, orderNum, email, name, address, items, promoProp, paymentMethod, country, retryCount]);
 
