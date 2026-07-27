@@ -965,6 +965,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <div className="rw-sum-total">
             <div><span>Total</span><b>{money(finalTotal)}</b></div>
           </div>
+          {payError && (
+            <div className="rw-cc-error" style={{ marginBottom: '8px', textAlign: 'center' }}>
+              {payError}
+            </div>
+          )}
           <button className="rw-btn rw-btn-pri rw-btn-full"
             disabled={processing}
             onClick={handlePay}>
