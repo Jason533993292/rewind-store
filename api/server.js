@@ -86,11 +86,11 @@ const startupFetch = async (url, opts) => {
 
 (async () => {
   const ipData = await startupFetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_ips?select=ip_address`, {
-    headers: { apikey: process.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+    headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
   });
   if (Array.isArray(ipData)) ipData.forEach(r => BLOCKED_IPS.set(r.ip_address, true));
   const emailData = await startupFetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/blocked_emails?select=email`, {
-    headers: { apikey: process.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+    headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
   });
   if (Array.isArray(emailData)) emailData.forEach(r => BLOCKED_EMAILS.add(r.email.toLowerCase()));
 })();
@@ -193,7 +193,7 @@ app.post('/api/survey', async (req, res) => {
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/surveys`, {
       method: 'POST',
-      headers: { apikey: 'Bearer ' + key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ source, created_at: new Date().toISOString() }),
     });
   } catch {}
