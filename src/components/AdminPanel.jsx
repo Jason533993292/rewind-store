@@ -24,6 +24,12 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [emailText, setEmailText] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [adminTab, setAdminTab] = useState(() => {
+    // URL query param overrides everything: /#admin?tab=chats
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam) return tabParam;
+    } catch {}
     const editPending = typeof localStorage !== 'undefined' && localStorage.getItem('rw_edit_product');
     return editPending ? 'edit' : (localStorage.getItem('rw_admin_tab') || 'users');
   });
