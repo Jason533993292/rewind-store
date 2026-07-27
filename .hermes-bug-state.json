@@ -1,0 +1,14 @@
+{
+  "_description": "Tracks bug reports the Bug Watcher has attempted to fix. Prevents re-investigating the same unfixable bug every 5 minutes forever.",
+  "_format": {
+    "key": "sha256(original report text or subject)",
+    "value": {
+      "attempts": "number of times investigated",
+      "last_verdict": "'fixed', 'no repro', 'cant fix', 'escalated'",
+      "first_seen": "ISO timestamp",
+      "last_attempt": "ISO timestamp",
+      "next_retry_after": "ISO timestamp — skip until this time",
+      "escalated": "true if owner was notified and bot should never touch this again"
+    }
+  }
+}

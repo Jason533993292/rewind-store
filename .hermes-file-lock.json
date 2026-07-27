@@ -1,0 +1,11 @@
+{
+  "_description": "Advisory file lock to prevent Bug Watcher and Store Improver from editing the same file simultaneously.",
+  "_format": {
+    "filename": "path relative to repo root",
+    "value": {
+      "locked_by": "bot name",
+      "locked_at": "ISO timestamp",
+      "ttl_seconds": 600
+    }
+  }
+}
