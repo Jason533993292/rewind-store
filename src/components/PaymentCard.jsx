@@ -260,6 +260,9 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
   const [fetchError, setFetchError] = useState('');
   const [isFetching, setIsFetching] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  // Track whether component has ever errored — once an error shows,
+  // the "Payment amount" text is suppressed even during retry transitions
+  const [everHadError, setEverHadError] = useState(false);
   const cardSceneRef = useRef(null);
 
   const handleMouseMove = (e) => {
@@ -294,11 +297,12 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
 
     let cancelled = false;
     let retries = 0;
-    const MAX_RETRIES = 2;
+    const MAX_RETRIES = 3;
 
     setFetchError('');
     setIsFetching(true);
     setClientSecret(null);
+    setEverHadError(false);
 
     const currentEmail = email || 'checkout@rewind-stores.com';
     const cleanItems = (items || []).map(it => ({ id: it.id || it.product_id, qty: it.qty }));
@@ -333,6 +337,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
               setClientSecret(data.clientSecret);
             } else {
               setFetchError(data.error || 'Payment system unavailable');
+              setEverHadError(true);
             }
           }
         } catch (e) {
@@ -342,6 +347,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
           } else {
             setFetchError(e.message || 'Network error connecting to payment gateway.');
           }
+          setEverHadError(true);
         } finally {
           if (!cancelled) setIsFetching(false);
         }
@@ -464,13 +470,14 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
                   setFetchError('');
                   setClientSecret(null);
                   setIsFetching(true);
+                  setEverHadError(false);
                   setRetryCount(k => k + 1);
                 }}
                 style={{ marginTop: '8px', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--line-2)', cursor: 'pointer' }}
               >Retry</button>
             </div>
           )}
-          {amount && !isFetching && !fetchError && (
+          {amount && !isFetching && !fetchError && !everHadError && (
             <div className="rw-cc-amount"><span>Payment amount</span><b>&ensp;{amount}</b></div>
           )}
         </div>

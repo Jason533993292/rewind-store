@@ -6,15 +6,30 @@ const BADGE_POLL_MS = 30000;
 const WELCOME = "Hey! Ask us anything about sizing, an item, or your order. We usually reply within a few hours — this isn't 24/7 live support.";
 
 let _beepCtx = null;
+let _gestureListenerAdded = false;
 
-// Create AudioContext only when first beep is actually needed, to avoid
-// Chrome autoplay warnings for unused AudioContext creation.
+// Resume or create AudioContext on first user gesture — avoids Chrome
+// autoplay warning ("AudioContext was not allowed to start").
+function initAudioOnGesture() {
+  if (_gestureListenerAdded) return;
+  _gestureListenerAdded = true;
+  const handler = () => {
+    if (!_beepCtx) {
+      try { _beepCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+    }
+    if (_beepCtx && _beepCtx.state === 'suspended') {
+      _beepCtx.resume().catch(() => {});
+    }
+  };
+  document.addEventListener('click', handler, { once: true });
+  document.addEventListener('touchstart', handler, { once: true });
+  document.addEventListener('keydown', handler, { once: true });
+  // Also try immediately if gestures already happened
+  if (document.visibilityState !== 'hidden') handler();
+}
+
+// Lazy AudioContext getter — never creates the context outside a gesture.
 function getAudioContext() {
-  if (!_beepCtx) {
-    try {
-      _beepCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch {}
-  }
   return _beepCtx;
 }
 
@@ -35,6 +50,9 @@ function beep() {
 }
 
 export default function ChatBubble() {
+  // Init gesture listener for lazy AudioContext creation (Chrome autoplay fix)
+  React.useEffect(() => { initAudioOnGesture(); }, []);
+
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState(() => {
     try { return localStorage.getItem(SESSION_KEY) || null; } catch { return null; }

@@ -871,7 +871,9 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     } catch {}
     // Use Stripe's status code for 4xx (validation) errors, default to 500 for server errors
     const httpStatus = (e.type === 'StripeError' && e.statusCode && e.statusCode < 500) ? e.statusCode : 500;
-    res.status(httpStatus).json({ error: userMsg, code: errCode });
+    // Include a reference code in the error so support can trace it
+    const refCode = `ERR-${req.body?.orderNum?.slice(0, 8) || '????'}-${Date.now().toString(36).slice(-4)}`;
+    return res.status(httpStatus).json({ error: userMsg, ref: refCode });
   }
 });
 
