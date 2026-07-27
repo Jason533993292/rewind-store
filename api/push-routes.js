@@ -3,7 +3,11 @@ export function getVapidPublicKey() {
 }
 
 export async function sendPushNotification(title, body, url) {
-  const privateKey = process.env.VAPID_PRIVATE_KEY || '0MTkN7XNh8OdWAXHUwhrW-5o5Nf94nhw-nbD1junI5s';
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!privateKey) {
+    console.error('VAPID_PRIVATE_KEY not configured — skipping push notification.');
+    return;
+  }
   url = url || '/#admin';
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const SUPABASE_URL = process.env.VITE_SUPABASE_URL;

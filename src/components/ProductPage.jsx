@@ -100,15 +100,17 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
           {images.filter(Boolean).length > 1 && (
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
               {images.filter(Boolean).map((img, i) => (
-                <div key={i} onClick={() => setSelectedImg(i)}
+                <button key={i} type="button" onClick={() => setSelectedImg(i)}
+                  aria-label={`View image ${i + 1}`}
+                  aria-pressed={selectedImg === i}
                   style={{
                     width: '72px', height: '72px', borderRadius: '8px', cursor: 'pointer',
                     background: p.hue ? `hsl(${p.hue},60%,85%)` : 'var(--bg)',
                     border: selectedImg === i ? '2px solid var(--ink)' : '2px solid transparent',
-                    overflow: 'hidden',
+                    overflow: 'hidden', padding: 0, flexShrink: 0,
                   }}>
-                  <img src={img} alt={p.name + ' thumbnail'} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
+                  <img src={img} alt={p.name + ' thumbnail'} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </button>
               ))}
             </div>
           )}

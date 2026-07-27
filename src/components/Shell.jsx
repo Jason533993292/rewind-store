@@ -163,7 +163,9 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
     <header className="rw-header">
       <div className="rw-header-row">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
-          onClick={() => { nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); }}>REWIND<span>.</span></div>
+          role="link" tabIndex={0}
+          onClick={() => { nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); } }}>REWIND<span>.</span></div>
         <nav className="rw-nav">
           {cats.map((c) => (
             <button key={c} className={"rw-navlink" + (cat === c ? " is-on" : "")}
@@ -173,7 +175,10 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
         <div className="rw-header-actions">
           <div className="rw-search" ref={suggestRef} style={{position:'relative'}}>
             <Icon name="search" size={17} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" aria-label="Search products" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" aria-label="Search products"
+              role="combobox" aria-expanded={!!hasSuggestions} aria-haspopup="listbox" aria-autocomplete="list"
+              aria-controls="rw-search-listbox"
+              aria-activedescendant={focusedIdx >= 0 ? `rw-sugg-${focusedIdx}` : undefined} />
             {query && (
             <button onClick={() => setQuery('')}
               aria-label="Clear search"
@@ -189,13 +194,14 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
               </button>
             )}
             {hasSuggestions && (
-              <div style={{
+              <div role="listbox" id="rw-search-listbox" style={{
                 position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
                 background: 'var(--surface)', borderRadius: '10px', marginTop: '4px',
                 boxShadow: '0 8px 24px rgba(0,0,0,.1)', overflow: 'hidden',
               }}>
                 {searchSuggestions.map((s, i) => (
-                  <button key={s.name} onClick={() => { setQuery(s.name); setFocusedIdx(-1); }}
+                  <button key={s.name} id={`rw-sugg-${i}`} role="option" aria-selected={focusedIdx === i}
+                    onClick={() => { setQuery(s.name); setFocusedIdx(-1); }}
                     onMouseOver={() => setFocusedIdx(i)}
                     style={{
                       display: 'block', width: '100%', padding: '8px 14px',

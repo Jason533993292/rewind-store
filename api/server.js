@@ -1520,10 +1520,6 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error. Please try again or contact support.' });
 });
 
-// ── Start server ──
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`REWIND API running on port ${PORT}`);
-});
 
 // Export for Vercel serverless
 export default app;

@@ -28,7 +28,7 @@ export default function CookieBanner() {
       <span style={{ opacity: 0.85, textAlign: 'center' }}>
         REWIND uses essential cookies for payments (Stripe), order emails (Resend), and store functions. No advertising or tracking cookies.
         <br />
-        <a onClick={() => { nav('/privacy'); setShow(false); }} style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
+        <a href="/#privacy" onClick={(e) => { e.preventDefault(); nav('/privacy'); setShow(false); }} style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
           Read our Privacy Policy →
         </a>
       </span>

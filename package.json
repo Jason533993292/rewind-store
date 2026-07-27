@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "node scripts/generate-sitemap.js",
     "start": "node server.js",
     "test": "npx playwright install chromium && npx playwright test tests/comprehensive.spec.js",
     "test:headed": "BROWSER=1 npx playwright test --headed tests/comprehensive.spec.js",

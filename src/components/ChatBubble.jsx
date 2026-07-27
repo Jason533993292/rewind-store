@@ -207,7 +207,7 @@ export default function ChatBubble() {
           width: 'min(360px, calc(100vw - 40px))',
           height: 'min(480px, calc(100vh - 140px))',
           maxHeight: '480px',
-          background: '#fff', borderRadius: '16px',
+          background: 'var(--surface)', borderRadius: '16px',
           boxShadow: '0 8px 30px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column',
           marginBottom: '12px', overflow: 'hidden', border: '1px solid rgba(0,0,0,.06)',
           opacity: open ? 1 : 0, transition: 'opacity 0.3s ease',
@@ -233,7 +233,7 @@ export default function ChatBubble() {
 
           <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {showGreeting && (
-              <div style={{ fontSize: '13px', color: 'var(--muted, #6E665A)', background: '#FAF6EF', borderRadius: '10px', padding: '10px 12px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--muted)', background: 'var(--line)', borderRadius: '10px', padding: '10px 12px' }}>
                 {WELCOME}
               </div>
             )}

@@ -69,13 +69,27 @@ async function main() {
       return;
     }
 
+    // Batch: one query for all candidate sessions' recent messages instead
+    // of one sequential fetch per session (up to 20 round-trips before),
+    // then group client-side by session_id.
+    const ids = sessions.map(s => s.session_id);
+    const allMessages = await fetchSupabase(
+      `/chat_messages?session_id=in.(${ids.map(encodeURIComponent).join(',')})&order=created_at.desc&select=session_id,sender,message,created_at`
+    );
+
+    const bySession = new Map();
+    if (Array.isArray(allMessages)) {
+      for (const m of allMessages) {
+        if (!bySession.has(m.session_id)) bySession.set(m.session_id, []);
+        const bucket = bySession.get(m.session_id);
+        if (bucket.length < 5) bucket.push(m);
+      }
+    }
+
     const results = [];
     for (const session of sessions) {
-      const messages = await fetchSupabase(
-        `/chat_messages?session_id=eq.${encodeURIComponent(session.session_id)}&order=created_at.desc&limit=5&select=sender,message,created_at`
-      );
-
-      if (!Array.isArray(messages) || messages.length === 0) continue;
+      const messages = bySession.get(session.session_id) || [];
+      if (messages.length === 0) continue;
 
       const lastMsg = messages[0];
       if (lastMsg.sender !== 'customer') continue;

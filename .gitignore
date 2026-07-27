@@ -14,3 +14,6 @@ dist/
 # generated doc dumps — not production code
 REWIND-*.txt
 scripts/
+
+# Claude Code session/tooling scaffolding (subagent worktrees, etc.)
+.claude/
