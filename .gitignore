@@ -14,6 +14,8 @@ dist/
 # generated doc dumps — not production code
 REWIND-*.txt
 scripts/
+!scripts/generate-sitemap.js
+!scripts/self-assessment.py
 
 # Claude Code session/tooling scaffolding (subagent worktrees, etc.)
 .claude/
