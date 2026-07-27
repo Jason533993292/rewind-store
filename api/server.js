@@ -845,15 +845,15 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     }
 
     // Validate payment method — return 400 for unknown ones before Stripe
-    const KNOWN_METHODS = ['card', 'bancontact', 'klarna', 'ideal', 'paypal'];
+    // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
+    // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
+    // wallets produce a standard 'card' PaymentMethod under the hood via the
+    // Payment Request Button, and are mapped to 'card' below.
+    const KNOWN_METHODS = ['card', 'bancontact', 'klarna', 'ideal', 'paypal', 'applepay', 'googlepay'];
     if (!paymentMethod || !KNOWN_METHODS.includes(paymentMethod)) {
       return res.status(400).json({ error: 'Unknown payment method selected.' });
     }
     // Map frontend payment method IDs to Stripe payment method types.
-    // Apple Pay and Google Pay are NOT separate Stripe payment_method_types —
-    // there is no 'apple_pay' or 'google_pay' value in Stripe's enum. Both
-    // wallets produce a standard 'card' PaymentMethod under the hood via the
-    // Payment Request Button, so they're covered by the 'card' fallback below.
     const methodTypes = paymentMethod === 'bancontact' ? ['bancontact']
       : paymentMethod === 'klarna' ? ['klarna']
       : paymentMethod === 'ideal' ? ['ideal']
