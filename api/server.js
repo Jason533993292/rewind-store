@@ -841,7 +841,10 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
   } catch (e) {
     const errMsg = e.message || String(e);
     const errCode = e.code || (e.type === 'StripeError' ? e.type : null);
-    console.error('PaymentIntent error:', errMsg, '(code:', errCode, ')');
+    const reqEmail = req.body?.email || 'unknown';
+    const reqOrder = req.body?.orderNum || 'unknown';
+    const reqMethod = req.body?.paymentMethod || 'unknown';
+    console.error('PaymentIntent error:', errMsg, '(code:', errCode, ')', `order=${reqOrder}`, `email=${reqEmail}`, `method=${reqMethod}`, req.body?.items ? `items=${req.body.items.length}` : 'items=none');
     const stripeMsg = e.type === 'StripeError' ? e.message : null;
     // Build a human-friendly error message that includes Stripe context
     let userMsg = stripeMsg;

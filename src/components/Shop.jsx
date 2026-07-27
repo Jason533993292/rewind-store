@@ -721,7 +721,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             continue;
           }
           piData = await piRes.json().catch(() => ({}));
-          setPayError(piData?.error || `Server responded with ${piRes.status}`);
+          setPayError(piData?.error || `Server responded with ${piRes.status} — payment service temporarily unavailable. Please try a different payment method or try again later.`);
           setProcessing(false);
           return;
         }
