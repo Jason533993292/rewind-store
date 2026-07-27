@@ -67,12 +67,12 @@
   <!-- PWA manifest hint -->
   <link rel="manifest" href="/manifest.json" />
 
-  <!-- Patch AudioContext to defer creation until first user gesture --
-       Three.js creates an AudioContext eagerly on renderer init, triggering
-       Chrome's autoplay warning in the console. This patch intercepts the
-       constructor and defers the real AudioContext until click/touch/keydown. -->
+  <!-- Suppress Chrome "AudioContext was not allowed to start" warning.
+       Three.js creates an AudioContext eagerly on renderer init; Chrome allows
+       creation but warns when .resume() is called without a gesture. This patch
+       defers resume() until the first click/touch/keydown. -->
   <script>
-  (function(){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;var P=function(){var ctx;function init(){if(ctx)return;try{ctx=new AC()}catch(e){}}function ensure(e){if(ctx&&ctx.state==='suspended'){try{ctx.resume()}catch(e){}}}document.addEventListener('click',init,{once:true,capture:true});document.addEventListener('touchstart',init,{once:true,capture:true});document.addEventListener('keydown',init,{once:true,capture:true});document.addEventListener('click',ensure,{capture:true});document.addEventListener('touchstart',ensure,{capture:true});document.addEventListener('keydown',ensure,{capture:true});return function C(){init();return ctx}}();window.AudioContext=P;window.webkitAudioContext=P})();
+  (function(){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;var q=[],g=false,r=AC.prototype.resume;AC.prototype.resume=function(){if(g)return r.apply(this,arguments);var s=this;q.push(function(){r.call(s)});return Promise.resolve()};function h(){g=true;q.forEach(function(f){f()});q=[]}document.addEventListener('click',h,{once:true,capture:true});document.addEventListener('touchstart',h,{once:true,capture:true});document.addEventListener('keydown',h,{once:true,capture:true})})();
   </script>
 </head>
 <body>
