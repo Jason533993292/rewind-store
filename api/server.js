@@ -813,6 +813,19 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
       } catch {}
     }
 
+    // Build Stripe metadata — truncate itemsJson to stay under 500-char per-value limit
+    const buildMetadata = () => {
+      const itemsJson = JSON.stringify(items.map(i => ({ id: i.id || i.product_id, qty: i.qty })));
+      return {
+        orderNum, email,
+        name: (name || '').slice(0, 200),
+        address: (address || '').slice(0, 480),
+        itemsJson: itemsJson.length > 470 ? itemsJson.slice(0, 470) + '…' : itemsJson,
+        promoCode: (promoCode || '').slice(0, 100),
+        country: (country || '').slice(0, 10),
+      };
+    };
+
     // Server-side price recompute — never trust client amounts
     let orderComputed;
     let finalTotal = 0;
@@ -848,7 +861,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalTotal,
       currency: 'eur',
-      metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '', country: country || '' },
+      metadata: buildMetadata(),
       payment_method_types: methodTypes,
     }).catch(async (stripeErr) => {
       // Retry once on transient Stripe errors (rate limit, service unavailable)
@@ -858,7 +871,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         return stripe.paymentIntents.create({
           amount: finalTotal,
           currency: 'eur',
-          metadata: { orderNum, email, name: name || '', address: (address || '').slice(0, 480), itemsJson: JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))), promoCode: promoCode || '', country: country || '' },
+          metadata: buildMetadata(),
           payment_method_types: methodTypes,
         });
       }
