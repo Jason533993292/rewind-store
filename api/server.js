@@ -767,6 +767,8 @@ async function decrementStockByIds(items) {
 
 // ── Stripe Payment Intent (for Elements) ──
 app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
+  let orderComputed;
+  let finalTotal = 0;
   try {
     if (!stripe) return res.status(400).json({ error: 'STRIPE_SECRET_KEY not configured' });
     const { items, orderNum, email, name, address, promoCode, paymentMethod, country } = req.body;
@@ -827,8 +829,6 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     };
 
     // Server-side price recompute — never trust client amounts
-    let orderComputed;
-    let finalTotal = 0;
     try {
       orderComputed = await computeOrder(items, promoCode, country);
     } catch (e) {
