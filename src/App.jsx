@@ -795,7 +795,7 @@ export default function App() {
   useEffect(() => {
     if (selectedProduct) {
       const id = selectedProduct.id || selectedProduct.product_id;
-      window.history.pushState({ product: id }, '', '#/product/' + id);
+      window.history.pushState({ product: id }, '', '/product/' + id);
       scrollPosRef.current = window.scrollY;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (scrollPosRef.current > 0) {
@@ -945,7 +945,7 @@ export default function App() {
             "availability": (selectedProduct.stock && selectedProduct.stock > 0)
               ? "https://schema.org/InStock"
               : "https://schema.org/OutOfStock",
-            "url": `https://rewind-stores.com/#/product/${selectedProduct.id || selectedProduct.product_id}`
+            "url": `https://rewind-stores.com/product/${selectedProduct.id || selectedProduct.product_id}`
           }
         }, null, 2)}
       </script>
