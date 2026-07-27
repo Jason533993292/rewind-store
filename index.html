@@ -66,6 +66,14 @@
 
   <!-- PWA manifest hint -->
   <link rel="manifest" href="/manifest.json" />
+
+  <!-- Patch AudioContext to defer creation until first user gesture --
+       Three.js creates an AudioContext eagerly on renderer init, triggering
+       Chrome's autoplay warning in the console. This patch intercepts the
+       constructor and defers the real AudioContext until click/touch/keydown. -->
+  <script>
+  (function(){var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;var P=function(){var ctx;function init(){if(ctx)return;try{ctx=new AC()}catch(e){}}function ensure(e){if(ctx&&ctx.state==='suspended'){try{ctx.resume()}catch(e){}}}document.addEventListener('click',init,{once:true,capture:true});document.addEventListener('touchstart',init,{once:true,capture:true});document.addEventListener('keydown',init,{once:true,capture:true});document.addEventListener('click',ensure,{capture:true});document.addEventListener('touchstart',ensure,{capture:true});document.addEventListener('keydown',ensure,{capture:true});return function C(){init();return ctx}}();window.AudioContext=P;window.webkitAudioContext=P})();
+  </script>
 </head>
 <body>
   <div id="root"></div>
