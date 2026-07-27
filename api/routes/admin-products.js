@@ -51,7 +51,7 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
         fields.product_id = baseSlug + '-' + Math.random().toString(36).substring(2, 6);
       }
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products`, {
-        method: 'POST', headers: { apikey: *** Authorization: *** ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
         body: JSON.stringify(fields),
       });
       const data = await r.json();
