@@ -311,6 +311,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
     const timer = setTimeout(() => controller.abort(), 15000);
 
     async function doFetch() {
+      let lastError = null;
       while (!cancelled) {
         try {
           const r = await fetch('/api/create-payment-intent', {
@@ -323,13 +324,14 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
           if (!r.ok) {
             let msg = `Server responded with ${r.status}`;
             try { const body = await r.json(); if (body?.error) msg = body.error; else if (body?.code) msg += ` (${body.code})`; } catch { msg = `Server responded with ${r.status} — payment service temporarily unavailable. Please try again later.`; }
-            // Auto-retry once on 5xx server errors (but not if Stripe sent us a clear rejection)
+            // Auto-retry on 5xx server errors (but not if Stripe sent a clear rejection)
             if (r.status >= 500 && r.status < 600 && retries < MAX_RETRIES && !msg.includes('StripeError')) {
               retries++;
               await new Promise(r => setTimeout(r, 1000));
               continue;
             }
-            throw new Error(msg);
+            lastError = new Error(msg);
+            break;
           }
           const data = await r.json();
           if (!cancelled) {
@@ -340,19 +342,23 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
               setEverHadError(true);
             }
           }
+          return; // success — exit doFetch entirely (finally still runs)
         } catch (e) {
           if (cancelled) return;
           if (e.name === 'AbortError') {
-            setFetchError('Payment server timed out. Please try again.');
+            lastError = new Error('Payment server timed out. Please try again.');
           } else {
-            setFetchError(e.message || 'Network error connecting to payment gateway.');
+            lastError = e;
           }
-          setEverHadError(true);
-        } finally {
-          if (!cancelled) setIsFetching(false);
+          break;
         }
-        break;
       }
+      // All retries exhausted — surface last error
+      if (lastError && !cancelled) {
+        setFetchError(lastError.message || 'Network error connecting to payment gateway.');
+        setEverHadError(true);
+      }
+      if (!cancelled) setIsFetching(false);
     }
 
     doFetch();
@@ -477,7 +483,7 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
               >Retry</button>
             </div>
           )}
-          {amount && !isFetching && !fetchError && !clientSecret && (
+          {amount && !isFetching && !fetchError && !clientSecret && !everHadError && (
             <div className="rw-cc-error">
               <p>Payment system unavailable — please try again.</p>
               <button
@@ -485,14 +491,12 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
                   setFetchError('');
                   setClientSecret(null);
                   setIsFetching(true);
+                  setEverHadError(false);
                   setRetryCount(k => k + 1);
                 }}
                 style={{ marginTop: '8px', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--line-2)', cursor: 'pointer' }}
               >Retry</button>
             </div>
-          )}
-          {amount && !isFetching && !fetchError && clientSecret && (
-            <div className="rw-cc-amount"><span>Payment amount</span><b>&ensp;{amount}</b></div>
           )}
         </div>
       )}
