@@ -104,7 +104,7 @@ async function auditLog(adminEmail, action, details, ip) {
   try {
     await fetch(`${url}/rest/v1/audit_log`, {
       method: 'POST',
-      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({
         admin_email: adminEmail,
         action,
@@ -193,7 +193,7 @@ app.post('/api/survey', async (req, res) => {
   try {
     await fetch(`${SUPABASE_URL}/rest/v1/surveys`, {
       method: 'POST',
-      headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ source, created_at: new Date().toISOString() }),
     });
   } catch {}
@@ -578,7 +578,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
     Object.keys(body).forEach(k => { if (body[k] === undefined) delete body[k]; });
     const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
       method: 'POST',
-      headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify(body),
     });
     if (!promoRes.ok) {
@@ -591,7 +591,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
       delete body.discount_type;
       const retryRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
         method: 'POST',
-        headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify(body),
       });
       if (!retryRes.ok) {
@@ -632,7 +632,7 @@ app.post('/api/manage-admins', strictLimiter, async (req, res) => {
 
   if (action === 'add') {
     await fetch(`${SUPABASE_URL}/rest/v1/admins`, {
-      method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ email, added_by: 'admin' }),
     });
     res.json({ ok: true });
@@ -1427,6 +1427,20 @@ app.get('/api/push/vapid-key', (req, res) => {
   res.json({ publicKey: 'BNewrKRg9ASnQuZ5hBF-4I9_s-R9FKgh2CkhqZ9l9QFwJTnJyJByDfMM3-xvM8wDHCyAXnpbvkVqQdMDzmenNOw' });
 });
 
+// ── Push notification send — used by cron bots for escalation alerts ──
+app.post('/api/push/send', requireCronToken, async (req, res) => {
+  const { title, body, url } = req.body || {};
+  if (!title) return res.status(400).json({ error: 'title required' });
+  try {
+    const { sendPushNotification } = await import('./push-routes.js');
+    await sendPushNotification(title, body || '', url || '/#admin');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Push send error:', e.message);
+    res.status(500).json({ error: 'Failed to send push notification' });
+  }
+});
+
 app.post('/api/push/subscribe', strictLimiter, async (req, res) => {
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const sub = req.body;
@@ -1446,7 +1460,7 @@ app.post('/api/push/subscribe', strictLimiter, async (req, res) => {
     if (Array.isArray(existing) && existing.length > 0) return res.json({ ok: true });
     await fetch(SUPABASE_URL + '/rest/v1/push_subscriptions', {
       method: 'POST',
-      headers: { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({ subscription: sub }),
     });
     res.json({ ok: true });
