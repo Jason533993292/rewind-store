@@ -897,10 +897,12 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     let userMsg;
     // Detect unsupported / unactivated payment methods by error message or code
     const isInvalidPayMethod = errCode === 'payment_intent_invalid_parameter'
-      || (errMsg && /payment method type.*invalid|payment_method_type.*invalid/i.test(errMsg));
+      || errCode === 'payment_method_not_available'
+      || (errMsg && /payment method type.*(invalid|not supported|not available|not activated|unsupported)/i.test(errMsg))
+      || (errMsg && /payment_method_type.*(invalid|not supported|not available|not activated|unsupported)/i.test(errMsg));
     if (isInvalidPayMethod) {
       httpStatus = 400;
-      userMsg = 'This payment method is not supported by our payment provider yet. Please try a different payment method (Card, Bancontact, Klarna, or PayPal).';
+      userMsg = 'This payment method is not supported by our payment provider yet. Please try a different payment method (Card, Bancontact, Klarna, iDEAL, or PayPal).';
     } else {
       userMsg = stripeMsg;
       if (!userMsg) {
