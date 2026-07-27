@@ -313,7 +313,7 @@ export default function App() {
 
     // Also poll for unread messages when on admin page
     let lastCount = 0;
-    const isAdmin = getRoute() === 'admin' || !!localStorage.getItem('rw_admin_email');
+    const isAdmin = getRoute() === 'admin' && !!localStorage.getItem('rw_admin_email');
     if (!isAdmin) return;
     const interval = setInterval(async () => {
       try {
