@@ -873,13 +873,17 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     const reqMethod = req.body?.paymentMethod || 'unknown';
     console.error('PaymentIntent error:', errMsg, '(code:', errCode, ')', `order=${reqOrder}`, `email=${reqEmail}`, `method=${reqMethod}`, req.body?.items ? `items=${req.body.items.length}` : 'items=none');
     const stripeMsg = e.type === 'StripeError' ? e.message : null;
-    // Build a human-friendly error message that includes Stripe context
-    let userMsg = stripeMsg;
-    if (!userMsg) {
-      // Detect unsupported payment methods by error code
-      if (errCode === 'payment_intent_invalid_parameter') {
-        userMsg = 'This payment method is not supported yet. Please try a different payment method (Card, Bancontact, Klarna, or PayPal).';
-      } else {
+    const refCode = `ERR-${req.body?.orderNum?.slice(0, 8) || '????'}-${Date.now().toString(36).slice(-4)}`;
+    // Build a human-friendly error message that includes Stripe context.
+    // Known error codes get a friendly message that overrides the raw Stripe
+    // message (which often contains internal details, not user-facing copy).
+    let userMsg;
+    // Detect unsupported payment methods by error code
+    if (errCode === 'payment_intent_invalid_parameter') {
+      userMsg = 'This payment method is not supported yet. Please try a different payment method (Card, Bancontact, Klarna, or PayPal).';
+    } else {
+      userMsg = stripeMsg;
+      if (!userMsg) {
         userMsg = 'Could not create payment';
         if (errCode) userMsg += ' (' + errCode + ')';
         userMsg += '. Please try again or contact support.';
@@ -896,10 +900,11 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         }).catch(() => {});
       }
     } catch {}
-    // Use Stripe's status code for 4xx (validation) errors, default to 500 for server errors
-    const httpStatus = (e.type === 'StripeError' && e.statusCode && e.statusCode < 500) ? e.statusCode : 500;
+    // Use Stripe's status code for 4xx (validation) errors, default to 500 for server errors.
+    // Fall back to errCode-based detection when Stripe didn't attach a statusCode.
+    let httpStatus = (e.type === 'StripeError' && e.statusCode && e.statusCode < 500) ? e.statusCode : 500;
+    if (httpStatus === 500 && errCode === 'payment_intent_invalid_parameter') httpStatus = 400;
     // Include a reference code in the error so support can trace it
-    const refCode = `ERR-${req.body?.orderNum?.slice(0, 8) || '????'}-${Date.now().toString(36).slice(-4)}`;
     return res.status(httpStatus).json({ error: userMsg, ref: refCode });
   }
 });
