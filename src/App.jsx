@@ -1378,7 +1378,7 @@ export default function App() {
             </p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
               <button className="rw-btn" onClick={() => setShowBugBounty(false)}>Close</button>
-              <button className="rw-btn rw-btn-pri" onClick={() => { setShowBugBounty(false); document.querySelector('.rw-cat-btn')?.click(); }}>Report a bug</button>
+              <button className="rw-btn rw-btn-pri" onClick={() => { setShowBugBounty(false); window.location.href = 'mailto:phil@rewind-stores.com?subject=Bug%20Report%20-%20REWIND%20Store&body=Describe%20the%20bug%20you%20found%3A%0A%0A1.%20What%20happened%3F%0A2.%20What%20did%20you%20expect%3F%0A3.%20What%20page%20were%20you%20on%3F'; }}>Report a bug</button>
             </div>
           </div>
         </div>
