@@ -538,8 +538,10 @@ app.post('/api/validate-promo', strictLimiter, async (req, res) => {
 
   // Check database for generated promo codes with anti-abuse checks
   try {
+    const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!svcKey || !SUPABASE_URL) return res.json({ valid: false });
     const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=eq.${encodeURIComponent(upper)}&select=code,discount,label,used,expires_at`, {
-      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}` },
     });
     const data = await r.json();
     if (Array.isArray(data) && data.length > 0) {
@@ -1027,6 +1029,7 @@ const PORT = process.env.PORT || 3000;
 
 // Stripe webhook — save order on payment success
 app.post('/api/stripe-webhook', async (req, res) => {
+  const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const sig = req.headers['stripe-signature'];
   let event;
   try {
@@ -1043,7 +1046,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
       try {
         // Webhook idempotency: skip if order already exists
         const check = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&select=id`, {
-          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+          headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}` },
         });
         const existing = await check.json();
         if (Array.isArray(existing) && existing.length > 0) {
@@ -1054,7 +1057,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
           const total = discountPrice + shipping;
           await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
             method: 'POST',
-            headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
+            headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ order_num: orderNum, email, customer_name: name || '', address: address || '', items: JSON.stringify(items), total, shipping, status: 'pending', created_at: new Date().toISOString() }),
           });
           console.log('Order saved from PaymentIntent:', orderNum);
@@ -1107,7 +1110,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
       } catch (e) { console.error('Failed to fulfill from PaymentIntent:', e); }
     }
     // Notify Hermes about the new order
-    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'payment.succeeded', payload: JSON.stringify({ orderNum, email, amount: pi.amount_received }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch (e) { console.warn('webhook log failed:', e.message); }
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'payment.succeeded', payload: JSON.stringify({ orderNum, email, amount: pi.amount_received }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch (e) { console.warn('webhook log failed:', e.message); }
   }
   if (event.type === 'checkout.session.expired' || event.type === 'payment_intent.payment_failed') {
     const session = event.data.object;
@@ -1125,16 +1128,16 @@ app.post('/api/stripe-webhook', async (req, res) => {
       } catch {}
     }
     // Notify Hermes about the failed payment
-    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ orderNum, email: session.metadata?.email }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ orderNum, email: session.metadata?.email }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
   }
   // Track refunds and disputes
   if (event.type === 'charge.refunded') {
     const charge = event.data.object;
-    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'charge.refunded', payload: JSON.stringify({ amount: charge.amount_refunded, currency: charge.currency }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'charge.refunded', payload: JSON.stringify({ amount: charge.amount_refunded, currency: charge.currency }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
   }
   if (event.type === 'charge.dispute.created') {
     const dispute = event.data.object;
-    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'dispute.created', payload: JSON.stringify({ amount: dispute.amount, reason: dispute.reason }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
+    try { await fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, { method: 'POST', headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ source: 'stripe', event: 'dispute.created', payload: JSON.stringify({ amount: dispute.amount, reason: dispute.reason }), received_at: new Date().toISOString() }) }).catch(() => {}); } catch {}
   }
 
   res.json({ received: true });
