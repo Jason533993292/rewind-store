@@ -215,7 +215,7 @@ app.get('/api/health', (_req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENV ? 'railway' : 'local',
+    env: process.env.VERCEL ? 'vercel' : process.env.RAILWAY_ENVIRONMENT_NAME ? 'railway' : 'local',
     dist: distStatus,
   });
 });
