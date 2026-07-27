@@ -495,7 +495,7 @@ async function lookupProductPrice(id) {
     const key = process.env.VITE_SUPABASE_ANON_KEY;
     if (!SUPABASE_URL || !key) return null;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
-      headers: { apikey: *** Authorization: *** ${key}` },
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
     const data = await r.json();
     if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
@@ -509,7 +509,7 @@ async function lookupProductPrice(id) {
       const key = process.env.VITE_SUPABASE_ANON_KEY;
       if (!SUPABASE_URL || !key) return null;
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}&select=price`, {
-        headers: { apikey: *** Authorization: *** ${key}` },
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
       const data = await r.json();
       if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
@@ -790,7 +790,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         let product = null;
         // Try by product_id first
         let r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}&select=stock,name,id`, {
-          headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         });
         let data = await r.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -799,7 +799,7 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         // Fallback: try by numeric id (legacy custom products)
         if (!product && /^\d+$/.test(pid)) {
           r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(pid)}&select=stock,name,id`, {
-            headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
+            headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
           });
           data = await r.json();
           if (Array.isArray(data) && data.length > 0) {
@@ -888,12 +888,19 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
     const stripeMsg = e.type === 'StripeError' ? e.message : null;
     const refCode = `ERR-${req.body?.orderNum?.slice(0, 8) || '????'}-${Date.now().toString(36).slice(-4)}`;
     // Build a human-friendly error message that includes Stripe context.
+    // Stripe SDK errors have `type` like 'StripeInvalidRequestError' and
+    // always carry `statusCode` on API errors — use it for 4xx passthrough
+    // so the frontend shows the right code instead of a misleading 500.
+    let httpStatus = (e.statusCode && e.statusCode < 500) ? e.statusCode : 500;
     // Known error codes get a friendly message that overrides the raw Stripe
     // message (which often contains internal details, not user-facing copy).
     let userMsg;
-    // Detect unsupported payment methods by error code
-    if (errCode === 'payment_intent_invalid_parameter') {
-      userMsg = 'This payment method is not supported yet. Please try a different payment method (Card, Bancontact, Klarna, or PayPal).';
+    // Detect unsupported / unactivated payment methods by error message or code
+    const isInvalidPayMethod = errCode === 'payment_intent_invalid_parameter'
+      || (errMsg && /payment method type.*invalid|payment_method_type.*invalid/i.test(errMsg));
+    if (isInvalidPayMethod) {
+      httpStatus = 400;
+      userMsg = 'This payment method is not supported by our payment provider yet. Please try a different payment method (Card, Bancontact, Klarna, or PayPal).';
     } else {
       userMsg = stripeMsg;
       if (!userMsg) {
@@ -908,15 +915,11 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
       if (SERVICE_KEY) {
         fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
           method: 'POST',
-          headers: { apikey: *** Authorization: *** ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
           body: JSON.stringify({ source: 'stripe', event: 'payment.failed', payload: JSON.stringify({ error: stripeMsg || errMsg, code: errCode, amount: finalTotal || 0, orderNum: req.body?.orderNum || 'unknown' }) }),
         }).catch(() => {});
       }
     } catch {}
-    // Use Stripe's status code for 4xx (validation) errors, default to 500 for server errors.
-    // Fall back to errCode-based detection when Stripe didn't attach a statusCode.
-    let httpStatus = (e.type === 'StripeError' && e.statusCode && e.statusCode < 500) ? e.statusCode : 500;
-    if (httpStatus === 500 && errCode === 'payment_intent_invalid_parameter') httpStatus = 400;
     // Include a reference code in the error so support can trace it
     return res.status(httpStatus).json({ error: userMsg, ref: refCode });
   }
@@ -1036,7 +1039,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
       try {
         // Webhook idempotency: skip if order already exists
         const check = await fetch(`${SUPABASE_URL}/rest/v1/orders?order_num=eq.${encodeURIComponent(orderNum)}&select=id`, {
-          headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
+          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
         });
         const existing = await check.json();
         if (Array.isArray(existing) && existing.length > 0) {
