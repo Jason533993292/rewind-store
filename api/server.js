@@ -1521,6 +1521,56 @@ app.post('/api/webhook/events', async (req, res) => {
   } catch { res.json({ ok: true }); }
 });
 
+// ── Dashboard API — aggregated store data for desktop plugin ──
+app.get('/api/dashboard', async (req, res) => {
+  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const URL = process.env.VITE_SUPABASE_URL;
+  if (!KEY || !URL) return res.json({ error: 'server not configured' });
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  async function sfetch(path) {
+    try {
+      const r = await fetch(`${URL}/rest/v1/${path}`, {
+        headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+      });
+      return r.ok ? await r.json() : [];
+    } catch { return []; }
+  }
+
+  const [orders, lowStock, chatPending, events] = await Promise.all([
+    sfetch(`orders?created_at=gte.${today}&select=total,status&order=created_at.desc`),
+    sfetch(`custom_products?stock=lte.3&stock=gt.0&select=name,stock`),
+    sfetch(`chat_messages?select=session_id,sender&order=created_at.desc&limit=100`),
+    sfetch(`webhook_events?order=created_at.desc&limit=5&select=source,event,created_at`),
+  ]);
+
+  const pendingChats = new Set();
+  if (Array.isArray(chatPending)) {
+    const seen = new Set();
+    for (const m of chatPending.reverse()) {
+      if (!seen.has(m.session_id) && m.sender === 'customer') {
+        pendingChats.add(m.session_id);
+        seen.add(m.session_id);
+      }
+    }
+  }
+
+  const todayOrders = Array.isArray(orders) ? orders.filter(o => o.status !== 'cancelled') : [];
+  const todayRevenue = todayOrders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
+
+  res.json({
+    status: 'ok',
+    today: { orders: todayOrders.length, revenue: todayRevenue },
+    pendingChats: pendingChats.size,
+    lowStock: Array.isArray(lowStock) ? lowStock.map(p => ({ name: p.name, stock: p.stock })) : [],
+    recentEvents: Array.isArray(events) ? events.slice(0, 5).map(e => ({
+      source: e.source, event: e.event, time: e.created_at,
+    })) : [],
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
