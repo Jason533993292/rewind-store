@@ -869,7 +869,9 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
         }).catch(() => {});
       }
     } catch {}
-    res.status(500).json({ error: userMsg, code: errCode });
+    // Use Stripe's status code for 4xx (validation) errors, default to 500 for server errors
+    const httpStatus = (e.type === 'StripeError' && e.statusCode && e.statusCode < 500) ? e.statusCode : 500;
+    res.status(httpStatus).json({ error: userMsg, code: errCode });
   }
 });
 
