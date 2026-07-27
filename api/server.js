@@ -490,18 +490,33 @@ async function lookupProductPrice(id) {
   // 1. Check hardcoded server catalog
   const found = SERVER_PRODUCTS.find(p => p.id === id);
   if (found) return found.price;
-  // 2. Check Supabase custom_products
+  // 2. Check Supabase custom_products by product_id (string slug)
   try {
     const key = process.env.VITE_SUPABASE_ANON_KEY;
     if (!SUPABASE_URL || !key) return null;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      headers: { apikey: *** Authorization: *** ${key}` },
     });
     const data = await r.json();
     if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
       return data[0].price;
     }
   } catch {}
+  // 3. Fallback: try looking up by numeric id (for legacy custom products
+  //    that were created before product_id was auto-generated)
+  if (/^\d+$/.test(id)) {
+    try {
+      const key = process.env.VITE_SUPABASE_ANON_KEY;
+      if (!SUPABASE_URL || !key) return null;
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}&select=price`, {
+        headers: { apikey: *** Authorization: *** ${key}` },
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
+        return data[0].price;
+      }
+    } catch {}
+  }
   return null;
 }
 
@@ -772,15 +787,27 @@ app.post('/api/create-payment-intent', strictLimiter, async (req, res) => {
       const qty = it.qty || 1;
       try {
         // Check custom_products first (these have variable stock)
-        const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}&select=stock,name`, {
-          headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        let product = null;
+        // Try by product_id first
+        let r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(pid)}&select=stock,name,id`, {
+          headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
         });
-        const data = await r.json();
+        let data = await r.json();
         if (Array.isArray(data) && data.length > 0) {
-          const product = data[0];
-          if (product.stock != null && product.stock < qty) {
-            return res.status(400).json({ error: `"${product.name || pid}" only has ${product.stock} in stock` });
+          product = data[0];
+        }
+        // Fallback: try by numeric id (legacy custom products)
+        if (!product && /^\d+$/.test(pid)) {
+          r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(pid)}&select=stock,name,id`, {
+            headers: { apikey: *** Authorization: *** ${SERVICE_KEY}` },
+          });
+          data = await r.json();
+          if (Array.isArray(data) && data.length > 0) {
+            product = data[0];
           }
+        }
+        if (product && product.stock != null && product.stock < qty) {
+          return res.status(400).json({ error: `"${product.name || pid}" only has ${product.stock} in stock` });
         }
         // If not found in custom_products, it's a static SERVER_PRODUCT — no stock to check
       } catch {}

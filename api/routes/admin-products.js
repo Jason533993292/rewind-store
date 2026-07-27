@@ -3,9 +3,23 @@
 
 export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdminEmailFromToken }) {
 
+  // Slugify a string for use as a URL-safe product_id
+  function slugify(str) {
+    if (!str) return '';
+    return str
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, 'and')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   // Only these fields may ever be written to custom_products — prevents
   // mass assignment via stray/unexpected fields in the request body.
-  const ALLOWED_PRODUCT_FIELDS = ['name', 'cat', 'brand', 'price', 'was', 'stock', 'sizes', 'hue', 'note', 'img', 'imgs'];
+  const ALLOWED_PRODUCT_FIELDS = ['name', 'cat', 'brand', 'price', 'was', 'stock', 'sizes', 'hue', 'note', 'img', 'imgs', 'product_id'];
   function pickAllowedFields(body) {
     const out = {};
     for (const key of ALLOWED_PRODUCT_FIELDS) {
@@ -29,9 +43,16 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
       return res.status(400).json({ error: 'sizes must be an array' });
     }
     try {
+      const fields = pickAllowedFields(req.body);
+      // Auto-generate product_id from name if not provided
+      if (!fields.product_id && fields.name) {
+        const baseSlug = slugify(fields.name);
+        // Append a small random suffix to avoid collisions
+        fields.product_id = baseSlug + '-' + Math.random().toString(36).substring(2, 6);
+      }
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products`, {
-        method: 'POST', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify(pickAllowedFields(req.body)),
+        method: 'POST', headers: { apikey: *** Authorization: *** ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify(fields),
       });
       const data = await r.json();
       res.json({ ok: r.ok, data });

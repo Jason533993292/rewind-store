@@ -477,7 +477,21 @@ const PaymentCard = forwardRef(function PaymentCard({ amount, onChange, stripeKe
               >Retry</button>
             </div>
           )}
-          {amount && !isFetching && !fetchError && !everHadError && (
+          {amount && !isFetching && !fetchError && !clientSecret && (
+            <div className="rw-cc-error">
+              <p>Payment system unavailable — please try again.</p>
+              <button
+                onClick={() => {
+                  setFetchError('');
+                  setClientSecret(null);
+                  setIsFetching(true);
+                  setRetryCount(k => k + 1);
+                }}
+                style={{ marginTop: '8px', padding: '6px 16px', borderRadius: '6px', border: '1px solid var(--line-2)', cursor: 'pointer' }}
+              >Retry</button>
+            </div>
+          )}
+          {amount && !isFetching && !fetchError && clientSecret && (
             <div className="rw-cc-amount"><span>Payment amount</span><b>&ensp;{amount}</b></div>
           )}
         </div>
