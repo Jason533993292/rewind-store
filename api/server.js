@@ -19,6 +19,19 @@ import cookieParser from 'cookie-parser';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.set('trust proxy', 1);
+
+// ── Cron token auth middleware ──
+function requireCronToken(req, res, next) {
+  const storedToken = (process.env.CRON_SECRET_TOKEN || '').trim();
+  if (!storedToken) return res.status(500).json({ error: 'CRON_SECRET_TOKEN not configured' });
+  const token = (req.headers['x-cron-token'] || '').trim();
+  const a = Buffer.from(token);
+  const b = Buffer.from(storedToken);
+  if (!token || a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  next();
+}
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -1479,6 +1492,7 @@ app.use(buildChatRouter({
   REPLY_TO,
   notifyEmail: 'orders@rewind-stores.com',
   requireAdmin,
+  requireCronToken,
 }));
 
 // ── Settings router ──

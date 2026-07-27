@@ -34,7 +34,7 @@ function getIp(req) {
   return req.ip;
 }
 
-export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resend, FROM_EMAIL, REPLY_TO, notifyEmail, requireAdmin }) {
+export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resend, FROM_EMAIL, REPLY_TO, notifyEmail, requireAdmin, requireCronToken }) {
   if (!SUPABASE_SERVICE_ROLE_KEY) {
     console.warn('buildChatRouter: SUPABASE_SERVICE_ROLE_KEY missing — chat routes will fail at runtime.');
   }
@@ -401,18 +401,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       hasFetch: typeof fetch !== 'undefined',
     });
   });
-
-  function requireCronToken(req, res, next) {
-    const storedToken = (process.env.CRON_SECRET_TOKEN || '').trim();
-    if (!storedToken) return res.status(500).json({ error: 'CRON_SECRET_TOKEN not configured' });
-    const token = (req.headers['x-cron-token'] || '').trim();
-    const a = Buffer.from(token);
-    const b = Buffer.from(storedToken);
-    if (!token || a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-    next();
-  }
 
   // Customer message content is untrusted input from the agent's point of
   // view — it flows straight into whatever prompt the external auto-reply
