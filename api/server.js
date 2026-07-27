@@ -490,12 +490,14 @@ async function lookupProductPrice(id) {
   // 1. Check hardcoded server catalog
   const found = SERVER_PRODUCTS.find(p => p.id === id);
   if (found) return found.price;
-  // 2. Check Supabase custom_products by product_id (string slug)
+  // 2. Check Supabase custom_products by product_id (string slug).
+  //    Use SERVICE_ROLE_KEY because custom_products RLS may not allow
+  //    anonymous SELECT on the price column.
   try {
-    const key = process.env.VITE_SUPABASE_ANON_KEY;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SUPABASE_URL || !key) return null;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      headers: { apikey: *** Authorization: *** ${key}` },
     });
     const data = await r.json();
     if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
@@ -506,10 +508,10 @@ async function lookupProductPrice(id) {
   //    that were created before product_id was auto-generated)
   if (/^\d+$/.test(id)) {
     try {
-      const key = process.env.VITE_SUPABASE_ANON_KEY;
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!SUPABASE_URL || !key) return null;
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}&select=price`, {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
+        headers: { apikey: *** Authorization: *** ${key}` },
       });
       const data = await r.json();
       if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
