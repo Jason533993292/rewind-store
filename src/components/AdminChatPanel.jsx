@@ -43,6 +43,18 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
 
+  // Auto-select session from URL ?session=xxx
+  useEffect(() => {
+    if (sessions.length > 0 && !selectedId) {
+      const params = new URLSearchParams(window.location.search);
+      const sessionParam = params.get('session');
+      if (sessionParam) {
+        const found = sessions.find(s => s.session_id === sessionParam);
+        if (found) setSelectedId(found.session_id);
+      }
+    }
+  }, [sessions, selectedId]);
+
   useEffect(() => {
     const check = () => setIsNarrow(window.innerWidth < 720);
     check();
@@ -164,7 +176,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
             </p>
           ) : (
             <div>
-              <div ref={scrollRef} style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px', padding: '8px', background: 'var(--line)', borderRadius: '8px' }}>
+              <div ref={scrollRef} style={{ maxHeight: '500px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px', padding: '12px', background: 'var(--line)', borderRadius: '8px' }}>
                 {messages.length === 0 ? (
                   <p style={{ color: 'var(--muted)', fontSize: '13px', padding: '20px', textAlign: 'center' }}>No messages in this session.</p>
                 ) : messages.map(m => {
@@ -174,7 +186,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                     <div key={m.id || m.timestamp || Math.random()}
                       style={{
                         alignSelf: isCustomer ? 'flex-start' : 'flex-end',
-                        maxWidth: '80%',
+                        maxWidth: '90%',
                         padding: '8px 12px',
                         borderRadius: '10px',
                         background: isCustomer ? 'var(--surface)' : (m.sender === 'ai' ? 'color-mix(in oklab, var(--accent) 10%, var(--line))' : 'var(--accent)'),
