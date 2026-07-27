@@ -1555,20 +1555,35 @@ app.get('/api/dashboard', async (req, res) => {
   const [orders, lowStock, chatPending, events] = await Promise.all([
     sfetch(`orders?created_at=gte.${today}&select=total,status&order=created_at.desc`),
     sfetch(`custom_products?stock=lte.3&stock=gt.0&select=name,stock`),
-    sfetch(`chat_messages?select=session_id,sender&order=created_at.desc&limit=100`),
+    sfetch(`chat_messages?select=session_id,sender,message,created_at&order=created_at.desc&limit=200`),
     sfetch(`webhook_events?order=created_at.desc&limit=5&select=source,event,created_at`),
   ]);
 
-  const pendingChats = new Set();
+  // Build per-session chat state from the message list
+  const chatSessions = {};
   if (Array.isArray(chatPending)) {
-    const seen = new Set();
-    for (const m of chatPending.reverse()) {
-      if (!seen.has(m.session_id) && m.sender === 'customer') {
-        pendingChats.add(m.session_id);
-        seen.add(m.session_id);
-      }
+    for (const m of chatPending) {
+      if (!chatSessions[m.session_id]) chatSessions[m.session_id] = { messages: [], lastCustomerMsg: null, lastAdminMsg: null };
+      chatSessions[m.session_id].messages.push(m);
     }
   }
+  // Determine last message sender per session
+  const pendingList = [];
+  for (const [sid, data] of Object.entries(chatSessions)) {
+    const msgs = data.messages;
+    const lastMsg = msgs[msgs.length - 1];
+    const prevMsg = msgs.length > 1 ? msgs[msgs.length - 2] : null;
+    if (lastMsg && lastMsg.sender === 'customer') {
+      pendingList.push({
+        session_id: sid,
+        last_message: lastMsg.message ? lastMsg.message.slice(0, 80) : '',
+        last_time: lastMsg.created_at,
+        has_reply: prevMsg && prevMsg.sender === 'admin',
+      });
+    }
+  }
+  // Sort by newest first
+  pendingList.sort((a, b) => new Date(b.last_time) - new Date(a.last_time));
 
   const todayOrders = Array.isArray(orders) ? orders.filter(o => o.status !== 'cancelled') : [];
   const todayRevenue = todayOrders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0);
@@ -1576,7 +1591,8 @@ app.get('/api/dashboard', async (req, res) => {
   res.json({
     status: 'ok',
     today: { orders: todayOrders.length, revenue: todayRevenue },
-    pendingChats: pendingChats.size,
+    pendingChats: pendingList.length,
+    pendingChatList: pendingList.slice(0, 10),
     lowStock: Array.isArray(lowStock) ? lowStock.map(p => ({ name: p.name, stock: p.stock })) : [],
     recentEvents: Array.isArray(events) ? events.slice(0, 5).map(e => ({
       source: e.source, event: e.event, time: e.created_at,
