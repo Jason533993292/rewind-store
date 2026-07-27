@@ -497,7 +497,7 @@ async function lookupProductPrice(id) {
     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!SUPABASE_URL || !key) return null;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?product_id=eq.${encodeURIComponent(id)}&select=price`, {
-      headers: { apikey: *** Authorization: *** ${key}` },
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
     });
     const data = await r.json();
     if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
@@ -511,7 +511,7 @@ async function lookupProductPrice(id) {
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!SUPABASE_URL || !key) return null;
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}&select=price`, {
-        headers: { apikey: *** Authorization: *** ${key}` },
+        headers: { apikey: key, Authorization: `Bearer ${key}` },
       });
       const data = await r.json();
       if (Array.isArray(data) && data.length > 0 && data[0].price != null) {
