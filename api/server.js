@@ -36,9 +36,9 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "https://luiqimsfvllgsmzedncw.supabase.co", "https://api.stripe.com", "https://api.resend.com", "https://generativelanguage.googleapis.com", "https://*.stripe.com"],
+      connectSrc: ["'self'", "https://luiqimsfvllgsmzedncw.supabase.co", "https://api.stripe.com", "https://api.resend.com", "https://generativelanguage.googleapis.com", "https://*.stripe.com", "https://plausible.io"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co", "https://*.stripe.com"],
-      scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com", "'sha256-l/hbD89akcakcMMD+XXsqKXJPoV0/5C9lHkm0XOrYK4='"],
+      scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com", "https://plausible.io", "'sha256-l/hbD89akcakcMMD+XXsqKXJPoV0/5C9lHkm0XOrYK4='"],
       workerSrc: ["'self'", "blob:"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
       frameAncestors: ["'none'"],

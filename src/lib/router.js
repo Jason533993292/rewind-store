@@ -34,7 +34,11 @@ export function initRouter() {
     else if (path.startsWith('/product/') || path.startsWith('product/')) {
       path = '/product/' + path.replace(/^\/?product\//, '');
     }
-    else if (path === '#admin' || path === 'admin') path = '/admin';
+    else if (path.startsWith('/admin') || path.startsWith('admin')) {
+      // Preserve query params (?tab=chats) when navigating to admin
+      const qs = path.includes('?') ? path.substring(path.indexOf('?')) : '';
+      path = '/admin' + qs;
+    }
     else if (path.startsWith('/payment-complete') || path.startsWith('payment-complete')) path = path;
     else path = '/';
     window.history.replaceState({}, '', path);
