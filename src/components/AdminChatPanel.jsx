@@ -71,6 +71,8 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
           }
           return newSessions;
         });
+        // Also refresh messages for the selected session
+        if (selectedId) { loadMessages(selectedId); }
       } catch {}
     }, 8000);
     return () => clearInterval(interval);
