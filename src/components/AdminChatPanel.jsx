@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { adminFetch } from '../lib/adminApi';
+import { getChatSessionFromPath } from '../lib/router';
 
 export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   const [sessions, setSessions] = useState([]);
@@ -31,11 +32,10 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
       if (!r.ok) return;
       const newSessions = Array.isArray(r.data?.sessions) ? r.data.sessions : [];
       setSessions(newSessions);
-      // Auto-select session from URL ?session=xxx right after loading
-      const params = new URLSearchParams(window.location.search);
-      const sessionParam = params.get('session');
-      if (sessionParam) {
-        const found = newSessions.find(s => s.session_id === sessionParam);
+      // Auto-select session from URL path (/admin/chat/SESSION_ID)
+      const sessionFromPath = getChatSessionFromPath();
+      if (sessionFromPath) {
+        const found = newSessions.find(s => s.session_id === sessionFromPath);
         if (found) setSelectedId(found.session_id);
       }
     } catch {}

@@ -21,6 +21,15 @@ export function getRoute() {
   return '';
 }
 
+// Extract a chat session ID from the URL path (/admin/chat/SESSION_ID)
+export function getChatSessionFromPath() {
+  const parts = window.location.pathname.split('/');
+  if (parts.length >= 4 && parts[1] === 'admin' && parts[2] === 'chat') {
+    return parts[3];
+  }
+  return null;
+}
+
 // Set pathname on load without a history entry (replaces any hash URL)
 export function initRouter() {
   const hash = window.location.hash;
@@ -35,9 +44,13 @@ export function initRouter() {
       path = '/product/' + path.replace(/^\/?product\//, '');
     }
     else if (path.startsWith('/admin') || path.startsWith('admin')) {
-      // Preserve query params (?tab=chats) when navigating to admin
+      // Preserve /admin/chat/SESSION_ID sub-paths
       const qs = path.includes('?') ? path.substring(path.indexOf('?')) : '';
-      path = '/admin' + qs;
+      if (path.includes('/chat/')) {
+        path = path;  // keep full path like /admin/chat/SESSION_ID
+      } else {
+        path = '/admin' + qs;
+      }
     }
     else if (path.startsWith('/payment-complete') || path.startsWith('payment-complete')) path = path;
     else path = '/';
