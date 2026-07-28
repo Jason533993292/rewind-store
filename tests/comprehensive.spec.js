@@ -557,7 +557,7 @@ test.describe('Recently viewed', () => {
     await page.waitForTimeout(600);
 
     // Should navigate to product detail page
-    await expect(page.locator('.rw-product-page')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('#rw-product-page')).toBeVisible({ timeout: 3000 });
     if (recentName) {
       await expect(page.locator('#rw-product-page .rw-product-detail')).toContainText(recentName, { timeout: 3000 });
     }

@@ -117,7 +117,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
         </div>
 
         {/* ── Info ── */}
-        <div className="rw-product-info">
+        <div className="rw-product-info rw-product-detail">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', letterSpacing: '1px' }}>
