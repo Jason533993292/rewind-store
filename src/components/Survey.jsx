@@ -32,7 +32,7 @@ export default function Survey({ onDone, onSkip }) {
     return (
       <div>
         <div style={{ fontSize: '40px', marginBottom: '12px' }}>🙏</div>
-        <p style={{ fontSize: '16px', fontWeight: 600, color: '#16130F', margin: 0 }}>Thanks for the feedback!</p>
+        <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--ink)', margin: 0 }}>Thanks for the feedback!</p>
       </div>
     );
   }
@@ -43,12 +43,12 @@ export default function Survey({ onDone, onSkip }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {options.map(o => (
             <button key={o.id} onClick={() => { setSource(o.id); setStep(1); }}
-              style={{ padding: '12px', borderRadius: '10px', border: '1px solid #E2DCD3', background: '#FAF6EF', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#16130F', transition: 'all 0.15s' }}>
+              style={{ padding: '12px', borderRadius: '10px', border: '1px solid #E2DCD3', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s' }}>
               {o.label}
             </button>
           ))}
         </div>
-        <button onClick={onSkip} style={{ marginTop: '16px', background: 'none', border: 'none', color: '#6E665A', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Skip</button>
+        <button onClick={onSkip} style={{ marginTop: '16px', background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Skip</button>
       </div>
     );
   }
@@ -56,21 +56,21 @@ export default function Survey({ onDone, onSkip }) {
   if (source === 'other') {
     return (
       <div>
-        <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#16130F', margin: '0 0 8px' }}>Tell us more</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px' }}>Tell us more</h2>
         <input placeholder="How did you find us?" value={other} onChange={e => setOther(e.target.value)}
           style={{ width: '100%', padding: '12px', border: '1px solid #E2DCD3', borderRadius: '8px', fontSize: '14px', marginBottom: '12px', boxSizing: 'border-box' }} />
         <button onClick={handleSubmit} disabled={!other.trim()}
-          style={{ padding: '12px 24px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>Submit</button>
+          style={{ padding: '12px 24px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>Submit</button>
       </div>
     );
   }
 
   return (
     <div>
-      <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#16130F', margin: '0 0 8px' }}>Great choice!</h2>
-      <p style={{ fontSize: '14px', color: '#6E665A', margin: '0 0 20px' }}>We're glad you found us through {options.find(o => o.id === source)?.label}.</p>
+      <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--ink)', margin: '0 0 8px' }}>Great choice!</h2>
+      <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '0 0 20px' }}>We're glad you found us through {options.find(o => o.id === source)?.label}.</p>
       <button onClick={handleSubmit}
-        style={{ padding: '12px 24px', borderRadius: '999px', border: 'none', background: '#16130F', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>Continue</button>
+        style={{ padding: '12px 24px', borderRadius: '999px', border: 'none', background: 'var(--ink)', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>Continue</button>
     </div>
   );
 }

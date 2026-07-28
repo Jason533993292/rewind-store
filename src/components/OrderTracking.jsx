@@ -39,6 +39,9 @@ export default function OrderTracking({ onClose }) {
     pending: '[PENDING]',
     ordered: '[ORDERED]',
     shipped: '[SHIPPED]',
+    handed_courier: '[HANDED TO COURIER]',
+    cleared_customs: '[CLEARED CUSTOMS]',
+    local_courier: '[WITH LOCAL COURIER]',
     delivered: '[DELIVERED]',
     cancelled: '[CANCELLED]',
   };
@@ -144,17 +147,20 @@ export default function OrderTracking({ onClose }) {
             )}
 
             {/* ── Progress steps ── */}
-            {['shipped','handed_courier','cleared_customs','local_courier','delivered'].includes(result.status) && (
+            {['pending','ordered','shipped','handed_courier','cleared_customs','local_courier','delivered'].includes(result.status) && (
               <div style={{ marginTop: '16px' }}>
                 {[
+                  { key: 'pending', label: 'Order received' },
+                  { key: 'ordered', label: 'Processing' },
                   { key: 'shipped', label: 'Shipped from warehouse' },
                   { key: 'handed_courier', label: 'Handed to international courier' },
                   { key: 'cleared_customs', label: 'Cleared customs' },
                   { key: 'local_courier', label: 'With local courier' },
                   { key: 'delivered', label: 'Delivered' },
                 ].map((step, i) => {
-                  const done = ['shipped','handed_courier','cleared_customs','local_courier','delivered'].indexOf(result.status) >= i;
-                  const current = ['shipped','handed_courier','cleared_customs','local_courier','delivered'].indexOf(result.status) === i;
+                  const STEPS = ['pending','ordered','shipped','handed_courier','cleared_customs','local_courier','delivered'];
+                  const done = STEPS.indexOf(result.status) >= i;
+                  const current = STEPS.indexOf(result.status) === i;
                   return (
                     <div key={step.key} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', opacity: done ? 1 : 0.3 }}>
                       <div style={{

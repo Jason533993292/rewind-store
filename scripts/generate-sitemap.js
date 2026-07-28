@@ -7,6 +7,11 @@ import { writeFileSync } from 'fs';
 
 const urls = [
   { loc: 'https://rewind-stores.com/', priority: '1.0' },
+  { loc: 'https://rewind-stores.com/privacy', priority: '0.5' },
+  { loc: 'https://rewind-stores.com/terms', priority: '0.5' },
+  { loc: 'https://rewind-stores.com/returns', priority: '0.5' },
+  { loc: 'https://rewind-stores.com/shipping', priority: '0.5' },
+  { loc: 'https://rewind-stores.com/track', priority: '0.5' },
   ...REWIND_PRODUCTS.map((p) => ({ loc: `https://rewind-stores.com/product/${p.id}`, priority: '0.8' })),
 ];
 

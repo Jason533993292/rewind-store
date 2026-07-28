@@ -30,10 +30,6 @@ export default function EditProductPanel({ product, onDone, setCustomProducts })
       setMsg('❌ Catalog products cannot be edited here — add a custom product instead');
       return;
     }
-    if (isCatalogProduct) {
-      setMsg('❌ Catalog products cannot be edited here — add a custom product instead');
-      return;
-    }
     setSaving(true); setMsg('');
     const result = await updateCustomProduct(product.id || product.product_id, {
       name: form.name, brand: form.brand, cat: form.cat, imgs: JSON.stringify(images),

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://rewind-stores.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://rewind-stores.com/privacy</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://rewind-stores.com/terms</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://rewind-stores.com/returns</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://rewind-stores.com/shipping</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://rewind-stores.com/track</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://rewind-stores.com/product/jersey-brasil</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://rewind-stores.com/product/jersey-azzurri</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://rewind-stores.com/product/jersey-ajax</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
