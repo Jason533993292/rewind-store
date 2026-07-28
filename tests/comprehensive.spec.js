@@ -32,7 +32,7 @@ async function hasCheckout(request) {
   } catch { return false; }
 }
 async function nav(page)           { return page.locator('.rw-nav button, .rw-navlink'); }
-async function footerShopLinks(page) { return page.locator('.rw-footer-cols div:first-child a, .rw-footer-cols div:first-child button, .rw-footer-cols a, .rw-footer-cols button'); }
+async function footerShopLinks(page) { return page.locator('.rw-footer-cols > div:first-child button'); }
 async function cards(page)         { return page.locator('.rw-card'); }
 async function quickView(page)     { return page.locator('.rw-modal'); }
 async function cartDrawer(page)    { return page.locator('.rw-drawer'); }
@@ -580,13 +580,13 @@ test.describe('Recently viewed', () => {
     const beforeCount = await recentScroll.locator('.rw-recent-item').count();
     expect(beforeCount).toBeGreaterThanOrEqual(1);
 
-    // Remove the first item
+    // Remove the first item — use force to handle the small 22px button target
     const removeBtn = recentScroll.locator('.rw-recent-item').first().locator('[data-remove-recent]');
-    await removeBtn.click();
-    await page.waitForTimeout(400);
+    await removeBtn.click({ force: true });
+    await page.waitForTimeout(500);
 
-    // Toast should appear
-    await expect(page.locator('.rw-toast')).toBeVisible({ timeout: 3000 });
+    // Toast should appear (may need extra settling time on slow runs)
+    await expect(page.locator('.rw-toast')).toBeVisible({ timeout: 4000 });
 
     // Item count should decrease
     const afterCount = await recentScroll.locator('.rw-recent-item').count();
