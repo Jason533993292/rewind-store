@@ -552,7 +552,7 @@ test.describe('Recently viewed', () => {
 
     // Click the first recently viewed item
     const firstRecent = recentScroll.locator('.rw-recent-item').first();
-    const recentName = await firstRecent.locator('div').first().textContent();
+    const recentName = await firstRecent.locator('.rw-photo + div').textContent();
     await firstRecent.click();
     await page.waitForTimeout(600);
 

@@ -1,14 +1,23 @@
 {
-  "_description": "Tracks bug reports the Bug Watcher has attempted to fix. Prevents re-investigating the same unfixable bug every 5 minutes forever.",
+  "_description": "Tracks bug reports the Bug Watcher has attempted to fix.",
   "_format": {
-    "key": "sha256(original report text or subject)",
+    "key": "sha256(original report text)",
     "value": {
       "attempts": "number of times investigated",
       "last_verdict": "'fixed', 'no repro', 'cant fix', 'escalated'",
       "first_seen": "ISO timestamp",
       "last_attempt": "ISO timestamp",
-      "next_retry_after": "ISO timestamp — skip until this time",
-      "escalated": "true if owner was notified and bot should never touch this again"
+      "next_retry_after": "ISO timestamp",
+      "escalated": "true if owner was notified"
     }
+  },
+  "8c7b5e7417308f963024177b8b5635fa1a601c3fd9c39c4b7f0640e3626ac50c": {
+    "attempts": 1,
+    "last_verdict": "fixed",
+    "first_seen": "2026-07-28T05:00:00Z",
+    "last_attempt": "2026-07-28T05:00:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "Added rw-product-detail class to .rw-product-info in ProductPage.jsx. Fixed ambiguous .rw-product-page → #rw-product-page selector in test. Committed to main and pushed — Railway auto-deploys."
   }
 }
