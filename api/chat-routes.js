@@ -11,6 +11,26 @@ function escapeHtml(str) {
   }[c]));
 }
 
+function chatNotificationHtml({ message, customerLabel, adminUrl }) {
+  return `<!DOCTYPE html>
+<html><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#FAF6EF">
+<table width="100%" style="max-width:560px;margin:0 auto;padding:40px 20px">
+<tr><td style="text-align:center;padding-bottom:20px">
+  <h1 style="font-size:28px;color:#16130F;margin:0">REWIND<span style="color:#FF4D14">.</span></h1>
+  <p style="color:#6E665A;font-size:14px;margin:4px 0 0">New chat message</p>
+</td></tr>
+<tr><td style="background:#fff;border-radius:14px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+  <p style="color:#6E665A;font-size:13px;margin:0 0 6px">From: <b>${escapeHtml(customerLabel)}</b></p>
+  <div style="background:#F5F0E8;border-radius:10px;padding:16px;margin:0 0 20px">
+    <p style="color:#16130F;font-size:15px;line-height:1.5;margin:0;white-space:pre-wrap">${escapeHtml(message)}</p>
+  </div>
+  <a href="${escapeHtml(adminUrl)}" style="display:inline-block;background:#16130F;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600">Reply in admin panel →</a>
+</td></tr>
+<tr><td style="text-align:center;padding:20px 0;color:#6E665A;font-size:13px">
+  <p style="margin:0">REWIND — <a href="https://rewind-stores.com" style="color:#FF4D14">rewind-stores.com</a></p>
+</td></tr></table></body></html>`;
+}
+
 function makeLimiter() {
   const hits = new Map();
   setInterval(() => {
@@ -160,9 +180,12 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
           from: FROM_EMAIL,
           reply_to: REPLY_TO,
           to: notifyEmail,
-          subject: `\u{1F4AC} New chat from ${customer_name || verifiedEmail || 'a customer'}`,
-          html: `<p style="font-family:sans-serif">${escapeHtml(message.trim())}</p>
-                 <p style="font-family:sans-serif"><a href="https://rewind-stores.com/#admin">Open admin chat panel</a></p>`,
+          subject: `💬 New chat from ${customer_name || verifiedEmail || 'a customer'}`,
+          html: chatNotificationHtml({
+            message: message.trim(),
+            customerLabel: customer_name || verifiedEmail,
+            adminUrl: 'https://rewind-stores.com/#admin',
+          }),
         }).catch((e) => console.warn('Chat notify email failed:', e.message));
       }
 
@@ -228,8 +251,11 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
           resend.emails.send({
             from: FROM_EMAIL, reply_to: REPLY_TO, to: notifyEmail,
             subject: `💬 New message from ${sess.customer_name || sess.customer_email || 'a customer'}`,
-            html: `<p style="font-family:sans-serif">${escapeHtml(message.trim())}</p>
-                   <p style="font-family:sans-serif"><a href="https://rewind-stores.com/#admin">Reply in admin panel →</a></p>`,
+            html: chatNotificationHtml({
+              message: message.trim(),
+              customerLabel: sess.customer_name || sess.customer_email,
+              adminUrl: 'https://rewind-stores.com/#admin',
+            }),
           }).catch(() => {});
         } catch {}
       }
