@@ -29,7 +29,15 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
     try {
       const r = await adminFetch('/api/admin/chat/sessions');
       if (!r.ok) return;
-      setSessions(Array.isArray(r.data?.sessions) ? r.data.sessions : []);
+      const newSessions = Array.isArray(r.data?.sessions) ? r.data.sessions : [];
+      setSessions(newSessions);
+      // Auto-select session from URL ?session=xxx right after loading
+      const params = new URLSearchParams(window.location.search);
+      const sessionParam = params.get('session');
+      if (sessionParam) {
+        const found = newSessions.find(s => s.session_id === sessionParam);
+        if (found) setSelectedId(found.session_id);
+      }
     } catch {}
   }, []);
 
@@ -42,18 +50,6 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
   }, []);
 
   useEffect(() => { loadSessions(); }, [loadSessions]);
-
-  // Auto-select session from URL ?session=xxx
-  useEffect(() => {
-    if (sessions.length > 0 && !selectedId) {
-      const params = new URLSearchParams(window.location.search);
-      const sessionParam = params.get('session');
-      if (sessionParam) {
-        const found = sessions.find(s => s.session_id === sessionParam);
-        if (found) setSelectedId(found.session_id);
-      }
-    }
-  }, [sessions, selectedId]);
 
   useEffect(() => {
     const check = () => setIsNarrow(window.innerWidth < 720);
