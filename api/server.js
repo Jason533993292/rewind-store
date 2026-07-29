@@ -247,6 +247,15 @@ const strictLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders:
 
 // Track failed login attempts per IP (5 → 1h ban)
 const verifyAttempts = new Map();
+// Periodic cleanup of expired IP entries to prevent memory leak
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of verifyAttempts) {
+    if (typeof entry === 'object' && entry.count === 0) {
+      if (now - entry.updated > 120000) verifyAttempts.delete(ip);
+    }
+  }
+}, 120000);
 // `token` is either the master secret (first login, typed by the admin) or a
 // previously-issued session token (silent re-check on page load). Either way,
 // the response hands back a fresh signed session token — that's what the
@@ -1184,8 +1193,9 @@ app.get('/api/wishlist', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SK = SERVICE_KEY;
     const r = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
-      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      headers: { apikey: SK, Authorization: `Bearer ${SK}` },
     });
     const data = await r.json();
     res.json({ items: Array.isArray(data) ? data : [] });
@@ -1197,24 +1207,25 @@ app.post('/api/wishlist', strictLimiter, async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SK = SERVICE_KEY;
     const existing = await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
-      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      headers: { apikey: SK, Authorization: `Bearer ${SK}` },
     }).then(r => r.json());
     if (Array.isArray(existing) && existing.length > 0) {
       await fetch(`${SUPABASE_URL}/rest/v1/wishlists?email=eq.${encodeURIComponent(email)}`, {
         method: 'PATCH',
-        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: { apikey: SK, Authorization: `Bearer ${SK}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify({ product_ids, updated_at: new Date().toISOString() }),
       });
     } else {
       await fetch(`${SUPABASE_URL}/rest/v1/wishlists`, {
         method: 'POST',
-        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: { apikey: SK, Authorization: `Bearer ${SK}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify({ email, product_ids: product_ids || [], created_at: new Date().toISOString(), updated_at: new Date().toISOString() }),
       });
     }
     res.json({ ok: true });
-  } catch { res.status(500).json({ error: 'Failed to save wishlist' }); }
+  } catch (e) { console.error('wishlist save error:', e); res.status(500).json({ error: 'Failed to save wishlist' }); }
 });
 
 // ── Wishlist sync to Supabase (upsert by email) ──

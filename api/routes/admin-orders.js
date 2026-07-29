@@ -77,7 +77,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
           </div>`,
         });
       }
-      auditLog(getAdminEmailFromToken(req), 'cancel_order', req.body.orderNum || orderId, req.ip);
+      auditLog(getAdminEmailFromToken(req), 'cancel_order', req.body.orderNum || orderId, req.ip).catch(e => console.error('auditLog fail:', e));
       res.json({ ok: true });
     } catch (err) {
       console.error('Cancel order error:', err);
@@ -169,7 +169,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
                 <p style="color:#6E665A;font-size:14px;margin-top:20px">— REWIND team</p>
               </div></div>`,
           });
-          auditLog(getAdminEmailFromToken(req), `status_${status}`, order.order_num, req.ip);
+          auditLog(getAdminEmailFromToken(req), `status_${status}`, order.order_num, req.ip).catch(e => console.error('auditLog fail:', e));
         }
       }
       res.json({ ok: true });
@@ -214,7 +214,7 @@ export function registerAdminOrdersRoutes({ app, SUPABASE_URL, resend, FROM_EMAI
             </div></div>`,
         });
       }
-      auditLog(getAdminEmailFromToken(req), 'ship_order', `${order?.order_num || id}`, req.ip);
+      auditLog(getAdminEmailFromToken(req), 'ship_order', `${order?.order_num || id}`, req.ip).catch(e => console.error('auditLog fail:', e));
       res.json({ ok: true });
     } catch (e) {
       console.error('Ship order error:', e);

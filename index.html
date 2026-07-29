@@ -8,24 +8,16 @@
   <meta name="robots" content="index, follow" />
   <meta name="theme-color" content="#FAF6EF" />
   <link rel="canonical" href="https://rewind-stores.com" />
-  <!-- Agentation toolbar for annotation-based feedback (dev only) -->
-  <script>
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-      const s = document.createElement('script');
-      s.src = 'http://localhost:4747/toolbar.js';
-      s.async = true;
-      document.head.appendChild(s);
-    }
-  </script>
+  <!-- Inline dark-mode detection (must match sha256 hash in api/server.js CSP) -->
+  <script>if(localStorage.theme==='dark'||(!localStorage.theme&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')</script>
+  <!-- Agentation toolbar (annotations, localhost only) -->
+  <script>if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){(function(){var s=document.createElement('script');s.src='http://localhost:4747/toolbar.js';s.async=true;document.head.appendChild(s)})()}</script>
   <link rel="alternate" hreflang="x-default" href="https://rewind-stores.com" />
   <link rel="alternate" hreflang="en" href="https://rewind-stores.com" />
   <meta property="og:locale" content="en_BE" />
 
   <!-- Analytics -->
   <script defer data-domain="rewind-stores.com" src="https://plausible.io/js/script.tagged-events.js"></script>
-
-  <!-- Agentation toolbar (for annotations, local dev only) -->
-  <script src="http://localhost:4747/toolbar.js"></script>
 
   <!-- Open Graph -->
   <meta property="og:title" content="REWIND — Curated Vintage & Retro Sportswear" />
