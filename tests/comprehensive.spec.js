@@ -353,7 +353,7 @@ test.describe('Search works', () => {
 // ── Cart lifecycle ──────────────────────────────────────────────
 test.describe('Cart lifecycle', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' }); // networkidle never fires — chat widget keeps polling
   });
 
   test('add to bag and cart operations work', async ({ page }) => {
