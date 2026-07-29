@@ -101,8 +101,8 @@ export default function ChatBubble() {
     if (!sessionId) return;
     try {
       const r = await fetch(`/api/chat/messages?session_id=${encodeURIComponent(sessionId)}`);
-      if (r.status === 404) {
-        // Session no longer exists — clear and restart
+      if (r.status === 403 || r.status === 404) {
+        // Session blocked or no longer exists — clear and restart
         localStorage.removeItem(SESSION_KEY);
         setSessionId(null);
         setMessages([]);
