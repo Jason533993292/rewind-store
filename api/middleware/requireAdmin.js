@@ -15,14 +15,14 @@ function hmac(secret, payload) {
 // This is what the browser actually stores/replays, instead of the master
 // secret itself, so a leaked localStorage value only grants time-limited access.
 export function signAdminSession(email) {
-  const secret = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
+  const secret = process.env.ADMIN_SECRET_TOKEN;
   const expiry = Date.now() + SESSION_TTL_MS;
   const payload = `${b64url(email)}.${expiry}`;
   return `${payload}.${hmac(secret, payload)}`;
 }
 
 export function verifyAdminSession(token, expectedEmail) {
-  const secret = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
+  const secret = process.env.ADMIN_SECRET_TOKEN;
   if (!secret || !token) return false;
   const parts = token.split('.');
   if (parts.length !== 3) return false;
@@ -72,7 +72,7 @@ async function isStillActiveAdmin(email) {
 }
 
 export function requireAdmin(req, res, next) {
-  const configuredToken = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
+  const configuredToken = process.env.ADMIN_SECRET_TOKEN;
 
   if (!configuredToken) {
     console.error('ADMIN_SECRET_TOKEN not configured — refusing all admin requests.');

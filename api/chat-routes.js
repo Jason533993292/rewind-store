@@ -82,8 +82,17 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   const sendLimited = makeLimiter();
   const readLimited = makeLimiter();
   const writeLimited = makeLimiter();
-  const muteMsgCount = new Map(); // session_id -> [{timestamp}]
-  const aiReplyCount = new Map();
+  const muteMsgCount = new Map(); // session_id -> [timestamps]
+  
+  // TTL cleanup for muteMsgCount — prevent memory leak
+  setInterval(() => {
+    const now = Date.now();
+    for (const [sid, arr] of muteMsgCount) {
+      const fresh = arr.filter(t => now - t < 60000);
+      if (fresh.length === 0) muteMsgCount.delete(sid);
+      else muteMsgCount.set(sid, fresh);
+    }
+  }, 60000);
 
   function validateMessage(message) {
     if (!message || typeof message !== 'string' || !message.trim()) return 'Message required';

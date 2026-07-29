@@ -151,6 +151,44 @@ app.use(async (req, res, next) => {
 });
 
 
+// ── Sitemap — generate dynamically from product catalog (incl. custom products) ──
+// Must be registered BEFORE express.static so the dynamic route wins over the build-time static file.
+app.get('/sitemap.xml', async (_req, res) => {
+  const urls = [
+    'https://rewind-stores.com',
+    'https://rewind-stores.com/privacy',
+    'https://rewind-stores.com/terms',
+    'https://rewind-stores.com/returns',
+    'https://rewind-stores.com/shipping',
+    'https://rewind-stores.com/track',
+  ];
+  // Add static product pages
+  for (const p of SERVER_PRODUCTS) {
+    urls.push(`https://rewind-stores.com/product/${encodeURIComponent(p.id)}`);
+  }
+  // Add custom products from Supabase
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (SUPABASE_URL && SERVICE_KEY) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?select=product_id&order=created_at.desc`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      });
+      const custom = await r.json();
+      if (Array.isArray(custom)) {
+        custom.forEach(p => {
+          if (p.product_id) urls.push(`https://rewind-stores.com/product/${encodeURIComponent(p.product_id)}`);
+        });
+      }
+    }
+  } catch {}
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>').join('\n')}
+</urlset>`;
+  res.set('Content-Type', 'application/xml');
+  res.send(xml);
+});
+
 app.use(express.static(path.join(__dirname, '..', 'dist'), {
   maxAge: '1y',
   etag: true,
@@ -163,39 +201,6 @@ app.use(express.static(path.join(__dirname, '..', 'dist'), {
   }
 }));
 console.log('[static]', path.join(__dirname, '..', 'dist'));
-
-// ── Sitemap — generate dynamically from product catalog (incl. custom products) ──
-app.get('/sitemap.xml', async (_req, res) => {
-  const urls = [
-    'https://rewind-stores.com',
-    'https://rewind-stores.com/#/track',
-  ];
-  // Add static product pages
-  for (const p of SERVER_PRODUCTS) {
-    urls.push(`https://rewind-stores.com/?product=${encodeURIComponent(p.id)}`);
-  }
-  // Add custom products from Supabase
-  try {
-    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (SUPABASE_URL && SERVICE_KEY) {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?select=product_id&order=created_at.desc`, {
-        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
-      });
-      const custom = await r.json();
-      if (Array.isArray(custom)) {
-        custom.forEach(p => {
-          if (p.product_id) urls.push(`https://rewind-stores.com/?product=${encodeURIComponent(p.product_id)}`);
-        });
-      }
-    }
-  } catch {}
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => '  <url><loc>' + u + '</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>').join('\n')}
-</urlset>`;
-  res.set('Content-Type', 'application/xml');
-  res.send(xml);
-});
 
 // ── Survey — save first-visit attribution data ──
 app.post('/api/survey', async (req, res) => {
@@ -249,7 +254,7 @@ const verifyAttempts = new Map();
 app.post('/api/verify-admin', strictLimiter, async (req, res) => {
   const { email, token } = req.body;
   if (!email || !token) return res.json({ verified: false });
-  const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+  const ADMIN_TOKEN = process.env.ADMIN_SECRET_TOKEN;
   const isMasterToken = ADMIN_TOKEN && token.length === ADMIN_TOKEN.length &&
     crypto.timingSafeEqual(Buffer.from(token), Buffer.from(ADMIN_TOKEN));
   const isValidSession = verifyAdminSession(token, email);
@@ -425,9 +430,12 @@ async function sendOrderConfirmationEmail({ email, name, items, total, address, 
 }
 
 app.post('/api/send-order', async (req, res) => {
-  const INTERNAL_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+  const INTERNAL_TOKEN = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
+  if (!INTERNAL_TOKEN) {
+    return res.status(500).json({ error: 'Server not configured for order emails' });
+  }
   const clientToken = req.headers['x-internal-token'];
-  if (INTERNAL_TOKEN && (!clientToken || clientToken !== INTERNAL_TOKEN)) {
+  if (!clientToken || clientToken !== INTERNAL_TOKEN) {
     return res.status(403).json({ error: 'Unauthorized' });
   }
   const result = await sendOrderConfirmationEmail(req.body);
@@ -578,7 +586,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
   // Support both discount (percentage number) and percent/customAmount fields
   const finalDiscount = discount || percent || (customAmount ? null : 10);
   if (finalDiscount && (finalDiscount < 1 || finalDiscount > 100)) return res.status(400).json({ error: 'Discount must be 1-100' });
-  const promoCode = code || 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+  const promoCode = code || 'REWIND-' + crypto.randomBytes(4).toString('hex').toUpperCase();
   const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   try {
     const body = { code: promoCode, label: label || `${finalDiscount}% off`, created_by: 'admin' };
@@ -631,7 +639,7 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
 
 // Admin management — requires master token specifically, not just any admin session
 app.post('/api/manage-admins', strictLimiter, async (req, res) => {
-  const ADMIN_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+  const ADMIN_TOKEN = process.env.ADMIN_SECRET_TOKEN;
   const provided = (req.headers['x-admin-token'] || req.cookies?.admin_session || '').trim();
   const a = Buffer.from(provided);
   const b = Buffer.from(ADMIN_TOKEN || '');

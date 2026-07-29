@@ -101,7 +101,7 @@ export function buildSettingsRouter({ SUPABASE_URL, SERVICE_KEY, requireAdmin })
     if (!SERVICE_KEY || !SUPABASE_URL) {
       return res.status(500).json({ error: 'Supabase not configured' });
     }
-    const promoCode = 'REWIND-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    const promoCode = 'REWIND-' + crypto.randomBytes(4).toString('hex').toUpperCase();
     try {
       const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes`, {
         method: 'POST',

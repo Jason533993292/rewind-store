@@ -48,7 +48,7 @@ export function registerAdminAuditRoutes({ app, SUPABASE_URL, auditLog, getAdmin
 
   // ── Admin: clear audit log (requires master API token) ──
   app.post('/api/admin/clear-audit', async (req, res) => {
-    const masterToken = process.env.ADMIN_API_TOKEN || '';
+    const masterToken = process.env.ADMIN_SECRET_TOKEN || '';
     const clientToken = (req.headers['x-admin-token'] || '').trim();
     if (!masterToken || !clientToken || clientToken !== masterToken) {
       return res.status(403).json({ error: 'Master admin token required to clear audit log' });

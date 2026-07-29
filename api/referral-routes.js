@@ -80,9 +80,9 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   }
 
   function generateCode(email) {
-    const hash = crypto.createHash('md5').update(email + Date.now()).digest('hex').slice(0, 4).toUpperCase();
+    const hash = crypto.randomBytes(6).toString('hex').toUpperCase();
     const prefix = 'RW-REF-';
-    return prefix + hash + '-' + String(Date.now()).slice(-4);
+    return prefix + hash;
   }
 
   async function fetchSupabase(table, options = {}) {
@@ -621,7 +621,7 @@ export function buildReferralRouter({ SUPABASE_URL, SERVICE_KEY, resend, FROM_EM
   }
 
   router.post('/fulfill', async (req, res) => {
-    const INTERNAL_TOKEN = process.env.ADMIN_API_TOKEN || process.env.ADMIN_SECRET_TOKEN;
+    const INTERNAL_TOKEN = process.env.ADMIN_SECRET_TOKEN;
     const clientToken = req.headers['x-internal-token'];
     if (INTERNAL_TOKEN && (!clientToken || clientToken !== INTERNAL_TOKEN)) {
       return res.status(403).json({ error: 'Unauthorized' });
