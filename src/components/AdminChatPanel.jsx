@@ -125,8 +125,9 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
           </span>
         </h3>
         <button onClick={() => { loadSessions(); setChatRefreshing(true); setTimeout(() => setChatRefreshing(false), 1000); }}
-          style={{ padding: '6px 12px', borderRadius: '6px', background: 'var(--line)', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, transition: 'all 0.15s' }}>
-          {chatRefreshing ? '🔄' : 'Refresh'}
+          aria-label="Refresh sessions"
+          style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', fontSize: '14px', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+          ↻
         </button>
       </div>
 
@@ -160,6 +161,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                 {s.created_at ? new Date(s.created_at).toLocaleDateString() : ''}
               </div>
               <button onClick={async (e) => { e.stopPropagation(); if (!confirm('Delete this chat session and all its messages? This cannot be undone.')) return; const del = await adminFetch('/api/admin/chat/session', { method: 'DELETE', body: JSON.stringify({ session_id: s.session_id }) }); if (!del.ok) return; if (selectedId === s.session_id) { setSelectedId(null); setMessages([]); } await loadSessions(); }}
+                aria-label="Delete session"
                 style={{ position: 'absolute', top: '4px', right: '4px', width: '18px', height: '18px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '11px', lineHeight: '1', color: 'var(--muted)', display: 'grid', placeItems: 'center', opacity: 0.6 }}
                 onMouseOver={e => { e.stopPropagation(); e.currentTarget.style.background = 'rgba(0,0,0,0.1)'; e.currentTarget.style.opacity = '1'; }}
                 onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.opacity = '0.6'; }}>✕</button>

@@ -316,11 +316,19 @@ export default function ChatBubble() {
         onClick={open ? () => setOpen(false) : handleOpen}
         aria-label={open ? 'Close chat' : 'Open chat'}
         style={{
-          width: '56px', height: '56px', borderRadius: '50%', border: 'none',
-          background: 'var(--accent, #FF4D14)', color: '#fff', fontSize: '22px',
-          cursor: 'pointer', boxShadow: '0 4px 16px rgba(0,0,0,.2)', position: 'relative',
-        }}>
-        {open ? '\u00d7' : '\u{1F4AC}'}
+          width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF6A33',
+          background: open ? '#FF6A33' : 'transparent', color: open ? '#fff' : '#FF6A33',
+          fontSize: '22px', cursor: 'pointer', position: 'relative',
+          transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
+          boxShadow: open ? '0 4px 16px rgba(255,106,51,.3)' : '0 2px 8px rgba(255,106,51,.15)',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(255,106,51,.35)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = open ? '0 4px 16px rgba(255,106,51,.3)' : '0 2px 8px rgba(255,106,51,.15)'; }}>
+        {open ? '\u00d7' : (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto' }}>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        )}
         {!open && unread > 0 && (
           <span style={{
             position: 'absolute', top: '-4px', right: '-4px', background: '#16130F', color: '#fff',
