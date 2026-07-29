@@ -32,7 +32,7 @@ async function hasCheckout(request) {
   } catch { return false; }
 }
 async function nav(page)           { return page.locator('.rw-nav button, .rw-navlink'); }
-async function footerShopLinks(page) { return page.locator('footer button:not([aria-label])'); }
+async function footerShopLinks(page) { return page.locator('.rw-footer-cols div:first-child button, .rw-footer-cols div:nth-child(1) button'); }
 async function cards(page)         { return page.locator('[class*="product"] > div, .rw-card'); }
 async function quickView(page)     { return page.locator('.rw-modal'); }
 async function cartDrawer(page)    { return page.locator('.rw-drawer'); }
@@ -169,7 +169,6 @@ test.describe('Footer links have purpose', () => {
   });
 
   test('Shop footer links filter products', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'load' });
     // Get initial footer links count to validate
     let links = await footerShopLinks(page);
     let count = await links.count();
@@ -358,19 +357,27 @@ test.describe('Cart lifecycle', () => {
   });
 
   test('add to bag and cart operations work', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'load' });
-    // ── Add an item via quick view ──
+    // ── Open quick view on first card ──
     const firstCard = page.locator('.rw-card').first();
-    await firstCard.first().waitFor({ state: 'visible', timeout: 15000 });
-    await firstCard.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(200);
-    await firstCard.hover({ force: true });
-    await firstCard.locator('.rw-add').click({ force: true });
-    await page.waitForTimeout(500);
+    await firstCard.waitFor({ state: 'visible', timeout: 10000 });
+    await firstCard.locator('button:has-text("Quick view")').first().click();
+    await page.waitForTimeout(600);
 
-    // Dismiss scrim
-    await page.locator('.rw-scrim, .rw-modal-wrap').first().click({ force: true }).catch(() => {});
-    await page.waitForTimeout(300);
+    // ── Add via quick view modal ──
+    const qvModal = page.locator('.rw-modal');
+    await expect(qvModal).toBeVisible({ timeout: 5000 });
+
+    // Size might be required — click first size button if present
+    const sizeBtn = qvModal.locator('button.rw-size:not(.is-off)').first();
+    if (await sizeBtn.count() > 0) {
+      await sizeBtn.click({ force: true });
+      await page.waitForTimeout(200);
+    }
+
+    // Now click Add to bag
+    const addBtn = qvModal.locator('button:has-text("Add to bag"), button.rw-btn-pri.rw-btn-full').first();
+    await addBtn.click({ force: true });
+    await page.waitForTimeout(800);
 
     // Toast should appear
     await expect(page.locator('.rw-toast')).toBeVisible({ timeout: 3000 });
