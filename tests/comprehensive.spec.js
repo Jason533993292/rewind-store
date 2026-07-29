@@ -480,9 +480,8 @@ test.describe('Backend API endpoints', () => {
   });
 
   test('/api/send-campaign responds', async ({ page, request }) => {
-    test.skip(!isAdmin, 'Requires admin auth — only runs locally');
+    test.skip(!isAdmin, 'Requires admin session cookie — only works with full auth flow');
     const res = await request.post(`${BASE}/api/send-campaign`, {
-      headers: { 'x-internal-token': 'Phil4ever!' },
       data: { emails: ['test@test.com'], subject: 'Test', message: 'Test message' },
     });
     expect(res.status()).toBe(200);
@@ -492,7 +491,7 @@ test.describe('Backend API endpoints', () => {
   });
 
   test('/api/run-tests endpoint exists', async ({ page, request }) => {
-    test.skip(!isAdmin, 'Skipped on production — launches headless browser');
+    test.skip(!isAdmin, 'Requires admin session cookie — only works with full auth flow');
     const res = await request.get(`${BASE}/api/run-tests`);
     // Should respond, even if with an error (server-side Playwright may not be installed)
     expect([200, 500]).toContain(res.status());
