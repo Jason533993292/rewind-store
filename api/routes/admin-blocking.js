@@ -33,9 +33,12 @@ export function registerAdminBlockingRoutes({ app, SUPABASE_URL, SUPABASE_KEY, r
 
   app.get('/api/admin/blocked-emails', async (req, res) => {
     try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, { headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` } });
+      const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/blocked_emails`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` }
+      });
       res.json({ emails: await r.json() || [] });
-    } catch { res.json({ emails: [] }); }
+    } catch (e) { console.error('blocked-emails error:', e); res.status(500).json({ error: 'Failed to fetch blocked emails', emails: [] }); }
   });
 
   app.post('/api/admin/block-email', async (req, res) => {
@@ -154,6 +157,6 @@ export function registerAdminBlockingRoutes({ app, SUPABASE_URL, SUPABASE_KEY, r
       const mappings = Object.entries(map).map(([email, ips]) => ({ email, ips: [...ips] }));
       mappings.sort((a, b) => b.ips.length - a.ips.length);
       res.json({ mappings });
-    } catch { res.json({ mappings: [] }); }
+    } catch (e) { console.error('email-ip-mappings error:', e); res.status(500).json({ error: 'Failed to build mappings', mappings: [] }); }
   });
 }
