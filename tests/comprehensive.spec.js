@@ -468,8 +468,9 @@ test.describe('Cart lifecycle', () => {
 // ── Backend API tests ──────────────────────────────────────────
 test.describe('Backend API endpoints', () => {
   test('/api/send-order responds', async ({ page, request }) => {
-    test.skip(true, 'Requires admin auth — not available in production');
+    test.skip(!isAdmin, 'Requires admin auth — only runs locally');
     const res = await request.post(`${BASE}/api/send-order`, {
+      headers: { 'x-internal-token': 'Phil4ever!' },
       data: { email: 'test@test.com', name: 'Test', items: [{ name: 'Test Item', size: 'M', price: 42 }], total: 42, orderNum: 'RW-TEST' },
     });
     expect(res.status()).toBe(200);
@@ -479,8 +480,9 @@ test.describe('Backend API endpoints', () => {
   });
 
   test('/api/send-campaign responds', async ({ page, request }) => {
-    test.skip(true, 'Requires admin auth — not available in production');
+    test.skip(!isAdmin, 'Requires admin auth — only runs locally');
     const res = await request.post(`${BASE}/api/send-campaign`, {
+      headers: { 'x-internal-token': 'Phil4ever!' },
       data: { emails: ['test@test.com'], subject: 'Test', message: 'Test message' },
     });
     expect(res.status()).toBe(200);
@@ -490,7 +492,7 @@ test.describe('Backend API endpoints', () => {
   });
 
   test('/api/run-tests endpoint exists', async ({ page, request }) => {
-    test.skip(true, 'Skipped locally — launches headless browser (use npx playwright test directly)');
+    test.skip(!isAdmin, 'Skipped on production — launches headless browser');
     const res = await request.get(`${BASE}/api/run-tests`);
     // Should respond, even if with an error (server-side Playwright may not be installed)
     expect([200, 500]).toContain(res.status());
@@ -642,11 +644,12 @@ test.describe('Stress / concurrency', () => {
     }
   });
 
-  test.skip('concurrent API calls to send-order', async ({ page, request }) => {
-    // Skipped: requires admin auth
+  test('concurrent API calls to send-order', async ({ page, request }) => {
+    test.skip(!isAdmin, 'Requires admin auth — only runs locally');
     const responses = await Promise.allSettled(
       Array.from({ length: 5 }, (_, i) =>
         request.post(`${BASE}/api/send-order`, {
+          headers: { 'x-internal-token': 'Phil4ever!' },
           data: { email: `stress${i}@test.com`, name: 'Stress', items: [{ name: 'Stress Test Item', qty: 1, price: 10, size: 'M' }], total: 0, orderNum: `RW-STRESS-${i}` },
         })
       )
