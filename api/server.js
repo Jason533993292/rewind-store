@@ -430,7 +430,7 @@ async function sendOrderConfirmationEmail({ email, name, items, total, address, 
 }
 
 app.post('/api/send-order', async (req, res) => {
-  const INTERNAL_TOKEN = process.env.ADMIN_SECRET_TOKEN || process.env.ADMIN_API_TOKEN;
+  const INTERNAL_TOKEN = process.env.ADMIN_SECRET_TOKEN;
   if (!INTERNAL_TOKEN) {
     return res.status(500).json({ error: 'Server not configured for order emails' });
   }
