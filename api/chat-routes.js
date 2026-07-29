@@ -322,12 +322,26 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     }
   });
 
-  // ── Admin: list sessions ──
+  // ── Admin: list sessions (auto-closes stale sessions >24h idle) ──
   router.get('/api/admin/chat/sessions', requireAdmin, async (_req, res) => {
     try {
       const r = await sfetch('/chat_sessions?order=last_message_at.desc&select=*&limit=200');
-      const sessions = await r.json();
-      res.json({ sessions: Array.isArray(sessions) ? sessions : [] });
+      let sessions = await r.json();
+      if (!Array.isArray(sessions)) sessions = [];
+      const autoCloseAge = Date.now() - 24 * 60 * 60 * 1000;
+      for (const s of sessions) {
+        const lastMsg = new Date(s.last_message_at || s.created_at).getTime();
+        if (s.status !== 'closed' && lastMsg < autoCloseAge) {
+          s.status = 'closed';
+          s.auto_closed = true;
+          sfetch(`/chat_sessions?session_id=eq.${encodeURIComponent(s.session_id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+            body: JSON.stringify({ status: 'closed' }),
+          }).catch(() => {});
+        }
+      }
+      res.json({ sessions });
     } catch (e) {
       res.status(500).json({ error: 'Could not load sessions' });
     }

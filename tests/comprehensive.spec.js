@@ -182,6 +182,9 @@ test.describe('Footer links have purpose', () => {
       if (attempt >= n) break;
       const label = await links.nth(attempt).textContent();
       if (label?.trim() === 'New in') continue; // skip, it's the "All" category
+      // Scroll to footer first, then click
+      await links.nth(attempt).scrollIntoViewIfNeeded();
+      await page.waitForTimeout(200);
       await links.nth(attempt).click({ force: true });
       await page.waitForTimeout(400);
       // Should scroll up and show filtered title
@@ -192,9 +195,9 @@ test.describe('Footer links have purpose', () => {
       const expected = label?.trim() === 'Kicks' ? 'Shoes' : label?.trim();
       expect(titleText?.toLowerCase()).toContain(expected?.toLowerCase() || '');
 
-      // Re-locate footer links after page scroll, then scroll back down
+      // Scroll back to footer for next link
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(400);
     }
   });
 

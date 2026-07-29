@@ -526,7 +526,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <button className="rw-btn rw-btn-ghost" onClick={onPlaced}>Close</button>
         </div>
         <div className="rw-confirm">
-          <div className="rw-confirm-mark"><Icon name="check" size={36} /></div>
+          <div className="rw-confirm-mark"><svg className="rw-checkmark" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" strokeDasharray="100" strokeDashoffset="100"/></svg></div>
           <h2>Order confirmed</h2>
           <p>Thanks for your order! We'll send you a shipping confirmation once your items are on their way.</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '4px' }}>

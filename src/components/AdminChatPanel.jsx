@@ -209,43 +209,19 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
 
               <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexShrink: 0, overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '2px', maxWidth: '100%' }}>
                 <button onClick={() => setShowPromoPanel(true)}
-                  onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
-                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
-                  Promo
-                </button>
+                  className="rw-admin-btn">Promo</button>
                 <button onClick={() => setShowBlockPanel(true)}
-                  onMouseOver={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = ''; }}
-                  style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: '#dc2626', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#fff', transition: 'all 0.15s', flexShrink: 0 }}>
-                  🚫 Block
-                </button>
+                  className="rw-admin-btn-danger">🚫 Block</button>
                 {selectedEmail && (
                   <button onClick={(e) => { navigator.clipboard?.writeText(selectedEmail).then(() => { e.currentTarget.textContent = '✓ Copied'; setTimeout(() => { e.currentTarget.textContent = 'Copy email'; }, 1500); }).catch(() => {}); }}
-                    onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                    onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
-                    style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
-                    Copy email
-                  </button>
+                    className="rw-admin-btn">Copy email</button>
                 )}
                 <button onClick={() => setShowMutePanel(true)}
-                  onMouseOver={e => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = '#f59e0b'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = ''; }}
-                  style={{ padding: '6px 14px', borderRadius: '8px', border: 'none', background: '#f59e0b', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#fff', transition: 'all 0.15s', flexShrink: 0 }}>
-                  🔇 Mute
-                </button>
+                  className="rw-admin-btn-warn">🔇 Mute</button>
                 <button onClick={() => setShowCloseConfirm(true)}
-                  onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; e.currentTarget.style.transform = ''; }}
-                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s', flexShrink: 0 }}>
-                  ✕ Close
-                </button>
+                  className="rw-admin-btn">✕ Close</button>
                 <button onClick={async (e) => { if (!confirm('Delete this chat session and all its messages? This cannot be undone.')) return; await fetch('/api/admin/chat/session', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: selectedId }) }); setSelectedId(null); setMessages([]); await loadSessions(); }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.transform = ''; }}
-                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #dc2626', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: '#dc2626', transition: 'all 0.15s', flexShrink: 0 }}>
-                  🗑️ Delete
-                </button>
+                  className="rw-admin-btn-danger">🗑️ Delete</button>
               </div>
 
               <div style={{ display: 'flex', gap: '8px' }}>

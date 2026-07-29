@@ -64,11 +64,10 @@ export function buildSettingsRouter({ SUPABASE_URL, SERVICE_KEY, requireAdmin })
       return res.status(500).json({ error: 'Supabase not configured' });
     }
     try {
-      // Supabase REST doesn't support ILIKE on text fields directly,
-      // so we fetch all orders and filter client-side for the search.
+      const SK = SERVICE_KEY;
       const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/orders?select=order_num,email,customer_name,items,total,status,created_at&order=created_at.desc&limit=50`,
-        { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } }
+        `${SUPABASE_URL}/rest/v1/orders?select=order_num,email,customer_name,items,total,status,created_at&order=created_at.desc&limit=200`,
+        { headers: { apikey: SK, Authorization: `Bearer ${SK}` } }
       );
       const data = await r.json();
       const orders = (Array.isArray(data) ? data : []).filter(o =>
