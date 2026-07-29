@@ -38,7 +38,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       connectSrc: ["'self'", "https://luiqimsfvllgsmzedncw.supabase.co", "https://api.stripe.com", "https://api.resend.com", "https://generativelanguage.googleapis.com", "https://*.stripe.com", "https://plausible.io"],
       imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co", "https://*.stripe.com"],
-      scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com", "https://plausible.io", "'sha256-l/hbD89akcakcMMD+XXsqKXJPoV0/5C9lHkm0XOrYK4='"],
+      scriptSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com", "https://plausible.io", "'sha256-TQ+H+q9RA7uwUHJDjza5gW/bkbQTH3a/KIx05GK9Bdk='", "'sha256-h/dVpkgXYfnTM2vSiuXCxYpb9hhzFt+TV9FP10VST6Q='"],
       workerSrc: ["'self'", "blob:"],
       frameSrc: ["'self'", "https://js.stripe.com", "https://*.stripe.com"],
       frameAncestors: ["'none'"],

@@ -1044,7 +1044,7 @@ export default function App() {
             {availableCats.map((c) => (
               <button key={c} onClick={() => { setCat(c); setShowMobileNav(false); scrollToGrid(); }}
                 style={{ fontWeight: cat === c ? 700 : 400, color: cat === c ? 'var(--surface)' : 'var(--ink)', background: cat === c ? 'var(--ink)' : 'transparent' }}
-                role="listitem" aria-current={cat === c ? 'true' : undefined}>
+                aria-current={cat === c ? 'true' : undefined}>
                 {c === 'All' ? 'All' : c}
               </button>
             ))}

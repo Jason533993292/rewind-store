@@ -406,7 +406,7 @@ a { color: inherit; cursor: pointer; }
   gap: 6px; z-index: 3; pointer-events: none;
 }
 .rw-tag { font-family: var(--font-head); font-weight: 700; font-size: 12px; padding: 5px 9px; border-radius: 7px; letter-spacing: .01em; }
-.rw-tag-sale { background: var(--accent); color: #fff; }
+.rw-tag-sale { background: #D43A00; color: #fff; font-weight: 700; }
 .rw-tag-low { background: var(--ink); color: #fff; }
 .rw-card-quick {
   position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 3;
