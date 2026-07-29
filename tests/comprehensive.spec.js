@@ -169,7 +169,7 @@ test.describe('Footer links have purpose', () => {
   });
 
   test('Shop footer links filter products', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     // Get initial footer links count to validate
     let links = await footerShopLinks(page);
     let count = await links.count();
@@ -358,9 +358,10 @@ test.describe('Cart lifecycle', () => {
   });
 
   test('add to bag and cart operations work', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     // ── Add an item via quick view ──
     const firstCard = page.locator('.rw-card').first();
+    await firstCard.first().waitFor({ state: 'visible', timeout: 15000 });
     await firstCard.scrollIntoViewIfNeeded();
     await page.waitForTimeout(200);
     await firstCard.hover({ force: true });
