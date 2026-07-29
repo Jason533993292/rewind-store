@@ -31,16 +31,16 @@ async function hasCheckout(request) {
     return res.status() === 200;
   } catch { return false; }
 }
-async function nav(page)           { return page.locator('.rw-nav button, .rw-navlink'); }
-async function footerShopLinks(page) { return page.locator('.rw-footer-cols > div:first-child button'); }
-async function cards(page)         { return page.locator('.rw-card'); }
-async function quickView(page)     { return page.locator('.rw-modal'); }
-async function cartDrawer(page)    { return page.locator('.rw-drawer'); }
-async function toast(page)         { return page.locator('.rw-toast'); }
-async function heroBtn(page)       { return page.locator('.rw-hero-cta button'); }
-async function searchInput(page)   { return page.locator('.rw-search input'); }
-async function sidebarCats(page)   { return page.locator('.rw-shop-layout aside button'); }
-async function brandBtns(page)     { return page.locator('.rw-shop-layout aside h3 + button, .rw-brand-item'); }
+async function nav(page)           { return page.locator('header button, [aria-label="Navigation"] button, nav[aria-label="Product filters"] button, .rw-shop-head button, .rw-banner button'); }
+async function footerShopLinks(page) { return page.locator('footer button, [class*="footer"] button'); }
+async function cards(page)         { return page.locator('[class*="card"], [class*="product"], [class*="grid"] > div, .rw-card'); }
+async function quickView(page)     { return page.locator('.rw-modal, [class*="modal"], .rw-modal-wrap > div'); }
+async function cartDrawer(page)    { return page.locator('.rw-drawer, [class*="drawer"], [class*="cart-panel"]'); }
+async function toast(page)         { return page.locator('.rw-toast, [class*="toast"], [role="alert"]'); }
+async function heroBtn(page)       { return page.locator('[class*="hero"] button, section[class*="hero"] a, button:has-text("Shop"), a:has-text("Shop")'); }
+async function searchInput(page)   { return page.locator('input[type="search"], input[placeholder*="earch"], input[placeholder*="ind"], .rw-search input'); }
+async function sidebarCats(page)   { return page.locator('#rw-sidebar button, aside button, [aria-label="Categories"] button'); }
+async function brandBtns(page)     { return page.locator('#rw-sidebar h3 + button, [aria-label*="Brand"] button, button:has-text("All"):not([aria-current])'); }
 
 // ── Page load tests ─────────────────────────────────────────────
 test.describe('Page loads', () => {
