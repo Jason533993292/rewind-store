@@ -101,6 +101,14 @@ export default function ChatBubble() {
     if (!sessionId) return;
     try {
       const r = await fetch(`/api/chat/messages?session_id=${encodeURIComponent(sessionId)}`);
+      if (r.status === 404) {
+        // Session no longer exists — clear and restart
+        localStorage.removeItem(SESSION_KEY);
+        setSessionId(null);
+        setMessages([]);
+        setShowEmailScreen(true);
+        return;
+      }
       const d = await r.json();
       const msgs = Array.isArray(d.messages) ? d.messages : [];
       setMessages(msgs);
@@ -170,6 +178,12 @@ export default function ChatBubble() {
               // Remove optimistic message and show mute notice
               setMessages((prev) => prev.filter(m => m !== optimistic));
               setMessages((prev) => [...prev, { sender: 'system', message: 'MUTED: ' + (d.message || 'You are muted'), created_at: new Date().toISOString() }]);
+            } else if (d.error === 'session_expired') {
+              // Session was deleted — clear and start fresh
+              localStorage.removeItem(SESSION_KEY);
+              setSessionId(null);
+              setMessages([]);
+              setShowEmailScreen(true);
             }
           }
         } catch {}

@@ -263,6 +263,10 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
       res.json({ ok: true });
     } catch (e) {
       console.error('chat/send error:', e);
+      // If session was deleted (FK violation), tell frontend to start a new chat
+      if (e.message && e.message.includes('409') && e.message.includes('not present in table')) {
+        return res.status(410).json({ error: 'session_expired', message: 'This chat session is no longer active. Please start a new chat.' });
+      }
       res.status(500).json({ error: 'Could not send message' });
     }
   });
