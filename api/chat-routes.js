@@ -81,6 +81,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
   const startLimited = makeLimiter();
   const sendLimited = makeLimiter();
   const readLimited = makeLimiter();
+  const writeLimited = makeLimiter();
   const muteMsgCount = new Map(); // session_id -> [{timestamp}]
   const aiReplyCount = new Map();
 
@@ -205,7 +206,6 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     if (sendLimited(session_id, 20, 60 * 1000)) {
       return res.status(429).json({ error: 'Slow down a little.' });
     }
-    // Check if session is muted
     try {
       const sessCheck = await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id) + '&select=muted_until,status');
       const sessData = await sessCheck.json();
@@ -223,7 +223,7 @@ export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resen
     const msgTimes = (muteMsgCount.get(session_id) || []).filter(t => now - t < 60000);
     msgTimes.push(now);
     muteMsgCount.set(session_id, msgTimes);
-    if (msgTimes.length > 10) {
+    if (msgTimes.length > 20) {
       try {
         const muteUntil = new Date(now + 600000).toISOString();
         await sfetch('/chat_sessions?session_id=eq.' + encodeURIComponent(session_id), {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const SESSION_KEY = 'rw_chat_session';
-const OPEN_POLL_MS = 3000;
+const OPEN_POLL_MS = 5000;
 const BADGE_POLL_MS = 30000;
 const WELCOME = "Hey! Ask us anything about sizing, an item, or your order. We usually reply within a few hours — this isn't 24/7 live support.";
 
