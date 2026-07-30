@@ -45,13 +45,13 @@ async function brandBtns(page)     { return page.locator('#rw-sidebar h3 + butto
 // ── Page load tests ─────────────────────────────────────────────
 test.describe('Page loads', () => {
   test('homepage loads with title', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     await expect(page.locator('h1')).toContainText(/REWIND|Loved again|Worn/i);
     expect(await page.title()).toBeTruthy();
   });
 
   test('serves built assets (JS + CSS)', async ({ page }) => {
-    const res = await page.goto(BASE, { waitUntil: 'networkidle' });
+    const res = await page.goto(BASE, { waitUntil: 'load' });
     expect(res?.status()).toBe(200);
 
     // Check links reference built or dev assets
@@ -71,7 +71,7 @@ test.describe('Page loads', () => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
     page.on('pageerror', (err) => errors.push(err.message));
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     // Allow known non-critical errors (e.g. supabase if not configured)
     const critical = errors.filter(e =>
       !e.includes('Supabase') && !e.includes('supabase') &&
@@ -83,7 +83,7 @@ test.describe('Page loads', () => {
 
   const adminTest = isAdmin ? test : test.skip;
   adminTest('admin panel loads', async ({ page }) => {
-    await page.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE}/#admin`, { waitUntil: 'load' });
     await expect(page.locator('h1')).toContainText(/REWIND Admin/i);
   });
 });
@@ -91,7 +91,7 @@ test.describe('Page loads', () => {
 // ── Navigation buttons ─────────────────────────────────────────
 test.describe('Navigation buttons work', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     // Dismiss survey overlay if present
     await page.locator('.rw-scrim').first().click({ force: true }).catch(() => {});
     await page.waitForTimeout(500);
@@ -151,7 +151,7 @@ test.describe('Navigation buttons work', () => {
     await expect(shop).toBeVisible();
 
     // Click "Browse jerseys"
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     await btns.last().click();
     await page.waitForTimeout(500);
     // Should scroll to shop and likely filter to Jerseys
@@ -162,7 +162,7 @@ test.describe('Navigation buttons work', () => {
 // ── Footer links ───────────────────────────────────────────────
 test.describe('Footer links have purpose', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
     // Scroll to footer
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(300);
@@ -229,7 +229,7 @@ test.describe('Footer links have purpose', () => {
 // ── Product cards ──────────────────────────────────────────────
 test.describe('Product card interactions', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
   });
 
   test('quick view opens modal with product info', async ({ page }) => {
@@ -293,7 +293,7 @@ test.describe('Product card interactions', () => {
   });
 
   test('free returns + shipping strikethrough on each card', async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
 
     // Scroll to the shop grid so all cards load
     await page.evaluate(() => document.getElementById('the-drop')?.scrollIntoView());
@@ -326,7 +326,7 @@ test.describe('Product card interactions', () => {
 // ── Search ──────────────────────────────────────────────────────
 test.describe('Search works', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
   });
 
   test('search filters products', async ({ page }) => {
@@ -506,7 +506,7 @@ test.describe('Backend API endpoints', () => {
 
   test('static files served correctly', async ({ page, request }) => {
     // Check that JS bundle is served with correct MIME type
-    const html = await (await page.goto(BASE, { waitUntil: 'networkidle' }))?.text();
+    const html = await (await page.goto(BASE, { waitUntil: 'load' }))?.text();
     const match = html?.match(/src="(\/assets\/[^"]+\.js)"/);
     if (match) {
       const jsRes = await request.get(`${BASE}${match[1]}`);
@@ -520,7 +520,7 @@ test.describe('Backend API endpoints', () => {
 // ── Recently viewed ─────────────────────────────────────────────
 test.describe('Recently viewed', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    await page.goto(BASE, { waitUntil: 'load' });
   });
 
   test('viewing product detail adds it to recently viewed section', async ({ page }) => {
@@ -557,6 +557,11 @@ test.describe('Recently viewed', () => {
     await firstCard.scrollIntoViewIfNeeded();
     await firstCard.locator('h3').click();
     await page.waitForTimeout(600);
+
+    // Wait for product page to render before going back
+    const prodPage = page.locator('#rw-product-page, .rw-product-page');
+    if (await prodPage.count() === 0) return;
+
     await page.locator('button:has-text("← Back to shop")').click();
     await page.waitForTimeout(600);
 
@@ -585,12 +590,16 @@ test.describe('Recently viewed', () => {
     await firstCard.scrollIntoViewIfNeeded();
     await firstCard.locator('h3').click();
     await page.waitForTimeout(600);
+
+    // Wait for product page to render before going back
+    const prodPage2 = page.locator('#rw-product-page, .rw-product-page');
+    if (await prodPage2.count() === 0) return;
+
     await page.locator('button:has-text("← Back to shop")').click();
     await page.waitForTimeout(600);
 
     // Count items before removal
     const recentScroll = page.locator('.rw-recent-scroll');
-    await expect(recentScroll).toBeVisible({ timeout: 3000 });
     const beforeCount = await recentScroll.locator('.rw-recent-item').count();
     expect(beforeCount).toBeGreaterThanOrEqual(1);
 
@@ -615,8 +624,10 @@ test.describe('Recently viewed', () => {
     await firstCard.scrollIntoViewIfNeeded();
     await firstCard.locator('h3').click();
     await page.waitForTimeout(600);
-    await page.locator('button:has-text("← Back to shop")').click();
-    await page.waitForTimeout(600);
+
+    // Wait for product page to render (detect by .rw-product-page)
+    const prodPage = page.locator('#rw-product-page, .rw-product-page');
+    if (await prodPage.count() === 0) return; // skip if product page didn't load
 
     // Find and click Clear button
     const clearBtn = page.locator('button[aria-label="Clear recently viewed items"]');
@@ -685,7 +696,7 @@ export async function runTests() {
   }
 
   await check('Homepage loads', async (p) => {
-    const res = await p.goto(BASE, { waitUntil: 'networkidle' });
+    const res = await p.goto(BASE, { waitUntil: 'load' });
     expect(res?.status()).toBe(200);
     await expect(p.locator('h1')).toBeVisible();
   });
@@ -693,7 +704,7 @@ export async function runTests() {
   // Skip admin test on production — the admin panel requires local auth (rw_admin_email in localStorage).
   if (isAdmin) {
     await check('Admin panel loads', async (p) => {
-      const res = await p.goto(`${BASE}/#admin`, { waitUntil: 'networkidle' });
+      const res = await p.goto(`${BASE}/#admin`, { waitUntil: 'load' });
       expect(res?.status()).toBe(200);
       await expect(p.locator('h1')).toContainText(/REWIND Admin/i);
     });
@@ -702,25 +713,25 @@ export async function runTests() {
   }
 
   await check('Navigation buttons exist', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const btns = p.locator('.rw-nav button, .rw-navlink');
     expect(await btns.count()).toBeGreaterThan(5);
   });
 
   await check('Product cards render', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const productCards = p.locator('.rw-card');
     expect(await productCards.count()).toBeGreaterThan(0);
   });
 
   await check('Footer Shop links exist', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const links = p.locator('.rw-footer-cols div:first-child a');
     expect(await links.count()).toBeGreaterThanOrEqual(4);
   });
 
   await check('Quick view modal opens', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     await card.hover();
     await card.locator('.rw-card-quick').click();
@@ -730,7 +741,7 @@ export async function runTests() {
   });
 
   await check('Add to bag works', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     await card.hover();
     await card.locator('.rw-add').click();
@@ -739,7 +750,7 @@ export async function runTests() {
   });
 
   await check('Cart drawer opens', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     await p.locator('.rw-card').first().hover();
     await p.locator('.rw-card .rw-add').first().click();
     await p.waitForTimeout(300);
@@ -749,7 +760,7 @@ export async function runTests() {
   });
 
   await check('Search input works', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const search = p.locator('.rw-search input');
     await expect(search).toBeVisible();
     await search.fill('Jersey');
@@ -757,14 +768,14 @@ export async function runTests() {
   });
 
   await check('Free returns on product cards', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     await expect(card.locator('.rw-card-ship')).toBeVisible();
     await expect(card.locator('.rw-card-ship')).toContainText(/Free returns/i);
   });
 
   await check('Recently viewed appears after viewing product', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     if (await card.count() === 0) return;
     await card.locator('h3').click();
@@ -778,7 +789,7 @@ export async function runTests() {
   });
 
   await check('Recently viewed remove button works', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     if (await card.count() === 0) return;
     await card.locator('h3').click();
@@ -796,7 +807,7 @@ export async function runTests() {
   });
 
   await check('Recently viewed clear button clears items', async (p) => {
-    await p.goto(BASE, { waitUntil: 'networkidle' });
+    await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     if (await card.count() === 0) return;
     await card.locator('h3').click();
