@@ -1173,6 +1173,104 @@ app.post('/api/stripe-webhook', async (req, res) => {
   res.json({ received: true });
 });
 
+// ── Analytics API ──
+app.post('/api/analytics/track', generalLimiter, async (req, res) => {
+  try {
+    const { page, referrer, screen_width, visitor_id, session_id } = req.body || {};
+    if (!page || !visitor_id || !session_id) return res.json({ ok: true }); // silent ignore malformed
+
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SK = SERVICE_KEY;
+    // Parse user-agent for browser/OS
+    const ua = req.headers['user-agent'] || '';
+    const browser = ua.includes('Chrome') && !ua.includes('Edg') ? 'Chrome'
+      : ua.includes('Firefox') && !ua.includes('Seamonkey') ? 'Firefox'
+      : ua.includes('Safari') && !ua.includes('Chrome') ? 'Safari'
+      : ua.includes('Edg') ? 'Edge'
+      : 'Other';
+    const os = ua.includes('Windows') ? 'Windows'
+      : ua.includes('Mac') ? 'macOS'
+      : ua.includes('iPhone') ? 'iOS'
+      : ua.includes('Android') ? 'Android'
+      : ua.includes('Linux') ? 'Linux'
+      : 'Other';
+    const device = screen_width > 1024 ? 'desktop'
+      : screen_width > 768 ? 'tablet'
+      : 'mobile';
+    const country = req.headers['cf-ipcountry'] || '';
+
+    await fetch(`${SUPABASE_URL}/rest/v1/analytics_visits`, {
+      method: 'POST',
+      headers: { apikey: SK, Authorization: `Bearer ${SK}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({
+        page, referrer: referrer || '',
+        country, browser, os, device,
+        screen_width: screen_width || 0,
+        visitor_id, session_id,
+        timestamp: new Date().toISOString(),
+      }),
+    }).catch(() => {});
+
+    res.json({ ok: true });
+  } catch { res.json({ ok: true }); }
+});
+
+// ── Admin: analytics query ──
+app.get('/api/admin/analytics', async (req, res) => {
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SK = SERVICE_KEY;
+    const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
+    const period = req.query.period || '7d';
+    const now = new Date();
+    let since;
+    if (period === '24h') since = new Date(now - 24 * 60 * 60 * 1000);
+    else if (period === '7d') since = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    else if (period === '30d') since = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    else since = new Date('2020-01-01');
+    const sinceStr = since.toISOString();
+
+    const fetchDb = async (url) => {
+      const r = await fetch(url, { headers: { apikey: SK, Authorization: `Bearer ${SK}` } });
+      return r.json();
+    };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [visits, topPages, byCountry, byBrowser, byOs, byDevice, todayVisits] = await Promise.all([
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id&timestamp=gte.${encodeURIComponent(sinceStr)}`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=page,count:page.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=page&order=count.desc&limit=10`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country,count:country.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=country&order=count.desc&limit=20`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=browser,count:browser.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=browser&order=count.desc&limit=10`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=os,count:os.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=os&order=count.desc&limit=10`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=device,count:device.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=device&order=count.desc&limit=5`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id&timestamp=gte.${today.toISOString()}`),
+    ]);
+
+    const allVisitors = Array.isArray(visits) ? visits.map(v => v.visitor_id) : [];
+    const uniqueVisitors = new Set(allVisitors).size;
+    const todayVisitors = Array.isArray(todayVisits) ? todayVisits.length : 0;
+
+    res.json({
+      stats: {
+        total_visits: allVisitors.length,
+        unique_visitors: uniqueVisitors,
+        avg_per_visitor: uniqueVisitors > 0 ? (allVisitors.length / uniqueVisitors) : 0,
+        today_visits: todayVisitors,
+      },
+      topPages: Array.isArray(topPages) ? topPages : [],
+      byCountry: Array.isArray(byCountry) ? byCountry : [],
+      byBrowser: Array.isArray(byBrowser) ? byBrowser : [],
+      byOs: Array.isArray(byOs) ? byOs : [],
+      byDevice: Array.isArray(byDevice) ? byDevice : [],
+    });
+  } catch (e) {
+    console.error('Analytics query error:', e);
+    res.json({ error: 'Failed to load analytics' });
+  }
+});
+
 // ── Admin: blanket auth + no-cache for all /api/admin/* routes ──
 app.use('/api/admin', (req, res, next) => {
   res.set('Cache-Control', 'no-store, must-revalidate');

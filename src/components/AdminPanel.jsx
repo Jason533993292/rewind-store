@@ -8,6 +8,7 @@ import CreatePromoCode from './CreatePromoCode';
 import AuditLogPanel from './AuditLogPanel';
 import AdminChatPanel from './AdminChatPanel';
 import BlockedPanel from './BlockedPanel';
+import AnalyticsDashboard from './AnalyticsDashboard';
 import ProductForm from './ProductForm';
 import EditProductPanel from './EditProductPanel';
 import AdminOrdersPanel from './AdminOrdersPanel';
@@ -283,6 +284,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           { id: 'blocked', label: '🚫 Blocked' },
           { id: 'products', label: '🛍️ Products' },
           { id: 'audit', label: '📜 Audit Log' },
+          { id: 'analytics', label: '📈 Analytics' },
         ].filter(t => t.label).map((t) => (
           <button key={t.id} onClick={() => { setAdminTab(t.id); localStorage.setItem('rw_admin_tab', t.id); }}
             style={{
@@ -584,6 +586,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           {adminTab === 'blocked' && <BlockedPanel />}
           {adminTab === 'audit' && <AuditLogPanel />}
           {adminTab === 'chats' && <AdminChatPanel chatUnread={chatUnread} setChatUnread={setChatUnread} />}
+          {adminTab === 'analytics' && <AnalyticsDashboard adminFetch={adminFetch} />}
 
           {/* ── Promo Codes ── */}
           {adminTab === 'promo' && (
