@@ -1,0 +1,5 @@
+# Product images — add your photos here
+# They'll be served at https://rewind-stores.com/products/<filename>
+#
+# Recommended: WebP format, max 800px width, keep files under 200KB
+# Naming: kebab-case (e.g. lacoste-zipup-green.webp)

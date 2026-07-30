@@ -44,7 +44,6 @@ export default function EditProductPanel({ product, onDone, setCustomProducts, o
   const [dragIndex, setDragIndex] = useState(null);
   const fileRef = useRef(null);
   const isCatalogProduct = !product.product_id && REWIND_CATS.length > 0;
-  const formRef = useRef(useRef(form)); // Already mut ref accessed via closure
   const dirtyRef = useRef(false);
 
   // Track dirty state
@@ -60,7 +59,7 @@ export default function EditProductPanel({ product, onDone, setCustomProducts, o
 
   // Mark dirty on first change
   const setFormDirty = useCallback((updater) => {
-    setForm(prev => { const next = typeof updater === 'function' ? updater(prev) : updater; return next; });
+    setForm(prev => { const next = typeof updater === 'function' ? updater(prev) : {...prev, ...updater}; return next; });
     setDirty(true);
   }, []);
 
