@@ -629,6 +629,10 @@ test.describe('Recently viewed', () => {
     const prodPage = page.locator('#rw-product-page, .rw-product-page');
     if (await prodPage.count() === 0) return; // skip if product page didn't load
 
+    // Go back to shop
+    await page.locator('button:has-text("← Back to shop")').click();
+    await page.waitForTimeout(600);
+
     // Find and click Clear button
     const clearBtn = page.locator('button[aria-label="Clear recently viewed items"]');
     await expect(clearBtn).toBeVisible({ timeout: 3000 });
