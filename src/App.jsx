@@ -13,6 +13,7 @@ import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from './lib/supabase';
 import ProductPage from './components/ProductPage';
 import RecentlyViewed from './components/RecentlyViewed';
+import { Agentation } from "agentation";
 import { money } from './hooks/useCountdown';
 
 // Code-split — the admin panel (users/orders/products CRUD) is only ever
@@ -1334,6 +1335,9 @@ export default function App() {
 
       {/* ── Chat bubble — hidden when cart is open ── */}
       {!drawer && <ChatBubble />}
+
+      {/* ── Agentation annotation toolbar (dev only) ── */}
+      {process.env.NODE_ENV === 'development' && <Agentation endpoint="http://localhost:4747" />}
 
       {showSettings && (
         <React.Suspense fallback={null}>
