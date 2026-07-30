@@ -317,7 +317,7 @@ export default function ChatBubble() {
         aria-label={open ? 'Close chat' : 'Open chat'}
         style={{
           width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF6A33',
-          background: open ? '#FF6A33' : 'transparent', color: open ? '#fff' : '#FF6A33',
+          background: '#FF6A33', color: '#fff',
           fontSize: '22px', cursor: 'pointer', position: 'relative',
           transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
           boxShadow: open ? '0 4px 16px rgba(255,106,51,.3)' : '0 2px 8px rgba(255,106,51,.15)',
