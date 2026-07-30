@@ -1,0 +1,116 @@
+# REWIND Store — Full Documentation
+
+## Overview
+
+REWIND is a vintage and retro sportswear store based in Belgium. Sells authenticated,
+steam-cleaned pre-owned clothing from brands like Lacoste, CP Company, BAPE, Fear of God,
+Denim Tears, Stone Island, and more. Ships worldwide in 10-25 days.
+
+## Tech Stack
+
+- **Frontend:** React 18, Vite, vanilla JS SPA
+- **Backend:** Express.js (Node 22)
+- **Database:** Supabase (PostgreSQL)
+- **Payments:** Stripe (card, Bancontact, iDEAL, Klarna, PayPal, Apple Pay, Google Pay)
+- **Email:** Resend (order confirmations, shipping updates)
+- **Hosting:** Railway (https://rewind-stores.com)
+- **Analytics:** Plausible (https://plausible.io/rewind-stores.com)
+- **AI:** Gemini 2.5 Flash (product descriptions, chat responses)
+
+## Key URLs
+
+- Homepage: https://rewind-stores.com
+- Sitemap: https://rewind-stores.com/sitemap.xml
+- Robots: https://rewind-stores.com/robots.txt
+- GitHub: https://github.com/Jason533993292/rewind-store
+- Admin panel: https://rewind-stores.com/#admin
+- Health check: https://rewind-stores.com/api/health
+
+## Product Categories
+
+Brasils | Jerseys | Polos | Jumpers | Zip-up Jumpers | Tracksuits | Pants | Sets | Shoes | Jackets
+
+## Database Schema (custom_products table)
+
+- id (bigint, PK)
+- product_id (text, slug)
+- name (text) — product title
+- brand (text)
+- cat (text) — category
+- price (numeric) — current price in EUR
+- was (numeric, nullable) — original price for sale display
+- stock (integer)
+- sizes (text) — comma-separated, e.g. "S,M,L,XL"
+- imgs (text) — JSON array of image URLs
+- material (text)
+- note (text) — description
+- hue (integer) — color swatch HSL hue 0-360
+- created_at (timestamptz)
+- og_img (text)
+
+## API Endpoints
+
+### Public
+- GET /api/health — Health check
+- GET /api/custom_products — All products
+- GET /api/wishlist?email=xxx — Get wishlist
+- POST /api/wishlist — Save wishlist
+- POST /api/create-checkout-session — Stripe checkout
+- POST /api/send-order — Place order (needs x-internal-token header)
+- POST /api/send-campaign — Send campaign email (needs admin auth)
+- POST /api/run-tests — Run automated tests (needs admin auth)
+- POST /api/chat/send — Send chat message
+- GET /api/chat/messages?session_id=xxx — Get chat messages
+- GET /api/chat/session-status?session_id=xxx — Check session status
+- POST /api/analytics/track — Pageview tracking
+- POST /api/webhook/events — Webhook receiver
+- GET /api/referral — Referral program stats
+
+### Admin (require admin session cookie)
+- GET /api/admin/chat/sessions — List chat sessions
+- GET /api/admin/chat/messages?session_id=xxx — View messages
+- POST /api/admin/chat/close — Close session
+- POST /api/admin/chat/session — Delete session
+- GET /api/admin/analytics?period=7d — Analytics dashboard
+- POST /api/admin/products/add — Add product
+- POST /api/admin/products/update — Update product
+- POST /api/admin/products/delete — Delete product
+- GET /api/admin/order-lookup?q=xxx — Search orders
+- POST /api/admin/orders/cancel — Cancel order
+- POST /api/admin/orders/ship — Mark shipped
+
+## Auth
+
+- Admin: session-token-based via HMAC-signed cookies
+- Internal: x-internal-token header (constant, matches ADMIN_SECRET_TOKEN env var)
+- Chat: session_id stored in localStorage, verified server-side
+- Stripe: publishable key in frontend, secret key server-side
+
+## Deployment
+
+- Railway auto-deploys from GitHub main branch
+- Build: `npm run build` (Vite), Start: `node server.js`
+- CSP header set server-side with hashed inline scripts
+
+## Rate Limiting
+
+- General: 300 req/min per IP
+- Strict (writes): 10 req/min per IP
+- Chat auto-mute: 20 messages then muted
+
+## Changelog
+
+### 2026-07-30
+- Rate limit increased 120→300 req/min
+- CSP hashes updated to match current inline scripts
+- Self-hosted analytics added (visitors, pages, countries, browsers, OS, devices)
+- llms.txt created for AI agent discoverability
+
+### 2026-07-29
+- Chat session auto-close after 24h idle
+- Order search expanded from 50→200 results
+- Sold-out badge pulse animation
+- Order confirmed checkmark animation
+- Admin panel inline hover styles → CSS classes
+- Edit product save fixed (*** header corruption)
+- Edit product: live preview, drag reorder, inline validation, duplicate, unsaved guard

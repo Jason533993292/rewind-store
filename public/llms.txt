@@ -2,20 +2,50 @@
 
 Hand-picked vintage tracksuits, retro jerseys, rare Lacoste zip-ups, and summer sets.
 Each item authenticated, steam-cleaned, and shipped within 24 hours from Belgium.
-10–25 day delivery. No returns. VAT under €25K (sole proprietor, BE).
+10–25 day delivery. No returns. Sole proprietor, Belgium (BE).
 
 ## Key pages
 
 - https://rewind-stores.com — Homepage with hero, shop grid, and categories
 - https://rewind-stores.com/sitemap.xml — Full product sitemap for crawlers
 - https://rewind-stores.com/robots.txt — Crawl directives
+- https://rewind-stores.com/llms-full.txt — Full site documentation for AI agents
 
 ## Categories
 
-- Brasils / Jerseys / Polos / Jumpers / Zip-up Jumpers / Tracksuits / Pants / Sets / Shoes / Jackets
+- **Brasils** — Football-inspired jerseys with Brazilian/retro styling
+- **Jerseys** — Retro sport jerseys (rugby, football, basketball)
+- **Polos** — Polo shirts, terry, pique, rugby-style
+- **Jumpers** — Knit jumpers, crewnecks, cardigans
+- **Zip-up Jumpers** — Hooded or collar zip-ups, tracksuit top style
+- **Tracksuits** — Full matching sets (top + pants)
+- **Pants** — Track pants, cargo, sweatpants
+- **Sets** — Coordinated two-piece outfits
+- **Shoes** — Retro trainers, sneakers
+- **Jackets** — Bomber, varsity, windbreakers, outerwear
+
+## Brands
+
+Fear of God, BAPE, Lacoste, CP Company, Denim Tears, Stone Island, Nike, Adidas, and more.
+
+## API
+
+- Product data sourced from Supabase (PostgreSQL). API endpoints at /api/*.
+- Cart and checkout use Stripe (card, Bancontact, iDEAL, Klarna, PayPal).
+- Chat support via /api/chat/* endpoints.
 
 ## Contact
 
 - Email: orders@rewind-stores.com
 - Instagram: https://instagram.com/rewind.stores
 - TikTok: https://tiktok.com/@rewindstores
+- GitHub: https://github.com/Jason533993292/rewind-store
+
+## Tech stack
+
+- Frontend: React 18 + Vite (SPA)
+- Backend: Express.js (Node)
+- Database: Supabase (PostgreSQL)
+- Payments: Stripe
+- Email: Resend
+- Hosting: Railway
