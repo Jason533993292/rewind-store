@@ -36,7 +36,8 @@
     "stripe": "^22.3.0",
     "three": "^0.185.1",
     "three-globe": "^2.45.2",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "agentation": "^3.0.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
