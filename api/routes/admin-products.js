@@ -61,13 +61,14 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
 
   app.post('/api/admin/products/update', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SK = SERVICE_KEY;
     const { id } = req.body;
     const updates = pickAllowedFields(req.body);
     if (!id) return res.status(400).json({ error: 'id required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}`, {
-        method: 'PATCH', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        method: 'PATCH', headers: { apikey: SK, Authorization: `Bearer ${SK}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
         body: JSON.stringify(updates),
       });
       const data = await r.json();
@@ -78,12 +79,13 @@ export function registerAdminProductRoutes({ app, SUPABASE_URL, auditLog, getAdm
 
   app.post('/api/admin/products/delete', async (req, res) => {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const SK = SERVICE_KEY;
     const { id } = req.body;
     if (!id) return res.status(400).json({ error: 'id required' });
     if (!SERVICE_KEY || !SUPABASE_URL) return res.status(500).json({ error: 'Supabase not configured' });
     try {
       await fetch(`${SUPABASE_URL}/rest/v1/custom_products?id=eq.${encodeURIComponent(id)}`, {
-        method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+        method: 'DELETE', headers: { apikey: SK, Authorization: `Bearer ${SK}` },
       });
       res.json({ ok: true });
     } catch { res.status(500).json({ error: 'Operation failed' }); }
