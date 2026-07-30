@@ -1,0 +1,21 @@
+# REWIND — Curated Vintage & Retro Sportswear
+
+Hand-picked vintage tracksuits, retro jerseys, rare Lacoste zip-ups, and summer sets.
+Each item authenticated, steam-cleaned, and shipped within 24 hours from Belgium.
+10–25 day delivery. No returns. VAT under €25K (sole proprietor, BE).
+
+## Key pages
+
+- https://rewind-stores.com — Homepage with hero, shop grid, and categories
+- https://rewind-stores.com/sitemap.xml — Full product sitemap for crawlers
+- https://rewind-stores.com/robots.txt — Crawl directives
+
+## Categories
+
+- Brasils / Jerseys / Polos / Jumpers / Zip-up Jumpers / Tracksuits / Pants / Sets / Shoes / Jackets
+
+## Contact
+
+- Email: orders@rewind-stores.com
+- Instagram: https://instagram.com/rewind.stores
+- TikTok: https://tiktok.com/@rewindstores
