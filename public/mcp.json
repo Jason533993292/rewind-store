@@ -1,0 +1,57 @@
+{
+  "name": "REWIND Store",
+  "description": "Vintage and retro sportswear store MCP tools",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "search_products",
+      "description": "Search products by name, brand, or category",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search term" },
+          "category": { "type": "string", "description": "Filter by category" }
+        }
+      }
+    },
+    {
+      "name": "get_product",
+      "description": "Get a single product by slug",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "description": "Product slug" }
+        },
+        "required": ["slug"]
+      }
+    },
+    {
+      "name": "check_order_status",
+      "description": "Check the status of an order by order number",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "orderNum": { "type": "string", "description": "Order number" }
+        },
+        "required": ["orderNum"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "https://rewind-stores.com/llms.txt",
+      "name": "Site Overview",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "https://rewind-stores.com/llms-full.txt",
+      "name": "Full Documentation",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "https://rewind-stores.com/sitemap.xml",
+      "name": "Sitemap",
+      "mimeType": "application/xml"
+    }
+  ]
+}

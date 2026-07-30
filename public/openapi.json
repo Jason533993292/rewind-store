@@ -1,0 +1,75 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "REWIND Store API",
+    "description": "Vintage and retro sportswear store. Products sourced from Supabase, payments via Stripe.",
+    "version": "1.0.0",
+    "contact": {
+      "email": "orders@rewind-stores.com"
+    }
+  },
+  "servers": [
+    { "url": "https://rewind-stores.com", "description": "Production" }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/custom_products": {
+      "get": {
+        "summary": "List all products",
+        "responses": { "200": { "description": "Array of products" } }
+      }
+    },
+    "/api/wishlist": {
+      "get": {
+        "summary": "Get wishlist by email",
+        "parameters": [{ "name": "email", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Wishlist items" } }
+      },
+      "post": {
+        "summary": "Save wishlist",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/create-checkout-session": {
+      "post": {
+        "summary": "Create Stripe checkout session",
+        "responses": { "200": { "description": "Payment intent" } }
+      }
+    },
+    "/api/chat/send": {
+      "post": {
+        "summary": "Send chat message",
+        "responses": { "200": { "description": "Message sent" } }
+      }
+    },
+    "/api/chat/messages": {
+      "get": {
+        "summary": "Get chat messages",
+        "parameters": [{ "name": "session_id", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Messages array" } }
+      }
+    },
+    "/api/analytics/track": {
+      "post": {
+        "summary": "Track pageview",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/send-order": {
+      "post": {
+        "summary": "Place an order",
+        "security": [{ "internalToken": [] }],
+        "responses": { "200": { "description": "Order placed" } }
+      }
+    }
+  },
+  "x-llms": {
+    "llms-txt": "https://rewind-stores.com/llms.txt",
+    "llms-full-txt": "https://rewind-stores.com/llms-full.txt"
+  }
+}
