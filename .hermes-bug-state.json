@@ -19,5 +19,14 @@
     "next_retry_after": null,
     "escalated": false,
     "notes": "Added rw-product-detail class to .rw-product-info in ProductPage.jsx. Fixed ambiguous .rw-product-page → #rw-product-page selector in test. Committed to main and pushed — Railway auto-deploys."
+  },
+  "3237eb4a3e6bf60a640555b90af7945e774eb748bd7bbdb988ddad5cb5154478": {
+    "attempts": 1,
+    "last_verdict": "fixed",
+    "first_seen": "2026-07-31T00:00:00Z",
+    "last_attempt": "2026-07-31T00:00:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "Railway RAILPACK build failed for 3 consecutive commits (310b8a7, b0cce37, 387bd69): Rollup could not resolve import \"agentation\" from src/App.jsx because agentation is in devDependencies and Railway runs npm install with --omit=dev. Moved agentation to dependencies in package.json. Commit ec58848 → main."
   }
 }
