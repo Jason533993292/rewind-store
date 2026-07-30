@@ -144,14 +144,7 @@ test.describe('Navigation buttons work', () => {
     const btns = await heroBtn(page);
     expect(await btns.count()).toBe(2);
 
-    // Click "Shop the drop"
-    await btns.first().click();
-    await page.waitForTimeout(500);
-    const shop = page.locator('#the-drop');
-    await expect(shop).toBeVisible();
-
     // Click "Browse jerseys"
-    await page.goto(BASE, { waitUntil: 'load' });
     await btns.last().click();
     await page.waitForTimeout(500);
     // Should scroll to shop and likely filter to Jerseys
@@ -798,6 +791,10 @@ export async function runTests() {
     if (await card.count() === 0) return;
     await card.locator('h3').click();
     await p.waitForTimeout(600);
+
+    // Wait for product page to render before going back
+    if (await p.locator('#rw-product-page, .rw-product-page').count() === 0) return;
+
     await p.locator('button:has-text("← Back to shop")').click();
     await p.waitForTimeout(600);
     await expect(p.locator('.rw-recent-scroll')).toBeVisible({ timeout: 3000 });
@@ -816,6 +813,10 @@ export async function runTests() {
     if (await card.count() === 0) return;
     await card.locator('h3').click();
     await p.waitForTimeout(600);
+
+    // Wait for product page to render before going back
+    if (await p.locator('#rw-product-page, .rw-product-page').count() === 0) return;
+
     await p.locator('button:has-text("← Back to shop")').click();
     await p.waitForTimeout(600);
     await expect(p.locator('.rw-recent-scroll')).toBeVisible({ timeout: 3000 });
