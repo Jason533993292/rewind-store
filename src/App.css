@@ -1204,6 +1204,13 @@ input:focus:not(:focus-visible) {
   z-index: 9999;
 }
 
+/* ── Mobile tap targets — ensure 48px min size ── */
+@media (pointer: coarse) {
+  button, a, .rw-pay, .rw-card, .rw-cat-btn, [role="button"] {
+    min-height: 48px; min-width: 48px;
+  }
+}
+
 /* ── Sold-out badge pulse animation ── */
 .rw-badge-sold {
   animation: sold-pulse 2s ease-in-out infinite;
