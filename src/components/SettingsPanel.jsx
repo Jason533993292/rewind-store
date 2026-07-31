@@ -263,6 +263,42 @@ function ThemeSettings() {
 
   return (
     <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
+        <div>
+          <p style={{ margin: '0 0 2px', fontSize: '14px', fontWeight: 600, color: 'var(--ink)' }}>Dark mode</p>
+          <p style={{ margin: '0', fontSize: '12px', color: 'var(--muted)' }}>Easier on the eyes at night</p>
+        </div>
+        <button onClick={() => applyTheme(mode === 'dark' ? 'light' : 'dark')} style={{
+          width: '48px', height: '28px', borderRadius: '999px', border: 'none', cursor: 'pointer',
+          background: mode === 'dark' ? 'var(--accent, #FF4D14)' : 'var(--line-2)',
+          position: 'relative', transition: 'background .2s', flexShrink: 0,
+        }} aria-label="Toggle dark mode">
+          <span style={{
+            position: 'absolute', top: '3px', left: mode === 'dark' ? '23px' : '3px',
+            width: '22px', height: '22px', borderRadius: '50%', background: '#fff',
+            transition: 'left .2s',
+          }} />
+        </button>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--line)' }}>
+        <div>
+          <p style={{ margin: '0 0 2px', fontSize: '14px', fontWeight: 600, color: 'var(--ink)' }}>Columns</p>
+          <p style={{ margin: '0', fontSize: '12px', color: 'var(--muted)' }}>Products per row</p>
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {['2', '3', '4'].map(c => (
+            <button key={c} onClick={() => setCols(c)} style={{
+              width: '36px', height: '36px', borderRadius: '10px', border: '1.5px solid',
+              borderColor: cols === c ? 'var(--accent, #FF4D14)' : 'var(--line-2)',
+              background: cols === c ? 'var(--accent, #FF4D14)' : 'var(--surface)',
+              color: cols === c ? '#fff' : 'var(--ink)',
+              cursor: 'pointer', fontSize: '14px', fontWeight: 700,
+              transition: 'all .15s',
+            }}>{c}</button>
+          ))}
+        </div>
+      </div>
+      <p style={{ margin: '14px 0 0', fontSize: '11px', color: 'var(--muted)' }}>Changes apply instantly and are saved on this device.</p>
     </div>
   );
 }

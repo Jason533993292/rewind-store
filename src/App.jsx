@@ -633,12 +633,23 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Wrap setQuery so that the first keystroke scrolled to the product grid,
-  // consistent with every other filter method (sidebar, header nav, hero, footer).
   const handleQueryChange = useCallback((value) => {
-    if (value && !query) scrollToGrid();
     setQuery(value);
-  }, [query, scrollToGrid]);
+  }, [setQuery]);
+
+  // Open a product from a search suggestion (navigates to the product page)
+  const handleSearchSelect = useCallback((s) => {
+    if (!s) return;
+    setQuery(s.name || '');
+    const pid = s.id;
+    const allProds = [...REWIND_PRODUCTS, ...customProducts];
+    const p = allProds.find(x => (x.id || x.product_id || x.name) === (pid || s.name));
+    if (p) {
+      setSelectedProduct(p);
+      nav('/product/' + (p.id || p.product_id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [customProducts]);
 
   // Count products per category and brand for sidebar badges
   const allProducts = useMemo(() => [...REWIND_PRODUCTS, ...customProducts], [customProducts]);
@@ -694,7 +705,7 @@ export default function App() {
     return [...REWIND_PRODUCTS, ...customProducts]
       .filter(p => (p.name + ' ' + p.cat + ' ' + (p.brand || '')).toLowerCase().includes(q))
       .slice(0, 5)
-      .map(p => ({ name: p.name, cat: p.cat }));
+      .map(p => ({ name: p.name, cat: p.cat, id: p.id || p.product_id || p.name }));
   }, [query, customProducts]);
 
   // Admin check — used to gate admin-only UI elements
@@ -957,7 +968,7 @@ export default function App() {
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
         onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
-        isAdmin={isAdmin} searchSuggestions={searchSuggestions} />
+        isAdmin={isAdmin} searchSuggestions={searchSuggestions} onSearchSelect={handleSearchSelect} />
       <main className="rw-shop">
       <ProductPage key={curPid} p={selectedProduct}
         onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
@@ -991,7 +1002,7 @@ export default function App() {
         onWishlistOpen={() => setWishlistOpen(true)}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
         onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
-        isAdmin={isAdmin} searchSuggestions={searchSuggestions} />
+        isAdmin={isAdmin} searchSuggestions={searchSuggestions} onSearchSelect={handleSearchSelect} />
       <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
       <Marquee />
       <React.Suspense fallback={null}>

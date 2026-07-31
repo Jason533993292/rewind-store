@@ -21,7 +21,7 @@ export function Icon({ name, size = 20 }) {
     arrow:  <><path d="M5 12h14M13 6l6 6-6 6"/></>,
     check:  <><path d="M4 12l5 5L20 6"/></>,
     chev:   <><path d="M6 9l6 6 6-6"/></>,
-    bag:    <><path d="M6.5 9h11l-.9 11H7.4L6.5 9z"/><path d="M9.5 9V6.5a2.5 2.5 0 0 1 5 0V9"/><path d="M6.5 9h11"/></>,
+    bag:    <><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></>,
     bolt:   <><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></>,
     truck:  <><path d="M2 6h11v9H2zM13 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></>,
     retrn:  <><path d="M3 8h11a5 5 0 0 1 0 10H8"/><path d="M6 5 3 8l3 3"/></>,
@@ -117,7 +117,7 @@ export function Banner({ showCountdown }) {
 }
 
 /* ---------- Header ---------- */
-export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version, onVersionClick, onReferral, isAdmin, searchSuggestions }) {
+export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version, onVersionClick, onReferral, isAdmin, searchSuggestions, onSearchSelect }) {
   const [focusedIdx, setFocusedIdx] = useState(-1);
   const suggestRef = useRef(null);
 
@@ -150,8 +150,8 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
       setFocusedIdx(i => Math.max(i - 1, 0));
     } else if (e.key === 'Enter' && focusedIdx >= 0) {
       e.preventDefault();
-      setQuery(searchSuggestions[focusedIdx].name);
-      setFocusedIdx(-1);
+      if (onSearchSelect) onSearchSelect(searchSuggestions[focusedIdx]);
+      else { setQuery(searchSuggestions[focusedIdx].name); setFocusedIdx(-1); }
     } else if (e.key === 'Escape') {
       setFocusedIdx(-1);
       e.target.blur();
@@ -165,7 +165,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
         <div className="rw-logo" style={{ cursor: 'pointer' }}
           role="link" tabIndex={0}
           onClick={() => { nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); }}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); } }}>REWIND<span>.</span></div>
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); window.dispatchEvent(new CustomEvent('reset-store')); } }}>RE<span className="rw-logo-w">W</span>IND<span>.</span></div>
         <nav className="rw-nav">
           {cats.map((c) => (
             <button key={c} className={"rw-navlink" + (cat === c ? " is-on" : "")}
@@ -180,7 +180,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
               aria-controls="rw-search-listbox"
               aria-activedescendant={focusedIdx >= 0 ? `rw-sugg-${focusedIdx}` : undefined} />
             {query && (
-            <button onClick={() => setQuery('')}
+            <button onClick={(e) => { setQuery(''); setFocusedIdx(-1); e.currentTarget.blur(); }}
               aria-label="Clear search"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -201,7 +201,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
               }}>
                 {searchSuggestions.map((s, i) => (
                   <button key={s.name} id={`rw-sugg-${i}`} role="option" aria-selected={focusedIdx === i}
-                    onClick={() => { setQuery(s.name); setFocusedIdx(-1); }}
+                    onClick={() => { if (onSearchSelect) onSearchSelect(s); else { setQuery(s.name); setFocusedIdx(-1); } }}
                     onMouseOver={() => setFocusedIdx(i)}
                     style={{
                       display: 'block', width: '100%', padding: '8px 14px',

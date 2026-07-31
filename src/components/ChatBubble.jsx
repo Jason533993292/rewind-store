@@ -315,15 +315,16 @@ export default function ChatBubble() {
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
         aria-label={open ? 'Close chat' : 'Open chat'}
+        className="rw-chat-fab"
         style={{
-          width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF6A33',
-          background: '#FF6A33', color: '#fff',
+          width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF3B00',
+          background: '#FF3B00', color: '#fff',
           fontSize: '22px', cursor: 'pointer', position: 'relative',
           transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
-          boxShadow: open ? '0 4px 16px rgba(255,106,51,.3)' : '0 2px 8px rgba(255,106,51,.15)',
+          boxShadow: open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)',
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.12)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(255,106,51,.35)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = open ? '0 4px 16px rgba(255,106,51,.3)' : '0 2px 8px rgba(255,106,51,.15)'; }}>
+        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,59,0,.45)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)'; }}>
         {open ? '\u00d7' : (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto' }}>
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

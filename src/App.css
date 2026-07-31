@@ -112,8 +112,18 @@ a { color: inherit; cursor: pointer; }
   max-width: var(--maxw); margin: 0 auto; padding: 14px 24px;
   display: flex; align-items: center; gap: 24px;
 }
-.rw-logo { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.04em; }
+.rw-logo { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.04em; display: inline-block; }
 .rw-logo span { color: var(--accent); }
+.rw-logo-w { color: var(--accent, #FF4D14); display: inline-block; }
+/* Logo hover — W pops up with a little bounce */
+.rw-logo { transition: transform .18s ease; }
+.rw-logo:hover { transform: translateY(-2px); }
+.rw-logo:hover .rw-logo-w { animation: logo-w-pop .45s cubic-bezier(.34,1.56,.64,1); }
+@keyframes logo-w-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.35) rotate(-6deg); }
+  100% { transform: scale(1); }
+}
 .rw-logo-lg { font-size: 40px; }
 .rw-nav { display: flex; gap: 4px; margin-left: 8px; }
 .rw-navlink {
@@ -134,13 +144,12 @@ a { color: inherit; cursor: pointer; }
 }
 .rw-search input { border: none; outline: none; background: none; width: 120px; font-size: 14px; color: var(--ink); transition: width .2s ease; }
 .rw-search:focus-within input { width: 220px; }
-.rw-iconbtn {
-  position: relative; width: 42px; height: 42px; border-radius: 999px;
+.rw-iconbtn { position: relative; width: 42px; height: 42px; border-radius: 999px;
   display: grid; place-items: center;
-  background: var(--surface); border: 1px solid var(--line);
-  transition: transform .16s cubic-bezier(.3,1.4,.5,1), border-color .15s;
+  background: var(--surface); border: 1.5px solid var(--line);
+  transition: transform .16s cubic-bezier(.3,1.4,.5,1), border-color .15s, box-shadow .15s;
 }
-.rw-iconbtn:hover { transform: scale(1.08); border-color: var(--ink); }
+.rw-iconbtn:hover { transform: scale(1.08); border-color: var(--accent, #FF4D14); box-shadow: 0 3px 10px rgba(255,77,20,.18); }
 .rw-badge {
   position: absolute; top: -5px; right: -5px; min-width: 20px; height: 20px; padding: 0 5px;
   background: var(--accent); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700;
@@ -1202,6 +1211,24 @@ input:focus:not(:focus-visible) {
   animation: confetti-fall 3s ease-in forwards;
   pointer-events: none;
   z-index: 9999;
+}
+
+/* ── Chat FAB popup animation on hover ── */
+.rw-chat-fab { animation: none; }
+.rw-chat-fab:hover { animation: chat-fab-pop .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes chat-fab-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.22) rotate(-4deg); }
+  100% { transform: scale(1.15); }
+}
+
+/* ── Header icon buttons — popup animation on hover ── */
+.rw-iconbtn { animation: none; }
+.rw-iconbtn:hover { animation: iconbtn-pop .45s cubic-bezier(.34,1.56,.64,1); }
+@keyframes iconbtn-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18) rotate(-5deg); }
+  100% { transform: scale(1.08); }
 }
 
 /* ── Mobile tap targets — ensure 48px min size ── */

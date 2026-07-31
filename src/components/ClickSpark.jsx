@@ -82,6 +82,9 @@ const ClickSpark = ({
 
   const handleClick = e => {
     if (disabled) return;
+    // Don't show sparks when clicking interactive elements (buttons, links, inputs)
+    const t = e.target;
+    if (t && (t.closest && t.closest('button, a, input, select, textarea, label, [role="button"]'))) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
