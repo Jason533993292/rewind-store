@@ -241,20 +241,21 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
             </button>
           </div>
           <button id="rw-admin-verify-btn" onClick={async () => {
-            if (!adminEmail) return;
-            if (!adminToken) { setAdminMsg('❌ Please enter your admin secret token.'); return; }
+            const cleanEmail = (adminEmail || '').trim();
+            const cleanToken = (adminToken || '').trim();
+            if (!cleanEmail) return;
+            if (!cleanToken) { setAdminMsg('❌ Please enter your admin secret token.'); return; }
             setAdminMsg('');
             try {
               const r = await fetch('/api/verify-admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: adminEmail, token: adminToken })
+                body: JSON.stringify({ email: cleanEmail, token: cleanToken })
               });
               if (!r.ok) { setAdminMsg('❌ Server error (' + r.status + ') — try again'); return; }
               const d = await r.json();
               if (d.verified) {
-                localStorage.setItem('rw_admin_email', adminEmail);
-                
+                localStorage.setItem('rw_admin_email', cleanEmail);
                 setAdminAuthed(true);
               } else {
                 setAdminMsg('❌ Access denied. This email is not on the admin list.');

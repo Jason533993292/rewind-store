@@ -1371,9 +1371,10 @@ export default function App() {
       {!adminMode && (
         <button onClick={() => setShowBugBounty(true)}
           title="Report a bug"
+          className="rw-bug-fab"
           style={{ position: 'fixed', bottom: '70px', right: 'max(20px, env(safe-area-inset-right, 0px))', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-          onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-          onMouseOut={e => { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.transform = 'scale(1)'; }}>
+          onMouseOver={e => { e.currentTarget.style.background = 'var(--accent, #FF4D14)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--accent, #FF4D14)'; }}
+          onMouseOut={e => { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--line-2)'; }}>
           🐛
         </button>
       )}

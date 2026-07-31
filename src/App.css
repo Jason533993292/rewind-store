@@ -1222,6 +1222,15 @@ input:focus:not(:focus-visible) {
   100% { transform: scale(1.15); }
 }
 
+/* ── Bug FAB popup animation on hover ── */
+.rw-bug-fab { animation: none; }
+.rw-bug-fab:hover { animation: bug-fab-pop .5s cubic-bezier(.34,1.56,.64,1); }
+@keyframes bug-fab-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.28) rotate(-8deg); }
+  100% { transform: scale(1.1); }
+}
+
 /* ── Header icon buttons — popup animation on hover ── */
 .rw-iconbtn { animation: none; }
 .rw-iconbtn:hover { animation: iconbtn-pop .45s cubic-bezier(.34,1.56,.64,1); }

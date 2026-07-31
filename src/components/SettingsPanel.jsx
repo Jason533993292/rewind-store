@@ -383,17 +383,19 @@ export default function SettingsPanel({ onClose, showToast }) {
                   <button onClick={() => setShowToken(!showToken)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: 'var(--muted)', padding: '4px' }}>{showToken ? '🙈' : '👁️'}</button>
                 </div>
                 <button onClick={async () => {
-                  if (!adminEmail || !adminToken) { setAdminMsg('❌ Enter email and token'); return; }
+                  const cleanEmail = (adminEmail || '').trim();
+                  const cleanToken = (adminToken || '').trim();
+                  if (!cleanEmail || !cleanToken) { setAdminMsg('❌ Enter email and token'); return; }
                   setAdminMsg('');
                   try {
                     const r = await fetch('/api/verify-admin', {
                       method: 'POST', headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: adminEmail, token: adminToken }),
+                      body: JSON.stringify({ email: cleanEmail, token: cleanToken }),
                     });
                     const d = await r.json();
                     if (d.verified) {
-                      localStorage.setItem('rw_admin_email', adminEmail);
-                      localStorage.setItem('rw_admin_token', d.sessionToken || adminToken);
+                      localStorage.setItem('rw_admin_email', cleanEmail);
+                      localStorage.setItem('rw_admin_token', d.sessionToken || cleanToken);
                       setAdminAuthed(true);
                     } else {
                       setAdminMsg('❌ Access denied');
