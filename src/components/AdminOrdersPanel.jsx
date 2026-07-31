@@ -150,10 +150,8 @@ export default function AdminOrdersPanel({ showToast }) {
         <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>📦 Orders ({total})</h3>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={async () => {
-            console.log('Creating test order...');
             try {
               const r = await adminApi.createTestOrder();
-              console.log('Test order response:', r);
               if (r.ok) {
                 showToast?.('✅ Test order created: ' + r.data.orderNum, 'success');
                 loadOrders();

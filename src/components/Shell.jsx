@@ -294,7 +294,7 @@ export function Marquee() {
   const row = [...items, ...items, ...items, ...items];
   return (
     <div className="rw-marquee">
-      <div className="rw-marquee-track">
+      <div className="rw-marquee-track" aria-hidden="true">
         {row.map((t, k) => <span key={k} className="rw-marquee-item"><Icon name="bolt" size={13} /> {t}</span>)}
       </div>
     </div>

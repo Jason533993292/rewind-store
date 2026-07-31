@@ -183,7 +183,7 @@ export default function AdminChatPanel({ chatUnread, setChatUnread }) {
                   const isCustomer = m.sender === 'customer';
                   const nameColor = isCustomer ? 'var(--muted)' : (m.sender === 'ai' ? 'var(--accent)' : '#fff');
                   return (
-                    <div key={m.id || m.timestamp || Math.random()}
+                    <div key={m.id || `${m.sender}-${m.created_at || m.timestamp || ''}`}
                       style={{
                         alignSelf: isCustomer ? 'flex-start' : 'flex-end',
                         maxWidth: '90%',
