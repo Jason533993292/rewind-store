@@ -326,8 +326,9 @@ export default function ChatBubble() {
         onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,59,0,.45)'; }}
         onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)'; }}>
         {open ? '\u00d7' : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto' }}>
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto' }}>
+            <path d="M21 14.5a2 2 0 0 1-2 2H7.5L4 20V5.5A2.5 2.5 0 0 1 6.5 3h12.5A2 2 0 0 1 21 5v9.5z"/>
+            <path d="M8.5 10h7M8.5 13.5h4"/>
           </svg>
         )}
         {!open && unread > 0 && (
