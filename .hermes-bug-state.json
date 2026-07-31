@@ -18,7 +18,7 @@
     "last_attempt": "2026-07-28T05:00:00Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "Added rw-product-detail class to .rw-product-info in ProductPage.jsx. Fixed ambiguous .rw-product-page \u2192 #rw-product-page selector in test. Committed to main and pushed \u2014 Railway auto-deploys."
+    "notes": "Added rw-product-detail class to .rw-product-info in ProductPage.jsx. Fixed ambiguous .rw-product-page → #rw-product-page selector in test. Committed to main and pushed — Railway auto-deploys."
   },
   "3237eb4a3e6bf60a640555b90af7945e774eb748bd7bbdb988ddad5cb5154478": {
     "attempts": 1,
@@ -27,7 +27,7 @@
     "last_attempt": "2026-07-31T00:00:00Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "Railway RAILPACK build failed for 3 consecutive commits (310b8a7, b0cce37, 387bd69): Rollup could not resolve import \"agentation\" from src/App.jsx because agentation is in devDependencies and Railway runs npm install with --omit=dev. Moved agentation to dependencies in package.json. Commit ec58848 \u2192 main."
+    "notes": "Railway RAILPACK build failed for 3 consecutive commits (310b8a7, b0cce37, 387bd69): Rollup could not resolve import \"agentation\" from src/App.jsx because agentation is in devDependencies and Railway runs npm install with --omit=dev. Moved agentation to dependencies in package.json. Commit ec58848 → main."
   },
   "89555b2f9c630392bd7e24252e47b2da7af67e82bc31822b32cc1a53cb6d1ed8": {
     "attempts": 1,
@@ -46,5 +46,32 @@
     "next_retry_after": null,
     "escalated": false,
     "notes": "Re-delivery of already-fixed -15 SIGTERM report (duplicate). Hardening intact: socket.setdefaulttimeout(15), IMAP4_SSL(timeout=15), signal.alarm(25) watchdog exits rc=0. Re-verified 2026-07-31: hardened email-monitor.py runs clean rc=0, valid JSON, 10 emails, no hang. No new failure; skip, already fixed, no escalation."
+  },
+  "2026-07-31-stale-deploy-webhooks": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-07-31T00:00:00Z",
+    "last_attempt": "2026-07-31T22:00:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "No active bug. cron_inbox held 142 unhandled webhook_event deployment notifications (building/deploying/deployed/push/failed) dating from 2026-07-26 checkout-fix blitz. All 9 Deployment.failed events predate the last successful deploys (2026-07-31 commits 3c85872, 4fa01fd SUCCESS). Production healthy (HTTP 200 on /, /#/, /api/health). Marked all stale notifications handled/skip to clear the queue. Learned: cron_inbox has no 'handled_by' column — PATCH with handled/handled_at/verdict only."
+  },
+  "2026-08-01-stale-deploy-webhooks": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-07-31T22:14:14Z",
+    "last_attempt": "2026-07-31T22:14:14Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox held 29 unhandled webhook_event deployment notifications (push/building/deploying/deployed) + bug_watcher_run logs. Zero Deployment.failed, zero non-webhook bug reports. Production healthy (HTTP 200 / and /api/health). Last deploy 7479bcb (hero image preload fix) SUCCESS. Marked all 29 handled/skip to clear queue. No active bug."
+  },
+  "2026-08-01-stale-deploy-webhooks-2": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T00:00:00Z",
+    "last_attempt": "2026-08-01T00:00:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox held 9 stale webhook_event deployment notifications (push/building/deploying/deployed x8 + bug_watcher_run x1) from a single 2026-07-31T22:18 deploy. Zero Deployment.failed (checked last 30 webhook_events), zero chat/email bug reports. Production healthy: HTTP 200 on / and /api/health, status ok, uptime ~24min, dist 13 files. Marked all 9 handled/skip to clear queue. No active bug."
   }
 }
