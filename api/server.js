@@ -992,6 +992,35 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
   } catch { res.json({ found: false }); }
 });
 
+// ── Report a bug (submitted from the BugReportModal panel) ──
+app.post('/api/report-bug', (req, res) => {
+  const { message, email, page, browser } = req.body || {};
+  if (!message || typeof message !== 'string' || message.trim().length < 10) {
+    return res.status(400).json({ error: 'Message must be at least 10 characters' });
+  }
+  // Log to webhook_events so the webhook-check/bug-watcher crons pick it up.
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (SERVICE_KEY) {
+      fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
+        method: 'POST',
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          source: 'bug-report',
+          event: 'bug.reported',
+          payload: JSON.stringify({
+            message: message.trim().slice(0, 2000),
+            email: (email || '').trim() || null,
+            page: page || '',
+            browser: (browser || '').slice(0, 300),
+          }),
+        }),
+      }).catch(() => {});
+    }
+  } catch {}
+  res.json({ ok: true });
+});
+
 app.post('/api/get-orders', strictLimiter, async (req, res) => {
   const { email, orderNum } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });

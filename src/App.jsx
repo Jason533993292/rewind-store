@@ -126,7 +126,7 @@ export default function App() {
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [showOrderConfirmed, setShowOrderConfirmed] = useState(false);
   const [confirmedOrderNum, setConfirmedOrderNum] = useState('');
-  const [showBugBounty, setShowBugBounty] = useState(false);
+  const [showBugReport, setShowBugReport] = useState(false);
 
   // ── ALL useEffects below ──
 
@@ -1377,9 +1377,9 @@ export default function App() {
       </TweaksPanel>}
       <CookieBanner />
 
-      {/* ── Bug bounty floating button ── */}
+      {/* ── Bug report floating button ── */}
       {!adminMode && (
-        <button onClick={() => setShowBugBounty(true)}
+        <button onClick={() => setShowBugReport(true)}
           title="Report a bug"
           className="rw-bug-fab"
           style={{ position: 'fixed', bottom: '70px', right: 'max(20px, env(safe-area-inset-right, 0px))', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
@@ -1389,26 +1389,9 @@ export default function App() {
         </button>
       )}
 
-      {/* ── Bug bounty modal ── */}
-      {showBugBounty && (
-        <div className="rw-modal-wrap" onClick={() => setShowBugBounty(false)}>
-          <div className="rw-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px', gridTemplateColumns: '1fr', padding: '32px', textAlign: 'center' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>🐛</div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '18px' }}>Found a bug? Tell us!</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '16px' }}>
-              If you encounter an error or bug while navigating this site, please tell us and we will fix it.<br />
-              You may possibly receive a reward for it!
-            </p>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              <button className="rw-btn" style={{ outline: '2px solid var(--line-2)', outlineOffset: '2px' }} onClick={() => setShowBugBounty(false)}>Close</button>
-              <button className="rw-btn rw-btn-pri" onClick={() => { 
-                var mailto = 'mailto:phil@rewind-stores.com?subject=Bug%20Report%20-%20REWIND%20Store&body=Describe%20the%20bug%20you%20found:%0A%0A1.%20What%20happened?%0A0A2.%20What%20did%20you%20expect?%0A3.%20What%20page%20were%20you%20on?';
-                window.open(mailto, '_blank');
-                setTimeout(function(){ setShowBugBounty(false); }, 300);
-              }}>Report a bug</button>
-            </div>
-          </div>
-        </div>
+      {/* ── Bug report panel ── */}
+      {showBugReport && (
+        <BugReportModal email={userEmail} onClose={() => setShowBugReport(false)} showToast={showToast} />
       )}
     </ClickSpark>
   );
