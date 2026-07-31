@@ -302,7 +302,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
             <div className="rw-sizes-row">
               {p.sizes.map((s) => (
                 <button key={s} className={"rw-size" + (size === s ? " is-on" : "")}
-                  onClick={() => setSize(s)}>{s}</button>
+                  onClick={() => setSize(size === s ? null : s)}>{s}</button>
               ))}
             </div>
           </div>

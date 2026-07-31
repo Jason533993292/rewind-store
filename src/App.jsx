@@ -1013,9 +1013,6 @@ export default function App() {
             background: 'var(--bg)',
             borderRadius: '12px',
             padding: '20px 16px',
-            position: 'sticky',
-            top: '20px',
-            alignSelf: 'flex-start',
           }}>
             <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {availableCats.map((c) => (
@@ -1337,7 +1334,7 @@ export default function App() {
       {!drawer && <ChatBubble />}
 
       {/* ── Agentation annotation toolbar (dev only) ── */}
-      {process.env.NODE_ENV === 'development' && <Agentation endpoint="http://localhost:4747" />}
+      {typeof window !== 'undefined' && window.location.hostname === 'localhost' && <Agentation endpoint="http://localhost:4747" />}
 
       {showSettings && (
         <React.Suspense fallback={null}>

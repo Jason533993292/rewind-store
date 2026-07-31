@@ -21,7 +21,7 @@ export function Icon({ name, size = 20 }) {
     arrow:  <><path d="M5 12h14M13 6l6 6-6 6"/></>,
     check:  <><path d="M4 12l5 5L20 6"/></>,
     chev:   <><path d="M6 9l6 6 6-6"/></>,
-    bag:    <><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></>,
+    bag:    <><path d="M6.5 9h11l-.9 11H7.4L6.5 9z"/><path d="M9.5 9V6.5a2.5 2.5 0 0 1 5 0V9"/><path d="M6.5 9h11"/></>,
     bolt:   <><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></>,
     truck:  <><path d="M2 6h11v9H2zM13 9h4l3 3v3h-7z"/><circle cx="6" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></>,
     retrn:  <><path d="M3 8h11a5 5 0 0 1 0 10H8"/><path d="M6 5 3 8l3 3"/></>,
