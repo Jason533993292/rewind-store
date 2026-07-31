@@ -281,7 +281,7 @@ export function Hero({ onShop, onBundle, bundle }) {
         <button type="button" className="rw-hero-bundle" onClick={onBundle}
           aria-label={bundle ? `View ${bundle.name} — €${bundle.price}` : 'View the Lacoste Jacket Bundle'}>
           <span className="rw-hero-loop">
-            <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg" />
+            <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg?v=2" />
           </span>
           {bundle && (
             <span className="rw-hero-caption">{bundle.name} · €{bundle.price}</span>
