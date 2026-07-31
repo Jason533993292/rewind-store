@@ -61,7 +61,7 @@ export default function OrderTracking({ onClose }) {
 
         {!result && (
           <form onSubmit={handleLookup}>
-            <input className="rw-input" type="email" placeholder="Email" value={email}
+            <input className="rw-input" type="email" placeholder="Email" name="email" value={email}
               onChange={e => setEmail(e.target.value)} style={{ marginBottom: '10px' }} />
             <input className="rw-input" type="text" placeholder="Order number (e.g. RW-12345678)" value={orderNum}
               onChange={e => setOrderNum(e.target.value)} style={{ marginBottom: '14px' }} />

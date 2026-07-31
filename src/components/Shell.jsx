@@ -175,7 +175,7 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
         <div className="rw-header-actions">
           <div className="rw-search" ref={suggestRef} style={{position:'relative'}}>
             <Icon name="search" size={17} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" aria-label="Search products"
+            <input id="rw-search" name="q" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" aria-label="Search products"
               role="combobox" aria-expanded={!!hasSuggestions} aria-haspopup="listbox" aria-autocomplete="list"
               aria-controls="rw-search-listbox"
               aria-activedescendant={focusedIdx >= 0 ? `rw-sugg-${focusedIdx}` : undefined} />

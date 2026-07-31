@@ -281,7 +281,7 @@ export default function ChatBubble() {
             <div style={{ padding: '14px' }}>
               <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 8px' }}>Enter your email to start chatting</p>
               <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value.slice(0, 200))}
-                placeholder="your@email.com" type="email"
+                placeholder="your@email.com" type="email" name="chat-email"
                 onKeyDown={e => { if (e.key === 'Enter' && customerEmail.includes('@')) setShowEmailScreen(false); }}
                 style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '16px', boxSizing: 'border-box' }} />
               <button onClick={() => setShowEmailScreen(false)}

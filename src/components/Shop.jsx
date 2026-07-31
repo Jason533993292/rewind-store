@@ -792,7 +792,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
         <div className="rw-checkout-main">
           <div className="rw-co-sec">
             <h3>Contact</h3>
-            <input className="rw-input" type="email" placeholder="Email" value={formFields.email} onChange={setField('email')} autoComplete="email" />
+            <input className="rw-input" type="email" placeholder="Email" name="email" value={formFields.email} onChange={setField('email')} autoComplete="email" />
           </div>
           <div className="rw-co-sec">
             <h3>Promo code</h3>
@@ -1149,7 +1149,7 @@ export function SignupModal({ open, onClose, onSignup }) {
               Sign up with your email to save items and come back later.
             </p>
             <form onSubmit={handleSubmit}>
-              <input className="rw-input" type="email" placeholder="Your email"
+              <input className="rw-input" type="email" placeholder="Your email" name="newsletter-email"
                 value={email} onChange={(e) => setEmail(e.target.value)}
                 style={{ marginBottom: '14px' }} autoFocus />
               <label className="rw-check" style={{ marginBottom: '10px' }}>

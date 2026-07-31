@@ -203,13 +203,17 @@ a { color: inherit; cursor: pointer; }
   position: relative; display: block; width: 100%;
   background: none; border: 0; padding: 0; cursor: pointer; text-align: left;
   border-radius: 16px; overflow: hidden;
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease;
 }
+.rw-hero-bundle:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 14px 34px rgba(0,0,0,.28); }
 .rw-hero-bundle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .rw-hero-caption {
   position: absolute; left: 12px; bottom: 12px; z-index: 2;
   background: rgba(0, 0, 0, .72); color: #fff; padding: 8px 14px; border-radius: 999px;
   font-size: 13px; font-weight: 600; letter-spacing: .01em; max-width: calc(100% - 24px);
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease;
 }
+.rw-hero-bundle:hover .rw-hero-caption { transform: scale(1.07); box-shadow: 0 6px 18px rgba(0,0,0,.4); }
 .rw-hero-loop {
   animation: heroPulse 4s ease-in-out infinite;
 }
@@ -219,6 +223,7 @@ a { color: inherit; cursor: pointer; }
 }
 @media (prefers-reduced-motion: reduce) {
   .rw-hero-loop { animation: none; }
+  .rw-hero-bundle, .rw-hero-bundle .rw-hero-caption { transition: none; }
 }
 .rw-hero-art .rw-photo:first-child { grid-row: 1 / span 2; }
 @media (max-width: 860px) {
