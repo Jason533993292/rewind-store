@@ -37,5 +37,14 @@
     "next_retry_after": null,
     "escalated": false,
     "notes": "Removed inline onload='this.onload=null;this.rel=stylesheet' from Google Fonts preload link in index.html; replaced with plain <link rel=stylesheet>. Inline event handler violated helmet CSP script-src-attr 'none'. Verified locally: CSP test passes (1 passed), build ok. Commit 020bb81 -> main, Railway auto-deploys."
+  },
+  "cfe923fa07af4b4b54344fc23341176b5f7a3cde207a5ac486189c64454119f7": {
+    "attempts": 1,
+    "last_verdict": "fixed",
+    "first_seen": "2026-07-31T08:14:52Z",
+    "last_attempt": "2026-07-31T08:14:52Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "Data-collection script (email-monitor.py, ~/.hermes/scripts/) failed with exit code -15 (SIGTERM). Root cause: Gmail IMAP calls had NO timeouts; a transient Gmail stall hung the process and the cron runner killed it. Hardened script: socket.setdefaulttimeout(15), IMAP4_SSL(timeout=15), signal.alarm(25) deadline that exits cleanly rc=0 instead of hanging. Verified normal run rc=0 valid JSON. Backup kept."
   }
 }
