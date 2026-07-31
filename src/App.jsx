@@ -12,6 +12,7 @@ import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRad
 import { REWIND_PRODUCTS, REWIND_CATS, BRANDS } from './data';
 import { getWishlist, saveWishlist, signupUser, supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from './lib/supabase';
 import ProductPage from './components/ProductPage';
+import BugReportModal from './components/BugReportModal';
 import RecentlyViewed from './components/RecentlyViewed';
 import { Agentation } from "agentation";
 import { money } from './hooks/useCountdown';
