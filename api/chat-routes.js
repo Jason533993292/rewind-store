@@ -51,7 +51,9 @@ function makeLimiter() {
 }
 
 function getIp(req) {
-  return req.ip;
+  return req.headers['x-forwarded-for']?.split(',')[0]?.trim()
+    || req.headers['cf-connecting-ip']
+    || req.ip;
 }
 
 export function buildChatRouter({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, resend, FROM_EMAIL, REPLY_TO, notifyEmail, requireAdmin, requireCronToken }) {
