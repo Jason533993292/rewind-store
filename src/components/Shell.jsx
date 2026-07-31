@@ -279,7 +279,7 @@ export function Hero({ onShop }) {
       </div>
       <div className="rw-hero-art">
         <div className="rw-hero-loop">
-          <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.png" />
+          <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg" />
         </div>
       </div>
     </section>
