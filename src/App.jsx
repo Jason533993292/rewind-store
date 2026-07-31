@@ -1003,7 +1003,12 @@ export default function App() {
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
         onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
         isAdmin={isAdmin} searchSuggestions={searchSuggestions} onSearchSelect={handleSearchSelect} />
-      <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }} />
+      <Hero onShop={(filterCat) => { setCat(filterCat || 'All'); scrollToGrid(); }}
+        bundle={allProducts.find(p => p.id === 9 || p.product_id === 'lacoste-jacket-bundle')}
+        onBundle={() => {
+          const b = allProducts.find(p => p.id === 9 || p.product_id === 'lacoste-jacket-bundle');
+          if (b) { setSelectedProduct(b); nav('/product/' + (b.id || b.product_id)); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        }} />
       <Marquee />
       <React.Suspense fallback={null}>
         {typeof window !== 'undefined' && window.innerWidth > 768 && <CustomerMap />}

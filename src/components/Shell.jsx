@@ -257,7 +257,7 @@ export function TypingText({ texts, typingSpeed = 80, deleteSpeed = 40, pauseDur
 }
 
 /* ---------- Hero ---------- */
-export function Hero({ onShop }) {
+export function Hero({ onShop, onBundle, bundle }) {
   return (
     <section className="rw-hero">
       <div className="rw-hero-copy">
@@ -278,9 +278,15 @@ export function Hero({ onShop }) {
         </div>
       </div>
       <div className="rw-hero-art">
-        <div className="rw-hero-loop">
-          <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg" />
-        </div>
+        <button type="button" className="rw-hero-bundle" onClick={onBundle}
+          aria-label={bundle ? `View ${bundle.name} — €${bundle.price}` : 'View the Lacoste Jacket Bundle'}>
+          <span className="rw-hero-loop">
+            <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg" />
+          </span>
+          {bundle && (
+            <span className="rw-hero-caption">{bundle.name} · €{bundle.price}</span>
+          )}
+        </button>
       </div>
     </section>
   );
