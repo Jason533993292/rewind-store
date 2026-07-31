@@ -108,7 +108,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>Sold Out</div>
         ) : (
         <div className="rw-card-ship">
-          <Icon name="retrn" size={13} /> Free returns <span className="rw-price-was">€8</span>
+          <Icon name="retrn" size={13} /> Free returns <span style={{ fontSize: '12px', color: 'var(--muted)', textDecoration: 'line-through', opacity: '.75' }}>€8</span>
         </div>
         )}
       </div>

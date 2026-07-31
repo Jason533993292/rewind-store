@@ -1024,6 +1024,11 @@ export default function App() {
             background: 'var(--bg)',
             borderRadius: '12px',
             padding: '20px 16px',
+            position: 'sticky',
+            top: '80px',
+            maxHeight: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            alignSelf: 'flex-start',
           }}>
             <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
             {availableCats.map((c) => (

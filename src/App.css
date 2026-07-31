@@ -112,7 +112,7 @@ a { color: inherit; cursor: pointer; }
   max-width: var(--maxw); margin: 0 auto; padding: 14px 24px;
   display: flex; align-items: center; gap: 24px;
 }
-.rw-logo { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.04em; display: inline-block; }
+.rw-logo { font-family: var(--font-head); font-weight: 800; font-size: 26px; letter-spacing: -.04em; display: inline-block; white-space: nowrap; line-height: 1; }
 .rw-logo span { color: var(--accent); }
 .rw-logo-w { color: var(--accent, #FF4D14); display: inline-block; }
 /* Logo hover — W pops up with a little bounce */
@@ -222,8 +222,8 @@ a { color: inherit; cursor: pointer; }
 }
 .rw-marquee-track {
   display: flex; gap: 40px; width: max-content;
-  animation: scroll 20s linear infinite;
-  will-change: transform;
+  animation: scroll 24s linear infinite;
+  will-change: transform; transform: translateZ(0); backface-visibility: hidden;
 }
 .rw-marquee-item {
   display: inline-flex; align-items: center; gap: 8px;
@@ -232,7 +232,7 @@ a { color: inherit; cursor: pointer; }
 }
 .rw-marquee-item svg { color: var(--accent); }
 .rw-marquee-track > * { flex-shrink: 0; }
-@keyframes scroll { to { transform: translateX(-25%); } }
+@keyframes scroll { to { transform: translate3d(-25%, 0, 0); } }
 .rw-marquee-track:hover { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .rw-marquee-track { animation: none; }
