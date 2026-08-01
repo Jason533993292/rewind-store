@@ -88,7 +88,7 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
               id="bug-message"
               name="bug-message"
               value={message}
-              onChange={e => setMessage(e.target.value)}
+              onChange={e => setMessage(e.target.value.slice(0, 20))}
               placeholder="Describe what went wrong (max 20 characters)..."
               rows={4}
               maxLength={20}
@@ -97,7 +97,7 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
               autoFocus
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '12px', marginBottom: '16px', color: 20 - message.length <= 3 ? '#e5484d' : 'var(--muted)' }}>
-              {20 - message.length} {20 - message.length === 1 ? 'character' : 'characters'} left
+              {Math.max(0, 20 - message.length)} {Math.max(0, 20 - message.length) === 1 ? 'character' : 'characters'} left
             </div>
 
             <label htmlFor="bug-email" style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '6px' }}>
