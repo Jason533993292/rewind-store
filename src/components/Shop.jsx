@@ -108,7 +108,11 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>Sold Out</div>
         ) : (
         <div className="rw-card-ship">
-          <Icon name="retrn" size={13} /> Free returns <span style={{ fontSize: '12px', color: 'var(--muted)', textDecoration: 'line-through', opacity: '.75' }}>€8</span>
+          {p.stock === 1 ? (
+            <><Icon name="bolt" size={13} /> Only 1 left — final sale</>
+          ) : (
+            <><Icon name="check" size={13} /> Final sale — no returns</>
+          )}
         </div>
         )}
       </div>
@@ -311,7 +315,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
           </button>
           <div className="rw-modal-perks">
             <span><Icon name="truck" size={15} /> Ships in 24h</span>
-            <span><Icon name="retrn" size={15} /> Free returns</span>
+            <span><Icon name="check" size={15} /> Final sale — no returns</span>
           </div>
         </div>
       </div>
@@ -389,6 +393,9 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
             <div className="rw-subtotal">
               <span>Subtotal</span>
               <b>{money(subtotal)}</b>
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 10px' }}>
+              Arrives {new Date(Date.now() + 10 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – {new Date(Date.now() + 25 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · 10–25 day delivery
             </div>
             <button className="rw-btn rw-btn-pri rw-btn-full" onClick={onCheckout}>
               Checkout <Icon name="arrow" size={16} />

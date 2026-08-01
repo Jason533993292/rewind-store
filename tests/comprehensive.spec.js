@@ -288,7 +288,7 @@ test.describe('Product card interactions', () => {
     }
   });
 
-  test('free returns + shipping strikethrough on each card', async ({ page }) => {
+  test('policy/shipping line on each card', async ({ page }) => {
     await page.goto(BASE, { waitUntil: 'load' });
 
     // Scroll to the shop grid so all cards load
@@ -308,13 +308,13 @@ test.describe('Product card interactions', () => {
       // Graceful: if the shipping line exists (new build), verify it; otherwise skip
       if (await shipLine.count() > 0) {
         await expect(shipLine).toBeVisible();
-        await expect(shipLine).toContainText(/Free returns/i);
+        // Policy line: every card states final sale / scarcity (no-returns store)
+        await expect(shipLine).toContainText(/Final sale|Only 1 left/i);
         // Only cards with a discount have a strikethrough "was" price — assert it if present
         const was = shipLine.locator('.rw-price-was');
         if (await was.count() > 0) {
           await expect(was).toBeVisible();
         }
-        await expect(shipLine).toContainText(/€8/);
       } else {
         // Card still renders without shipping line (pre-update deployment)
         await expect(card.locator('.rw-price-now')).toBeVisible();

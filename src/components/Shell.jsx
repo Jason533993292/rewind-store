@@ -274,7 +274,7 @@ export function Hero({ onShop, onBundle, bundle }) {
         <div className="rw-hero-stats">
           <div><b>4.3</b><span>★ 23 reviews</span></div>
           <div><b>24h</b><span>EU dispatch</span></div>
-          <div><b>14d</b><span>free returns</span></div>
+          <div><b>1 of 1</b><span>one of each</span></div>
         </div>
       </div>
       <div className="rw-hero-art">
@@ -294,7 +294,7 @@ export function Hero({ onShop, onBundle, bundle }) {
 
 /* ---------- Marquee ---------- */
 export function Marquee() {
-  const items = ["Ships in 24h", "Free EU returns", "One of each", "Restocked weekly", "Authenticated", "Steam-cleaned"];
+  const items = ["Ships in 24h", "Final sale", "One of each", "Restocked weekly", "Authenticated", "Steam-cleaned"];
   // Triple-repeat ensures there's always visible content during the animation
   // loop, preventing any cutoff on narrow viewports.
   const row = [...items, ...items, ...items, ...items];

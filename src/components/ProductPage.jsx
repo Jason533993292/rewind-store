@@ -232,6 +232,9 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
               <span>Free shipping on orders over €150</span>
             </div>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
+              Arrives {new Date(Date.now() + 10 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – {new Date(Date.now() + 25 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · EU delivery
+            </div>
           </div>
         </div>
       </div>

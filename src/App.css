@@ -193,6 +193,24 @@ a { color: inherit; cursor: pointer; }
 .rw-hero-stats { display: flex; gap: 32px; margin-top: 34px; }
 .rw-hero-stats div { display: flex; flex-direction: column; }
 .rw-hero-stats b { font-family: var(--font-head); font-weight: 700; font-size: 24px; }
+/* ── Mobile category strip (hidden ≥ 881px) ── */
+.rw-mobile-cats { display: none; }
+@media (max-width: 880px) {
+  .rw-mobile-cats {
+    display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    background: var(--bg); position: sticky; top: 0; z-index: 40;
+  }
+  .rw-mobile-cats::-webkit-scrollbar { display: none; }
+  .rw-mobile-cats button {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--line-2); background: var(--surface);
+    color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .rw-mobile-cats button[aria-current="true"] {
+    background: var(--ink); color: var(--surface); border-color: var(--ink);
+  }
+}
 .rw-hero-stats span { font-size: 13px; color: var(--muted); }
 .rw-hero-art {
   display: grid;

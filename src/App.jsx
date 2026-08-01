@@ -973,6 +973,15 @@ export default function App() {
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
         onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
         isAdmin={isAdmin} searchSuggestions={searchSuggestions} onSearchSelect={handleSearchSelect} />
+      {/* ── Mobile category strip (hidden ≥ 881px) ── */}
+      <div className="rw-mobile-cats">
+        {availableCats.map((c) => (
+          <button key={c} onClick={() => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollToGrid(); }}
+            aria-current={cat === c ? 'true' : undefined}>
+            {c === 'All' ? 'All' : c}
+          </button>
+        ))}
+      </div>
       <main className="rw-shop">
       <ProductPage key={curPid} p={selectedProduct}
         onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}

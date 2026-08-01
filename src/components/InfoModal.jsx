@@ -23,13 +23,13 @@ const PAGES = {
     ]
   },
   returns: {
-    title: 'Returns & Exchanges',
+    title: 'Returns & Final Sale',
     sections: [
-      { heading: 'Return Policy', text: 'You have 14 days from delivery to return any unused item in its original condition. All items are inspected upon return.' },
-      { heading: 'How to Return', text: 'Email us at orders@rewind-stores.com with your order number and the items you wish to return. We will provide you with a return label. Pack the items securely and drop them off at your nearest post office.' },
-      { heading: 'Refunds', text: 'Refunds are processed within 5 business days after we receive the returned items. The refund will be issued to your original payment method.' },
-      { heading: 'Exchanges', text: 'We do not offer direct exchanges. If you need a different size, please return your item and place a new order for the fastest delivery.' },
-      { heading: 'Non-Returnable Items', text: 'For hygiene reasons, we cannot accept returns on underwear, swimwear, or face masks. Vintage items may show signs of wear — please read the product description carefully before purchasing.' },
+      { heading: 'Return Policy', text: 'All sales are final. We do not accept returns or exchanges — every piece is one of a kind, so we cannot offer a replacement size or colour. Please read the product description and size guide carefully before purchasing.' },
+      { heading: 'Damaged or Defective Items', text: 'If your item arrives damaged or defective, email us at orders@rewind-stores.com within 14 days of delivery with photos of the issue. We will make it right — either a replacement where possible or a refund.' },
+      { heading: 'Refunds', text: 'If a refund is approved (for a defective item we cannot replace), it is issued to your original payment method within 5 business days of approval.' },
+      { heading: 'Exchanges', text: 'Because each piece is one of a kind, exchanges are not available. If an item is damaged, see the section above.' },
+      { heading: 'Vintage & Hygiene', text: 'Vintage items may show signs of wear — please read the product description carefully before purchasing. For hygiene reasons we cannot accept returns on underwear, swimwear, or face masks.' },
     ]
   },
   tracking: {
