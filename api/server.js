@@ -1207,7 +1207,7 @@ app.post('/api/analytics/track', generalLimiter, async (req, res) => {
 });
 
 // ── Admin: analytics query ──
-app.get('/api/admin/analytics', async (req, res) => {
+app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const SK = SERVICE_KEY;
