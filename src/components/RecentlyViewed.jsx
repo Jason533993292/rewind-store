@@ -20,9 +20,9 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
   return (
     <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
+        <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
           👁 Recently viewed
-        </h3>
+        </h2>
         <button
           onClick={onClear}
           style={{ fontSize: '12px' }}
@@ -70,8 +70,8 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
                 }}
                 aria-label={`Remove ${p.name} from recently viewed`}
                 style={{
-                  position: 'absolute', top: '4px', right: '4px', zIndex: 5,
-                  width: '22px', height: '22px', borderRadius: '50%',
+                  position: 'absolute', top: '3px', right: '3px', zIndex: 5,
+                  width: '26px', height: '26px', borderRadius: '50%',
                   border: 'none', background: 'color-mix(in oklab, var(--surface) 80%, transparent)',
                   backdropFilter: 'blur(4px)',
                   cursor: 'pointer', display: 'grid', placeItems: 'center',

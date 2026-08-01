@@ -194,7 +194,7 @@ app.use(express.static(path.join(__dirname, '..', 'dist'), {
   etag: true,
   setHeaders(res, p) {
     if (p.endsWith('.html')) {
-      res.set('Cache-Control', 'no-store, must-revalidate');
+      res.set('Cache-Control', 'no-cache, must-revalidate');
     } else if (p.endsWith('.js') || p.endsWith('.css') || p.endsWith('.woff2') || p.endsWith('.png') || p.endsWith('.webp')) {
       res.set('Cache-Control', 'public, max-age=31536000, immutable');
     }
@@ -1754,7 +1754,7 @@ app.get('/api/dashboard', async (req, res) => {
 // ── SPA fallback — serve index.html for any non-API, non-static route ──
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) return res.status(404).json({ error: 'Not found' });
-  res.set('Cache-Control', 'no-store, must-revalidate');
+  res.set('Cache-Control', 'no-cache, must-revalidate');
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 

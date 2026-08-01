@@ -83,6 +83,9 @@ export default function App() {
   useEffect(() => {
     const onRoute = () => {
       const route = getRoute();
+      // Keep the canonical URL pointing at the actual page (not the root)
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) canonical.setAttribute('href', window.location.origin + window.location.pathname);
       if (route === 'privacy') setLegalPage('privacy');
       else if (route === 'terms') setLegalPage('terms');
       else if (route === 'returns') setLegalPage('returns');

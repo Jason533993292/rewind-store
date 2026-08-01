@@ -217,11 +217,11 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
               </div>
             )}
           </div>
-          <button className="rw-iconbtn" onClick={onWishlistOpen} aria-label="Wishlist">
+          <button className="rw-iconbtn" onClick={onWishlistOpen} aria-label={`Wishlist${wishlistCount > 0 ? ` (${wishlistCount})` : ''}`}>
             <Icon name="heart" size={17} />
             {wishlistCount > 0 && <span className="rw-badge">{wishlistCount}</span>}
           </button>
-          <button className="rw-iconbtn" onClick={onCart} aria-label="Cart">
+          <button className="rw-iconbtn" onClick={onCart} aria-label={`Cart${cartCount > 0 ? ` (${cartCount})` : ''}`}>
             <Icon name="bag" />
             {cartCount > 0 && <span className="rw-badge">{cartCount}</span>}
           </button>

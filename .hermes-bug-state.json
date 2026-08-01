@@ -18,7 +18,7 @@
     "last_attempt": "2026-07-28T05:00:00Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "Added rw-product-detail class to .rw-product-info in ProductPage.jsx. Fixed ambiguous .rw-product-page → #rw-product-page selector in test. Committed to main and pushed — Railway auto-deploys."
+    "notes": "Added rw-product-detail class to .rw-product-info in ProductPage.jsx. Fixed ambiguous .rw-product-page \u2192 #rw-product-page selector in test. Committed to main and pushed \u2014 Railway auto-deploys."
   },
   "3237eb4a3e6bf60a640555b90af7945e774eb748bd7bbdb988ddad5cb5154478": {
     "attempts": 1,
@@ -27,7 +27,7 @@
     "last_attempt": "2026-07-31T00:00:00Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "Railway RAILPACK build failed for 3 consecutive commits (310b8a7, b0cce37, 387bd69): Rollup could not resolve import \"agentation\" from src/App.jsx because agentation is in devDependencies and Railway runs npm install with --omit=dev. Moved agentation to dependencies in package.json. Commit ec58848 → main."
+    "notes": "Railway RAILPACK build failed for 3 consecutive commits (310b8a7, b0cce37, 387bd69): Rollup could not resolve import \"agentation\" from src/App.jsx because agentation is in devDependencies and Railway runs npm install with --omit=dev. Moved agentation to dependencies in package.json. Commit ec58848 \u2192 main."
   },
   "89555b2f9c630392bd7e24252e47b2da7af67e82bc31822b32cc1a53cb6d1ed8": {
     "attempts": 1,
@@ -39,13 +39,13 @@
     "notes": "Removed inline onload='this.onload=null;this.rel=stylesheet' from Google Fonts preload link in index.html; replaced with plain <link rel=stylesheet>. Inline event handler violated helmet CSP script-src-attr 'none'. Verified locally: CSP test passes (1 passed), build ok. Commit 020bb81 -> main, Railway auto-deploys."
   },
   "cfe923fa07af4b4b54344fc23341176b5f7a3cde207a5ac486189c64454119f7": {
-    "attempts": 2,
+    "attempts": 3,
     "last_verdict": "fixed",
     "first_seen": "2026-07-31T08:14:52Z",
-    "last_attempt": "2026-07-31T10:20:00Z",
+    "last_attempt": "2026-08-01T04:11:04Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "Re-delivery of already-fixed -15 SIGTERM report (duplicate). Hardening intact: socket.setdefaulttimeout(15), IMAP4_SSL(timeout=15), signal.alarm(25) watchdog exits rc=0. Re-verified 2026-07-31: hardened email-monitor.py runs clean rc=0, valid JSON, 10 emails, no hang. No new failure; skip, already fixed, no escalation."
+    "notes": "Re-delivery of already-FIXED -15 SIGTERM report (duplicate; report text 'Script exited with code -15'). Hardening intact: socket.setdefaulttimeout(15), IMAP4_SSL(timeout=15), signal.alarm(25) watchdog exits rc=0. Re-verified 2026-08-01: email-monitor.py runs clean exit 0, 9.8s real, 10 emails, no error. No bug report in cron_inbox (cleared stale bug_watcher_run self-log 1091). Production healthy: HTTP 200 / and /api/health, status ok, uptime ~3.3h, dist 13 files. No code change warranted; attempts>=3 -> skip on future dupes, NO escalation (report already fixed, not failed)."
   },
   "2026-07-31-stale-deploy-webhooks": {
     "attempts": 1,
@@ -54,7 +54,7 @@
     "last_attempt": "2026-07-31T22:00:00Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "No active bug. cron_inbox held 142 unhandled webhook_event deployment notifications (building/deploying/deployed/push/failed) dating from 2026-07-26 checkout-fix blitz. All 9 Deployment.failed events predate the last successful deploys (2026-07-31 commits 3c85872, 4fa01fd SUCCESS). Production healthy (HTTP 200 on /, /#/, /api/health). Marked all stale notifications handled/skip to clear the queue. Learned: cron_inbox has no 'handled_by' column — PATCH with handled/handled_at/verdict only."
+    "notes": "No active bug. cron_inbox held 142 unhandled webhook_event deployment notifications (building/deploying/deployed/push/failed) dating from 2026-07-26 checkout-fix blitz. All 9 Deployment.failed events predate the last successful deploys (2026-07-31 commits 3c85872, 4fa01fd SUCCESS). Production healthy (HTTP 200 on /, /#/, /api/health). Marked all stale notifications handled/skip to clear the queue. Learned: cron_inbox has no 'handled_by' column \u2014 PATCH with handled/handled_at/verdict only."
   },
   "2026-08-01-stale-deploy-webhooks": {
     "attempts": 1,
@@ -65,6 +65,15 @@
     "escalated": false,
     "notes": "cron_inbox held 29 unhandled webhook_event deployment notifications (push/building/deploying/deployed) + bug_watcher_run logs. Zero Deployment.failed, zero non-webhook bug reports. Production healthy (HTTP 200 / and /api/health). Last deploy 7479bcb (hero image preload fix) SUCCESS. Marked all 29 handled/skip to clear queue. No active bug."
   },
+  "2026-08-01-stale-bugwatcher-selflog": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T04:31:46Z",
+    "last_attempt": "2026-08-01T04:45:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1093 = prior bug_watcher_run activity self-log (webhook_event source_id 808, dup of skip), NOT a bug report. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~3.9h, dist 13 files. Marked 1093 handled/skip to clear queue. No code change."
+  },
   "2026-08-01-stale-deploy-webhooks-2": {
     "attempts": 1,
     "last_verdict": "skip",
@@ -73,5 +82,185 @@
     "next_retry_after": null,
     "escalated": false,
     "notes": "cron_inbox held 9 stale webhook_event deployment notifications (push/building/deploying/deployed x8 + bug_watcher_run x1) from a single 2026-07-31T22:18 deploy. Zero Deployment.failed (checked last 30 webhook_events), zero chat/email bug reports. Production healthy: HTTP 200 on / and /api/health, status ok, uptime ~24min, dist 13 files. Marked all 9 handled/skip to clear queue. No active bug."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-2": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T05:05:00Z",
+    "last_attempt": "2026-08-01T05:05:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1094 = stale bug_watcher_run activity self-log (webhook_event source_id 809, dup of prior skip), NOT a bug report. Scanned 10 emails: Lovable balance alert, Notion promo, EdJ VNTGE x2 marketing, Zebracat x2, OpusClip x2, Nomad for Less, spam - none are REWIND bugs. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~4.2h, dist 13 files. Marked 1094 handled/skip. No code change, no escalation."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-3": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T05:23:00Z",
+    "last_attempt": "2026-08-01T05:23:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1095 = stale bug_watcher_run activity self-log (webhook_event source_id 810, dup of prior skip), NOT a bug report. Scanned 10 emails: Lovable balance alert, Notion promo, EdJ VNTGE x2, Zebracat x2, OpusClip x2, Nomad for Less, spam x2 - none are REWIND bugs. Deploy chain clean (push c7589cd -> building -> deploying -> deployed SUCCESS, event 797). Production healthy: HTTP 200 / and /api/health, status ok, uptime ~4.5h, dist 13 files. Marked 1095 handled/skip to clear queue. No code change, no escalation."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-4": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T05:41:00Z",
+    "last_attempt": "2026-08-01T05:41:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1096 = stale bug_watcher_run activity self-log (webhook_event source_id 811, dup of prior skip), NOT a bug report. Scanned 10 emails: Lovable balance alert, Notion promo, EdJ VNTGE x2, Zebracat x2, OpusClip x2, Nomad for Less, spam x2 - none are REWIND bugs. Production healthy: HTTP 200 on / and /#/, /api/health ok, uptime ~4.8h, dist 13 files. Marked 1096 handled/skip to clear queue. No code change, no escalation."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-5": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T05:46:14Z",
+    "last_attempt": "2026-08-01T05:57:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1097 = stale bug_watcher_run activity self-log (webhook_event source_id 812, dup of prior skip), NOT a bug report. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~5.1h, dist 13 files. Marked 1097 handled/skip to clear queue. No code change, no escalation."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-6": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T05:58:00Z",
+    "last_attempt": "2026-08-01T06:15:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1098 = stale bug_watcher_run activity self-log (webhook_event source_id 813, dup of prior skip), NOT a bug report. Checked webhook_events: Deployment.failed events (ids 126,130,134,138) are all from 2026-07-26/27 (ancient, predate all recent SUCCESS deploys). Current chain 774-813 clean: last push c7589cd -> building -> deploying -> deployed SUCCESS (event 797). Production healthy: HTTP 200 / and /#/, /api/health ok, uptime ~5.4h, dist 13 files. Marked 1098 handled/skip. No code change, no escalation."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-7": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T06:17:19Z",
+    "last_attempt": "2026-08-01T06:40:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox item 1099 = stale bug_watcher_run activity self-log (webhook_event source_id 814, dup of prior skip pattern), NOT a bug report. Scanned: no chat/email bug reports. Checked webhook_events: Deployment.failed (252,255,620,624,627) all ancient from 2026-07-26/27 era, predate recent SUCCESS deploys. Production healthy: HTTP 200 / and /#/, /api/health ok, uptime ~5.8h, dist 13 files. Marked 1099 handled/skip (204). Logged bug_watcher_run to webhook_events (201). No code change, no escalation."
+  },
+  "2026-08-01-stale-bugwatcher-selflog-8": {
+    "attempts": 1,
+    "last_verdict": "fixed",
+    "first_seen": "2026-08-01T06:41:22Z",
+    "last_attempt": "2026-08-01T07:17:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "ROOT-CAUSE FIXED for the recurring bug_watcher_run self-log loop (each activity log -> re-forwarded to cron_inbox -> next run skips -> logs again, 8+ repeats). Patched 3 forwarder layers to skip source='cron-bot' events (bot activity self-logs, not work items): (1) ~/.hermes/scripts/rw_webhook_cron_run.py is_selflog() skip; (2) ~/.hermes/cron/forward_webhooks.py same skip; (3) Webhook Monitor job prompt in ~/.hermes/cron/jobs.json now instructs not to forward cron-bot source events. Verified rw_webhook_cron_run.py runs clean (NEW:0). Backups: .bak-1785568551 / jobs.json.bak-*. cron_inbox item 1101 (source_id 816) was the last self-log -> marked handled/skip; inbox now empty of unhandled items. Production healthy: HTTP 200 /, /#/, /api/health ok, uptime ~6.4h, dist 13 files. No code change to REWIND repo needed; infra-level fix."
+  },
+  "2026-08-01-empty-queue-1": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T10:50:00Z",
+    "last_attempt": "2026-08-01T10:50:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=eq.false&claimed_by=is.null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. webhook_events recent chain clean: push 792/793 -> building 794 -> deploying 796 -> deployed SUCCESS 797. All Deployment.failed (252,255,620,624,627) ancient 07-27/30, predate current deploys. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~10h, dist 13 files. No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-2": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T11:24:31.285912+00:00",
+    "last_attempt": "2026-08-01T11:24:31.285912+00:00",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=eq.false&claimed_by=is.null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. webhook_events recent = bug_watcher_run self-logs only (skipped by forwarder, no self-loop). All Deployment.failed (252,255,620,624,627) ancient 07-27, predate current deploys. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~10.5h, dist 13 files. No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-3": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T11:41:41.808322Z",
+    "last_attempt": "2026-08-01T11:41:41.808322Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=eq.false&claimed_by=is.null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. webhook_events recent = bug_watcher_run self-logs only (skipped by forwarder, no self-loop). No Deployment.failed in recent chain (last real deploy push 792/793 -> deployed SUCCESS 797). Production healthy: HTTP 200 / and /api/health, status ok, uptime ~10.8h, dist 13 files. Logged bug_watcher_run. No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-4": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T11:58:30Z",
+    "last_attempt": "2026-08-01T11:58:30Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=eq.false&claimed_by=is.null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. Deploy chain clean: push 792/793 -> building 794 -> deploying 796 -> deployed SUCCESS 797. Zero Deployment.failed in last 200 events. Production healthy: HTTP 200 / and /#/, /api/health ok, uptime ~11.1h, dist 13 files. Logged bug_watcher_run. No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-5": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T12:16:00Z",
+    "last_attempt": "2026-08-01T12:16:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=eq.false&claimed_by=is.null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. Recent webhook_events all bug_watcher_run self-logs (810-829, skipped by forwarder, no self-loop). Deployment.failed (627,624,620,255,252...) all ancient 07-27, predate current deploys. Production healthy: HTTP 200 on /, /#/, /api/health, status ok, uptime ~11.4h, dist 13 files. Logged bug_watcher_run (201). No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-6": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T12:35:00Z",
+    "last_attempt": "2026-08-01T12:35:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=false,claimed_by=null). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. webhook_events recent = bug_watcher_run self-logs only (skipped by forwarder, no self-loop); non-cron-bot deploy chain clean (latest deploy 797 SUCCESS, event 756 is a test bug.report). Production healthy: HTTP 200 /, /#/, /api/health, status ok, uptime ~11.7h, dist 13 files. Logged bug_watcher_run (201). No code change, no escalation."
+  },
+  "2026-08-01-bug-report-1102-junk": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T12:45:53Z",
+    "last_attempt": "2026-08-01T12:55:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox 1102 (webhook_event 832) = junk bug report: message is only digits \"676767667676767667676\", email philippekojoanaman@gmail.com, page /, Chrome 150. No actual bug, no repro info. Marked handled/skip. Also cleared deploy webhooks 1103-1106 (commit 9c3e1c5 -> Deployment.deployed SUCCESS). Production healthy: HTTP 200 / and /#/, /api/health ok, uptime ~4min, dist 13 files. No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-7": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T13:00:00Z",
+    "last_attempt": "2026-08-01T13:15:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox held 5 unhandled items: deploy webhook chain for commit 52e687e ('fix: clamp bug text at 20 chars in handler too (counter never negative)') push->building->deploying->deployed SUCCESS (1107-1110) + one bug.reported 'field persist test' from test@rewind-stores.com page /product/9 (1111) - a test submission, not a real bug. Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. Production healthy: HTTP 200 / and /#/, /api/health ok, status ok, uptime ~15min, dist 13 files. Marked all 5 handled/skip. No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-8": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T13:42:00Z",
+    "last_attempt": "2026-08-01T13:42:42.538225+00:00",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=false,claimed_by=null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~45min, dist 13 files. Logged bug_watcher_run (845). No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-9": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T14:13:00Z",
+    "last_attempt": "2026-08-01T14:13:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=false,claimed_by=null -> []). Scanned 10 emails: TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, Zebracat upgrade, OpusClip welcome, spam x2 - none are REWIND bugs. rw_webhook_cron_run: NEW:2 but both are bug_watcher_run self-logs (844,845), skipped by forwarder (no self-loop). Production healthy: HTTP 200 /, /#/, /api/health ok, status ok, uptime ~4575s (~1.3h), dist 13 files. Logged bug_watcher_run (846). No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-10": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T15:10:00Z",
+    "last_attempt": "2026-08-01T15:10:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=false,claimed_by=null -> []). No unclaimed items to process. webhook_events clean: push 839 -> building 840 -> deploying 841 -> deployed SUCCESS 842; remaining recent events are bug_watcher_run self-logs (skipped by forwarder, no self-loop). No Deployment.failed in recent chain. Production healthy: HTTP 200 on /, /#/, /api/health ok, status ok, uptime ~8000s (~2.2h), dist 13 files. Scanned 10 emails: Zebracat x2 upgrade, roadmap.sh promo, TikTok notif, Notion promo x2, Lovable low-balance, EdJ VNTGE x2 marketing, spam x2 - none are REWIND bugs. Logged bug_watcher_run (847). No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-11": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T15:33:00Z",
+    "last_attempt": "2026-08-01T15:34:11Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=false,claimed_by=null -> []). Email-monitor timed out (SIGTERM guard, 0 msgs) so no email scan. Production healthy: HTTP 200 / and /#/, /api/health ok, status ok, uptime ~9385s (~2.6h), dist 13 files. Deploy chain clean: push 839 -> building 840 -> deploying 841 -> deployed SUCCESS 842 (commit 52e687e 'fix: clamp bug text at 20 chars in handler too'). All Deployment.failed (252,255,620,624,627) ancient 07-27/07-30, predate current SUCCESS deploys. Recent webhook_events are bug_watcher_run self-logs only (skipped by forwarder, no self-loop). Logged bug_watcher_run (201, event 849). No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-12": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T15:51:00Z",
+    "last_attempt": "2026-08-01T15:51:05.926732+00:00",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox empty (handled=false,claimed_by=null -> []). Scanned 10 emails: OpusClip promo, Zebracat x2 upgrade, roadmap.sh promo, TikTok notif, Notion promo x2, Lovable low-balance, spam x2 - none are REWIND bugs. Production healthy: HTTP 200 /, /#/, /api/health, status ok, uptime ~10445s (~2.9h), dist 13 files. Logged bug_watcher_run (201). No code change, no escalation."
   }
 }
