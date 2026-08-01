@@ -89,12 +89,16 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
               name="bug-message"
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Describe what went wrong, what you expected, and any steps to reproduce..."
+              placeholder="Describe what went wrong (max 20 characters)..."
               rows={4}
+              maxLength={20}
               className="rw-input"
-              style={{ width: '100%', resize: 'vertical', minHeight: '80px', marginBottom: '16px', fontFamily: 'inherit', fontSize: '14px', lineHeight: '1.5' }}
+              style={{ width: '100%', resize: 'vertical', minHeight: '80px', marginBottom: '2px', fontFamily: 'inherit', fontSize: '14px', lineHeight: '1.5' }}
               autoFocus
             />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '12px', marginBottom: '16px', color: 20 - message.length <= 3 ? '#e5484d' : 'var(--muted)' }}>
+              {20 - message.length} {20 - message.length === 1 ? 'character' : 'characters'} left
+            </div>
 
             <label htmlFor="bug-email" style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '6px' }}>
               Your email <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional — if you want a reply)</span>

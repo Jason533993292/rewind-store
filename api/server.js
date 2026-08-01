@@ -994,7 +994,7 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
 
 // ── Report a bug (submitted from the BugReportModal panel) ──
 app.post('/api/report-bug', (req, res) => {
-  const { message, email, page, browser } = req.body || {};
+  const { message, email, page, browser, device, submittedAt, ua } = req.body || {};
   if (!message || typeof message !== 'string' || message.trim().length < 10) {
     return res.status(400).json({ error: 'Message must be at least 10 characters' });
   }
@@ -1004,7 +1004,7 @@ app.post('/api/report-bug', (req, res) => {
     if (SERVICE_KEY) {
       fetch(`${SUPABASE_URL}/rest/v1/webhook_events`, {
         method: 'POST',
-        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`,  'Content-Type': 'application/json', Prefer: 'return=minimal' },
         body: JSON.stringify({
           source: 'bug-report',
           event: 'bug.reported',
@@ -1013,6 +1013,9 @@ app.post('/api/report-bug', (req, res) => {
             email: (email || '').trim() || null,
             page: page || '',
             browser: (browser || '').slice(0, 300),
+            device: (device || '').slice(0, 60),
+            submittedAt: (submittedAt || '').slice(0, 60),
+            ua: (ua || '').slice(0, 400),
           }),
         }),
       }).catch(() => {});
