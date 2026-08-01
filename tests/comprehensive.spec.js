@@ -493,6 +493,25 @@ test.describe('Backend API endpoints', () => {
     expect(body).toHaveProperty('total');
   });
 
+  test('/api/verify-admin rejects bad token with truthful reason', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/verify-admin`, {
+      data: { email: 'philippekojoanaman@gmail.com', token: 'definitely-wrong-token' },
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.verified).toBe(false);
+    expect(body.reason).toBe('bad_token');
+  });
+
+  test('/api/verify-admin missing fields → reason missing', async ({ request }) => {
+    const res = await request.post(`${BASE}/api/verify-admin`, {
+      data: { email: 'philippekojoanaman@gmail.com' },
+    });
+    const body = await res.json();
+    expect(body.verified).toBe(false);
+    expect(body.reason).toBe('missing');
+  });
+
   test('/api/run-tests endpoint exists', async ({ page, request }) => {
     test.skip(!isAdmin, 'Requires admin session cookie — only works with full auth flow');
     const res = await request.get(`${BASE}/api/run-tests`);

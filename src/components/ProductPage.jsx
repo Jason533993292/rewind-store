@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Photo, Icon } from './Shell';
 import { nav } from '../lib/router';
 import { deleteCustomProduct } from '../lib/supabase';
+import { arrivalRange } from '../lib/shipping';
 import { money } from '../hooks/useCountdown';
 
 export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, showCompare = true, showStock = true, onSizeGuide }) {
@@ -233,7 +234,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               <span>Free shipping on orders over €150</span>
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
-              Arrives {new Date(Date.now() + 10 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – {new Date(Date.now() + 25 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · EU delivery
+              Arrives {arrivalRange()} · EU delivery
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ function parseImgs(p) {
 }
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
+import { arrivalRange, SHIP_LABEL } from '../lib/shipping';
 import PaymentCard from './PaymentCard';
 import { ReferralInput } from './Referral';
 import { loadStripe } from '@stripe/stripe-js';
@@ -395,7 +396,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
               <b>{money(subtotal)}</b>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 10px' }}>
-              Arrives {new Date(Date.now() + 10 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – {new Date(Date.now() + 25 * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · 10–25 day delivery
+              Arrives {arrivalRange()} · {SHIP_LABEL}
             </div>
             <button className="rw-btn rw-btn-pri rw-btn-full" onClick={onCheckout}>
               Checkout <Icon name="arrow" size={16} />
