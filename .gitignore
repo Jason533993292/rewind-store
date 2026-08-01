@@ -19,3 +19,4 @@ scripts/
 
 # Claude Code session/tooling scaffolding (subagent worktrees, etc.)
 .claude/
+!scripts/verify-*.py
