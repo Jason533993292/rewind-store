@@ -1291,7 +1291,7 @@ app.get('/api/wishlist', async (req, res) => {
   } catch { res.json({ items: [] }); }
 });
 
-app.post('/api/wishlist', strictLimiter, async (req, res) => {
+app.post('/api/wishlist', generalLimiter, async (req, res) => {
   const { email, product_ids } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
   try {
@@ -1530,7 +1530,7 @@ app.post('/api/create-test-order', async (req, res) => {
 });
 
 // ── Check if email is blocked (used at checkout and chat) ──
-app.post('/api/check-blocked-email', strictLimiter, async (req, res) => {
+app.post('/api/check-blocked-email', generalLimiter, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.json({ blocked: false });
   try {

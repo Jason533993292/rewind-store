@@ -15,6 +15,7 @@ import AdminOrdersPanel from './AdminOrdersPanel';
 import { REWIND_PRODUCTS, REWIND_CATS } from '../data';
 import { supabase, getCustomProducts, addCustomProduct, updateCustomProduct, uploadProductImage, getOrders, updateOrderStatus } from '../lib/supabase';
 import { money } from '../hooks/useCountdown';
+import { adminFetch } from '../lib/adminApi';
 
 const VERSION = 'V11.3.0';
 
