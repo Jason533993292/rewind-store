@@ -107,8 +107,8 @@ export function Banner({ showCountdown }) {
         <Icon name="bolt" size={14} /> <span>{BANNER_MSGS[i]}</span>
       </div>
       {showCountdown && (
-        <div className="rw-banner-count" title="Restock Sunday 23:59">
-          Next restock in
+        <div className="rw-banner-count" title="Sale ends Sunday 23:59">
+          Sale ends in
           <b>{c.d}d&nbsp;{pad(c.h)}h&nbsp;{pad(c.m)}m&nbsp;{pad(c.s)}s</b>
         </div>
       )}
