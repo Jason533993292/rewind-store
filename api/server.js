@@ -263,7 +263,7 @@ setInterval(() => {
 // client stores and replays, never the master secret itself.
 app.post('/api/verify-admin', strictLimiter, async (req, res) => {
   const { email, token } = req.body;
-  if (!email || !token) return res.json({ verified: false });
+  if (!email || !token) return res.json({ verified: false, reason: 'missing' });
   const ADMIN_TOKEN = process.env.ADMIN_SECRET_TOKEN;
   const isMasterToken = ADMIN_TOKEN && token.length === ADMIN_TOKEN.length &&
     crypto.timingSafeEqual(Buffer.from(token), Buffer.from(ADMIN_TOKEN));
@@ -275,7 +275,7 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
     verifyAttempts.set(ip, attempts);
     setTimeout(() => { const c = verifyAttempts.get(ip); if (c && c <= 1) verifyAttempts.delete(ip); else if (c) verifyAttempts.set(ip, c - 1); }, 60000);
     if (attempts > 5) return res.status(429).json({ error: 'Too many attempts. Try again later.' });
-    return res.json({ verified: false });
+    return res.json({ verified: false, reason: 'bad_token' });
   }
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -285,7 +285,7 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
     });
     const data = await r.json();
     const verified = Array.isArray(data) && data.length > 0;
-    if (!verified) return res.json({ verified: false });
+    if (!verified) return res.json({ verified: false, reason: 'not_admin' });
     const sessionToken = signAdminSession(email);
     // Set HttpOnly cookie — JS can't read it, XSS-safe
     res.cookie('admin_session', sessionToken, {
@@ -297,7 +297,7 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
     });
     res.json({ verified: true });
   } catch {
-    res.json({ verified: false });
+    res.json({ verified: false, reason: 'server_error' });
   }
 });
 

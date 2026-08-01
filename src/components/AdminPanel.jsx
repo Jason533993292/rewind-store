@@ -258,7 +258,11 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                 localStorage.setItem('rw_admin_email', cleanEmail);
                 setAdminAuthed(true);
               } else {
-                setAdminMsg('❌ Access denied. This email is not on the admin list.');
+                const reason = d.reason;
+                if (reason === 'bad_token') setAdminMsg('❌ Access denied — wrong secret token. (ADMIN_SECRET_TOKEN env var)');
+                else if (reason === 'not_admin') setAdminMsg('❌ Access denied. This email is not on the admin list.');
+                else if (reason === 'server_error') setAdminMsg('❌ Could not verify with the server — try again');
+                else setAdminMsg('❌ Access denied. Check the email and secret token.');
               }
             } catch {
               setAdminMsg('❌ Could not verify — try again');
