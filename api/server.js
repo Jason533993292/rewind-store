@@ -940,10 +940,20 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
 });
 
 // ── Report a bug (submitted from the BugReportModal panel) ──
-app.post('/api/report-bug', (req, res) => {
+app.post('/api/report-bug', strictLimiter, (req, res) => {
   const { message, email, page, browser, device, submittedAt, ua } = req.body || {};
-  if (!message || typeof message !== 'string' || message.trim().length < 10) {
+  const clean = (message || '').trim();
+  if (!message || typeof message !== 'string' || clean.length < 10) {
     return res.status(400).json({ error: 'Message must be at least 10 characters' });
+  }
+  // Spam heuristic: reject keyboard-mash submissions (e.g. "6767676676767")
+  const counts = {};
+  for (const ch of clean.toLowerCase()) {
+    if (/[a-z0-9]/.test(ch)) counts[ch] = (counts[ch] || 0) + 1;
+  }
+  const top = Object.values(counts).reduce((a, b) => Math.max(a, b), 0);
+  if (top / Math.max(clean.length, 1) > 0.6) {
+    return res.status(400).json({ error: 'That message looks like spam — please describe the issue in words.' });
   }
   // Log to webhook_events so the webhook-check/bug-watcher crons pick it up.
   try {

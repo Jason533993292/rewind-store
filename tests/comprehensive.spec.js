@@ -254,8 +254,8 @@ test.describe('Product card interactions', () => {
     }
     // Should have Add to bag button now that size is selected
     await expect(modal.locator('button:has-text("Add to bag")')).toBeVisible();
-    // Should have Free returns
-    await expect(modal.locator('text=Free returns')).toBeVisible();
+    // Should have Final sale (no returns) notice
+    await expect(modal.locator('text=no returns')).toBeVisible();
     // Should have size selector
     await expect(modal.locator('.rw-sizes')).toBeVisible();
     // Close modal
@@ -790,11 +790,11 @@ export async function runTests() {
     await p.waitForTimeout(500);
   });
 
-  await check('Free returns on product cards', async (p) => {
+  await check('Final sale (no returns) on product cards', async (p) => {
     await p.goto(BASE, { waitUntil: 'load' });
     const card = p.locator('.rw-card').first();
     await expect(card.locator('.rw-card-ship')).toBeVisible();
-    await expect(card.locator('.rw-card-ship')).toContainText(/Free returns/i);
+    await expect(card.locator('.rw-card-ship')).toContainText(/final sale|no returns/i);
   });
 
   await check('Recently viewed appears after viewing product', async (p) => {

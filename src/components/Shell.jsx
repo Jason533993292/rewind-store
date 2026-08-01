@@ -107,8 +107,8 @@ export function Banner({ showCountdown }) {
         <Icon name="bolt" size={14} /> <span>{BANNER_MSGS[i]}</span>
       </div>
       {showCountdown && (
-        <div className="rw-banner-count" title="Sale ends Sunday 23:59">
-          Sale ends in
+        <div className="rw-banner-count" title="Restock Sunday 23:59">
+          Next restock in
           <b>{c.d}d&nbsp;{pad(c.h)}h&nbsp;{pad(c.m)}m&nbsp;{pad(c.s)}s</b>
         </div>
       )}
@@ -265,7 +265,7 @@ export function Hero({ onShop, onBundle, bundle }) {
         <h1 className="rw-hero-title">Worn once.<br/>Loved again.</h1>
         <p className="rw-hero-sub">
           Hand-picked vintage tracksuits, retro jerseys & summer sets. Authenticated,
-          cleaned, and shipped in 24 hours. One of each — when it's gone, it's gone.
+          cleaned, and dispatched within 24 hours — arriving in 10–25 days. One of each — when it's gone, it's gone.
         </p>
         <div className="rw-hero-cta">
           <button className="rw-btn rw-btn-pri" onClick={() => onShop()}>Shop the drop <Icon name="arrow" size={17} /></button>
@@ -365,8 +365,8 @@ export function Footer({ onSizes, onInfo, onSetCat, cats }) {
     <footer className="rw-footer">
       <div className="rw-footer-top">
         <div className="rw-logo rw-logo-lg">REWIND<span>.</span></div>
-        <p>Curated vintage & retro sportswear. Each piece is one of one — sourced,
-          authenticated, and sent on within a day.</p>
+        <p>Curated vintage & retro sportswear. Each piece is one of one — sourced and authenticated,
+          dispatched within a day, delivered in 10–25 days.</p>
       </div>
       <div className="rw-footer-cols">
         <div><h4>Shop</h4>

@@ -115,11 +115,11 @@ export async function runTests() {
     await p.waitForTimeout(500);
   });
 
-  await check('Free returns on product cards', async (p) => {
+  await check('Final sale (no returns) on product cards', async (p) => {
     await p.goto(BASE, { waitUntil: 'networkidle' });
     const card = p.locator('.rw-card').first();
     await expect(card.locator('.rw-card-ship')).toBeVisible();
-    await expect(card.locator('.rw-card-ship')).toContainText(/Free returns/i);
+    await expect(card.locator('.rw-card-ship')).toContainText(/final sale|no returns/i);
   });
 
   await check('Backend API /api/send-order', async (p) => {

@@ -4,7 +4,7 @@ function nextDeadline() {
   const now = new Date();
   const d = new Date(now);
   // Count down to the upcoming Sunday at 23:59 — aligns with the
-  // banner label "Sale ends Sunday 23:59" so the countdown timer
+  // banner label "Restock Sunday 23:59" so the countdown timer
   // always matches the stated deadline day.
   // If today IS Sunday, countdown to today 23:59 (not next Sunday).
   const daysUntilSunday = d.getDay() === 0 ? 0 : 7 - d.getDay();
