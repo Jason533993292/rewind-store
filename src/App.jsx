@@ -79,6 +79,29 @@ export default function App() {
   // Initialize router on mount — converts any existing hash URL to pathname
   useEffect(() => { initRouter(); }, []);
 
+  // ── Analytics visit tracking (fire-and-forget, deduped per pathname) ──
+  useEffect(() => {
+    let lastTracked = null;
+    const track = () => {
+      const p = window.location.pathname;
+      if (p === lastTracked) return;
+      lastTracked = p;
+      const uuid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now() + Math.random());
+      let visitorId = localStorage.getItem('rw_visitor_id');
+      if (!visitorId) { visitorId = uuid(); localStorage.setItem('rw_visitor_id', visitorId); }
+      let sessionId = sessionStorage.getItem('rw_session_id');
+      if (!sessionId) { sessionId = uuid(); sessionStorage.setItem('rw_session_id', sessionId); }
+      fetch('/api/analytics/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: p, referrer: document.referrer, screen_width: window.innerWidth, visitor_id: visitorId, session_id: sessionId }),
+      }).catch(() => {});
+    };
+    track();
+    window.addEventListener('hashchange', track);
+    return () => window.removeEventListener('hashchange', track);
+  }, []);
+
   // Pathname routing for SPA pages
   useEffect(() => {
     const onRoute = () => {

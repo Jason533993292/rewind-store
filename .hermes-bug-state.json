@@ -371,13 +371,22 @@
     "escalated": false,
     "notes": "cron_inbox held 4 unclaimed items (1255-1258), ALL webhook_event deploy notifications for commit 32558dea ('fix: align store copy to no-returns policy...') -> push/building/deploying/deployed SUCCESS. No bug reports. Scanned 10 emails: OpusClip promo, Zebracat x2 upgrade, roadmap.sh promo, TikTok notif, Notion promo x2, Lovable low-balance, Alibaba spam, KissNaked spam - none are REWIND bugs. Production healthy: HTTP 200 / and /#/, /api/health ok, status ok, uptime ~171s (fresh deploy of 32558dea), dist 13 files. Deploy chain clean: push 882 -> building 883 -> deploying 884 -> deployed SUCCESS 885. All Deployment.failed ancient 07-27/07-30. Marked all 4 handled/skip (204 each). Logged bug_watcher_run (201). No code change, no escalation."
   },
-  "2026-08-01-empty-queue-deploy-2051778": {
+  "2026-08-01-empty-queue-bw-2": {
     "attempts": 1,
     "last_verdict": "skip",
-    "first_seen": "2026-08-01T22:15:00Z",
-    "last_attempt": "2026-08-01T22:15:00Z",
+    "first_seen": "2026-08-01T21:40:00Z",
+    "last_attempt": "2026-08-01T21:40:00Z",
     "next_retry_after": null,
     "escalated": false,
-    "notes": "cron_inbox held 4 unclaimed items (1270-1273), ALL webhook_event deploy notifications for commit 2051778 (CI gate chore) -> push/building/deploying/deployed SUCCESS. No bug reports. Emails: OpusClip/Zebracat x2/roadmap.sh/TikTok/Notion x2/Lovable low-balance/Alibaba spam/KissNaked spam - none REWIND bugs. Production healthy: HTTP 200 /, /#/, /api/health ok. HEAD 2051778 matches deployed commit. Deployment.failed (252,255,620,624,627) ancient 07-27/07-30. Marked all 4 handled/skip. Logged bug_watcher_run (201). No code change, no escalation."
+    "notes": "cron_inbox held 8 unclaimed items (1274-1281), ALL webhook_event deploy notifications for commits 822d490 (fix: honest dispatch copy, restock countdown label, report-bug rate limit + keyboard-mash guard) and eae26bb9 (fix: tighten report-bug spam heuristic top-2 chars > 70%), each push->building->deploying->deployed SUCCESS. Zero Deployment.failed, zero chat/email bug reports. webhook_events bug.reported (915) = admin's own vague test submission 'yo theres a bug in y' on /product/9, not forwarded to inbox, no repro info, no action. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~30s (fresh deploy of HEAD 4ff1e4c), dist 13 files. Marked all 8 handled/skip (204 each). No code change, no escalation."
+  },
+  "2026-08-01-empty-queue-deploy-5880ec9": {
+    "attempts": 1,
+    "last_verdict": "skip",
+    "first_seen": "2026-08-01T21:56:00Z",
+    "last_attempt": "2026-08-01T21:56:00Z",
+    "next_retry_after": null,
+    "escalated": false,
+    "notes": "cron_inbox held 13 unclaimed items (1282-1294), ALL webhook_event: bug.reported (915, admin's own vague test 'yo theres a bug in y' on /product/9, Chrome 150, no repro info, not actionable) + deploy chains for commits 37d8c528, 4ff1e4cb, 5880ec91 each push/building/deploying/deployed SUCCESS (final deployed SUCCESS for 5880ec91). Zero real bug reports. Production healthy: HTTP 200 / and /api/health, status ok, uptime ~221s, dist 13 files. Local HEAD 5880ec9 matches deployed commit. Scanned 10 emails: OpusClip promo, Zebracat x2 upgrade, roadmap.sh promo, TikTok notif, Notion promo x2, Lovable low-balance, Alibaba spam, KissNaked spam - none REWIND bugs. Marked all 13 handled/skip (204 each). Logged bug_watcher_run (201). No code change, no escalation."
   }
 }

@@ -36,7 +36,7 @@ export function Icon({ name, size = 20 }) {
 }
 
 /* ---------- Photo ---------- */
-export function Photo({ id, hue, label, h = 320, img }) {
+export function Photo({ id, hue, label, h = 320, img, eager }) {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
   const imgRef = useRef(null);
@@ -50,6 +50,12 @@ export function Photo({ id, hue, label, h = 320, img }) {
 
   useEffect(() => {
     if (!imgRef.current || !src) return;
+    if (eager) {
+      // Above-the-fold image: load immediately with high priority (LCP hero)
+      imgRef.current.src = src;
+      imgRef.current.fetchPriority = 'high';
+      return;
+    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && imgRef.current) {
@@ -78,7 +84,7 @@ export function Photo({ id, hue, label, h = 320, img }) {
   return (
     <div className="rw-photo" style={{ height: h, overflow: 'hidden', position: 'relative' }}>
       {!loaded && <div className="rw-skeleton" style={{ position: 'absolute', inset: 0 }} />}
-      <img ref={imgRef} loading="lazy" className={`rw-img ${loaded ? 'loaded' : ''}`}
+      <img ref={imgRef} loading={eager ? 'eager' : 'lazy'} className={`rw-img ${loaded ? 'loaded' : ''}`}
         alt={label}
         onLoad={() => setLoaded(true)}
         onError={() => { setErrored(true); setLoaded(true); }}
@@ -281,7 +287,7 @@ export function Hero({ onShop, onBundle, bundle }) {
         <button type="button" className="rw-hero-bundle" onClick={onBundle}
           aria-label={bundle ? `View ${bundle.name} — €${bundle.price}` : 'View the Lacoste Jacket Bundle'}>
           <span className="rw-hero-loop">
-            <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg?v=2" />
+            <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg?v=2" eager />
           </span>
           {bundle && (
             <span className="rw-hero-caption">{bundle.name} · €{bundle.price}</span>
