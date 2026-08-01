@@ -40,8 +40,8 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
   const submittedAt = new Date().toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
   const handleSubmit = async () => {
-    if (!message.trim() || message.trim().length < 10) {
-      showToast('Please describe the bug in at least 10 characters');
+    if (!message.trim() || message.trim().length < 15) {
+      showToast('Please describe the bug in at least 15 characters');
       return;
     }
     setSending(true);
@@ -88,17 +88,14 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
               id="bug-message"
               name="bug-message"
               value={message}
-              onChange={e => setMessage(e.target.value.slice(0, 20))}
-              placeholder="Describe what went wrong (max 20 characters)..."
+              onChange={e => setMessage(e.target.value.slice(0, 100))}
+              placeholder="Describe what went wrong..."
               rows={4}
-              maxLength={20}
+              maxLength={100}
               className="rw-input"
               style={{ width: '100%', resize: 'vertical', minHeight: '80px', marginBottom: '2px', fontFamily: 'inherit', fontSize: '14px', lineHeight: '1.5' }}
               autoFocus
             />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', fontSize: '12px', marginBottom: '16px', color: 20 - message.length <= 3 ? '#e5484d' : 'var(--muted)' }}>
-              {Math.max(0, 20 - message.length)} {Math.max(0, 20 - message.length) === 1 ? 'character' : 'characters'} left
-            </div>
 
             <label htmlFor="bug-email" style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '6px' }}>
               Your email <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(optional — if you want a reply)</span>
@@ -125,7 +122,7 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button className="rw-btn" onClick={onClose}
                 style={{ padding: '10px 20px', fontSize: '14px' }}>Cancel</button>
-              <button className="rw-btn rw-btn-pri" onClick={handleSubmit} disabled={sending || message.trim().length < 10}
+              <button className="rw-btn rw-btn-pri" onClick={handleSubmit} disabled={sending || message.trim().length < 15}
                 style={{ padding: '10px 20px', fontSize: '14px', opacity: sending ? 0.7 : 1 }}>
                 {sending ? 'Sending...' : 'Submit'}
               </button>

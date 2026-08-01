@@ -943,8 +943,8 @@ app.post('/api/lookup-order', strictLimiter, async (req, res) => {
 app.post('/api/report-bug', strictLimiter, (req, res) => {
   const { message, email, page, browser, device, submittedAt, ua } = req.body || {};
   const clean = (message || '').trim();
-  if (!message || typeof message !== 'string' || clean.length < 10) {
-    return res.status(400).json({ error: 'Message must be at least 10 characters' });
+  if (!message || typeof message !== 'string' || clean.length < 15) {
+    return res.status(400).json({ error: 'Message must be at least 15 characters' });
   }
   // Spam heuristic: reject keyboard-mash submissions (e.g. "6767676676767")
   const counts = {};
@@ -967,7 +967,7 @@ app.post('/api/report-bug', strictLimiter, (req, res) => {
           source: 'bug-report',
           event: 'bug.reported',
           payload: JSON.stringify({
-            message: message.trim().slice(0, 2000),
+            message: clean.slice(0, 100),
             email: (email || '').trim() || null,
             page: page || '',
             browser: (browser || '').slice(0, 300),
