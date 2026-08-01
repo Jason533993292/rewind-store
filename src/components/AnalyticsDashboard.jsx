@@ -10,8 +10,10 @@ export default function AnalyticsDashboard({ adminFetch }) {
   useEffect(() => {
     if (!adminFetch) return;
     adminFetch(`/api/admin/analytics?period=${period}`)
-      .then(r => r.json())
-      .then(d => setData(d))
+      .then(r => {
+        if (r.ok && r.data) setData(r.data);
+        else setData({ error: r.error || 'Could not load' });
+      })
       .catch(() => setData({ error: 'Could not load' }));
   }, [period, adminFetch]);
 
