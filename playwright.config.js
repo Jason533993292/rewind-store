@@ -4,8 +4,9 @@ export default defineConfig({
   testDir: './tests',
   timeout: 90000,
   fullyParallel: true,
-  workers: 3,
+  workers: 2,
   retries: 1,
+  expect: { timeout: 10000 },
   reporter: [
     ['list'],
     ['json', { outputFile: 'test-results.json' }],

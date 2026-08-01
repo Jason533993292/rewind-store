@@ -1304,6 +1304,7 @@ export default function App() {
 
           {/* Home */}
           <button onClick={() => { setShowReferral(false); setShowSettings(false); nav('/'); setDockHover(false); }}
+          aria-label="Home"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '6px', borderRadius: '16px', flexShrink: 0,
