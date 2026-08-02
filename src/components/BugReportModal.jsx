@@ -121,7 +121,9 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
 
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button className="rw-btn" onClick={onClose}
-                style={{ padding: '10px 20px', fontSize: '14px' }}>Cancel</button>
+                style={{ padding: '10px 20px', fontSize: '14px', border: '1px solid var(--line-2)', background: 'var(--surface)', color: 'var(--ink)', borderRadius: '10px', cursor: 'pointer', transition: 'border-color 0.15s, background 0.15s' }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--ink)'; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--line-2)'; }}>Cancel</button>
               <button className="rw-btn rw-btn-pri" onClick={handleSubmit} disabled={sending || message.trim().length < 15}
                 style={{ padding: '10px 20px', fontSize: '14px', opacity: sending ? 0.7 : 1 }}>
                 {sending ? 'Sending...' : 'Submit'}

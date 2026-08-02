@@ -197,6 +197,15 @@ export default function CustomerMap() {
 // ── Cleaner 2D fallback map ──
 // Thin solid arcs, small solid dots, soft static halo instead of heavy
 // blur + dash animation. Same color tiering as the 3D globe.
+// Clamp the pan so the (scaled) world always covers the full viewport —
+// you can't drag yourself outside the world. At zoom z the world is 800z×450z
+// and may shift by at most (800z-800)/2 horizontally, (450z-450)/2 vertically.
+function clampPan(t, z) {
+  const mx = 400 * (z - 1);
+  const my = 225 * (z - 1);
+  return { x: Math.min(mx, Math.max(-mx, t.x)), y: Math.min(my, Math.max(-my, t.y)) };
+}
+
 function FullscreenMap({ locations, countries: countryStats = [], onClose, mode = 'orders', range = 'all', onWindowChange }) {
   const total = useMemo(
     () => mode === 'visitors'
@@ -214,6 +223,7 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
   const [activeCountry, setActiveCountry] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const svgRef = useRef(null);
   const dragRef = useRef(null);
 
@@ -230,7 +240,7 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
       const cur = { x: O.x + (u.x - O.x - pan.x) / zoom, y: O.y + (u.y - O.y - pan.y) / zoom };
       const nz = Math.min(5, Math.max(1, e.deltaY < 0 ? zoom * 1.25 : zoom * 0.8));
       setZoom(nz);
-      setPan({ x: u.x - O.x - (cur.x - O.x) * nz, y: u.y - O.y - (cur.y - O.y) * nz });
+      setPan(clampPan({ x: u.x - O.x - (cur.x - O.x) * nz, y: u.y - O.y - (cur.y - O.y) * nz }, nz));
     };
     svg.addEventListener('wheel', onWheel, { passive: false });
     return () => svg.removeEventListener('wheel', onWheel);
@@ -363,15 +373,16 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
           onPointerDown={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
             dragRef.current = { sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y, w: r.width, h: r.height };
+            setIsDragging(true);
             e.currentTarget.setPointerCapture(e.pointerId);
             e.currentTarget.style.cursor = 'grabbing';
           }}
           onPointerMove={(e) => {
             const d = dragRef.current;
-            if (d) setPan({ x: d.px + (e.clientX - d.sx) * (800 / d.w), y: d.py + (e.clientY - d.sy) * (450 / d.h) });
+            if (d) setPan(clampPan({ x: d.px + (e.clientX - d.sx) * (800 / d.w), y: d.py + (e.clientY - d.sy) * (450 / d.h) }, zoom));
           }}
-          onPointerUp={(e) => { dragRef.current = null; e.currentTarget.style.cursor = 'grab'; }}
-          onPointerCancel={(e) => { dragRef.current = null; e.currentTarget.style.cursor = 'grab'; }}
+          onPointerUp={(e) => { dragRef.current = null; setIsDragging(false); e.currentTarget.style.cursor = 'grab'; }}
+          onPointerCancel={(e) => { dragRef.current = null; setIsDragging(false); e.currentTarget.style.cursor = 'grab'; }}
           onPointerLeave={(e) => { if (!dragRef.current) e.currentTarget.style.cursor = 'grab'; }}>
           <defs>
             <radialGradient id="rw-origin-glow" cx="50%" cy="50%" r="50%">
@@ -389,7 +400,7 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
               the clip rect stays in map space and zoomed content clips at the
               panel edges instead of scaling with the zoom */}
           <g clipPath="url(#rw-map-clip)">
-            <g style={{ transformOrigin: '400px 225px', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transition: 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
+            <g style={{ transformOrigin: '400px 225px', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transition: isDragging ? 'none' : 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
 
           {/* Faint dotted world texture */}
           {Array.from({ length: 800 / 26 }).flatMap((_, xi) =>
@@ -500,12 +511,12 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
 
         {/* Zoom controls — same style as the 3D globe */}
         <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(5, +(z + 0.6).toFixed(2))); }} aria-label="Zoom in"
+          <button onClick={(e) => { e.stopPropagation(); const nz = Math.min(5, +(zoom + 0.6).toFixed(2)); setZoom(nz); setPan(clampPan(pan, nz)); }} aria-label="Zoom in"
             style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1, backdropFilter: 'blur(4px)', userSelect: 'none', opacity: zoom >= 5 ? 0.4 : 1, transition: 'opacity .2s ease, transform .2s ease' }}
             onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.88)'; }}
             onMouseUp={e => { e.currentTarget.style.transform = ''; }}
             onMouseLeave={e => { e.currentTarget.style.transform = ''; }}>+</button>
-          <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(1, +(z - 0.6).toFixed(2))); }} aria-label="Zoom out"
+          <button onClick={(e) => { e.stopPropagation(); const nz = Math.max(1, +(zoom - 0.6).toFixed(2)); setZoom(nz); setPan(clampPan(pan, nz)); }} aria-label="Zoom out"
             style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1, backdropFilter: 'blur(4px)', userSelect: 'none', opacity: zoom <= 1 ? 0.4 : 1, transition: 'opacity .2s ease, transform .2s ease' }}
             onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.88)'; }}
             onMouseUp={e => { e.currentTarget.style.transform = ''; }}
