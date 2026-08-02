@@ -312,26 +312,6 @@ export default function ChatBubble() {
         </div>
       )}
 
-      {/* Floating close X — slides into the chat's bottom-left on open,
-          slides down-right and morphs back into the chat button on close */}
-      {mounted && (
-        <button
-          onClick={() => setOpen(false)}
-          aria-label="Close chat"
-          style={{
-            position: 'absolute', bottom: '78px', left: '-6px', width: '40px', height: '40px',
-            borderRadius: '50%', border: '2px solid #FF3B00', background: '#16130F', color: '#fff',
-            fontSize: '17px', lineHeight: 1, cursor: 'pointer', zIndex: 10001,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none',
-            transform: open
-              ? 'translateX(0) translateY(0) rotate(0deg) scale(1)'
-              : 'translateX(310px) translateY(18px) rotate(90deg) scale(.5)',
-            transition: 'transform .4s cubic-bezier(.4,0,.2,1), opacity .3s ease',
-          }}
-        >✕</button>
-      )}
-
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
         aria-label={open ? 'Close chat' : 'Open chat'}
@@ -340,18 +320,25 @@ export default function ChatBubble() {
           width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF3B00',
           background: '#FF3B00', color: '#fff',
           fontSize: '22px', cursor: 'pointer', position: 'relative',
-          transition: 'transform 0.3s ease, opacity 0.25s ease, box-shadow 0.2s',
+          transition: 'transform 0.3s ease, box-shadow 0.2s',
           boxShadow: open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)',
-          opacity: open ? 0 : 1,
-          transform: open ? 'scale(0)' : 'scale(1)',
-          pointerEvents: open ? 'none' : 'auto',
         }}
         onMouseEnter={e => { if (open) return; e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,59,0,.45)'; }}
         onMouseLeave={e => { if (open) return; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,59,0,.28)'; }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto' }}>
-          <path d="M21 14.5a2 2 0 0 1-2 2H7.5L4 20V5.5A2.5 2.5 0 0 1 6.5 3h12.5A2 2 0 0 1 21 5v9.5z"/>
-          <path d="M8.5 10h7M8.5 13.5h4"/>
-        </svg>
+        {/* Animated icon: the X turns in when the chat opens, and on close
+            it rotates + slides away while the chat icon turns back in */}
+        <span style={{ position: 'relative', display: 'block', width: '26px', height: '26px', margin: '0 auto' }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+            style={{ position: 'absolute', inset: 0, opacity: open ? 0 : 1, transform: open ? 'translateY(12px) rotate(-90deg) scale(.4)' : 'none', transition: 'transform .35s cubic-bezier(.4,0,.2,1), opacity .25s ease' }}>
+            <path d="M21 14.5a2 2 0 0 1-2 2H7.5L4 20V5.5A2.5 2.5 0 0 1 6.5 3h12.5A2 2 0 0 1 21 5v9.5z"/>
+            <path d="M8.5 10h7M8.5 13.5h4"/>
+          </svg>
+          <span aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: '25px', lineHeight: 1, fontWeight: 600,
+              opacity: open ? 1 : 0, transform: open ? 'none' : 'translateY(-12px) rotate(90deg) scale(.4)', transition: 'transform .35s cubic-bezier(.4,0,.2,1), opacity .25s ease' }}>
+            ×
+          </span>
+        </span>
         {!open && unread > 0 && (
           <span style={{
             position: 'absolute', top: '-4px', right: '-4px', background: '#16130F', color: '#fff',
