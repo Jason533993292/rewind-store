@@ -37,6 +37,7 @@ export default function CustomerMap() {
   const [locations, setLocations] = useState(null);
   const [visitorLocations, setVisitorLocations] = useState([]);
   const [visitorCountries, setVisitorCountries] = useState([]);
+  const [visitorWindow, setVisitorWindow] = useState('all');
   const [isAdmin, setIsAdmin] = useState(false);
   const [source, setSource] = useState('orders');
   const [modal, setModal] = useState(null);
@@ -81,21 +82,29 @@ export default function CustomerMap() {
     display: 'inline-flex', alignItems: 'center', gap: '8px',
   };
 
-  async function handleOpen(src) {
-    if (src === 'visitors') {
-      // Visitors view: 2D map with country highlighting (no 3D pillars)
+  async function loadVisitors(w, silent) {
+    if (!silent) {
       setModal('loading');
       document.body.style.overflow = 'hidden';
       window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: true } }));
-      try {
-        const r = await fetch('/api/admin/visitor-locations');
-        if (r.ok) {
-          const d = await r.json();
-          setVisitorCountries(Array.isArray(d.countries) ? d.countries : []);
-        }
-      } catch {}
+    }
+    try {
+      const r = await fetch(`/api/admin/visitor-locations?window=${w}`);
+      if (r.ok) {
+        const d = await r.json();
+        setVisitorCountries(Array.isArray(d.countries) ? d.countries : []);
+      }
+    } catch {}
+    if (!silent) {
       setSource('visitors');
       setModal('map');
+    }
+  }
+
+  async function handleOpen(src) {
+    if (src === 'visitors') {
+      // Visitors view: 2D map with country highlighting (no 3D pillars)
+      await loadVisitors(visitorWindow, false);
       return;
     }
     if (!supportsWebGL()) { openMap(src); return; }
@@ -178,7 +187,8 @@ export default function CustomerMap() {
       )}
 
       {modal === 'map' && (
-        <FullscreenMap mode={source} countries={visitorCountries} locations={source === 'visitors' ? visitorLocations : locations} onClose={handleClose} />
+        <FullscreenMap mode={source} countries={visitorCountries} locations={source === 'visitors' ? visitorLocations : locations}
+          range={visitorWindow} onWindowChange={(w) => { setVisitorWindow(w); loadVisitors(w, true); }} onClose={handleClose} />
       )}
     </>
   );
@@ -187,7 +197,7 @@ export default function CustomerMap() {
 // ── Cleaner 2D fallback map ──
 // Thin solid arcs, small solid dots, soft static halo instead of heavy
 // blur + dash animation. Same color tiering as the 3D globe.
-function FullscreenMap({ locations, countries: countryStats = [], onClose, mode = 'orders' }) {
+function FullscreenMap({ locations, countries: countryStats = [], onClose, mode = 'orders', range = 'all', onWindowChange }) {
   const total = useMemo(
     () => mode === 'visitors'
       ? countryStats.reduce((s, c) => s + c.count, 0)
@@ -337,6 +347,14 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
             <span style={{ fontSize: '11px', opacity: 0.4, marginLeft: '8px' }}>
               · Avg delivery 10–18 days
             </span>
+          )}
+          {mode === 'visitors' && (
+            <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+              {[{ id: '24h', label: 'Last 24h' }, { id: '7d', label: '7 days' }, { id: 'all', label: 'All time' }].map(f => (
+                <button key={f.id} onClick={(e) => { e.stopPropagation(); if (onWindowChange) onWindowChange(f.id); }}
+                  style={{ padding: '3px 12px', borderRadius: '999px', border: '1px solid ' + (range === f.id ? '#FF7A3D' : 'rgba(255,255,255,0.22)'), background: range === f.id ? 'rgba(255,122,61,0.16)' : 'transparent', color: range === f.id ? '#FF9A6B' : 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, transition: 'all .15s ease' }}>{f.label}</button>
+              ))}
+            </div>
           )}
         </div>
 

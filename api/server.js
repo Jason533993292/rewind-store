@@ -1314,6 +1314,7 @@ app.use('/api/admin', (req, res, next) => {
 // ── Admin: visitor locations (admin-only globe beside "Our reach") ──
 // Countries aggregate from ALL visits (country code alone is enough to
 // light up a country — coords are only used as a hover-panel anchor).
+// Supports ?window=24h|7d|all to filter by visit recency.
 app.get('/api/admin/visitor-locations', async (req, res) => {
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -1321,8 +1322,13 @@ app.get('/api/admin/visitor-locations', async (req, res) => {
       const r = await fetch(url, { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
       return r.json();
     };
+    const w = req.query.window || 'all';
+    let since = '';
+    if (w === '24h') since = new Date(Date.now() - 24 * 3600e3).toISOString();
+    else if (w === '7d') since = new Date(Date.now() - 7 * 86400e3).toISOString();
+    const sinceParam = since ? `&timestamp=gte.${encodeURIComponent(since)}` : '';
     const [visits, coords] = await Promise.all([
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country,city&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country,city&limit=2000${sinceParam}`),
       fetchDb(`${SUPABASE_URL}/rest/v1/city_coords?select=city,country,lat,lng&limit=1000`),
     ]);
     const coordByCity = new Map((Array.isArray(coords) ? coords : []).map(c => [`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng }]));
