@@ -3,6 +3,7 @@
 // Locks body scroll while the globe panel is open.
 
 import React, { useState, useEffect, useMemo } from 'react';
+import countries from '../data/countries.json';
 
 const GLOBE_OPEN_EVENT = 'globe-panel-open';
 const COLORS = ['#06b6d4', '#3b82f6', '#6366f1'];
@@ -35,6 +36,7 @@ function supportsWebGL() {
 export default function CustomerMap() {
   const [locations, setLocations] = useState(null);
   const [visitorLocations, setVisitorLocations] = useState([]);
+  const [visitorCountries, setVisitorCountries] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [source, setSource] = useState('orders');
   const [modal, setModal] = useState(null);
@@ -80,6 +82,23 @@ export default function CustomerMap() {
   };
 
   async function handleOpen(src) {
+    if (src === 'visitors') {
+      // Visitors view: 2D map with country highlighting (no 3D pillars)
+      setModal('loading');
+      document.body.style.overflow = 'hidden';
+      window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: true } }));
+      try {
+        const r = await fetch('/api/admin/visitor-locations');
+        if (r.ok) {
+          const d = await r.json();
+          setVisitorLocations(Array.isArray(d.locations) ? d.locations : []);
+          setVisitorCountries(Array.isArray(d.countries) ? d.countries : []);
+        }
+      } catch {}
+      setSource('visitors');
+      setModal('map');
+      return;
+    }
     if (!supportsWebGL()) { openMap(src); return; }
     setModal('loading');
     document.body.style.overflow = 'hidden';
@@ -87,15 +106,6 @@ export default function CustomerMap() {
     try {
       const mod = await import('./ui/globe.jsx');
       setGlobePanel(() => mod.default);
-      if (src === 'visitors') {
-        try {
-          const r = await fetch('/api/admin/visitor-locations');
-          if (r.ok) {
-            const d = await r.json();
-            setVisitorLocations(Array.isArray(d.locations) ? d.locations : []);
-          }
-        } catch {}
-      }
       setSource(src);
       setModal('globe');
     } catch {
@@ -169,7 +179,7 @@ export default function CustomerMap() {
       )}
 
       {modal === 'map' && (
-        <FullscreenMap locations={source === 'visitors' ? visitorLocations : locations} onClose={handleClose} />
+        <FullscreenMap mode={source} countries={visitorCountries} locations={source === 'visitors' ? visitorLocations : locations} onClose={handleClose} />
       )}
     </>
   );
@@ -178,10 +188,59 @@ export default function CustomerMap() {
 // ── Cleaner 2D fallback map ──
 // Thin solid arcs, small solid dots, soft static halo instead of heavy
 // blur + dash animation. Same color tiering as the 3D globe.
-function FullscreenMap({ locations, onClose }) {
-  const total = useMemo(() => locations.reduce((s, l) => s + l.count, 0), [locations]);
-  const maxCount = useMemo(() => Math.max(1, ...locations.map(l => l.count)), [locations]);
+function FullscreenMap({ locations, countries: countryStats = [], onClose, mode = 'orders' }) {
+  const total = useMemo(
+    () => mode === 'visitors'
+      ? countryStats.reduce((s, c) => s + c.count, 0)
+      : locations.reduce((s, l) => s + l.count, 0),
+    [mode, locations, countryStats]
+  );
+  const maxCount = useMemo(
+    () => mode === 'visitors'
+      ? Math.max(1, ...countryStats.map(c => c.count))
+      : Math.max(1, ...locations.map(l => l.count)),
+    [mode, locations, countryStats]
+  );
   const [activeCity, setActiveCity] = useState(null);
+  const [activeCountry, setActiveCountry] = useState(null);
+
+  // ISO_A2 → GeoJSON feature lookup for country highlighting
+  const countryFeatures = useMemo(() => {
+    const m = new Map();
+    for (const f of countries.features) {
+      const code = f.properties && f.properties.ISO_A2;
+      if (code) m.set(code, f);
+    }
+    return m;
+  }, []);
+
+  function projectRing(ring) {
+    return ring.map(([lng, lat]) => `${(((lng + 180) / 360) * 800).toFixed(1)},${(((90 - lat) / 180) * 450).toFixed(1)}`).join(' ');
+  }
+
+  function featurePaths(feature) {
+    const geom = feature && feature.geometry;
+    if (!geom) return [];
+    const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    const paths = [];
+    for (const poly of polys) {
+      if (!poly[0] || poly[0].length < 3) continue;
+      let d = `M ${projectRing(poly[0])} Z`;
+      for (let h = 1; h < poly.length; h++) d += ` M ${projectRing(poly[h])} Z`;
+      paths.push(d);
+    }
+    return paths;
+  }
+
+  const validCountries = useMemo(
+    () => countryStats.filter(c => c.country && countryFeatures.has(c.country)),
+    [countryStats, countryFeatures]
+  );
+
+  function flag(c) {
+    if (!c || c.length !== 2) return '🌐';
+    return c.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
+  }
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -219,13 +278,17 @@ function FullscreenMap({ locations, onClose }) {
         }} aria-label="Close">✕</button>
 
         <div style={{ marginBottom: '16px' }}>
-          <strong style={{ fontSize: '16px' }}>Our reach</strong>
+          <strong style={{ fontSize: '16px' }}>{mode === 'visitors' ? 'Visitor reach' : 'Our reach'}</strong>
           <span style={{ fontSize: '13px', opacity: 0.6, marginLeft: '8px' }}>
-            {locations.length} cities · {total} orders
+            {mode === 'visitors'
+              ? `${validCountries.length} countries · ${total} visits`
+              : `${locations.length} cities · ${total} orders`}
           </span>
-          <span style={{ fontSize: '11px', opacity: 0.4, marginLeft: '8px' }}>
-            · Avg delivery 10–18 days
-          </span>
+          {mode !== 'visitors' && (
+            <span style={{ fontSize: '11px', opacity: 0.4, marginLeft: '8px' }}>
+              · Avg delivery 10–18 days
+            </span>
+          )}
         </div>
 
         <svg viewBox="0 0 800 450" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
@@ -250,7 +313,44 @@ function FullscreenMap({ locations, onClose }) {
           <circle cx={400} cy={225} r={22} fill="url(#rw-origin-glow)" />
           <circle cx={400} cy={225} r={4} fill="#FF7A3D" />
 
-          {validLocations.map((loc, i) => {
+          {/* Visitors mode: light up the whole country polygon */}
+          {mode === 'visitors' && validCountries.map((c, i) => {
+            const feature = countryFeatures.get(c.country);
+            const pct = total > 0 ? Math.round((c.count / total) * 100) : 0;
+            const opacity = Math.min(0.6, 0.18 + (c.count / maxCount) * 0.42);
+            const x = ((c.lng + 180) / 360) * 800;
+            const y = ((90 - c.lat) / 180) * 450;
+            return (
+              <g key={c.country}>
+                {featurePaths(feature).map((d, pi) => (
+                  <path key={pi} d={d}
+                    fill={activeCountry && activeCountry.country === c.country ? 'rgba(255,122,61,0.85)' : `rgba(255,122,61,${opacity})`}
+                    stroke="rgba(255,158,102,0.9)" strokeWidth={0.8}
+                    style={{ transition: 'fill .15s ease', cursor: 'pointer' }}
+                    onMouseOver={(e) => { e.stopPropagation(); setActiveCountry(c); }}
+                    onMouseOut={() => setActiveCountry(null)}
+                  />
+                ))}
+                {activeCountry && activeCountry.country === c.country && (
+                  <g style={{ pointerEvents: 'none' }}>
+                    <rect x={x - 70} y={Math.max(y - 62, 4)} width={140} height={50} rx={6}
+                      fill="rgba(10,20,40,0.95)" stroke="rgba(255,122,61,0.5)" />
+                    <text x={x} y={Math.max(y - 62, 4) + 16} fontSize={11} fontWeight={700} fill="#fff" textAnchor="middle">
+                      {flag(c.country)} {c.country}
+                    </text>
+                    <text x={x} y={Math.max(y - 62, 4) + 29} fontSize={9} fill="#ffd9c2" textAnchor="middle">
+                      {c.count} visitor{c.count === 1 ? '' : 's'} · {pct}%
+                    </text>
+                    <text x={x} y={Math.max(y - 62, 4) + 41} fontSize={9} fill="#6B7280" textAnchor="middle">
+                      of all visitors
+                    </text>
+                  </g>
+                )}
+              </g>
+            );
+          })}
+
+          {mode !== 'visitors' && validLocations.map((loc, i) => {
             const x = ((loc.lng + 180) / 360) * 800;
             const y = ((90 - loc.lat) / 180) * 450;
             const midX = (400 + x) / 2;
@@ -297,7 +397,9 @@ function FullscreenMap({ locations, onClose }) {
         </svg>
 
         <div style={{ marginTop: '8px', fontSize: '12px', opacity: 0.6, textAlign: 'center' }}>
-          Hover a dot to see city, country, and order count. Orange = warehouse (Brussels).
+          {mode === 'visitors'
+            ? 'Hover a country to see visitor count. Orange = warehouse (Brussels).'
+            : 'Hover a dot to see city, country, and order count. Orange = warehouse (Brussels).'}
         </div>
       </div>
     </div>

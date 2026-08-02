@@ -1332,9 +1332,21 @@ app.get('/api/admin/visitor-locations', async (req, res) => {
       })
       .filter(Boolean)
       .sort((a, b) => b.count - a.count);
-    res.json({ locations });
+
+    // Country-level view: group cities by country, anchor at the top city's coords
+    const countryMap = {};
+    for (const loc of locations) {
+      const c = countryMap[loc.country] || (countryMap[loc.country] = { country: loc.country, count: 0, lat: loc.lat, lng: loc.lng, anchor: 0 });
+      c.count += loc.count;
+      if (loc.count > c.anchor) { c.anchor = loc.count; c.lat = loc.lat; c.lng = loc.lng; }
+    }
+    const countries = Object.values(countryMap)
+      .map(({ country, count, lat, lng }) => ({ country, count, lat, lng }))
+      .sort((a, b) => b.count - a.count);
+
+    res.json({ locations, countries });
   } catch {
-    res.json({ locations: [] });
+    res.json({ locations: [], countries: [] });
   }
 });
 
