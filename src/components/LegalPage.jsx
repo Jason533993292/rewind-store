@@ -27,7 +27,7 @@ export default function LegalPage({ page, onClose }) {
     privacy: {
       title: 'Privacy Policy',
       sections: [
-        { heading: 'Who We Are', text: 'REWIND is a vintage streetwear store operated by Philippe Anaman. For questions about your data, contact us at orders@rewind-stores.com.' },
+        { heading: 'Who We Are', text: 'REWIND is a vintage streetwear store run as a sole trader, based at Romeinsesteenweg 193, 1800 Vilvoorde, Belgium. For questions about your data, contact us at orders@rewind-stores.com.' },
         { heading: 'What We Collect', text: 'When you place an order, we collect your name, email address, shipping address, IP address, and payment information. When you use the chat feature, we collect your email address and IP address. We also store your wishlist to save items for later. We do not sell, rent, or share your personal data with third parties except as necessary to process your order.' },
         { heading: 'Why We Collect IP Addresses', text: 'We use IP addresses to detect and prevent fraud, block abusive users, and comply with applicable laws. Your IP address is stored securely alongside your order and any chat sessions in our database.' },
         { heading: 'How We Protect Your Data', text: 'All personal data is stored in Supabase, a GDPR-compliant database with encryption at rest and in transit. Access to your data is restricted to the store operator only — no third party has direct database access. Payment data never reaches our servers; it is handled entirely by Stripe, a PCI-DSS Level 1 certified payment processor. We implement industry-standard security measures including encrypted connections (HTTPS), HttpOnly session cookies, rate limiting, and fraud detection to protect your information.' },
@@ -37,13 +37,13 @@ export default function LegalPage({ page, onClose }) {
         { heading: 'Your Rights', text: 'You have the right to access, correct, delete, or receive a portable copy of your personal data, and to object to or request restriction of certain processing. Where we rely on your consent, you may withdraw it at any time. You also have the right to lodge a complaint with your local data protection authority. Contact orders@rewind-stores.com — we will respond within 30 days as required by GDPR.' },
         { heading: 'Automated Decisions', text: 'We use automated fraud detection (such as email and IP blocklists) to identify potentially fraudulent orders. If your order is cancelled by our automated systems, you may contact us for a human review of the decision.' },
         { heading: 'Data Retention', text: 'Order data is kept for 7 years as required by tax law. Chat messages are deleted after 90 days. Wishlists are kept until you request deletion. IP addresses are retained alongside the records they are associated with.' },
-        { heading: 'Contact', text: 'For privacy-related questions, contact us at orders@rewind-stores.com. You can also lodge a complaint with your local data protection authority.' },
+        { heading: 'Contact', text: 'For privacy-related questions, contact us at orders@rewind-stores.com. You can also lodge a complaint with the Belgian Data Protection Authority (dataprotectionauthority.be).' },
       ],
     },
     terms: {
       title: 'Terms of Service',
       sections: [
-        { heading: 'About REWIND', text: 'REWIND is a vintage streetwear store operated by Philippe Anaman. All items are pre-owned vintage pieces — minor wear and variation from product photos is normal and part of the vintage experience. Orders are fulfilled from our supplier partners in China.' },
+        { heading: 'About REWIND', text: 'REWIND is a vintage streetwear store based in Vilvoorde, Belgium. All items are pre-owned vintage pieces — minor wear and variation from product photos is normal and part of the vintage experience. Orders are fulfilled from our supplier partners in China.' },
         { heading: 'Orders', text: 'By placing an order, you agree to pay the listed price plus shipping. All prices are in Euros (€). We reserve the right to cancel orders for out-of-stock items, suspected fraud, or other valid reasons. If your order is cancelled, you will be notified with the reason.' },
         { heading: 'Shipping', text: 'Orders ship from China within 24 hours of payment confirmation. Delivery times vary by destination (see our Shipping page for estimates). We are not responsible for customs delays, duties, or import taxes.' },
         { heading: 'Right of Withdrawal', text: 'Under EU consumer law, you have the right to withdraw from your purchase within 14 days of receiving your order. This is your statutory right — you may exercise it by contacting orders@rewind-stores.com or by any clear statement. See our Returns & Refunds page for full details.' },
