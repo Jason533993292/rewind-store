@@ -2,7 +2,7 @@
 // Auto-closes when dock buttons (settings, referrals, etc.) are clicked.
 // Locks body scroll while the globe panel is open.
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import countries from '../data/countries.json';
 
 const GLOBE_OPEN_EVENT = 'globe-panel-open';
@@ -203,6 +203,28 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
   const [activeCity, setActiveCity] = useState(null);
   const [activeCountry, setActiveCountry] = useState(null);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const svgRef = useRef(null);
+  const dragRef = useRef(null);
+
+  // Mouse-wheel zoom (zooms toward the cursor) — native non-passive listener
+  // because React's synthetic wheel is passive and can't preventDefault.
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e) => {
+      e.preventDefault();
+      const rect = svg.getBoundingClientRect();
+      const u = { x: (e.clientX - rect.left) * (800 / rect.width), y: (e.clientY - rect.top) * (450 / rect.height) };
+      const O = { x: 400, y: 225 };
+      const cur = { x: O.x + (u.x - O.x - pan.x) / zoom, y: O.y + (u.y - O.y - pan.y) / zoom };
+      const nz = Math.min(5, Math.max(1, e.deltaY < 0 ? zoom * 1.25 : zoom * 0.8));
+      setZoom(nz);
+      setPan({ x: u.x - O.x - (cur.x - O.x) * nz, y: u.y - O.y - (cur.y - O.y) * nz });
+    };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, [zoom, pan]);
 
   // ISO code → GeoJSON feature lookup for country highlighting.
   // Registers A2, A3 and ADM0_A3 keys; CF country codes that the dataset
@@ -318,7 +340,21 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
           )}
         </div>
 
-        <svg viewBox="0 0 800 450" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
+        <svg ref={svgRef} viewBox="0 0 800 450"
+          style={{ width: '100%', height: 'auto', overflow: 'visible', cursor: 'grab', touchAction: 'none' }}
+          onPointerDown={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            dragRef.current = { sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y, w: r.width, h: r.height };
+            e.currentTarget.setPointerCapture(e.pointerId);
+            e.currentTarget.style.cursor = 'grabbing';
+          }}
+          onPointerMove={(e) => {
+            const d = dragRef.current;
+            if (d) setPan({ x: d.px + (e.clientX - d.sx) * (800 / d.w), y: d.py + (e.clientY - d.sy) * (450 / d.h) });
+          }}
+          onPointerUp={(e) => { dragRef.current = null; e.currentTarget.style.cursor = 'grab'; }}
+          onPointerCancel={(e) => { dragRef.current = null; e.currentTarget.style.cursor = 'grab'; }}
+          onPointerLeave={(e) => { if (!dragRef.current) e.currentTarget.style.cursor = 'grab'; }}>
           <defs>
             <radialGradient id="rw-origin-glow" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.9" />
@@ -335,7 +371,7 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
               the clip rect stays in map space and zoomed content clips at the
               panel edges instead of scaling with the zoom */}
           <g clipPath="url(#rw-map-clip)">
-            <g style={{ transformOrigin: '400px 225px', transform: `scale(${zoom})`, transition: 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
+            <g style={{ transformOrigin: '400px 225px', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transition: 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
 
           {/* Faint dotted world texture */}
           {Array.from({ length: 800 / 26 }).flatMap((_, xi) =>

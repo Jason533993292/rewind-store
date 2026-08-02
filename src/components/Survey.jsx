@@ -43,7 +43,9 @@ export default function Survey({ onDone, onSkip }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {options.map(o => (
             <button key={o.id} onClick={() => { setSource(o.id); setStep(1); }}
-              style={{ padding: '12px', borderRadius: '10px', border: '1px solid #E2DCD3', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s' }}>
+              onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.045) translateY(-1px)'; e.currentTarget.style.borderColor = 'var(--accent, #FF4D14)'; e.currentTarget.style.boxShadow = '0 8px 18px rgba(255,77,20,.16)'; }}
+              onMouseOut={e => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.borderColor = '#E2DCD3'; e.currentTarget.style.boxShadow = 'none'; }}
+              style={{ padding: '12px', borderRadius: '10px', border: '1px solid #E2DCD3', background: 'var(--surface)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: 'var(--ink)', transition: 'transform .2s cubic-bezier(.34,1.56,.64,1), border-color .15s ease, box-shadow .2s ease', willChange: 'transform' }}>
               {o.label}
             </button>
           ))}

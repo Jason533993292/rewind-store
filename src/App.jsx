@@ -155,6 +155,22 @@ export default function App() {
   const [showOrderConfirmed, setShowOrderConfirmed] = useState(false);
   const [confirmedOrderNum, setConfirmedOrderNum] = useState('');
   const [showBugReport, setShowBugReport] = useState(false);
+  const [cookieBannerLikelyVisible, setCookieBannerLikelyVisible] = useState(false);
+
+  // Keep the bug button above the chat button: both lift when the cookie
+  // banner is showing (the chat FAB goes to 90px, this one to 140px).
+  useEffect(() => {
+    if (localStorage.getItem('rw_cookie_consent')) return;
+    setCookieBannerLikelyVisible(true);
+    const poll = setInterval(() => {
+      if (localStorage.getItem('rw_cookie_consent')) {
+        setCookieBannerLikelyVisible(false);
+        clearInterval(poll);
+      }
+    }, 500);
+    const timeout = setTimeout(() => clearInterval(poll), 60000);
+    return () => { clearInterval(poll); clearTimeout(timeout); };
+  }, []);
 
   // ── ALL useEffects below ──
 
@@ -1420,7 +1436,7 @@ export default function App() {
         <button onClick={() => setShowBugReport(true)}
           title="Report a bug"
           className="rw-bug-fab"
-          style={{ position: 'fixed', bottom: '70px', right: 'max(20px, env(safe-area-inset-right, 0px))', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'all 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+          style={{ position: 'fixed', bottom: `calc(${cookieBannerLikelyVisible ? '140px' : '70px'} + env(safe-area-inset-bottom, 0px))`, right: 'max(20px, env(safe-area-inset-right, 0px))', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'bottom 0.2s ease, background 0.15s, color 0.15s, border-color 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
           onMouseOver={e => { e.currentTarget.style.background = 'var(--accent, #FF4D14)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--accent, #FF4D14)'; }}
           onMouseOut={e => { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--line-2)'; }}>
           🐛
