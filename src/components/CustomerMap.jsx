@@ -331,9 +331,11 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
 
           <rect width="800" height="450" rx="12" fill="#05070d" />
 
-          {/* Zoomable world layer (clips at the map edges) */}
-          <g clipPath="url(#rw-map-clip)"
-            style={{ transformOrigin: '400px 225px', transform: `scale(${zoom})`, transition: 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
+          {/* Zoomable world layer — clip on the OUTER (untransformed) group so
+              the clip rect stays in map space and zoomed content clips at the
+              panel edges instead of scaling with the zoom */}
+          <g clipPath="url(#rw-map-clip)">
+            <g style={{ transformOrigin: '400px 225px', transform: `scale(${zoom})`, transition: 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
 
           {/* Faint dotted world texture */}
           {Array.from({ length: 800 / 26 }).flatMap((_, xi) =>
@@ -438,7 +440,8 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
               </g>
             );
           })}
-        </g>
+            </g>
+          </g>
         </svg>
 
         {/* Zoom controls — same style as the 3D globe */}
