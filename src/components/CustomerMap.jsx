@@ -91,7 +91,6 @@ export default function CustomerMap() {
         const r = await fetch('/api/admin/visitor-locations');
         if (r.ok) {
           const d = await r.json();
-          setVisitorLocations(Array.isArray(d.locations) ? d.locations : []);
           setVisitorCountries(Array.isArray(d.countries) ? d.countries : []);
         }
       } catch {}
@@ -244,6 +243,26 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
     [countryStats, countryFeatures]
   );
 
+  // Bounding-box centre of a GeoJSON feature — tooltip anchor when the
+  // country has no city coordinates cached.
+  function featureCenter(feature) {
+    const geom = feature && feature.geometry;
+    if (!geom) return { lat: 0, lng: 0 };
+    let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+    const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    for (const poly of polys) {
+      for (const ring of poly) {
+        for (const [lng, lat] of ring) {
+          if (lng < minLng) minLng = lng;
+          if (lng > maxLng) maxLng = lng;
+          if (lat < minLat) minLat = lat;
+          if (lat > maxLat) maxLat = lat;
+        }
+      }
+    }
+    return { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
+  }
+
   function flag(c) {
     if (!c || c.length !== 2) return '🌐';
     return c.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
@@ -325,17 +344,18 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
             </g>
           ))}
 
-          {/* Warehouse origin — soft glow halo + solid core */}
-          <circle cx={400} cy={225} r={22} fill="url(#rw-origin-glow)" />
-          <circle cx={400} cy={225} r={4} fill="#FF7A3D" />
+          {/* Warehouse origin — Brussels (50.85, 4.35), NOT map centre */}
+          <circle cx={409.7} cy={97.9} r={22} fill="url(#rw-origin-glow)" />
+          <circle cx={409.7} cy={97.9} r={4} fill="#FF7A3D" />
 
           {/* Visitors mode: light up the whole country polygon */}
           {mode === 'visitors' && validCountries.map((c, i) => {
             const feature = countryFeatures.get(c.country);
             const pct = total > 0 ? Math.round((c.count / total) * 100) : 0;
             const opacity = Math.min(0.6, 0.18 + (c.count / maxCount) * 0.42);
-            const x = ((c.lng + 180) / 360) * 800;
-            const y = ((90 - c.lat) / 180) * 450;
+            const anchor = (c.lat != null && c.lng != null) ? { lat: c.lat, lng: c.lng } : featureCenter(feature);
+            const x = ((anchor.lng + 180) / 360) * 800;
+            const y = ((90 - anchor.lat) / 180) * 450;
             return (
               <g key={c.country}>
                 {featurePaths(feature).map((d, pi) => (
@@ -369,9 +389,9 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
           {mode !== 'visitors' && validLocations.map((loc, i) => {
             const x = ((loc.lng + 180) / 360) * 800;
             const y = ((90 - loc.lat) / 180) * 450;
-            const midX = (400 + x) / 2;
-            const midY = Math.min(225, y) - Math.abs(x - 400) * 0.25;
-            const path = `M 400 225 Q ${midX} ${midY} ${x} ${y}`;
+            const midX = (409.7 + x) / 2;
+            const midY = Math.min(97.9, y) - Math.abs(x - 409.7) * 0.25;
+            const path = `M 409.7 97.9 Q ${midX} ${midY} ${x} ${y}`;
             const color = colorFor(loc.count);
             const r = Math.min(2 + Math.log(loc.count + 1) * 1.6, 6);
             const pct = total > 0 ? Math.round((loc.count / total) * 100) : 0;

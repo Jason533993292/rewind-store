@@ -1312,6 +1312,8 @@ app.use('/api/admin', (req, res, next) => {
 });
 
 // ── Admin: visitor locations (admin-only globe beside "Our reach") ──
+// Countries aggregate from ALL visits (country code alone is enough to
+// light up a country — coords are only used as a hover-panel anchor).
 app.get('/api/admin/visitor-locations', async (req, res) => {
   try {
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -1320,40 +1322,36 @@ app.get('/api/admin/visitor-locations', async (req, res) => {
       return r.json();
     };
     const [visits, coords] = await Promise.all([
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=city,country&city=not.is.null&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country,city&limit=2000`),
       fetchDb(`${SUPABASE_URL}/rest/v1/city_coords?select=city,country,lat,lng&limit=1000`),
     ]);
-    const coordMap = new Map((Array.isArray(coords) ? coords : []).map(c => [`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng }]));
+    const coordByCity = new Map((Array.isArray(coords) ? coords : []).map(c => [`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng }]));
     const counts = {};
+    const cityCounts = {};
     for (const v of visits) {
-      if (!v.city) continue;
-      const key = `${v.city}|${v.country}`;
-      counts[key] = (counts[key] || 0) + 1;
+      if (!v.country) continue;
+      counts[v.country] = (counts[v.country] || 0) + 1;
+      if (v.city) {
+        const k = `${v.city}|${v.country}`;
+        cityCounts[k] = (cityCounts[k] || 0) + 1;
+      }
     }
-    const locations = Object.entries(counts)
-      .map(([key, count]) => {
-        const coord = coordMap.get(key);
-        if (!coord) return null;
-        const [city, country] = key.split('|');
-        return { city, country, count, lat: coord.lat, lng: coord.lng };
+    const countries = Object.entries(counts)
+      .map(([country, count]) => {
+        let anchor = null;
+        const cityKeys = Object.entries(cityCounts)
+          .filter(([k]) => k.endsWith('|' + country))
+          .sort((a, b) => b[1] - a[1]);
+        for (const [k] of cityKeys) {
+          const c = coordByCity.get(k);
+          if (c) { anchor = c; break; }
+        }
+        return { country, count, lat: anchor ? anchor.lat : null, lng: anchor ? anchor.lng : null };
       })
-      .filter(Boolean)
       .sort((a, b) => b.count - a.count);
-
-    // Country-level view: group cities by country, anchor at the top city's coords
-    const countryMap = {};
-    for (const loc of locations) {
-      const c = countryMap[loc.country] || (countryMap[loc.country] = { country: loc.country, count: 0, lat: loc.lat, lng: loc.lng, anchor: 0 });
-      c.count += loc.count;
-      if (loc.count > c.anchor) { c.anchor = loc.count; c.lat = loc.lat; c.lng = loc.lng; }
-    }
-    const countries = Object.values(countryMap)
-      .map(({ country, count, lat, lng }) => ({ country, count, lat, lng }))
-      .sort((a, b) => b.count - a.count);
-
-    res.json({ locations, countries });
+    res.json({ countries });
   } catch {
-    res.json({ locations: [], countries: [] });
+    res.json({ countries: [] });
   }
 });
 
