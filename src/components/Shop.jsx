@@ -1045,11 +1045,13 @@ const POLICY_TEXT = `REWIND Privacy Policy
 
 Controller: REWIND (sole trader), 1800 Vilvoorde, Belgium
 Contact: orders@rewind-stores.com
+Data protection authority: Belgian Data Protection Authority (Gegevensbeschermingsautoriteit / Autorité de protection des données), Rue de la Presse 35, 1000 Brussels — dataprotectionauthority.be
 
 Data retention:
 • Order data: 7 years (tax compliance)
 • Inactive account/wishlist data: 24 months after last activity
 • Marketing data: until you withdraw consent
+• Visit analytics (IP-derived country/city, browser, pages visited): 24 months, stored without email or name
 
 1. Information We Collect
 • Email address (when you create a wishlist or place an order)
@@ -1062,16 +1064,17 @@ Data retention:
 • To process and fulfill your orders
 • To send order confirmations and shipping updates
 • To detect and prevent fraud (including IP-based blocking)
+• For anonymized visitor analytics (which pages are viewed and from where — no personal identity)
 • With your consent, to send emails about new drops and exclusive offers
 
 3. Data Storage & Security
-• Your data is stored securely in our database (Supabase, EU-hosted)
-• We use industry-standard encryption for data transmission
+• Your data is stored securely in our cloud database (Supabase) with access controls
+• We use industry-standard encryption for data in transit and at rest
 • You can request deletion of your data at any time by emailing orders@rewind-stores.com
 
 4. Third-Party Services
 • Stripe (US): Payment processing — view their privacy policy at stripe.com/privacy
-• Supabase (US): Database hosting
+• Supabase (US): Cloud database hosting
 • Resend (US): Order confirmation emails
 • Google Gemini (US): AI-powered chat auto-replies
 • These services may process your data outside the EU/EEA under Standard Contractual Clauses
@@ -1083,6 +1086,7 @@ Data retention:
 • Right to restrict processing
 • Right to data portability
 • Right to object to processing
+• Right to lodge a complaint with the Belgian Data Protection Authority (dataprotectionauthority.be)
 • To exercise any of these rights, email orders@rewind-stores.com
 
 6. Cookies
@@ -1099,7 +1103,7 @@ Data retention:
 • Email: orders@rewind-stores.com
 • Response time: within 48 hours
 
-Last updated: July 2026`;
+Last updated: August 2026`;
 
 export function SignupModal({ open, onClose, onSignup }) {
   const [email, setEmail] = useState('');
