@@ -6,7 +6,7 @@ const PAGES = {
   privacy: {
     title: 'Privacy Policy',
     sections: [
-      { heading: 'Controller', text: 'REWIND (sole trader), Romeinsesteenweg 193, 1800 Vilvoorde, Belgium. Contact: orders@rewind-stores.com. Data protection authority: Belgian Data Protection Authority (dataprotectionauthority.be).' },
+      { heading: 'Controller', text: 'REWIND (sole trader), Romeinsesteenweg, 1800 Vilvoorde, Belgium. Contact: orders@rewind-stores.com. Data protection authority: Belgian Data Protection Authority (dataprotectionauthority.be).' },
       { heading: 'Information We Collect', text: 'We collect information you provide directly, such as your name, email address, and shipping address when you sign up for a wishlist or place an order. Payment information is processed securely by Stripe — we never store card details. We also collect IP address and browser/device information for fraud prevention, site security, and anonymized visitor analytics (no email or name).' },
       { heading: 'How We Use Your Information', text: 'Your information is used to manage your wishlist, process and fulfill orders, send order confirmations and shipping updates, and prevent fraud (including IP-based blocking). With your consent, we send emails about new drops and exclusive offers. We never sell your personal data to third parties.' },
       { heading: 'Data Storage & Security', text: 'Your data is stored securely in our cloud database (Supabase) with access controls. We use industry-standard encryption for data in transit and at rest. You can request deletion of your data at any time by emailing orders@rewind-stores.com.' },
