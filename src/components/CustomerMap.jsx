@@ -204,12 +204,19 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
   const [activeCity, setActiveCity] = useState(null);
   const [activeCountry, setActiveCountry] = useState(null);
 
-  // ISO_A2 → GeoJSON feature lookup for country highlighting
+  // ISO code → GeoJSON feature lookup for country highlighting.
+  // Registers A2, A3 and ADM0_A3 keys; CF country codes that the dataset
+  // keys differently (e.g. FR → FRA) get an explicit fallback.
   const countryFeatures = useMemo(() => {
     const m = new Map();
+    const A3_FALLBACK = { FR: 'FRA' };
     for (const f of countries.features) {
-      const code = f.properties && f.properties.ISO_A2;
-      if (code) m.set(code, f);
+      const p = f.properties || {};
+      for (const k of [p.ISO_A2, p.ISO_A3, p.ADM0_A3]) if (k) m.set(k, f);
+      if (p.ISO_A3) {
+        const a2 = Object.entries(A3_FALLBACK).find(([, a3]) => a3 === p.ISO_A3);
+        if (a2) m.set(a2[0], f);
+      }
     }
     return m;
   }, []);
