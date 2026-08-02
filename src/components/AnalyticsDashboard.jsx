@@ -30,6 +30,7 @@ export default function AnalyticsDashboard({ adminFetch }) {
   const [data, setData] = useState(null);
   const [period, setPeriod] = useState('7d');
   const [tick, setTick] = useState(0);
+  const [hoverIdx, setHoverIdx] = useState(null);
 
   useEffect(() => {
     if (!adminFetch) return;
@@ -81,20 +82,32 @@ export default function AnalyticsDashboard({ adminFetch }) {
       {period !== '24h' && daily.length > 0 && (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
           <h3 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 700, fontFamily: HEAD }}>Visits · last {daily.length} days</h3>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '90px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '110px' }}>
             {daily.map((d, i) => {
               const max = Math.max(...daily.map(x => x.n), 1);
               const h = Math.max(3, Math.round((d.n / max) * 76));
               const isToday = i === daily.length - 1;
               const dt = new Date(d.d + 'T00:00:00');
               return (
-                <div key={d.d} title={`${d.d}: ${d.n} visits`}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                <div key={d.d}
+                  onMouseEnter={() => setHoverIdx(i)}
+                  onMouseLeave={() => setHoverIdx(null)}
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: 0, position: 'relative', cursor: 'default' }}>
+                  {hoverIdx === i && (
+                    <div style={{
+                      position: 'absolute', bottom: '100%', marginBottom: '6px', zIndex: 5,
+                      background: 'var(--ink)', color: '#fff', borderRadius: '6px', padding: '4px 8px',
+                      fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 8px rgba(0,0,0,.25)', pointerEvents: 'none',
+                    }}>
+                      {d.n} visit{d.n === 1 ? '' : 's'} · {d.d}
+                    </div>
+                  )}
                   <div style={{
                     width: '100%', maxWidth: '26px', height: `${h}px`,
-                    background: isToday ? ACCENT : 'var(--line-2)',
+                    background: isToday ? ACCENT : (hoverIdx === i ? '#FF8A5C' : 'var(--line-2)'),
                     borderRadius: '4px 4px 0 0',
-                    transition: 'height .3s ease',
+                    transition: 'height .3s ease, background .15s ease',
                   }} />
                   <span style={{ fontSize: '9px', color: isToday ? ACCENT : 'var(--muted)', fontWeight: 700 }}>
                     {['S', 'M', 'T', 'W', 'T', 'F', 'S'][dt.getDay()]}
