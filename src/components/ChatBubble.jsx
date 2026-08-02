@@ -325,17 +325,19 @@ export default function ChatBubble() {
         }}
         onMouseEnter={e => { if (open) return; e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,59,0,.45)'; }}
         onMouseLeave={e => { if (open) return; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,59,0,.28)'; }}>
-        {/* Animated icon: the X turns in when the chat opens, and on close
-            it rotates + slides away while the chat icon turns back in */}
+        {/* Animated icon: on open the chat icon spins/slides away while
+            staying visible, then the X turns in; on close the X spins and
+            slides away first (still visible), then the chat icon turns back
+            in. The opacity is delayed so the spin happens BEFORE the morph. */}
         <span style={{ position: 'relative', display: 'block', width: '26px', height: '26px', margin: '0 auto' }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-            style={{ position: 'absolute', inset: 0, opacity: open ? 0 : 1, transform: open ? 'translateY(12px) rotate(-90deg) scale(.4)' : 'none', transition: 'transform .35s cubic-bezier(.4,0,.2,1), opacity .25s ease' }}>
+            style={{ position: 'absolute', inset: 0, opacity: open ? 0 : 1, transform: open ? 'translateY(20px) rotate(-90deg) scale(.3)' : 'none', transition: 'transform .45s cubic-bezier(.4,0,.2,1), opacity .15s ease .35s' }}>
             <path d="M21 14.5a2 2 0 0 1-2 2H7.5L4 20V5.5A2.5 2.5 0 0 1 6.5 3h12.5A2 2 0 0 1 21 5v9.5z"/>
             <path d="M8.5 10h7M8.5 13.5h4"/>
           </svg>
           <span aria-hidden="true"
             style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: '25px', lineHeight: 1, fontWeight: 600,
-              opacity: open ? 1 : 0, transform: open ? 'none' : 'translateY(-12px) rotate(90deg) scale(.4)', transition: 'transform .35s cubic-bezier(.4,0,.2,1), opacity .25s ease' }}>
+              opacity: open ? 1 : 0, transform: open ? 'none' : 'translateY(-20px) rotate(90deg) scale(.3)', transition: 'transform .45s cubic-bezier(.4,0,.2,1), opacity .15s ease .35s' }}>
             ×
           </span>
         </span>
