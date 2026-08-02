@@ -164,7 +164,7 @@ export default function InfoModal({ page, onClose }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
                       <span style={{ fontWeight: 700 }}>{money(o.total)}</span>
                       <span style={{ color: o.status === 'shipped' ? 'var(--ink)' : o.status === 'ordered' ? 'var(--accent)' : 'var(--muted)' }}>
-                        {o.status === 'shipped' ? '✅ Shipped' : o.status === 'ordered' ? '📦 Ordered' : '⏳ Pending'}
+                        {o.status === 'shipped' ? 'Shipped' : o.status === 'ordered' ? 'Ordered' : 'Pending'}
                       </span>
                     </div>
                   </div>

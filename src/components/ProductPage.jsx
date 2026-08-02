@@ -54,16 +54,16 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               if (savedIds.includes(id)) { localStorage.setItem('rw_admin_saved', JSON.stringify(savedIds.filter(x => x !== id))); alert('Removed from saved'); }
               else { localStorage.setItem('rw_admin_saved', JSON.stringify([...savedIds, id])); alert('Saved!'); }
             }} className="rw-dd-btn">
-              ⭐ Save
+              Save
             </button>
             <button onClick={async () => {
               if (confirm('Delete this product?')) {
                 const ok = await deleteCustomProduct(p.id || p.product_id).catch(() => false);
                 if (ok) onBack();
-                else alert('❌ Failed to delete product — check admin session');
+                else alert('Failed to delete product — check admin session');
               }
             }} className="rw-dd-btn">
-              🗑 Delete
+              Delete
             </button>
             <button onClick={() => {
               sessionStorage.setItem('rw_edit_product_obj', JSON.stringify(p));

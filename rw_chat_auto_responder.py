@@ -1,8 +1,37 @@
 #!/usr/bin/env python3
 """REWIND chat auto-responder: reply to first-time unhandled chat messages in cron_inbox."""
-import json, os, sys, urllib.request, urllib.parse, datetime
+import json, os, sys, socket, subprocess, urllib.request, urllib.parse, datetime
 
-BASE = "https://luiqimsfvllgsmzedncw.supabase.co/rest/v1"
+BASE_HOST = "luiqimsfvllgsmzedncw.supabase.co"
+BASE = f"https://{BASE_HOST}/rest/v1"
+
+# --- Fallback resolver: macOS system resolver (mDNS) intermittently fails to
+# resolve the Cloudflare-backed Supabase host even though dig/nslookup work.
+# Patch socket.getaddrinfo so urllib can still connect via a dig-resolved IP.
+_orig_getaddrinfo = socket.getaddrinfo
+
+def _dig_a(host):
+    try:
+        out = subprocess.run(["dig", "+short", host, "A"],
+                             capture_output=True, text=True, timeout=10)
+        ips = [l.strip() for l in out.stdout.splitlines()
+               if l.strip() and not l.strip().startswith(";")]
+        return ips
+    except Exception:
+        return []
+
+def _getaddrinfo(host, port, *args, **kwargs):
+    try:
+        return _orig_getaddrinfo(host, port, *args, **kwargs)
+    except socket.gaierror:
+        if host == BASE_HOST:
+            ips = _dig_a(host)
+            if ips:
+                socktype = kwargs.get("type") or (args[1] if len(args) > 1 else 0) or socket.SOCK_STREAM
+                return [(socket.AF_INET, socktype, 6, "", (ip, port)) for ip in ips]
+        raise
+
+socket.getaddrinfo = _getaddrinfo
 REPLY_A = "Thanks for reaching out! We'll get back to you soon. You can track your order at rewind-stores.com/#track"
 REPLY_B = "Thanks for your message! We'll get back to you shortly."
 

@@ -93,7 +93,11 @@ export default function OrderTracking({ onClose }) {
                   style={{ padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)' }}
                   onMouseOver={e => { e.target.style.color = 'var(--ink)'; e.target.style.borderColor = 'var(--ink)'; }}
                   onMouseOut={e => { e.target.style.color = 'var(--muted)'; e.target.style.borderColor = 'var(--line-2)'; }}>
-                  {loading ? '...' : '🔄'}
+                  {loading ? '...' : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" />
+                    </svg>
+                  )}
                 </button>
                 <span style={{
                   padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 600,

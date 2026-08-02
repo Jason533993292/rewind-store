@@ -76,7 +76,6 @@ export default function BugReportModal({ email: prefilledEmail, onClose, showToa
 
         {done ? (
           <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
             <p style={{ fontSize: '15px', color: 'var(--muted)' }}>Thanks for the report — we'll look into it.</p>
           </div>
         ) : (

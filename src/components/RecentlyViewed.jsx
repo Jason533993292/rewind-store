@@ -21,7 +21,7 @@ export default function RecentlyViewed({ items, allProducts, onSelect, onClear, 
     <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--line)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--ink)' }}>
-          👁 Recently viewed
+          Recently viewed
         </h2>
         <button
           onClick={onClear}

@@ -264,7 +264,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
               onMouseOver={e => e.target.style.background = 'var(--line)'}
               onMouseOut={e => e.target.style.background = 'transparent'}
               style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
-              ⭐ Save
+              Save
             </button>
             <button onClick={() => {
               if (confirm('Delete this product?')) {
@@ -275,7 +275,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
               onMouseOver={e => e.target.style.background = 'var(--line)'}
               onMouseOut={e => e.target.style.background = 'transparent'}
               style={{ display: 'block', width: '100%', padding: '8px 14px', textAlign: 'left', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '13px', fontWeight: 600, transition: 'background 0.1s' }}>
-              🗑 Delete
+              Delete
             </button>
             <button onClick={() => {
               localStorage.setItem('rw_edit_product', p.id || p.product_id);
@@ -346,7 +346,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
           </div>
         ) : subtotal >= FREE_THRESHOLD && items.length > 0 && (
           <div className="rw-freebar" style={{ color: 'var(--ink)' }}>
-            <Icon name="check" size={14} /> <b>Free shipping unlocked!</b> 🎉
+            <Icon name="check" size={14} /> <b>Free shipping unlocked!</b>
           </div>
         )}
         {items.length === 0 ? (
@@ -646,9 +646,9 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       if (bd.blocked) {
         setProcessing(false);
         if (showToast) {
-          showToast('🚫 Your email has been blocked. Contact orders@rewind-stores.com to appeal.', null, 8000);
+          showToast('Your email has been blocked. Contact orders@rewind-stores.com to appeal.', null, 8000);
         } else {
-          alert('🚫 Your email has been blocked.\nPlease contact orders@rewind-stores.com to appeal.');
+          alert('Your email has been blocked.\nPlease contact orders@rewind-stores.com to appeal.');
         }
         return;
       }
@@ -954,7 +954,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
                 <span>{referralDiscountLabel}</span><span>-{money(referralDiscountAmount)}</span>
               </div>
             )}
-            <div><span>Shipping</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? 'Free 🎉' : 'Free') : money(discountShipping)}</span></div>
+            <div><span>Shipping</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? 'Free' : 'Free') : money(discountShipping)}</span></div>
             {formFields.country && (() => {
               const c = (formFields.country || '').toUpperCase().trim().substring(0, 2);
               const est = { CN: '3-7d', JP: '3-7d', KR: '3-7d', SG: '5-10d', TH: '5-10d', VN: '5-10d', IN: '7-14d', PK: '7-14d',

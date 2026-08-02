@@ -31,7 +31,6 @@ export default function Survey({ onDone, onSkip }) {
   if (sent) {
     return (
       <div>
-        <div style={{ fontSize: '40px', marginBottom: '12px' }}>🙏</div>
         <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--ink)', margin: 0 }}>Thanks for the feedback!</p>
       </div>
     );

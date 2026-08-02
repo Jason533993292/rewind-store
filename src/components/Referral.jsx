@@ -33,7 +33,6 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
           background: '#16130F', borderRadius: '16px',
           padding: '40px 24px', textAlign: 'center', margin: '40px auto', maxWidth: '480px',
         }}>
-          <div style={{ fontSize: '56px', marginBottom: '16px', lineHeight: 1 }}>🚧</div>
           <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', margin: '0 0 10px' }}>
             Coming soon
           </h2>
@@ -52,7 +51,7 @@ export function ReferralInput({ onApply, appliedReferral, referralDiscount, refe
     <div className="rw-co-sec">
       <h3>Referral code</h3>
       <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '6px 0', lineHeight: '1.4' }}>
-        🚧 The referral system is currently under construction. Check back soon!
+        The referral system is currently under construction. Check back soon!
       </p>
     </div>
   );

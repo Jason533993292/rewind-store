@@ -652,10 +652,10 @@ export default function App() {
       const r = await fetch('/api/validate-promo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: promoCode }) });
       const d = await r.json();
       if (d.admin) { nav('/admin'); }
-      else if (d.valid) { setPromoMsg('✅ Promo applied!'); }
-      else { setPromoMsg(d.error || '❌ Invalid promo code'); }
+      else if (d.valid) { setPromoMsg('Promo applied!'); }
+      else { setPromoMsg(d.error || 'Invalid promo code'); }
     } catch {
-      setPromoMsg('❌ Network error — try again');
+      setPromoMsg('Network error — try again');
     }
     setPromoLoading(false);
   }, [promoCode, promoLoading]);
@@ -769,7 +769,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('order') === 'success') {
       const orderNum = params.get('orderNum');
-      const msg = orderNum ? `✅ ${orderNum} confirmed!` : '✅ Order confirmed!';
+      const msg = orderNum ? `${orderNum} confirmed!` : 'Order confirmed!';
       showToast(msg);
       setCart([]);
       // Keep checkout open and pass the order number so the confirmation view
@@ -970,7 +970,6 @@ export default function App() {
   } else if (blocked) {
     viewContent = (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg)', padding: '40px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '48px', marginBottom: '16px' }}>🚫</h1>
         <h2 style={{ fontSize: '24px', color: 'var(--ink)', marginBottom: '8px' }}>Access restricted</h2>
         <p style={{ fontSize: '16px', color: 'var(--muted)', maxWidth: '400px' }}>This account has been blocked from accessing REWIND. If you think this is a mistake, please <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: '3px' }}>contact us</a>.</p>
       </div>
@@ -1266,7 +1265,7 @@ export default function App() {
       {showSurvey && selectedProduct === null && !signupOpen && quick === null && !drawer && !checkout && !showSizes && infoPage === null && !promoOpen && !wishlistOpen && (
         <div className="rw-survey-overlay" onClick={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }}>
           <div className="rw-survey-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '100%', padding: '32px', textAlign: 'center', background: 'var(--surface)', borderRadius: 'var(--r)', position: 'relative', boxShadow: '0 30px 80px -20px rgba(22,19,15,.5)' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Welcome to REWIND 👋</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Welcome to REWIND</h2>
             <p style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '20px' }}>Where did you hear about us?</p>
             <Survey onDone={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} onSkip={() => { localStorage.setItem('rw_survey_done', '1'); setShowSurvey(false); }} />
           </div>
@@ -1439,7 +1438,11 @@ export default function App() {
           style={{ position: 'fixed', bottom: `calc(${cookieBannerLikelyVisible ? '140px' : '70px'} + env(safe-area-inset-bottom, 0px))`, right: 'max(20px, env(safe-area-inset-right, 0px))', width: '38px', height: '38px', borderRadius: '50%', background: 'var(--line)', border: '1px solid var(--line-2)', cursor: 'pointer', display: 'grid', placeItems: 'center', fontSize: '17px', zIndex: 999, color: 'var(--muted)', transition: 'bottom 0.2s ease, background 0.15s, color 0.15s, border-color 0.15s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
           onMouseOver={e => { e.currentTarget.style.background = 'var(--accent, #FF4D14)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--accent, #FF4D14)'; }}
           onMouseOut={e => { e.currentTarget.style.background = 'var(--line)'; e.currentTarget.style.color = 'var(--muted)'; e.currentTarget.style.borderColor = 'var(--line-2)'; }}>
-          🐛
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+            <ellipse cx="12" cy="14" rx="5" ry="4" />
+            <circle cx="12" cy="8" r="2.2" />
+            <path d="M7 10.5 4.5 8M17 10.5 19.5 8M7 14l-3 1M17 14l3 1M8.5 17.5 7 20.5M15.5 17.5 17 20.5" />
+          </svg>
         </button>
       )}
 

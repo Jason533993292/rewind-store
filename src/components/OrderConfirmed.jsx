@@ -42,7 +42,6 @@ export default function OrderConfirmed({ orderNum, onClose }) {
         />
       ))}
 
-      <div style={{ fontSize: '64px', marginBottom: '16px' }}>🎉</div>
       <h1 style={{ fontSize: '24px', margin: '0 0 8px', color: 'var(--ink)' }}>Order confirmed!</h1>
       <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '0 0 4px' }}>
         Thank you for your purchase.
