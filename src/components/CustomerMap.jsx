@@ -34,6 +34,9 @@ function supportsWebGL() {
 
 export default function CustomerMap() {
   const [locations, setLocations] = useState(null);
+  const [visitorLocations, setVisitorLocations] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [source, setSource] = useState('orders');
   const [modal, setModal] = useState(null);
   const [GlobePanel, setGlobePanel] = useState(null);
 
@@ -62,19 +65,41 @@ export default function CustomerMap() {
     return () => { cancelled = true; };
   }, []);
 
-  const label = locations ? 'Our reach' : 'Our reach';
+  // Admin-only: the Visitors globe button is visible to logged-in admins only
+  useEffect(() => {
+    fetch('/api/admin/check-auth')
+      .then(r => { if (r.ok) setIsAdmin(true); })
+      .catch(() => {});
+  }, []);
 
-  async function handleOpen() {
-    if (!supportsWebGL()) { openMap(); return; }
+  const btnBase = {
+    padding: '12px 28px', borderRadius: '999px', border: '1px solid var(--ink)',
+    background: 'var(--surface)', cursor: 'pointer', fontSize: '14px',
+    fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s',
+    display: 'inline-flex', alignItems: 'center', gap: '8px',
+  };
+
+  async function handleOpen(src) {
+    if (!supportsWebGL()) { openMap(src); return; }
     setModal('loading');
     document.body.style.overflow = 'hidden';
     window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: true } }));
     try {
       const mod = await import('./ui/globe.jsx');
       setGlobePanel(() => mod.default);
+      if (src === 'visitors') {
+        try {
+          const r = await fetch('/api/admin/visitor-locations');
+          if (r.ok) {
+            const d = await r.json();
+            setVisitorLocations(Array.isArray(d.locations) ? d.locations : []);
+          }
+        } catch {}
+      }
+      setSource(src);
       setModal('globe');
     } catch {
-      openMap();
+      openMap(src);
     }
   }
 
@@ -85,7 +110,8 @@ export default function CustomerMap() {
     window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: false } }));
   }
 
-  function openMap() {
+  function openMap(src) {
+    setSource(src);
     setModal('map');
     document.body.style.overflow = 'hidden';
     window.dispatchEvent(new CustomEvent(GLOBE_OPEN_EVENT, { detail: { open: true } }));
@@ -105,21 +131,27 @@ export default function CustomerMap() {
 
   return (
     <>
-      <div style={{ textAlign: 'center', padding: '0 24px 56px', marginTop: '16px' }}>
-        <button onClick={handleOpen} style={{
-          padding: '12px 28px', borderRadius: '999px', border: '1px solid var(--ink)',
-          background: 'var(--surface)', cursor: 'pointer', fontSize: '14px',
-          fontWeight: 600, color: 'var(--ink)', transition: 'all 0.15s',
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-        }}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', padding: '0 24px 56px', marginTop: '16px' }}>
+        <button onClick={() => handleOpen('orders')} style={btnBase}
           onMouseOver={e => { e.currentTarget.style.background = 'var(--ink)'; e.currentTarget.style.color = 'var(--surface)'; }}
           onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--ink)'; }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="12" cy="12" r="10" />
             <path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
-          {label}
+          Our reach
+        </button>
+        {isAdmin && (
+          <button onClick={() => handleOpen('visitors')} style={{ ...btnBase, borderColor: 'var(--accent)', color: 'var(--accent)' }}
+            onMouseOver={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseOut={e => { e.currentTarget.style.background = 'var(--surface)'; e.currentTarget.style.color = 'var(--accent)'; }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+            Visitors
           </button>
+        )}
       </div>
 
       {modal === 'loading' && (
@@ -133,11 +165,11 @@ export default function CustomerMap() {
       )}
 
       {modal === 'globe' && GlobePanel && (
-        <GlobePanel open={true} onClose={handleClose} locations={locations} />
+        <GlobePanel open={true} onClose={handleClose} locations={source === 'visitors' ? visitorLocations : locations} />
       )}
 
       {modal === 'map' && (
-        <FullscreenMap locations={locations} onClose={handleClose} />
+        <FullscreenMap locations={source === 'visitors' ? visitorLocations : locations} onClose={handleClose} />
       )}
     </>
   );

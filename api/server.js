@@ -1169,6 +1169,8 @@ app.post('/api/analytics/track', generalLimiter, async (req, res) => {
   try {
     const { page, referrer, screen_width, visitor_id, session_id } = req.body || {};
     if (!page || !visitor_id || !session_id) return res.json({ ok: true }); // silent ignore malformed
+    // Never record the store owner's own visits (valid admin session cookie)
+    if (req.cookies && req.cookies.admin_session) return res.json({ ok: true });
 
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const SK = SERVICE_KEY;
@@ -1189,13 +1191,15 @@ app.post('/api/analytics/track', generalLimiter, async (req, res) => {
       : screen_width > 768 ? 'tablet'
       : 'mobile';
     const country = req.headers['cf-ipcountry'] || '';
+    const city = req.headers['cf-ipcity'] || '';
+    const region = req.headers['cf-region-code'] || '';
 
     await fetch(`${SUPABASE_URL}/rest/v1/analytics_visits`, {
       method: 'POST',
       headers: { apikey: SK, Authorization: `Bearer ${SK}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify({
         page, referrer: referrer || '',
-        country, browser, os, device,
+        country, city, region, browser, os, device,
         screen_width: screen_width || 0,
         visitor_id, session_id,
         timestamp: new Date().toISOString(),
@@ -1298,6 +1302,40 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
 app.use('/api/admin', (req, res, next) => {
   res.set('Cache-Control', 'no-store, must-revalidate');
   requireAdmin(req, res, next);
+});
+
+// ── Admin: visitor locations (admin-only globe beside "Our reach") ──
+app.get('/api/admin/visitor-locations', async (req, res) => {
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const fetchDb = async (url) => {
+      const r = await fetch(url, { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
+      return r.json();
+    };
+    const [visits, coords] = await Promise.all([
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=city,country&city=not.is.null&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/city_coords?select=city,country,lat,lng&limit=1000`),
+    ]);
+    const coordMap = new Map((Array.isArray(coords) ? coords : []).map(c => [`${c.city}|${c.country}`, { lat: c.lat, lng: c.lng }]));
+    const counts = {};
+    for (const v of visits) {
+      if (!v.city) continue;
+      const key = `${v.city}|${v.country}`;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    const locations = Object.entries(counts)
+      .map(([key, count]) => {
+        const coord = coordMap.get(key);
+        if (!coord) return null;
+        const [city, country] = key.split('|');
+        return { city, country, count, lat: coord.lat, lng: coord.lng };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.count - a.count);
+    res.json({ locations });
+  } catch {
+    res.json({ locations: [] });
+  }
 });
 
 // ── Admin route modules (registered after blanket auth) ──

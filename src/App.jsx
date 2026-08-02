@@ -86,6 +86,7 @@ export default function App() {
       const p = window.location.pathname;
       if (p === lastTracked) return;
       lastTracked = p;
+      if (p.startsWith('/admin')) return; // never count admin panel views
       const uuid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now() + Math.random());
       let visitorId = localStorage.getItem('rw_visitor_id');
       if (!visitorId) { visitorId = uuid(); localStorage.setItem('rw_visitor_id', visitorId); }
