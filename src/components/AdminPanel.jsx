@@ -481,7 +481,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                 const r = await fetch('/api/run-tests');
                 const d = await r.json();
                 if (d.error) throw new Error(d.error);
-                btn.textContent = `✅ ${d.passed}/${d.total} passed` + (d.skipped ? ' (server test unavailable)' : '');
+                btn.textContent = d.failed > 0
+                  ? `❌ ${d.passed}/${d.total} passed — diagnostic below`
+                  : `✅ ${d.passed}/${d.total} passed`;
                 // Show results inline
                 const resultsDiv = document.getElementById('test-results');
                 if (resultsDiv) {
@@ -495,6 +497,24 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                     const hint = Object.assign(document.createElement('div'), { style: 'padding:8px 0;font-size:12px;color:var(--muted)' });
                     hint.textContent = '💡 ' + d.hint;
                     resultsDiv.appendChild(hint);
+                  }
+                  if (d.diag) {
+                    const wrap = Object.assign(document.createElement('div'), { style: 'padding:10px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:8px' });
+                    const label = Object.assign(document.createElement('span'), { style: 'font-size:12px;font-weight:600;color:var(--ink)' });
+                    label.textContent = 'Diagnostic:';
+                    const code = Object.assign(document.createElement('code'), { style: 'background:var(--line);padding:5px 8px;border-radius:6px;font-size:11px;word-break:break-all;flex:1;min-width:200px' });
+                    code.textContent = d.diag;
+                    const copy = Object.assign(document.createElement('button'), { style: 'padding:5px 12px;border-radius:6px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;font-size:11px;font-weight:600;color:var(--ink)' });
+                    copy.textContent = 'Copy';
+                    copy.onclick = async () => {
+                      try { await navigator.clipboard.writeText(d.diag); copy.textContent = 'Copied ✓'; }
+                      catch { copy.textContent = 'Select manually'; }
+                      setTimeout(() => { copy.textContent = 'Copy'; }, 2500);
+                    };
+                    wrap.appendChild(label);
+                    wrap.appendChild(code);
+                    wrap.appendChild(copy);
+                    resultsDiv.appendChild(wrap);
                   }
                 }
               } catch (e) {

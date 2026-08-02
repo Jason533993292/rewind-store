@@ -99,5 +99,20 @@ export async function runTests() {
     return '200 (no row written)';
   });
 
-  return { results, passed, failed, total: results.length, skipped: false, hint: '' };
+  // Compact diagnostic code for failed runs: paste it to your assistant and
+  // they can decode exactly which checks failed and why, without re-running.
+  // Format: RW1.<base64url(JSON)> — self-contained, paste-safe, no newlines.
+  const failedRows = results.filter(r => r.status === '❌');
+  let diag = '';
+  if (failedRows.length > 0) {
+    diag = 'RW1.' + Buffer.from(JSON.stringify({
+      v: 1,
+      t: new Date().toISOString(),
+      base: BASE,
+      f: failedRows.map(r => r.name),
+      d: failedRows.map(r => r.detail),
+    })).toString('base64url');
+  }
+
+  return { results, passed, failed, total: results.length, skipped: false, hint: '', diag };
 }
