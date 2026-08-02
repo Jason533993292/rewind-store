@@ -1230,8 +1230,15 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
       return r.json();
     };
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Day boundaries in Europe/Brussels (store timezone) — UTC midnight is 2h off
+    const brusselsParts = (d) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Brussels', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(d);
+    const getPart = (parts, t) => Number(parts.find(p => p.type === t).value);
+    const brusselsDate = (d) => {
+      const p = brusselsParts(d);
+      return `${getPart(p, 'year')}-${String(getPart(p, 'month')).padStart(2, '0')}-${String(getPart(p, 'day')).padStart(2, '0')}`;
+    };
+    const todayParts = brusselsParts(now);
+    const today = new Date(Date.UTC(getPart(todayParts, 'year'), getPart(todayParts, 'month') - 1, getPart(todayParts, 'day')));
 
     const [visits, pages, countries, browsers, oses, devices, todayVisits, sales] = await Promise.all([
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id,timestamp&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
@@ -1260,15 +1267,15 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
     const uniqueVisitors = new Set(allVisitors).size;
     const todayVisitors = Array.isArray(todayVisits) ? todayVisits.length : 0;
 
-    // Daily series (last 14 days) for the visits-over-time chart
+    // Daily series (last 14 days, Brussels-local days) for the visits chart
     const dailyMap = {};
     for (const v of visits) {
-      const d = (v.timestamp || '').slice(0, 10);
+      const d = brusselsDate(new Date(v.timestamp));
       if (d) dailyMap[d] = (dailyMap[d] || 0) + 1;
     }
     const daily = [];
     for (let i = 13; i >= 0; i--) {
-      const key = new Date(now - i * 864e5).toISOString().slice(0, 10);
+      const key = brusselsDate(new Date(now - i * 864e5));
       daily.push({ d: key, n: dailyMap[key] || 0 });
     }
 
