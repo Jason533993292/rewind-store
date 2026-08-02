@@ -1229,16 +1229,28 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [visits, topPages, byCountry, byBrowser, byOs, byDevice, todayVisits, sales] = await Promise.all([
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id,timestamp&timestamp=gte.${encodeURIComponent(sinceStr)}`),
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=page,count:page.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=page&order=count.desc&limit=10`),
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country,count:country.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=country&order=count.desc&limit=20`),
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=browser,count:browser.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=browser&order=count.desc&limit=10`),
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=os,count:os.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=os&order=count.desc&limit=10`),
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=device,count:device.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=device&order=count.desc&limit=5`),
+    const [visits, pages, countries, browsers, oses, devices, todayVisits, sales] = await Promise.all([
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id,timestamp&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=page&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=browser&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=os&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=device&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id&timestamp=gte.${today.toISOString()}`),
       fetchDb(`${SUPABASE_URL}/rest/v1/orders?select=total,status&created_at=gte.${encodeURIComponent(sinceStr)}&limit=500`),
     ]);
+
+    // Aggregate in Node — PostgREST group-by syntax was returning PGRST100
+    const tally = (rows, key) => {
+      const m = {};
+      for (const r of rows) { const k = r[key] || 'Unknown'; m[k] = (m[k] || 0) + 1; }
+      return Object.entries(m).map(([k, n]) => ({ [key]: k, count: n })).sort((a, b) => b.count - a.count);
+    };
+    const topPages = tally(pages, 'page').slice(0, 10);
+    const byCountry = tally(countries, 'country').slice(0, 20);
+    const byBrowser = tally(browsers, 'browser').slice(0, 10);
+    const byOs = tally(oses, 'os').slice(0, 10);
+    const byDevice = tally(devices, 'device').slice(0, 5);
 
     const allVisitors = Array.isArray(visits) ? visits.map(v => v.visitor_id) : [];
     const uniqueVisitors = new Set(allVisitors).size;
