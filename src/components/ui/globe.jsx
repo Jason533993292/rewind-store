@@ -556,10 +556,24 @@ export default function GlobePanel({ open, onClose, locations }) {
   const data = useMemo(() => (locations ? buildArcs(locations) : []), [locations]);
   const totalOrders = useMemo(() => (locations || []).reduce((s, l) => s + l.count, 0), [locations]);
 
+  // Backdrop click-to-close, but NOT when a globe drag ends over the backdrop:
+  // a fast spin can carry the pointer outside the panel, and the release would
+  // otherwise look like a backdrop click and close the globe mid-spin.
+  const backdropDown = useRef(null);
+
+  function handleBackdropClick(e) {
+    const down = backdropDown.current;
+    backdropDown.current = null;
+    if (!down) return; // press started inside the panel — this is the tail of a drag
+    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) < 8) onClose();
+  }
+
   if (!mounted) return null;
 
   return (
-    <div onClick={onClose} style={{
+    <div onClick={handleBackdropClick}
+      onPointerDown={(e) => { backdropDown.current = { x: e.clientX, y: e.clientY }; }}
+      style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'radial-gradient(circle at 50% 45%, rgba(10,20,50,0.75), rgba(0,0,0,0.85) 70%)',
