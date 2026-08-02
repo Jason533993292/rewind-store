@@ -177,8 +177,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
         </div>
         <button onClick={onExit}
           style={{ padding: '10px 20px', borderRadius: '999px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontWeight: 600, fontSize: '14px', color: 'var(--ink)', transition: 'all 0.15s' }}
-          onMouseOver={e => { e.target.style.borderColor = 'var(--ink)'; e.target.style.transform = 'translateY(-1px)'; }}
-          onMouseOut={e => { e.target.style.borderColor = 'var(--line-2)'; e.target.style.transform = ''; }}>
+          onMouseOver={e => { e.target.style.transition = 'all 0.15s'; e.target.style.borderColor = 'var(--ink)'; e.target.style.transform = 'translateY(-1px)'; }}
+          onMouseOut={e => { e.target.style.transition = 'all 0.45s ease'; e.target.style.borderColor = 'var(--line-2)'; e.target.style.transform = ''; }}>
           ← Back to store
         </button>
       </div>
@@ -270,8 +270,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
             }
           }}
             style={{ padding: '10px 24px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
-            onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
-            onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
+            onMouseOver={e => { e.target.style.transition = 'all 0.15s'; e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+            onMouseOut={e => { e.target.style.transition = 'all 0.45s ease'; e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
             Enter admin panel
           </button>
           <p style={{ fontSize: '12px', color: 'var(--accent)', marginTop: '8px' }}>{adminMsg}</p>
@@ -300,8 +300,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
               cursor: 'pointer', fontWeight: 600, fontSize: '14px',
               transition: 'all 0.15s',
             }}
-            onMouseOver={e => { if (adminTab !== t.id) { e.target.style.background = 'var(--line-2)'; e.target.style.transform = 'translateY(-1px)'; } }}
-            onMouseOut={e => { if (adminTab !== t.id) { e.target.style.background = 'var(--line)'; e.target.style.transform = ''; } }}>
+            onMouseOver={e => { if (adminTab !== t.id) { e.target.style.transition = 'all 0.15s'; e.target.style.background = 'var(--line-2)'; e.target.style.transform = 'translateY(-1px)'; } }}
+            onMouseOut={e => { if (adminTab !== t.id) { e.target.style.transition = 'all 0.45s ease'; e.target.style.background = 'var(--line)'; e.target.style.transform = ''; } }}>
             {t.label}
           </button>
         ))}
@@ -508,8 +508,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
               setTimeout(() => { btn.textContent = '🧪 Run tests'; btn.disabled = false; }, 5000);
             }}
               style={{ padding: '10px 20px', borderRadius: '999px', background: 'var(--ink)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, transition: 'all 0.15s' }}
-              onMouseOver={e => { e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
-              onMouseOut={e => { e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
+              onMouseOver={e => { e.target.style.transition = 'all 0.15s'; e.target.style.opacity = '0.85'; e.target.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={e => { e.target.style.transition = 'all 0.45s ease'; e.target.style.opacity = '1'; e.target.style.transform = ''; }}>
               🧪 Run tests
             </button>
             <div id="test-results" style={{ marginTop: '16px', maxHeight: '300px', overflow: 'auto' }} />

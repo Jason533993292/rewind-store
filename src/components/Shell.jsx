@@ -63,7 +63,7 @@ export function Photo({ id, hue, label, h = 320, img, eager }) {
           observer.disconnect();
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: '600px' }
     );
     observer.observe(imgRef.current);
     return () => observer.disconnect();
