@@ -202,6 +202,7 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
   );
   const [activeCity, setActiveCity] = useState(null);
   const [activeCountry, setActiveCountry] = useState(null);
+  const [zoom, setZoom] = useState(1);
 
   // ISO code → GeoJSON feature lookup for country highlighting.
   // Registers A2, A3 and ADM0_A3 keys; CF country codes that the dataset
@@ -323,9 +324,16 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
               <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#FF7A3D" stopOpacity="0" />
             </radialGradient>
+            <clipPath id="rw-map-clip">
+              <rect x="0" y="0" width="800" height="450" rx="12" />
+            </clipPath>
           </defs>
 
           <rect width="800" height="450" rx="12" fill="#05070d" />
+
+          {/* Zoomable world layer (clips at the map edges) */}
+          <g clipPath="url(#rw-map-clip)"
+            style={{ transformOrigin: '400px 225px', transform: `scale(${zoom})`, transition: 'transform .35s cubic-bezier(.4,0,.2,1)' }}>
 
           {/* Faint dotted world texture */}
           {Array.from({ length: 800 / 26 }).flatMap((_, xi) =>
@@ -344,9 +352,9 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
             </g>
           ))}
 
-          {/* Warehouse origin — Brussels (50.85, 4.35), NOT map centre */}
-          <circle cx={409.7} cy={97.9} r={22} fill="url(#rw-origin-glow)" />
-          <circle cx={409.7} cy={97.9} r={4} fill="#FF7A3D" />
+          {/* Warehouse origin — Brussels (50.85, 4.35), small dot */}
+          <circle cx={409.7} cy={97.9} r={9} fill="url(#rw-origin-glow)" />
+          <circle cx={409.7} cy={97.9} r={2.5} fill="#FF7A3D" />
 
           {/* Visitors mode: light up the whole country polygon */}
           {mode === 'visitors' && validCountries.map((c, i) => {
@@ -430,7 +438,22 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
               </g>
             );
           })}
+        </g>
         </svg>
+
+        {/* Zoom controls — same style as the 3D globe */}
+        <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(5, +(z + 0.6).toFixed(2))); }} aria-label="Zoom in"
+            style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1, backdropFilter: 'blur(4px)', userSelect: 'none', opacity: zoom >= 5 ? 0.4 : 1, transition: 'opacity .2s ease, transform .2s ease' }}
+            onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.88)'; }}
+            onMouseUp={e => { e.currentTarget.style.transform = ''; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; }}>+</button>
+          <button onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(1, +(z - 0.6).toFixed(2))); }} aria-label="Zoom out"
+            style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.25)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer', fontSize: '22px', display: 'grid', placeItems: 'center', fontWeight: 400, lineHeight: 1, backdropFilter: 'blur(4px)', userSelect: 'none', opacity: zoom <= 1 ? 0.4 : 1, transition: 'opacity .2s ease, transform .2s ease' }}
+            onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.88)'; }}
+            onMouseUp={e => { e.currentTarget.style.transform = ''; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; }}>−</button>
+        </div>
 
         <div style={{ marginTop: '8px', fontSize: '12px', opacity: 0.6, textAlign: 'center' }}>
           {mode === 'visitors'
