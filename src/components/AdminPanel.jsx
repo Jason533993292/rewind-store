@@ -307,11 +307,6 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
         ))}
       </div>
 
-      {/* Keyboard shortcuts hint */}
-      <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '-16px', marginBottom: '24px', textAlign: 'center' }}>
-        Shortcuts: 1 Users · 2 Email · 3 Orders · 4 Chats · 5 Promo · 6 Blocked · 7 Products · 8 Audit
-      </div>
-
       {!supabase && (
         <div style={{ padding: '40px', textAlign: 'center', color: 'var(--muted)', background: 'var(--line)', borderRadius: '12px' }}>
           <p style={{ fontSize: '18px', marginBottom: '8px' }}>Supabase not connected</p>
