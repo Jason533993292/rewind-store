@@ -1229,19 +1229,37 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [visits, topPages, byCountry, byBrowser, byOs, byDevice, todayVisits] = await Promise.all([
-      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id&timestamp=gte.${encodeURIComponent(sinceStr)}`),
+    const [visits, topPages, byCountry, byBrowser, byOs, byDevice, todayVisits, sales] = await Promise.all([
+      fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id,timestamp&timestamp=gte.${encodeURIComponent(sinceStr)}`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=page,count:page.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=page&order=count.desc&limit=10`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=country,count:country.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=country&order=count.desc&limit=20`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=browser,count:browser.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=browser&order=count.desc&limit=10`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=os,count:os.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=os&order=count.desc&limit=10`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=device,count:device.count()&timestamp=gte.${encodeURIComponent(sinceStr)}&group=device&order=count.desc&limit=5`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id&timestamp=gte.${today.toISOString()}`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/orders?select=total,status&created_at=gte.${encodeURIComponent(sinceStr)}&limit=500`),
     ]);
 
     const allVisitors = Array.isArray(visits) ? visits.map(v => v.visitor_id) : [];
     const uniqueVisitors = new Set(allVisitors).size;
     const todayVisitors = Array.isArray(todayVisits) ? todayVisits.length : 0;
+
+    // Daily series (last 14 days) for the visits-over-time chart
+    const dailyMap = {};
+    for (const v of visits) {
+      const d = (v.timestamp || '').slice(0, 10);
+      if (d) dailyMap[d] = (dailyMap[d] || 0) + 1;
+    }
+    const daily = [];
+    for (let i = 13; i >= 0; i--) {
+      const key = new Date(now - i * 864e5).toISOString().slice(0, 10);
+      daily.push({ d: key, n: dailyMap[key] || 0 });
+    }
+
+    // Sales: non-cancelled orders + revenue in the period
+    const salesRows = Array.isArray(sales) ? sales : [];
+    const validOrders = salesRows.filter(o => o.status !== 'cancelled');
+    const revenue = validOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
 
     res.json({
       stats: {
@@ -1255,6 +1273,8 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
       byBrowser: Array.isArray(byBrowser) ? byBrowser : [],
       byOs: Array.isArray(byOs) ? byOs : [],
       byDevice: Array.isArray(byDevice) ? byDevice : [],
+      daily,
+      sales: { orders: validOrders.length, revenue },
     });
   } catch (e) {
     console.error('Analytics query error:', e);
