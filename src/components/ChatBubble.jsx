@@ -211,7 +211,7 @@ export default function ChatBubble() {
   return (
     <div style={{
       position: 'fixed',
-      bottom: `calc(${(isNarrowViewport && cookieBannerLikelyVisible) ? '90px' : '20px'} + env(safe-area-inset-bottom, 0px))`,
+      bottom: `calc(${cookieBannerLikelyVisible ? '90px' : '20px'} + env(safe-area-inset-bottom, 0px))`,
       right: 'max(20px, env(safe-area-inset-right, 0px))',
       zIndex: 10000, fontFamily: 'inherit',
       transition: 'bottom 0.2s ease',
