@@ -316,6 +316,15 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
             ))
           )}
 
+          {/* All country outlines — makes the world readable */}
+          {countries.features.map((f, i) => (
+            <g key={i}>
+              {featurePaths(f).map((d, pi) => (
+                <path key={pi} d={d} fill="none" stroke="rgba(130,150,180,0.35)" strokeWidth={0.6} />
+              ))}
+            </g>
+          ))}
+
           {/* Warehouse origin — soft glow halo + solid core */}
           <circle cx={400} cy={225} r={22} fill="url(#rw-origin-glow)" />
           <circle cx={400} cy={225} r={4} fill="#FF7A3D" />
