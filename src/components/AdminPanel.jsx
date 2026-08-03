@@ -59,6 +59,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [cancelledOrderNum, setCancelledOrderNum] = useState('');
   const [chatUnread, setChatUnread] = useState(0);
   const lastUnreadRef = useRef(0);
+  const [newOrderCount, setNewOrderCount] = useState(0);
+  const seenOrderIdsRef = useRef(null);
 
   // ── Desktop notifications for new chat messages ──
   useEffect(() => {
@@ -81,6 +83,49 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     }
     lastUnreadRef.current = chatUnread;
   }, [chatUnread]);
+
+  // ── New-order notifications: poll while authed, toast + desktop notification ──
+  useEffect(() => {
+    if (!adminAuthed) {
+      seenOrderIdsRef.current = null;
+      setNewOrderCount(0);
+      return;
+    }
+    let alive = true;
+    const poll = async () => {
+      const r = await adminFetch('/api/admin/orders?limit=50&offset=0');
+      if (!alive || !r.ok) return;
+      const orders = (r.data.orders || []).filter(o => o && o.id != null);
+      if (seenOrderIdsRef.current === null) {
+        // First poll: baseline only — never alert on pre-existing orders
+        seenOrderIdsRef.current = new Set(orders.map(o => o.id));
+        return;
+      }
+      const seen = seenOrderIdsRef.current;
+      const fresh = orders.filter(o =>
+        !seen.has(o.id) &&
+        o.status !== 'payment_failed' &&
+        !String(o.order_num || '').startsWith('RW-TEST-')
+      );
+      fresh.forEach(o => seen.add(o.id));
+      if (fresh.length === 0) return;
+      setNewOrderCount(c => c + fresh.length);
+      const first = fresh[0];
+      const label = `${first.order_num} · €${Number(first.total || 0).toFixed(2)} · ${first.customer_name || first.email || '?'}`;
+      showToast?.(fresh.length > 1 ? `${fresh.length} new orders — ${label}` : 'New order — ' + label, 'success');
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('New order' + (fresh.length > 1 ? `s (${fresh.length})` : ''), {
+            body: label,
+            tag: 'rewind-order',
+          });
+        } catch {}
+      }
+    };
+    poll();
+    const t = setInterval(poll, 45000);
+    return () => { alive = false; clearInterval(t); };
+  }, [adminAuthed]);
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -284,7 +329,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
         {[
           { id: 'users', label: '📊 Users' },
           { id: 'email', label: '📧 Email' },
-          { id: 'orders', label: '📦 Orders' },
+          { id: 'orders', label: '📦 Orders' + (newOrderCount > 0 ? ` (${newOrderCount})` : '') },
           { id: 'chats', label: '💬 Chats' + (chatUnread > 0 ? ` (${chatUnread})` : '') },
           { id: 'promo', label: '🎟️ Promo Codes' },
           { id: 'blocked', label: '🚫 Blocked' },
@@ -292,7 +337,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           { id: 'audit', label: '📜 Audit Log' },
           { id: 'analytics', label: '📈 Analytics' },
         ].filter(t => t.label).map((t) => (
-          <button key={t.id} onClick={() => { setAdminTab(t.id); localStorage.setItem('rw_admin_tab', t.id); }}
+          <button key={t.id} onClick={() => { setAdminTab(t.id); if (t.id === 'orders') setNewOrderCount(0); localStorage.setItem('rw_admin_tab', t.id); }}
             style={{
               padding: '10px 20px', borderRadius: '999px', border: 'none',
               background: adminTab === t.id ? 'var(--ink)' : 'var(--line)',

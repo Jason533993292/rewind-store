@@ -1079,7 +1079,7 @@ app.post('/api/stripe-webhook', async (req, res) => {
           await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
             method: 'POST',
             headers: { apikey: svcKey, Authorization: `Bearer ${svcKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ order_num: orderNum, email, customer_name: name || '', address: address || '', items: JSON.stringify(items), total, shipping, status: 'pending', created_at: new Date().toISOString() }),
+            body: JSON.stringify({ order_num: orderNum, email, customer_name: name || '', address: address || '', items: JSON.stringify(items), total, status: 'pending', created_at: new Date().toISOString() }),
           });
           console.log('Order saved from PaymentIntent:', orderNum);
 
@@ -1609,7 +1609,7 @@ app.post('/api/create-test-order', async (req, res) => {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
     method: 'POST',
     headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ order_num: orderNum, email, customer_name: 'Test User', address: 'Test Street 1, Brussels', items: JSON.stringify([{ id: 'reward-hoodie', name: 'Rewind Hoodie', qty: 1, price: 50 }]), total: 50, shipping: 0, status: 'pending', created_at: new Date().toISOString() }),
+    body: JSON.stringify({ order_num: orderNum, email, customer_name: 'Test User', address: 'Test Street 1, Brussels', items: JSON.stringify([{ id: 'reward-hoodie', name: 'Rewind Hoodie', qty: 1, price: 50 }]), total: 50, status: 'pending', created_at: new Date().toISOString() }),
   });
   const saved = await r.json();
   if (saved.error) {
