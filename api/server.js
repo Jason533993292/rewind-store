@@ -1402,6 +1402,22 @@ app.get('/api/admin/visitor-locations', async (req, res) => {
   }
 });
 
+// ── Admin: referral-updates subscribers (registered after blanket auth) ──
+app.get('/api/admin/referral-subscribers', async (req, res) => {
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/referral_updates?select=email,created_at&order=created_at.desc&limit=500`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const rows = await r.json();
+    if (!Array.isArray(rows)) throw new Error('bad response');
+    res.json({ subscribers: rows });
+  } catch (e) {
+    console.error('Subscribers error:', e.message);
+    res.json({ subscribers: [] });
+  }
+});
+
 // ── Admin route modules (registered after blanket auth) ──
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
 

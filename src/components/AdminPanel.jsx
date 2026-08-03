@@ -61,6 +61,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const lastUnreadRef = useRef(0);
   const [newOrderCount, setNewOrderCount] = useState(0);
   const seenOrderIdsRef = useRef(null);
+  const [subscribers, setSubscribers] = useState([]);
 
   // ── Desktop notifications for new chat messages ──
   useEffect(() => {
@@ -126,6 +127,25 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     const t = setInterval(poll, 45000);
     return () => { alive = false; clearInterval(t); };
   }, [adminAuthed]);
+
+  // ── Referral subscribers (Users tab) ──
+  useEffect(() => {
+    if (!adminAuthed) return;
+    fetch('/api/admin/referral-subscribers')
+      .then(r => r.json())
+      .then(d => setSubscribers(d.subscribers || []))
+      .catch(() => {});
+  }, [adminAuthed]);
+
+  const exportSubscribers = () => {
+    const rows = [['Email', 'Subscribed'], ...subscribers.map(s => [s.email, s.created_at])];
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'referral-subscribers.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   // Separated admin auth check from data loading so that expensive Supabase
   // queries (users, custom products, orders) only fire after authentication
@@ -577,6 +597,41 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           </div>
           </>)
 }
+
+          {/* ── Referral subscribers (Users tab) ── */}
+          {adminTab === 'users' && (
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '24px', marginBottom: '28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 600, margin: 0 }}>Referral subscribers ({subscribers.length})</h3>
+                <button onClick={exportSubscribers}
+                  style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: 'pointer', fontSize: '12px', fontWeight: 600, color: 'var(--ink)' }}
+                  onMouseOver={e => { e.target.style.background = 'var(--line)'; }}
+                  onMouseOut={e => { e.target.style.background = 'var(--surface)'; }}>
+                  Export CSV
+                </button>
+              </div>
+              {subscribers.length === 0 ? (
+                <p style={{ fontSize: '13px', color: 'var(--muted)' }}>No subscribers yet — the "Get notified" box lives on the Referrals page.</p>
+              ) : (
+                <div style={{ maxHeight: '260px', overflowY: 'auto', border: '1px solid var(--line)', borderRadius: '8px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead><tr style={{ background: 'var(--line)', textAlign: 'left' }}>
+                      <th style={{ padding: '8px 12px' }}>Email</th>
+                      <th style={{ padding: '8px 12px' }}>Subscribed</th>
+                    </tr></thead>
+                    <tbody>
+                      {subscribers.map(s => (
+                        <tr key={s.email} style={{ borderTop: '1px solid var(--line)' }}>
+                          <td style={{ padding: '8px 12px' }}>{s.email}</td>
+                          <td style={{ padding: '8px 12px', color: 'var(--muted)' }}>{new Date(s.created_at).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Email tool ── */}
           {adminTab === 'email' && (
