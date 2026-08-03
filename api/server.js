@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import fs from 'fs';
+import { resolveMx } from 'node:dns/promises';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { buildChatRouter } from './chat-routes.js';
@@ -1208,6 +1209,43 @@ app.post('/api/analytics/track', generalLimiter, async (req, res) => {
 
     res.json({ ok: true });
   } catch { res.json({ ok: true }); }
+});
+
+// ── Referral updates subscription (no verification code — syntax + MX + disposable check) ──
+app.post('/api/referral-subscribe', generalLimiter, async (req, res) => {
+  const email = String(req.body?.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address' });
+  const domain = email.split('@')[1];
+  const DISPOSABLE = new Set([
+    'mailinator.com', 'tempmail.com', 'temp-mail.org', '10minutemail.com',
+    'guerrillamail.com', 'yopmail.com', 'trashmail.com', 'throwawaymail.com',
+    'sharklasers.com', 'maildrop.cc', 'mytemp.email', 'getnada.com',
+  ]);
+  if (DISPOSABLE.has(domain)) return res.status(400).json({ error: 'Disposable email domains are not supported' });
+  try {
+    const mxs = await resolveMx(domain);
+    if (!Array.isArray(mxs) || mxs.length === 0) return res.status(400).json({ error: "This email's domain can't receive mail — check for typos" });
+  } catch {
+    return res.status(400).json({ error: "This email's domain can't receive mail — check for typos" });
+  }
+  try {
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/referral_updates`, {
+      method: 'POST',
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=ignore-duplicates',
+      },
+      body: JSON.stringify({ email }),
+    });
+    if (!r.ok) throw new Error(`db ${r.status}`);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Subscribe error:', e.message);
+    res.status(500).json({ error: 'Subscription is temporarily unavailable — try again later' });
+  }
 });
 
 // ── Admin: analytics query ──
