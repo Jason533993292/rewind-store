@@ -141,7 +141,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     if (saved) setAdminEmail(saved);
     // Check auth via HttpOnly cookie — no localStorage token needed
     fetch('/api/admin/check-auth')
-      .then(r => { if (r.ok) setAdminAuthed(true); setAdminChecking(false); })
+      .then(r => r.json())
+      .then(d => { if (d.authed) setAdminAuthed(true); setAdminChecking(false); })
       .catch(() => setAdminChecking(false));
   }, []);
 

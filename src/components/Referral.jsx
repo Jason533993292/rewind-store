@@ -99,7 +99,7 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
             </button>
           </div>
           {subMsg && (
-            <p style={{ fontSize: '12px', margin: '10px 0 0', color: subState === 'ok' ? 'var(--accent)' : '#dc2626' }}>
+            <p style={{ fontSize: '12px', margin: '10px 0 0', color: subState === 'ok' ? 'var(--ink)' : '#dc2626' }}>
               {subMsg}
             </p>
           )}

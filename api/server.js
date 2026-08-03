@@ -304,14 +304,17 @@ app.post('/api/verify-admin', strictLimiter, async (req, res) => {
 });
 
 // ── Admin: check if session cookie is still valid (no localStorage needed) ──
+// Returns 200 with { authed: false } when logged out — it's an auth-status probe
+// called on every storefront load (Visitors button visibility), so a 401 would
+// spam the console with network errors for every logged-out visitor.
 app.get('/api/admin/check-auth', async (req, res) => {
   const token = req.cookies?.admin_session;
-  if (!token) return res.status(401).json({ authed: false });
+  if (!token) return res.json({ authed: false });
   if (verifyAdminSession(token)) {
     res.json({ authed: true });
   } else {
     res.clearCookie('admin_session');
-    res.status(401).json({ authed: false });
+    res.json({ authed: false });
   }
 });
 

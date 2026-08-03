@@ -71,7 +71,8 @@ export default function CustomerMap() {
   // Admin-only: the Visitors globe button is visible to logged-in admins only
   useEffect(() => {
     fetch('/api/admin/check-auth')
-      .then(r => { if (r.ok) setIsAdmin(true); })
+      .then(r => r.json())
+      .then(d => { if (d.authed) setIsAdmin(true); })
       .catch(() => {});
   }, []);
 
