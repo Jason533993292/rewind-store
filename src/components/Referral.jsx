@@ -73,36 +73,42 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
         </div>
 
         <div style={{
-          maxWidth: '480px', margin: '16px auto 40px', background: 'var(--surface)',
-          border: '1px solid var(--line)', borderRadius: '16px', padding: '24px',
+          position: 'relative', overflow: 'hidden', maxWidth: '480px', margin: '16px auto 40px',
+          background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '16px',
         }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 6px', color: 'var(--ink)' }}>Get notified</h3>
-          <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 14px', lineHeight: 1.5 }}>
-            Subscribe to be updated when the referral system updates.
-          </p>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              className="rw-input" type="email" placeholder="your@email.com"
-              value={subEmail}
-              onChange={e => setSubEmail(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') subscribe(); }}
-              style={{ flex: 1 }}
-              aria-label="Email for referral updates"
-            />
-            <button
-              className="rw-btn"
-              onClick={subscribe}
-              disabled={subState === 'loading'}
-              style={{ padding: '10px 18px', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' }}
-            >
-              {subState === 'loading' ? 'Subscribing…' : 'Subscribe'}
-            </button>
-          </div>
-          {subMsg && (
-            <p style={{ fontSize: '12px', margin: '10px 0 0', color: subState === 'ok' ? 'var(--ink)' : '#dc2626' }}>
-              {subMsg}
+          <div aria-hidden="true" style={{
+            position: 'absolute', inset: 0, opacity: 0.4, pointerEvents: 'none', mixBlendMode: 'overlay',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          }} />
+          <div style={{ position: 'relative', zIndex: 1, padding: '24px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 6px', color: 'var(--ink)' }}>Get notified</h3>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 14px', lineHeight: 1.5 }}>
+              Subscribe to be updated when the referral system updates.
             </p>
-          )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                className="rw-input" type="email" placeholder="your@email.com"
+                value={subEmail}
+                onChange={e => setSubEmail(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') subscribe(); }}
+                style={{ flex: 1 }}
+                aria-label="Email for referral updates"
+              />
+              <button
+                className="rw-btn"
+                onClick={subscribe}
+                disabled={subState === 'loading'}
+                style={{ padding: '10px 18px', fontSize: '14px', fontWeight: 600, whiteSpace: 'nowrap' }}
+              >
+                {subState === 'loading' ? 'Subscribing…' : 'Subscribe'}
+              </button>
+            </div>
+            {subMsg && (
+              <p style={{ fontSize: '12px', margin: '10px 0 0', color: subState === 'ok' ? 'var(--ink)' : '#dc2626' }}>
+                {subMsg}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -10,6 +10,40 @@ function parseImgs(p) {
 }
 import { Icon, Photo } from './Shell';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
+import Counter from './ui/Counter';
+
+/* ── Money — animated roller counter for totals (React Bits Counter) ── */
+function buildPlaces(value) {
+  const str = value.toFixed(2);
+  const dot = str.indexOf('.');
+  const intLen = dot === -1 ? str.length : dot;
+  const places = [];
+  for (let i = intLen; i > 0; i--) places.push(10 ** (i - 1));
+  places.push('.', 0.1, 0.01);
+  return places;
+}
+
+export function Money({ value, fontSize = 15, fontWeight = 700, color = 'var(--ink)', gap = 1, className = '' }) {
+  const intDigits = Math.max(1, Math.floor(Math.abs(value || 0)).toString().length);
+  return (
+    <span className={className} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 3, color, fontSize, fontWeight }}>
+      <span style={{ fontSize: '0.82em' }}>€</span>
+      <Counter
+        key={intDigits}
+        value={value}
+        places={buildPlaces(value)}
+        fontSize={fontSize}
+        fontWeight={fontWeight}
+        textColor={color}
+        gap={gap}
+        horizontalPadding={0}
+        borderRadius={0}
+        gradientFrom="var(--surface)"
+        gradientHeight={Math.max(8, Math.round(fontSize * 0.4))}
+      />
+    </span>
+  );
+}
 import { arrivalRange, SHIP_LABEL } from '../lib/shipping';
 import PaymentCard from './PaymentCard';
 import { ReferralInput } from './Referral';
@@ -341,7 +375,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
         </div>
         {items.length > 0 && subtotal < FREE_THRESHOLD ? (
           <div className="rw-freebar">
-            <Icon name="truck" size={14} /> Add <b>{money(freeLeft)}</b> more for free shipping
+            <Icon name="truck" size={14} /> Add <b><Money value={freeLeft} /></b> more for free shipping
             <div className="rw-freebar-track"><div style={{ width: freeProgress + '%' }} /></div>
           </div>
         ) : subtotal >= FREE_THRESHOLD && items.length > 0 && (
@@ -393,7 +427,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
           <div className="rw-drawer-foot">
             <div className="rw-subtotal">
               <span>Subtotal</span>
-              <b>{money(subtotal)}</b>
+              <b><Money value={subtotal} /></b>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 10px' }}>
               Arrives {arrivalRange()} · {SHIP_LABEL}
@@ -943,7 +977,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             ))}
           </div>
           <div className="rw-sum-rows">
-            <div><span>Subtotal</span><span>{money(subtotal)}</span></div>
+            <div><span>Subtotal</span><span><Money value={subtotal} /></span></div>
             {promoData?.valid && promoData.type === 'percent' && (
               <div style={{color: 'var(--ink)', fontSize: '13px', fontWeight: 600}}>
                 <span>{discountLabel}</span><span>-{money(subtotal - discountPrice)}</span>
@@ -966,7 +1000,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             })()}
           </div>
           <div className="rw-sum-total">
-            <div><span>Total</span><b>{money(finalTotal)}</b></div>
+            <div><span>Total</span><b><Money value={finalTotal} /></b></div>
           </div>
           {payError && (
             <div className="rw-cc-error" style={{ marginBottom: '8px', textAlign: 'center' }}>
@@ -976,7 +1010,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <button className="rw-btn rw-btn-pri rw-btn-full"
             disabled={processing}
             onClick={handlePay}>
-            {processing ? <><i className="rw-spinner" /> Processing…</> : `Pay ${money(finalTotal)}`}
+            {processing ? <><i className="rw-spinner" /> Processing…</> : <>Pay <Money value={finalTotal} fontSize={14} /></>}
           </button>
           <div className="rw-co-trust">
             <Icon name="check" size={13} /> Secured with 256-bit SSL
