@@ -92,10 +92,12 @@ export default function App() {
       if (!visitorId) { visitorId = uuid(); localStorage.setItem('rw_visitor_id', visitorId); }
       let sessionId = sessionStorage.getItem('rw_session_id');
       if (!sessionId) { sessionId = uuid(); sessionStorage.setItem('rw_session_id', sessionId); }
+      // QA/verification traffic: tag with ?qa=1 in the URL and it never gets counted
+      const isQa = new URLSearchParams(window.location.search).has('qa') || localStorage.getItem('rw_qa') === '1';
       fetch('/api/analytics/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page: p, referrer: document.referrer, screen_width: window.innerWidth, visitor_id: visitorId, session_id: sessionId }),
+        body: JSON.stringify({ page: p, referrer: document.referrer, screen_width: window.innerWidth, visitor_id: visitorId, session_id: sessionId, qa: isQa }),
       }).catch(() => {});
     };
     track();

@@ -445,24 +445,6 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
                     onMouseOut={() => setActiveCountry(null)}
                   />
                 ))}
-                {activeCountry && activeCountry.country === c.country && (
-                  <g style={{ pointerEvents: 'none' }}>
-                    <rect x={x - 70} y={Math.max(y - 74, 4)} width={140} height={62} rx={6}
-                      fill="rgba(10,20,40,0.95)" stroke="rgba(255,122,61,0.5)" />
-                    <text x={x} y={Math.max(y - 74, 4) + 16} fontSize={11} fontWeight={700} fill="#fff" textAnchor="middle">
-                      {flag(c.country)} {c.country}
-                    </text>
-                    <text x={x} y={Math.max(y - 74, 4) + 29} fontSize={9} fill="#ffd9c2" textAnchor="middle">
-                      {c.count} visitor{c.count === 1 ? '' : 's'} · {pct}%
-                    </text>
-                    <text x={x} y={Math.max(y - 74, 4) + 41} fontSize={9} fill="#6B7280" textAnchor="middle">
-                      of all visitors
-                    </text>
-                    <text x={x} y={Math.max(y - 74, 4) + 53} fontSize={9} fontWeight={700} fill={trend >= 0 ? '#34d399' : '#f87171'} textAnchor="middle">
-                      {trend >= 0 ? '+' : ''}{trend}% vs avg
-                    </text>
-                  </g>
-                )}
               </g>
             );
           })}
@@ -511,6 +493,26 @@ function FullscreenMap({ locations, countries: countryStats = [], onClose, mode 
               </g>
             );
           })}
+
+          {/* Hover panel — rendered LAST so it always paints above country fills */}
+          {mode === 'visitors' && activeCountry && (() => {
+            const feature = countryFeatures.get(activeCountry.country);
+            const pct = total > 0 ? Math.round((activeCountry.count / total) * 100) : 0;
+            const avgPerCountry = validCountries.length > 0 ? total / validCountries.length : 0;
+            const trend = avgPerCountry > 0 ? Math.round(((activeCountry.count - avgPerCountry) / avgPerCountry) * 100) : 0;
+            const anchor = (activeCountry.lat != null && activeCountry.lng != null) ? { lat: activeCountry.lat, lng: activeCountry.lng } : featureCenter(feature);
+            const x = ((anchor.lng + 180) / 360) * 800;
+            const y = ((90 - anchor.lat) / 180) * 450;
+            return (
+              <g style={{ pointerEvents: 'none' }}>
+                <rect x={x - 70} y={Math.max(y - 74, 4)} width={140} height={62} rx={6} fill="rgba(10,20,40,0.95)" stroke="rgba(255,122,61,0.5)" />
+                <text x={x} y={Math.max(y - 74, 4) + 16} fontSize={11} fontWeight={700} fill="#fff" textAnchor="middle">{flag(activeCountry.country)} {activeCountry.country}</text>
+                <text x={x} y={Math.max(y - 74, 4) + 29} fontSize={9} fill="#ffd9c2" textAnchor="middle">{activeCountry.count} visitor{activeCountry.count === 1 ? '' : 's'} · {pct}%</text>
+                <text x={x} y={Math.max(y - 74, 4) + 41} fontSize={9} fill="#6B7280" textAnchor="middle">of all visitors</text>
+                <text x={x} y={Math.max(y - 74, 4) + 53} fontSize={9} fontWeight={700} fill={trend >= 0 ? '#34d399' : '#f87171'} textAnchor="middle">{trend >= 0 ? '+' : ''}{trend}% vs avg</text>
+              </g>
+            );
+          })()}
             </g>
           </g>
         </svg>

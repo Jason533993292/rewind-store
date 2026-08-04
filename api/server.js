@@ -1169,12 +1169,29 @@ app.post('/api/stripe-webhook', async (req, res) => {
 });
 
 // ── Analytics API ──
+// Bot-burst guard: at most 10 track hits per IP per 60s window; extra hits are
+// silently accepted (200) but not written — kills scraper bursts (saw 176 in 1 min).
+const trackHits = new Map();
+const TRACK_MAX = 10, TRACK_WINDOW = 60_000;
+function trackAllowed(ip) {
+  const now = Date.now();
+  const hits = (trackHits.get(ip) || []).filter(t => now - t < TRACK_WINDOW);
+  if (hits.length >= TRACK_MAX) { trackHits.set(ip, hits); return false; }
+  hits.push(now);
+  trackHits.set(ip, hits);
+  return true;
+}
+
 app.post('/api/analytics/track', generalLimiter, async (req, res) => {
   try {
-    const { page, referrer, screen_width, visitor_id, session_id } = req.body || {};
+    const { page, referrer, screen_width, visitor_id, session_id, qa } = req.body || {};
     if (!page || !visitor_id || !session_id) return res.json({ ok: true }); // silent ignore malformed
+    // QA/session-tagged verification traffic never counts
+    if (qa) return res.json({ ok: true });
     // Never record the store owner's own visits (valid admin session cookie)
     if (req.cookies && req.cookies.admin_session) return res.json({ ok: true });
+    // Rate-limit per IP (behind Cloudflare, req.ip is the real client)
+    if (!trackAllowed(req.ip || req.headers['x-forwarded-for'] || 'unknown')) return res.json({ ok: true });
 
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const SK = SERVICE_KEY;
