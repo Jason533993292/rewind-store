@@ -16,7 +16,11 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 @keyframes rw-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
-html { overflow-x: clip; width: 100%; background: var(--bg); scrollbar-color: var(--accent) transparent; scrollbar-width: thin; scrollbar-gutter: stable; }
+html { overflow-x: hidden; width: 100%; background: var(--bg); scrollbar-color: var(--accent) transparent; scrollbar-width: thin; scrollbar-gutter: stable; }
+/* NOTE: the sidebar's position:sticky is broken by overflow-x:hidden on html/body
+   (it creates a scroll container). The real fix is applied at runtime in App.jsx:
+   document.documentElement/body.style.overflowX = 'clip' — inline style, which the
+   esbuild CSS minifier can't downlevel (it rewrites `clip` → `hidden` in CSS). */
 /* Webkit scrollbar (Chrome, Safari, Edge) */
 html::-webkit-scrollbar { width: 5px; }
 html::-webkit-scrollbar-track { background: transparent; border: none; }
@@ -30,7 +34,7 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  overflow-x: clip; width: 100%;
+  overflow-x: hidden; width: 100%;
 }
 h1, h2, h3, h4 {
   font-family: var(--font-head);

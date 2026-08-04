@@ -53,6 +53,20 @@ export default function App() {
   const showSurveyRef = useRef(showSurvey);
   useEffect(() => { showSurveyRef.current = showSurvey; }, [showSurvey]);
 
+  // Sticky sidebar fix: overflow-x:hidden on html/body breaks position:sticky
+  // (it creates a scroll container). Apply overflow-x:clip at runtime — inline
+  // styles override the stylesheet and survive CSS minification (esbuild rewrites
+  // `clip` → `hidden` in stylesheets).
+  useEffect(() => {
+    const apply = () => {
+      document.documentElement.style.overflowX = 'clip';
+      document.body.style.overflowX = 'clip';
+    };
+    apply();
+    window.addEventListener('load', apply);
+    return () => window.removeEventListener('load', apply);
+  }, []);
+
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cat, setCat] = useState(() => { try { return localStorage.getItem('rw_cat') || 'All'; } catch { return 'All'; } });
   const [query, setQuery] = useState(() => { try { return localStorage.getItem('rw_query') || ''; } catch { return ''; } });
