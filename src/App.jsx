@@ -1098,7 +1098,7 @@ export default function App() {
               maxShift={20}
               itemGap={14}
               fontSize={0.95}
-              smoothing={60}
+              smoothing={25}
               defaultActive={Math.max(0, availableCats.indexOf(cat))}
               onItemClick={(i, label) => { setCat(label); scrollToGrid(); }}
             />
