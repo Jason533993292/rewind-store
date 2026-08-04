@@ -39,7 +39,7 @@ async function cartDrawer(page)    { return page.locator('.rw-drawer'); }
 async function toast(page)         { return page.locator('.rw-toast'); }
 async function heroBtn(page)       { return page.locator('.rw-hero-cta button'); }
 async function searchInput(page)   { return page.locator('.rw-search input'); }
-async function sidebarCats(page)   { return page.locator('#rw-sidebar button'); }
+async function sidebarCats(page)   { return page.locator('#rw-sidebar .line-sidebar__item'); }
 async function brandBtns(page)     { return page.locator('#rw-sidebar h3 + button'); }
 
 // ── Page load tests ─────────────────────────────────────────────
@@ -128,9 +128,9 @@ test.describe('Navigation buttons work', () => {
     expect(count).toBeGreaterThan(3);
 
     for (let i = 1; i < Math.min(count, 5); i++) {
-      // Read label from the dedicated .rw-sb-label span to avoid
-      // including the product count (appended as .rw-sb-count).
-      const label = await sidebar.nth(i).locator('.rw-sb-label').textContent() || '';
+      // Read label from the dedicated .line-sidebar__text span to avoid
+      // including the index/marker markup.
+      const label = await sidebar.nth(i).locator('.line-sidebar__text').textContent() || '';
       await sidebar.nth(i).click();
       await page.waitForTimeout(300);
       const title = page.locator('.rw-shop-title');
