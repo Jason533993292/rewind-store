@@ -26,7 +26,7 @@ function buildPlaces(value) {
 export function Money({ value, fontSize = 15, fontWeight = 700, color = 'var(--ink)', gap = 1, className = '' }) {
   const intDigits = Math.max(1, Math.floor(Math.abs(value || 0)).toString().length);
   return (
-    <span className={className} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 3, color, fontSize, fontWeight }}>
+    <span className={className} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color, fontSize, fontWeight, lineHeight: 1 }}>
       <span style={{ fontSize: '0.82em' }}>€</span>
       <Counter
         key={intDigits}
@@ -375,7 +375,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
         </div>
         {items.length > 0 && subtotal < FREE_THRESHOLD ? (
           <div className="rw-freebar">
-            <Icon name="truck" size={14} /> Add <b><Money value={freeLeft} /></b> more for free shipping
+            <Icon name="truck" size={14} /> Add <b><Money value={freeLeft} fontSize={13.5} /></b> more for free shipping
             <div className="rw-freebar-track"><div style={{ width: freeProgress + '%' }} /></div>
           </div>
         ) : subtotal >= FREE_THRESHOLD && items.length > 0 && (

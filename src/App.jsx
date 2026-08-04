@@ -196,11 +196,37 @@ export default function App() {
 
   // ── ALL useEffects below ──
 
-  // NOTE: no body/html scroll lock when overlays open. Setting overflow:hidden
-  // on html/body creates a scroll container that breaks position:sticky — the
-  // header would scroll away the moment the cart/wishlist opens (the exact bug
-  // this removed). The scrim/drawer start below the header (--rw-hdr-h) so the
-  // top menu stays visible; the page may scroll behind the fixed overlays.
+  // Scroll lock when any overlay opens — WITHOUT breaking position:sticky.
+  // overflow:hidden on html/body creates a scroll container that kills sticky
+  // (the header flew away when the cart opened). Instead, freeze the body with
+  // position:fixed at the current scroll offset: nothing moves while locked
+  // (sticky header stays put), and the offset is restored on unlock.
+  useEffect(() => {
+    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
+    const lockScroll = () => {
+      if (document.body.style.position === 'fixed') return;
+      const y = window.scrollY;
+      document.body.dataset.rwLockY = String(y);
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${y}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    };
+    const unlockScroll = () => {
+      if (document.body.style.position !== 'fixed') return;
+      const y = parseInt(document.body.dataset.rwLockY || '0', 10);
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      delete document.body.dataset.rwLockY;
+      window.scrollTo(0, y);
+    };
+    if (anyOpen) lockScroll(); else unlockScroll();
+  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
+
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const stored = localStorage.getItem('rw_recent');
