@@ -67,6 +67,26 @@ export default function App() {
     return () => window.removeEventListener('load', apply);
   }, []);
 
+  // Keep --rw-hdr-h in sync with the header's live bottom edge (it sits below
+  // the promo banner at page top, at viewport top when scrolled). The scrim +
+  // drawer start below it, so the top menu bar stays visible when cart or
+  // wishlist is open, in every scroll position.
+  useEffect(() => {
+    const sync = () => {
+      const h = document.querySelector('.rw-header');
+      if (h) {
+        document.documentElement.style.setProperty('--rw-hdr-h', Math.round(h.getBoundingClientRect().bottom) + 'px');
+      }
+    };
+    sync();
+    window.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    return () => {
+      window.removeEventListener('scroll', sync);
+      window.removeEventListener('resize', sync);
+    };
+  }, []);
+
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [cat, setCat] = useState(() => { try { return localStorage.getItem('rw_cat') || 'All'; } catch { return 'All'; } });
   const [query, setQuery] = useState(() => { try { return localStorage.getItem('rw_query') || ''; } catch { return ''; } });
