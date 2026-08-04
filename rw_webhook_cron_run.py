@@ -38,18 +38,30 @@ def main():
     # webhook event id so the cursor can't be poisoned into "[SILENT]"-forever.
     max_we = req("GET", "/webhook_events?select=id&order=id.desc&limit=1", key)
     real_max = int(max_we[0]["id"]) if max_we else 0
-    rows = req("GET", f"/cron_inbox?select=source_id&source=eq.webhook_event&limit=1000", key)
+    # Gather ALL forwarded webhook source_ids (paginate — an unordered limit=1000
+    # fetch can truncate before the true max, leaving a stale low cursor that
+    # re-fetches/re-forwards old events every run).
     fwd_ids = set()
-    for r in rows or []:
-        sid = r.get("source_id")
-        if sid is None:
-            continue
-        try:
-            sid = int(sid)
-        except (TypeError, ValueError):
-            continue
-        if 0 <= sid <= real_max:      # only count valid webhook event ids
-            fwd_ids.add(sid)
+    offset = 0
+    while True:
+        rows = req("GET",
+                   f"/cron_inbox?select=source_id&source=eq.webhook_event&limit=1000&offset={offset}",
+                   key)
+        if not rows:
+            break
+        for r in rows:
+            sid = r.get("source_id")
+            if sid is None:
+                continue
+            try:
+                sid = int(sid)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= sid <= real_max:      # only count valid webhook event ids
+                fwd_ids.add(sid)
+        if len(rows) < 1000:
+            break
+        offset += 1000
     cursor = max(fwd_ids) if fwd_ids else 0
     # Fetch events after cursor
     new_events = req("GET", f"/webhook_events?select=*&id=gt.{cursor}&order=id.asc&limit=50", key)

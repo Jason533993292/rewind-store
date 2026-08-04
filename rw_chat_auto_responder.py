@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """REWIND chat auto-responder: reply to first-time unhandled chat messages in cron_inbox."""
-import json, os, sys, socket, subprocess, urllib.request, urllib.parse, datetime
+import json, os, sys, socket, subprocess, urllib.request, urllib.parse, datetime, ssl
 
 BASE_HOST = "luiqimsfvllgsmzedncw.supabase.co"
 BASE = f"https://{BASE_HOST}/rest/v1"
+
+# macOS framework Pythons ship without a usable CA store -> use certifi if present.
+_CERTIFI = "/Users/phil/.hermes/hermes-agent/venv/lib/python3.11/site-packages/certifi/cacert.pem"
+def _ctx():
+    try:
+        return ssl.create_default_context(cafile=_CERTIFI)
+    except Exception:
+        return ssl.create_default_context()
 
 # --- Fallback resolver: macOS system resolver (mDNS) intermittently fails to
 # resolve the Cloudflare-backed Supabase host even though dig/nslookup work.
@@ -55,7 +63,7 @@ def req(method, path, key, body=None):
                "Prefer": "return=representation"}
     data = json.dumps(body).encode() if body is not None else None
     r = urllib.request.Request(url, data=data, headers=headers, method=method)
-    with urllib.request.urlopen(r) as resp:
+    with urllib.request.urlopen(r, context=_ctx()) as resp:
         raw = resp.read()
         return json.loads(raw) if raw else None
 
