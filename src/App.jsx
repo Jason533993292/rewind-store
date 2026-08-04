@@ -53,20 +53,6 @@ export default function App() {
   const showSurveyRef = useRef(showSurvey);
   useEffect(() => { showSurveyRef.current = showSurvey; }, [showSurvey]);
 
-  // Sticky sidebar fix: overflow-x:hidden on html/body breaks position:sticky
-  // (it creates a scroll container). Apply overflow-x:clip at runtime — inline
-  // styles override the stylesheet and survive CSS minification (esbuild rewrites
-  // `clip` → `hidden` in stylesheets).
-  useEffect(() => {
-    const apply = () => {
-      document.documentElement.style.overflowX = 'clip';
-      document.body.style.overflowX = 'clip';
-    };
-    apply();
-    window.addEventListener('load', apply);
-    return () => window.removeEventListener('load', apply);
-  }, []);
-
   // Keep --rw-hdr-h in sync with the header's live bottom edge (it sits below
   // the promo banner at page top, at viewport top when scrolled). The scrim +
   // drawer start below it, so the top menu bar stays visible when cart or
