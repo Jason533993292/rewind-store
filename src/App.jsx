@@ -1094,10 +1094,11 @@ export default function App() {
               accentColor="var(--accent, #FF4D14)"
               textColor="var(--muted)"
               markerColor="var(--line-2)"
-              proximityRadius={110}
+              proximityRadius={120}
               maxShift={20}
               itemGap={14}
               fontSize={0.95}
+              smoothing={60}
               defaultActive={Math.max(0, availableCats.indexOf(cat))}
               onItemClick={(i, label) => { setCat(label); scrollToGrid(); }}
             />
@@ -1440,8 +1441,8 @@ export default function App() {
       </TweaksPanel>}
       <CookieBanner />
 
-      {/* ── Bug report floating button ── */}
-      {!adminMode && (
+      {/* ── Bug report floating button (hidden while any overlay is open) ── */}
+      {!adminMode && !drawer && !checkout && !quick && !wishlistOpen && !showSizes && infoPage === null && !promoOpen && !showBugReport && (
         <button onClick={() => setShowBugReport(true)}
           title="Report a bug"
           className="rw-bug-fab"

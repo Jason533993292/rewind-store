@@ -39,7 +39,7 @@ export function Money({ value, fontSize = 15, fontWeight = 700, color = 'var(--i
         horizontalPadding={0}
         borderRadius={0}
         gradientFrom="var(--surface)"
-        gradientHeight={Math.max(8, Math.round(fontSize * 0.4))}
+        gradientHeight={2}
       />
     </span>
   );

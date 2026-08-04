@@ -21,6 +21,65 @@ function friendlyPage(p) {
   return map[p] || p;
 }
 
+/* ── TrendBadge — % vs previous period (Bklit-style) ── */
+function TrendBadge({ value }) {
+  if (value === null || value === undefined) return null;
+  const positive = value >= 0;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '999px',
+      border: `1px solid ${positive ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)'}`,
+      background: positive ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+      color: positive ? '#059669' : '#dc2626',
+    }}>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {positive
+          ? <path d="M7 17L17 7M17 7H9M17 7v8" />
+          : <path d="M7 7l10 10M17 17H9M17 17V9" />}
+      </svg>
+      {positive ? '+' : ''}{value.toFixed(1)}%
+    </span>
+  );
+}
+
+/* ── Revenue area chart — plain SVG, no chart library ── */
+function RevenueArea({ daily, hoverIdx, setHoverIdx }) {
+  const W = 600, H = 110, PAD = 4;
+  const max = Math.max(...daily.map(d => d.n), 1);
+  const x = i => PAD + (i * (W - PAD * 2)) / Math.max(1, daily.length - 1);
+  const y = n => H - PAD - (n / max) * (H - PAD * 2);
+  const line = `M${daily.map((d, i) => `${x(i)},${y(d.n)}`).join(' L')}`;
+  const area = `${line} L${x(daily.length - 1)},${H - PAD} L${x(0)},${H - PAD} Z`;
+  const colW = W / daily.length;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img" aria-label="Revenue over time">
+      <defs>
+        <linearGradient id="rw-rev-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FF7A3D" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#FF7A3D" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#rw-rev-fill)" />
+      <path d={line} fill="none" stroke="#FF7A3D" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {daily.map((d, i) => (
+        <rect key={d.d} x={x(i) - colW / 2} y={0} width={colW} height={H} fill="transparent"
+          onMouseEnter={() => setHoverIdx(i)} onMouseLeave={() => setHoverIdx(null)} />
+      ))}
+      {hoverIdx !== null && daily[hoverIdx] && (
+        <g pointerEvents="none">
+          <line x1={x(hoverIdx)} x2={x(hoverIdx)} y1={PAD} y2={H - PAD} stroke="#FF7A3D" strokeDasharray="3 3" strokeOpacity="0.6" />
+          <circle cx={x(hoverIdx)} cy={y(daily[hoverIdx].n)} r="3.5" fill="#FF7A3D" stroke="#fff" strokeWidth="1.5" />
+          <rect x={Math.min(x(hoverIdx) - 44, W - 92)} y={4} width="88" height="20" rx="5" fill="rgba(10,20,40,0.92)" />
+          <text x={Math.min(x(hoverIdx), W - 46)} y="17" fontSize="10" fontWeight={700} fill="#fff" textAnchor="middle">
+            €{daily[hoverIdx].n.toFixed(0)} · {daily[hoverIdx].d}
+          </text>
+        </g>
+      )}
+    </svg>
+  );
+}
+
 function flag(c) {
   if (!c || c.length !== 2) return '🌐';
   return c.toUpperCase().replace(/./g, ch => String.fromCodePoint(127397 + ch.charCodeAt(0)));
@@ -31,6 +90,7 @@ export default function AnalyticsDashboard({ adminFetch }) {
   const [period, setPeriod] = useState('7d');
   const [tick, setTick] = useState(0);
   const [hoverIdx, setHoverIdx] = useState(null);
+  const [revHover, setRevHover] = useState(null);
 
   useEffect(() => {
     if (!adminFetch) return;
@@ -48,6 +108,7 @@ export default function AnalyticsDashboard({ adminFetch }) {
 
   const s = data.stats || {};
   const daily = Array.isArray(data.daily) ? data.daily : [];
+  const dailyRevenue = Array.isArray(data.dailyRevenue) ? data.dailyRevenue : [];
   const sales = data.sales || { orders: 0, revenue: 0 };
   const topPages = data.topPages || [];
   const byCountry = data.byCountry || [];
@@ -116,6 +177,21 @@ export default function AnalyticsDashboard({ adminFetch }) {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Revenue over time — SVG area chart (Bklit-style) */}
+      {period !== '24h' && dailyRevenue && dailyRevenue.length > 0 && (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 4px' }}>
+            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, fontFamily: HEAD }}>Revenue · last {dailyRevenue.length} days</h3>
+            <TrendBadge value={sales.revenueTrend} />
+          </div>
+          <div style={{ fontSize: '20px', fontWeight: 700, margin: '0 0 10px', color: 'var(--ink)' }}>
+            €{(sales.revenue || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 500, marginLeft: '8px' }}>{sales.orders ?? 0} orders</span>
+          </div>
+          <RevenueArea daily={dailyRevenue} hoverIdx={revHover} setHoverIdx={setRevHover} />
         </div>
       )}
 

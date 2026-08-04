@@ -1289,7 +1289,7 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=os&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=device&timestamp=gte.${encodeURIComponent(sinceStr)}&limit=2000`),
       fetchDb(`${SUPABASE_URL}/rest/v1/analytics_visits?select=visitor_id&timestamp=gte.${today.toISOString()}`),
-      fetchDb(`${SUPABASE_URL}/rest/v1/orders?select=total,status&created_at=gte.${encodeURIComponent(sinceStr)}&limit=500`),
+      fetchDb(`${SUPABASE_URL}/rest/v1/orders?select=total,status,created_at&created_at=gte.${encodeURIComponent(sinceStr)}&limit=500`),
     ]);
 
     // Aggregate in Node — PostgREST group-by syntax was returning PGRST100
@@ -1325,6 +1325,36 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
     const validOrders = salesRows.filter(o => o.status !== 'cancelled');
     const revenue = validOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
 
+    // Revenue per Brussels-local day (for the area chart)
+    const revenueByDay = {};
+    for (const o of validOrders) {
+      const d = brusselsDate(new Date(o.created_at));
+      if (d) revenueByDay[d] = (revenueByDay[d] || 0) + (Number(o.total) || 0);
+    }
+    const dailyRevenue = [];
+    for (let i = 13; i >= 0; i--) {
+      const key = brusselsDate(new Date(now - i * 864e5));
+      dailyRevenue.push({ d: key, n: Math.round((revenueByDay[key] || 0) * 100) / 100 });
+    }
+
+    // Trend vs the previous equal-length period
+    let revenueTrend = null;
+    try {
+      const prevLen = period === '24h' ? 24 * 3600e3 : period === '30d' ? 30 * 86400e3 : 7 * 86400e3;
+      const prevStart = new Date(now - prevLen * 2);
+      const prevEnd = new Date(now - prevLen);
+      const prevRes = await fetch(`${SUPABASE_URL}/rest/v1/orders?select=total,status&created_at=gte.${encodeURIComponent(prevStart.toISOString())}&created_at=lt.${encodeURIComponent(prevEnd.toISOString())}&limit=500`, {
+        headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+      });
+      const prevRows = await prevRes.json();
+      const prevRevenue = (Array.isArray(prevRows) ? prevRows : [])
+        .filter(o => o.status !== 'cancelled')
+        .reduce((s, o) => s + (Number(o.total) || 0), 0);
+      if (prevRevenue > 0) revenueTrend = Math.round(((revenue - prevRevenue) / prevRevenue) * 100);
+      else if (revenue > 0) revenueTrend = 100;
+      else revenueTrend = 0;
+    } catch { revenueTrend = null; }
+
     res.json({
       stats: {
         total_visits: allVisitors.length,
@@ -1338,7 +1368,8 @@ app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
       byOs: Array.isArray(byOs) ? byOs : [],
       byDevice: Array.isArray(byDevice) ? byDevice : [],
       daily,
-      sales: { orders: validOrders.length, revenue },
+      dailyRevenue,
+      sales: { orders: validOrders.length, revenue, revenueTrend },
     });
   } catch (e) {
     console.error('Analytics query error:', e);
