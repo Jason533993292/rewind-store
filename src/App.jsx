@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Banner, Header, Hero, Marquee, Toast, Footer, Icon, TruckLoader } from './components/Shell';
-import LineSidebar from './components/ui/LineSidebar';
 import { ProductGrid, QuickView, CartDrawer, Checkout, SignupModal, WishlistDrawer } from './components/Shop';
 import { ReferralDialog } from './components/Referral';
 import ClickSpark from './components/ClickSpark';
@@ -1089,19 +1088,9 @@ export default function App() {
             alignSelf: 'flex-start',
           }}>
             <h3 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--ink)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Categories</h3>
-            <LineSidebar
-              items={availableCats}
-              accentColor="var(--accent, #FF4D14)"
-              textColor="var(--muted)"
-              markerColor="var(--line-2)"
-              proximityRadius={120}
-              maxShift={20}
-              itemGap={14}
-              fontSize={0.95}
-              smoothing={25}
-              defaultActive={Math.max(0, availableCats.indexOf(cat))}
-              onItemClick={(i, label) => { setCat(label); scrollToGrid(); }}
-            />
+            {availableCats.map((c) => (
+              <SidebarBtn key={c} label={c === 'All' ? 'All' : c} count={catCounts[c] || 0} isOn={cat === c} onClick={() => { setCat(c); scrollToGrid(); }} />
+            ))}
 
             {cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand) && (
               <>
