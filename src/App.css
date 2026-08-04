@@ -350,7 +350,7 @@ a { color: inherit; cursor: pointer; }
 /* ── Size guide text button ── */
 .rw-size-guide-btn { color: var(--muted); }
 .rw-size-guide-btn:hover { color: var(--accent) !important; }
-.rw-sb-btn.is-on { background: var(--ink); color: var(--surface); font-weight: 800; font-size: 13px; }
+.rw-sb-btn.is-on { background: var(--ink); color: var(--surface); font-weight: 800; font-size: 13px; opacity: 1; }
 .rw-sb-btn.is-on:hover { background: var(--ink); color: var(--surface); }
 .rw-sb-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .rw-sb-count {
