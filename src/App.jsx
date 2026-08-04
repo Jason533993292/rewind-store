@@ -196,12 +196,11 @@ export default function App() {
 
   // ── ALL useEffects below ──
 
-  // Lock body scroll when any modal/drawer/overlay is open
-  useEffect(() => {
-    const anyOpen = quick !== null || drawer || checkout || signupOpen || showSizes || infoPage !== null || promoOpen || wishlistOpen || showReferral || showSettings;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-    document.documentElement.style.overflow = anyOpen ? 'hidden' : '';
-  }, [quick, drawer, checkout, signupOpen, showSizes, infoPage, promoOpen, wishlistOpen, showReferral, showSettings]);
+  // NOTE: no body/html scroll lock when overlays open. Setting overflow:hidden
+  // on html/body creates a scroll container that breaks position:sticky — the
+  // header would scroll away the moment the cart/wishlist opens (the exact bug
+  // this removed). The scrim/drawer start below the header (--rw-hdr-h) so the
+  // top menu stays visible; the page may scroll behind the fixed overlays.
   const [recentlyViewed, setRecentlyViewed] = useState(() => {
     try {
       const stored = localStorage.getItem('rw_recent');
