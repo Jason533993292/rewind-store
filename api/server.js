@@ -1190,8 +1190,10 @@ app.post('/api/analytics/track', generalLimiter, async (req, res) => {
     if (qa) return res.json({ ok: true });
     // Never record the store owner's own visits (valid admin session cookie)
     if (req.cookies && req.cookies.admin_session) return res.json({ ok: true });
-    // Rate-limit per IP (behind Cloudflare, req.ip is the real client)
-    if (!trackAllowed(req.ip || req.headers['x-forwarded-for'] || 'unknown')) return res.json({ ok: true });
+    // Rate-limit per IP — CF-Connecting-IP is Cloudflare's guaranteed real
+    // client IP (req.ip can vary per request behind CF edge routing).
+    const clientIp = req.headers['cf-connecting-ip'] || req.ip || 'unknown';
+    if (!trackAllowed(clientIp)) return res.json({ ok: true });
 
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const SK = SERVICE_KEY;
