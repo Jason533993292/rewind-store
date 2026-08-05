@@ -71,6 +71,25 @@ export default function ChatBubble() {
   const fabRef = useRef(null);
   const rafRef = useRef(null);
   const [hovered, setHovered] = useState(false);
+  const [debugPos, setDebugPos] = useState(null);
+  const isDebug = typeof window !== 'undefined' && window.location.search.includes('fab-debug=1');
+
+  // Diagnostic: with ?fab-debug=1, show the bundle filename + live position
+  // so we can see exactly what build the browser runs and where the button is.
+  useEffect(() => {
+    if (!isDebug) return;
+    const id = setInterval(() => {
+      const el = fabRef.current;
+      if (!el) return;
+      const m = getComputedStyle(el).transform;
+      const x = m && m !== 'none' ? (parseFloat(m.split(',')[4]) || 0) : 0;
+      setDebugPos(Math.round(x * 10) / 10);
+    }, 80);
+    return () => clearInterval(id);
+  }, [isDebug]);
+  const bundleName = isDebug
+    ? (typeof document !== 'undefined' ? (document.querySelector('script[src*="/assets/index-"]')?.src.split('/').pop() || '?') : '?')
+    : '';
 
   // Glide via a requestAnimationFrame lerp: every frame we explicitly set
   // el.style.transform to the interpolated position. The browser paints
@@ -362,10 +381,8 @@ export default function ChatBubble() {
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}>
-        {/* Animated icon: the button dashes right (open) / left (close) while
-            the icon spins/morphs in place — chat bubble → × and back. The
-            icons stay centered (no horizontal travel) so only the button
-            glides; nothing slides sideways on hover. */}
+        {/* Animated icon: spins/morphs in place — chat bubble → × and back.
+            No horizontal travel; only the button glides. */}
         <span style={{ position: 'relative', display: 'block', width: '26px', height: '26px', margin: '0 auto' }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
             style={{ position: 'absolute', inset: 0, opacity: open ? 0 : 1, transform: open ? 'translateY(20px) rotate(-90deg) scale(.3)' : 'none', transition: 'transform .45s cubic-bezier(.4,0,.2,1), opacity .15s ease .35s' }}>
@@ -388,6 +405,12 @@ export default function ChatBubble() {
           </span>
         )}
       </button>
+      {isDebug && (
+        <div style={{ marginTop: 8, background: 'rgba(22,19,15,.88)', color: '#fff', fontSize: 11, fontFamily: 'monospace', lineHeight: 1.5, padding: '6px 10px', borderRadius: 8, whiteSpace: 'pre', maxWidth: 240 }}>
+{`build: ${bundleName}
+pos: ${debugPos ?? '?'} px`}
+        </div>
+      )}
     </div>
   );
 }
