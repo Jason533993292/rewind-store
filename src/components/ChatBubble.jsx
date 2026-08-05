@@ -69,27 +69,37 @@ export default function ChatBubble() {
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
   const fabRef = useRef(null);
+  const rafRef = useRef(null);
   const [hovered, setHovered] = useState(false);
 
-  // Glide via the Web Animations API: interpolates from the CURRENT position
-  // to the target, runs on its own timeline — immune to CSS transitions,
-  // hover state changes, and re-renders interrupting the motion.
-  const glide = React.useCallback((to) => {
+  // Glide via a requestAnimationFrame lerp: every frame we explicitly set
+  // el.style.transform to the interpolated position. The browser paints
+  // exactly what we write — no CSS transition, no WAAPI fill, no animation
+  // cancellation can truncate the slide. Full-length every time.
+  const glideTo = React.useCallback((to) => {
     const el = fabRef.current;
     if (!el) return;
-    const from = new DOMMatrixReadOnly(getComputedStyle(el).transform).m41 || 0;
-    el.animate(
-      [{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }],
-      { duration: 320, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }
-    );
+    cancelAnimationFrame(rafRef.current);
+    const start = performance.now();
+    const dur = 340;
+    const m = getComputedStyle(el).transform;
+    const from = m && m !== 'none' ? (parseFloat(m.split(',')[4]) || 0) : 0; // matrix m41 (translateX)
+    const ease = (t) => 1 - Math.pow(1 - t, 3); // ease-out cubic
+    const step = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      el.style.transform = `translateX(${from + (to - from) * ease(p)}px)`;
+      if (p < 1) rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
   }, []);
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
   const handleToggle = () => {
     if (open) {
-      glide(0); // close: glide fully right back to the corner
+      glideTo(0); // close: glide fully right back to the corner
       setOpen(false);
     } else {
-      glide(-64); // open: glide fully left to the X position
+      glideTo(-64); // open: glide fully left to the X position
       handleOpen();
     }
   };
