@@ -1259,14 +1259,8 @@ input:focus:not(:focus-visible) {
   z-index: 9999;
 }
 
-/* ── Chat FAB popup animation on hover ── */
-.rw-chat-fab { animation: none; }
-.rw-chat-fab:hover { animation: chat-fab-pop .5s cubic-bezier(.34,1.56,.64,1); }
-@keyframes chat-fab-pop {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.22) rotate(-4deg); }
-  100% { transform: scale(1.15); }
-}
+/* ── Chat FAB hover is handled by React state (inline transform + transition);
+   the old CSS pop animation overrode the position glide (teleport/jitter) ── */
 
 /* ── Bug FAB popup animation on hover ── */
 .rw-bug-fab { animation: none; }
