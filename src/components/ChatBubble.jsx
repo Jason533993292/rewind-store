@@ -316,15 +316,13 @@ export default function ChatBubble() {
       <button
         onClick={open ? () => setOpen(false) : handleOpen}
         aria-label={open ? 'Close chat' : 'Open chat'}
-        className="rw-chat-fab"
+        className={"rw-chat-fab" + (open ? ' rw-fab-open' : '')}
         style={{
           width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF3B00',
           background: '#FF3B00', color: '#fff',
           fontSize: '22px', cursor: 'pointer', position: 'relative',
-          // Open: the button glides fully LEFT to the X's spot and stays there;
-          // closed: it sits in the corner. Hover adds a gentle scale on top.
-          transform: open ? 'translateX(-64px)' + (hovered ? ' scale(1.12)' : '') : (hovered ? 'scale(1.15)' : 'none'),
-          transition: 'transform 0.32s cubic-bezier(.4,0,.2,1), box-shadow 0.2s',
+          // Position is driven by the .rw-fab-open class + CSS transition
+          // (no inline transform — nothing can fight the glide).
           boxShadow: hovered ? '0 8px 28px rgba(255,59,0,.45)' : (open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)'),
         }}
         onMouseEnter={() => setHovered(true)}
