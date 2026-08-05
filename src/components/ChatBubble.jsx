@@ -68,12 +68,30 @@ export default function ChatBubble() {
   const [cookieBannerLikelyVisible, setCookieBannerLikelyVisible] = useState(false);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
-  const prevOpenRef = useRef(null);
+  const fabRef = useRef(null);
+  const dashTimer = useRef(null);
+  const [dash, setDash] = useState('');
 
-  // Dash animation class: the button glides right when opening, left when
-  // closing (skipped on the very first render — nothing to reverse yet).
-  const dashClass = prevOpenRef.current === null ? '' : (open ? 'rw-dash-right' : 'rw-dash-left');
-  useEffect(() => { prevOpenRef.current = open; }, [open]);
+  // Self-clearing dash class — removed after the animation so it never
+  // lingers on the button (a persistent class re-triggered on re-renders and
+  // fought the hover scale transform).
+  const triggerDash = (dir) => {
+    clearTimeout(dashTimer.current);
+    setDash(dir);
+    dashTimer.current = setTimeout(() => setDash(''), 600);
+    if (fabRef.current) fabRef.current.style.transform = ''; // clear stale hover scale
+  };
+  useEffect(() => () => clearTimeout(dashTimer.current), []);
+
+  const handleToggle = () => {
+    if (open) {
+      triggerDash('rw-dash-left');
+      setOpen(false);
+    } else {
+      triggerDash('rw-dash-right');
+      handleOpen();
+    }
+  };
 
   useEffect(() => {
     const check = () => setIsNarrowViewport(window.innerWidth < 480);
@@ -319,9 +337,10 @@ export default function ChatBubble() {
       )}
 
       <button
-        onClick={open ? () => setOpen(false) : handleOpen}
+        ref={fabRef}
+        onClick={handleToggle}
         aria-label={open ? 'Close chat' : 'Open chat'}
-        className={"rw-chat-fab" + (dashClass ? ' ' + dashClass : '')}
+        className={"rw-chat-fab" + (dash ? ' ' + dash : '')}
         style={{
           width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF3B00',
           background: '#FF3B00', color: '#fff',
@@ -331,20 +350,19 @@ export default function ChatBubble() {
         }}
         onMouseEnter={e => { if (open) return; e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,59,0,.45)'; }}
         onMouseLeave={e => { if (open) return; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,59,0,.28)'; }}>
-        {/* Animated icon: on open the button dashes right while the chat icon
-            slides off right and the X turns in from the left; on close the
-            button dashes left, the X slides off left and the chat icon turns
-            back in from the right. Opacity is delayed so the morph follows
-            the glide. */}
+        {/* Animated icon: the button dashes right (open) / left (close) while
+            the icon spins/morphs in place — chat bubble → × and back. The
+            icons stay centered (no horizontal travel) so only the button
+            glides; nothing slides sideways on hover. */}
         <span style={{ position: 'relative', display: 'block', width: '26px', height: '26px', margin: '0 auto' }}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-            style={{ position: 'absolute', inset: 0, opacity: open ? 0 : 1, transform: open ? 'translateX(64px) rotate(-90deg) scale(.3)' : 'none', transition: 'transform .5s cubic-bezier(.34,1.3,.5,1), opacity .15s ease .38s' }}>
+            style={{ position: 'absolute', inset: 0, opacity: open ? 0 : 1, transform: open ? 'translateY(20px) rotate(-90deg) scale(.3)' : 'none', transition: 'transform .45s cubic-bezier(.4,0,.2,1), opacity .15s ease .35s' }}>
             <path d="M21 14.5a2 2 0 0 1-2 2H7.5L4 20V5.5A2.5 2.5 0 0 1 6.5 3h12.5A2 2 0 0 1 21 5v9.5z"/>
             <path d="M8.5 10h7M8.5 13.5h4"/>
           </svg>
           <span aria-hidden="true"
             style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: '25px', lineHeight: 1, fontWeight: 600,
-              opacity: open ? 1 : 0, transform: open ? 'none' : 'translateX(-64px) rotate(90deg) scale(.3)', transition: 'transform .5s cubic-bezier(.34,1.3,.5,1), opacity .15s ease .38s' }}>
+              opacity: open ? 1 : 0, transform: open ? 'none' : 'translateY(-20px) rotate(90deg) scale(.3)', transition: 'transform .45s cubic-bezier(.4,0,.2,1), opacity .15s ease .35s' }}>
             ×
           </span>
         </span>
