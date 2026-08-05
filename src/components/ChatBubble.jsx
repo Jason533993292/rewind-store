@@ -85,10 +85,10 @@ export default function ChatBubble() {
 
   const handleToggle = () => {
     if (open) {
-      triggerDash('rw-dash-left');
+      triggerDash('rw-dash-right'); // closing: slide right, back to the chat button's corner spot
       setOpen(false);
     } else {
-      triggerDash('rw-dash-right');
+      triggerDash('rw-dash-left'); // opening: slide left, toward the chat panel / X position
       handleOpen();
     }
   };
