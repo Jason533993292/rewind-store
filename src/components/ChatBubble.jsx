@@ -68,7 +68,31 @@ export default function ChatBubble() {
   const [cookieBannerLikelyVisible, setCookieBannerLikelyVisible] = useState(false);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
+  const fabRef = useRef(null);
   const [hovered, setHovered] = useState(false);
+
+  // Glide via the Web Animations API: interpolates from the CURRENT position
+  // to the target, runs on its own timeline — immune to CSS transitions,
+  // hover state changes, and re-renders interrupting the motion.
+  const glide = React.useCallback((to) => {
+    const el = fabRef.current;
+    if (!el) return;
+    const from = new DOMMatrixReadOnly(getComputedStyle(el).transform).m41 || 0;
+    el.animate(
+      [{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }],
+      { duration: 320, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }
+    );
+  }, []);
+
+  const handleToggle = () => {
+    if (open) {
+      glide(0); // close: glide fully right back to the corner
+      setOpen(false);
+    } else {
+      glide(-64); // open: glide fully left to the X position
+      handleOpen();
+    }
+  };
 
   useEffect(() => {
     const check = () => setIsNarrowViewport(window.innerWidth < 480);
@@ -314,15 +338,16 @@ export default function ChatBubble() {
       )}
 
       <button
-        onClick={open ? () => setOpen(false) : handleOpen}
+        ref={fabRef}
+        onClick={handleToggle}
         aria-label={open ? 'Close chat' : 'Open chat'}
-        className={"rw-chat-fab" + (open ? ' rw-fab-open' : '')}
+        className="rw-chat-fab"
         style={{
           width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF3B00',
           background: '#FF3B00', color: '#fff',
           fontSize: '22px', cursor: 'pointer', position: 'relative',
-          // Position is driven by the .rw-fab-open class + CSS transition
-          // (no inline transform — nothing can fight the glide).
+          // Position is animated by the Web Animations API (glide) — no CSS
+          // transform, so nothing can interrupt the full-length slide.
           boxShadow: hovered ? '0 8px 28px rgba(255,59,0,.45)' : (open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)'),
         }}
         onMouseEnter={() => setHovered(true)}

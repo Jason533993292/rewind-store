@@ -336,11 +336,11 @@ a { color: inherit; cursor: pointer; }
 .rw-sb-btn:hover { background: var(--line); transform: translateY(-1px) scale(1.06); }
 .rw-sb-btn:active { transform: scale(0.97); }
 
-/* ── Chat FAB position: the button glides fully LEFT to the X's spot while
-   open and stays there; glides back RIGHT to the corner on close. Driven by
-   a class toggle + CSS transition — no inline transform, no hover conflicts. */
-.rw-chat-fab { transition: transform 0.32s cubic-bezier(.4,0,.2,1), box-shadow 0.2s; }
-.rw-chat-fab.rw-fab-open { transform: translateX(-64px); }
+/* ── Chat FAB position: glided by the Web Animations API in ChatBubble.jsx
+   (element.animate) — full-length slide to the X spot on open, back to the
+   corner on close. No CSS transform/transition involved, so nothing can
+   interrupt or snap the motion. */
+.rw-chat-fab { transition: box-shadow 0.2s; }
 
 /* ── Product page admin dropdown button ── */
 .rw-dd-btn {
