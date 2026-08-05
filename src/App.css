@@ -336,22 +336,10 @@ a { color: inherit; cursor: pointer; }
 .rw-sb-btn:hover { background: var(--line); transform: translateY(-1px) scale(1.06); }
 .rw-sb-btn:active { transform: scale(0.97); }
 
-/* ── Chat FAB dash: the button glides right (open) / left (close) while the
-   icon morphs into the X, ending back at its usual spot. Smooth bezier — no
-   overshoot, so no wobble. The class is cleared by JS after the run so it
-   never lingers and re-triggers on hover. ── */
-@keyframes rw-fab-dash-right {
-  0% { transform: translateX(0); }
-  60% { transform: translateX(56px); }
-  100% { transform: translateX(0); }
-}
-@keyframes rw-fab-dash-left {
-  0% { transform: translateX(0); }
-  60% { transform: translateX(-56px); }
-  100% { transform: translateX(0); }
-}
-.rw-chat-fab.rw-dash-right { animation: rw-fab-dash-right 0.5s cubic-bezier(.4,0,.2,1); }
-.rw-chat-fab.rw-dash-left { animation: rw-fab-dash-left 0.5s cubic-bezier(.4,0,.2,1); }
+/* ── Chat FAB position shift: when open the button glides fully LEFT to the
+   X's spot and stays there; when closed it glides back RIGHT to the corner.
+   The transform is driven by React state (open + hovered), so no lingering
+   animation classes. ── */
 
 /* ── Product page admin dropdown button ── */
 .rw-dd-btn {

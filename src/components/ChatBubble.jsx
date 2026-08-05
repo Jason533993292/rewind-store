@@ -68,30 +68,7 @@ export default function ChatBubble() {
   const [cookieBannerLikelyVisible, setCookieBannerLikelyVisible] = useState(false);
   const scrollRef = useRef(null);
   const lastCountRef = useRef(0);
-  const fabRef = useRef(null);
-  const dashTimer = useRef(null);
-  const [dash, setDash] = useState('');
-
-  // Self-clearing dash class — removed after the animation so it never
-  // lingers on the button (a persistent class re-triggered on re-renders and
-  // fought the hover scale transform).
-  const triggerDash = (dir) => {
-    clearTimeout(dashTimer.current);
-    setDash(dir);
-    dashTimer.current = setTimeout(() => setDash(''), 600);
-    if (fabRef.current) fabRef.current.style.transform = ''; // clear stale hover scale
-  };
-  useEffect(() => () => clearTimeout(dashTimer.current), []);
-
-  const handleToggle = () => {
-    if (open) {
-      triggerDash('rw-dash-right'); // closing: slide right, back to the chat button's corner spot
-      setOpen(false);
-    } else {
-      triggerDash('rw-dash-left'); // opening: slide left, toward the chat panel / X position
-      handleOpen();
-    }
-  };
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     const check = () => setIsNarrowViewport(window.innerWidth < 480);
@@ -337,19 +314,21 @@ export default function ChatBubble() {
       )}
 
       <button
-        ref={fabRef}
-        onClick={handleToggle}
+        onClick={open ? () => setOpen(false) : handleOpen}
         aria-label={open ? 'Close chat' : 'Open chat'}
-        className={"rw-chat-fab" + (dash ? ' ' + dash : '')}
+        className="rw-chat-fab"
         style={{
           width: '56px', height: '56px', borderRadius: '50%', border: '2px solid #FF3B00',
           background: '#FF3B00', color: '#fff',
           fontSize: '22px', cursor: 'pointer', position: 'relative',
-          transition: 'transform 0.3s ease, box-shadow 0.2s',
-          boxShadow: open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)',
+          // Open: the button glides fully LEFT to the X's spot and stays there;
+          // closed: it sits in the corner. Hover adds a gentle scale on top.
+          transform: open ? 'translateX(-64px)' + (hovered ? ' scale(1.12)' : '') : (hovered ? 'scale(1.15)' : 'none'),
+          transition: 'transform 0.32s cubic-bezier(.4,0,.2,1), box-shadow 0.2s',
+          boxShadow: hovered ? '0 8px 28px rgba(255,59,0,.45)' : (open ? '0 4px 18px rgba(255,59,0,.4)' : '0 2px 10px rgba(255,59,0,.28)'),
         }}
-        onMouseEnter={e => { if (open) return; e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,59,0,.45)'; }}
-        onMouseLeave={e => { if (open) return; e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(255,59,0,.28)'; }}>
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}>
         {/* Animated icon: the button dashes right (open) / left (close) while
             the icon spins/morphs in place — chat bubble → × and back. The
             icons stay centered (no horizontal travel) so only the button
