@@ -1453,8 +1453,8 @@ export default function App() {
 
       </div>
 
-      {/* ── Chat bubble — hidden when cart is open ── */}
-      {!drawer && <ChatBubble />}
+      {/* ── Chat bubble — hidden whenever any overlay (wishlist, cart, checkout, etc.) is open ── */}
+      {!(drawer || wishlistOpen || checkout || quick !== null || showSizes || infoPage !== null || promoOpen || showReferral || showSettings || showOrderConfirmed) && <ChatBubble />}
 
       {/* ── Agentation annotation toolbar (dev only) ── */}
       {typeof window !== 'undefined' && window.location.hostname === 'localhost' && <Agentation endpoint="http://localhost:4747" />}
