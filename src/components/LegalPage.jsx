@@ -54,14 +54,13 @@ export default function LegalPage({ page, onClose }) {
       ],
     },
     returns: {
-      title: 'Returns & Refunds',
+      title: 'Returns & Withdrawal',
       sections: [
-        { heading: 'Your Right of Withdrawal', text: 'Under EU law, you have a statutory right to withdraw from your purchase within 14 days of delivery. To exercise this right, contact orders@rewind-stores.com with your order number. You may also use any other clear statement of your intent to withdraw — our email process is just the easiest way to get started.' },
-        { heading: 'Return Shipping', text: 'Return shipping is paid by the buyer unless the item was damaged or incorrect. We recommend using a tracked shipping method — we are not responsible for lost return packages. The return address will be provided in your return confirmation email.' },
-        { heading: 'Condition Requirements', text: 'You may handle the item to inspect it as you would in a physical store (for example, trying on clothing). We may deduct from your refund for any diminished value caused by handling beyond what is necessary to establish the nature, characteristics, and functioning of the goods. Items must be returned in the condition they were received, with all tags attached.' },
-        { heading: 'Refund Timeline', text: 'Refunds are processed within 14 days of us receiving the returned goods or receiving proof of return shipment (whichever is earlier). The refund is issued to the original payment method. We use the standard 14-day window to inspect and process your return — you will receive an email when the refund is initiated.' },
-        { heading: 'Damaged or Incorrect Items', text: 'If you received a damaged or incorrect item, contact us within 48 hours of delivery with photos. We will provide a prepaid return label and send a replacement or full refund including your original shipping costs.' },
-        { heading: 'Non-Returnable Items', text: 'Items that have been personalized or custom-altered cannot be returned. Items damaged by the customer after delivery are not eligible for return under the statutory right of withdrawal, though they may still be covered by the statutory conformity guarantee if the defect existed at delivery.' },
+        { heading: 'Right of Withdrawal', text: 'Under EU law you have 14 days from delivery to withdraw from your purchase and return an item. To withdraw, email orders@rewind-stores.com with your order number. The item must be returned in its original condition with all tags attached.' },
+        { heading: 'Return Shipping & Costs', text: 'Return shipping is paid by the buyer unless the item arrived damaged or incorrect. We may deduct from your refund any diminished value caused by handling beyond what is necessary to inspect the item. Because each piece is one of a kind, a returned vintage item may not be resellable — please check the product description and size guide carefully before purchasing.' },
+        { heading: 'Refunds', text: 'Refunds are issued to your original payment method within 14 days of us receiving the returned goods.' },
+        { heading: 'Final Sale Items', text: 'For hygiene reasons, sealed items such as underwear, swimwear, and face masks are final sale and cannot be returned once the seal is broken.' },
+        { heading: 'Damaged or Defective Items', text: 'If your item arrives damaged or defective, contact us at orders@rewind-stores.com within 14 days of delivery with photos of the issue. We will make it right — with a replacement where possible or a refund.' },
       ],
     },
     shipping: {

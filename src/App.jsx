@@ -6,6 +6,7 @@ import ClickSpark from './components/ClickSpark';
 import ChatBubble from './components/ChatBubble';
 import OrderConfirmed from './components/OrderConfirmed';
 import { nav, getRoute, initRouter } from './lib/router';
+import { useLang } from './i18n';
 import CookieBanner from './components/CookieBanner';
 import { adminFetch } from './lib/adminApi';
 import { TweaksPanel, useTweaks, TweakSection, TweakToggle, TweakColor, TweakRadio } from './components/Tweaks';
@@ -43,6 +44,7 @@ const VERSION = 'V11.11.0';
 import SidebarBtn from './components/SidebarBtn';
 
 export default function App() {
+  const { t: tLang } = useLang();
   // showSurvey MUST be the VERY FIRST state var so no TDZ error can occur
   // when the scroll-lock useEffect references it.
   const [showSurvey, setShowSurvey] = useState(false);
@@ -1154,8 +1156,8 @@ export default function App() {
           <div className={"rw-mobile-nav-overlay" + (showMobileNav ? ' open' : '')} onClick={() => setShowMobileNav(false)} />
           <nav className={"rw-mobile-nav-sheet" + (showMobileNav ? ' open' : '')} aria-label="Product filters">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <strong style={{ fontSize: '16px' }}>Filters</strong>
-              <button onClick={() => setShowMobileNav(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', fontSize: '16px', display: 'grid', placeItems: 'center', color: 'var(--muted)' }} aria-label="Close filters">&times;</button>
+              <strong style={{ fontSize: '16px' }}>{tLang('filters')}</strong>
+              <button onClick={() => setShowMobileNav(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'var(--line)', cursor: 'pointer', fontSize: '16px', display: 'grid', placeItems: 'center', color: 'var(--muted)' }} aria-label={tLang('close_filters')}>&times;</button>
             </div>
             <h3 id="rw-mob-cat-heading">Category</h3>
             <div role="list" aria-labelledby="rw-mob-cat-heading">
@@ -1192,13 +1194,13 @@ export default function App() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: (cat !== 'All' && currentBrands.length > 0 && allProducts.some(p => p.cat === cat && p.brand)) ? '8px' : '16px', gap: '10px', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: '1 1 auto' }}>
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                aria-label="Sort products"
+                aria-label={tLang('sort_products')}
                 className="rw-sort">
-                <option value="">Featured</option>
-                <option value="name-asc">Name: A → Z</option>
-                <option value="name-desc">Name: Z → A</option>
-                <option value="price-asc">Price: Low → High</option>
-                <option value="price-desc">Price: High → Low</option>
+                <option value="">{tLang('sort_featured')}</option>
+                <option value="name-asc">{tLang('sort_name_az')}</option>
+                <option value="name-desc">{tLang('sort_name_za')}</option>
+                <option value="price-asc">{tLang('sort_price_low')}</option>
+                <option value="price-desc">{tLang('sort_price_high')}</option>
               </select>
               <button id="rw-mobile-filter-btn" onClick={() => setShowMobileNav(true)}
                 aria-label="Filter products"

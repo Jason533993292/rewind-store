@@ -9,6 +9,7 @@ function parseImgs(p) {
   return raw ? [raw] : [];
 }
 import { Icon, Photo } from './Shell';
+import { useLang } from '../i18n';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import Counter from './ui/Counter';
 
@@ -87,6 +88,7 @@ function LazyImage({ src, alt, className }) {
 
 /* ---------- ProductCard ---------- */
 export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlisted, onWishlist, onSelect, onCart }) {
+  const { t } = useLang();
   const low = p.stock > 0 && p.stock <= 5;
   const soldOut = p.stock === 0;
   const [adding, setAdding] = useState(false);
@@ -96,14 +98,14 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
         <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={parseImgs(p)[0] || p.img} />
         <div className="rw-card-tags">
-          {soldOut && <span className="rw-badge-sold">SOLD OUT</span>}
+          {soldOut && <span className="rw-badge-sold">{t('sold_out')}</span>}
           {showCompare && discountPct(p) > 0 && <span className="rw-tag rw-tag-sale">-{discountPct(p)}%</span>}
-          {showStock && soldOut && <span className="rw-tag rw-tag-low">Sold out</span>}
-          {showStock && low && !soldOut && <span className="rw-tag rw-tag-low">Only {p.stock} left</span>}
+          {showStock && soldOut && <span className="rw-tag rw-tag-low">{t('sold_out')}</span>}
+          {showStock && low && !soldOut && <span className="rw-tag rw-tag-low">{t('only_left', { n: p.stock })}</span>}
         </div>
-        <button className="rw-card-quick" onClick={(e) => { e.stopPropagation(); onQuick(p); }}>Quick view</button>
+        <button className="rw-card-quick" onClick={(e) => { e.stopPropagation(); onQuick(p); }}>{t('quick_view')}</button>
         <button className={"rw-card-fav" + (wishlisted ? ' is-wishlisted' : '')}
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+          aria-label={wishlisted ? t('remove_wishlist') : t('save_wishlist')}
           style={{ color: wishlisted ? 'var(--accent)' : undefined }}
           onClick={(e) => { e.stopPropagation(); onWishlist(p); const btn = e.currentTarget; btn.classList.add('wiggle'); setTimeout(() => btn.classList.remove('wiggle'), 500); }}>
           <Icon name={wishlisted ? 'heartFilled' : 'heart'} size={17} />
@@ -125,7 +127,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
             </span>
           ) : added ? (
             <button className="rw-add" style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-              onClick={onCart} aria-label="View in bag">
+              onClick={onCart} aria-label={t('view_in_bag')}>
               <Icon name="bag" size={16} />
             </button>
           ) : (
@@ -134,19 +136,19 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
             setAdding(true);
             try { await onAdd(p); setAdded(true); setTimeout(() => setAdded(false), 2000); } catch {}
             setAdding(false);
-          }} aria-label={"Add " + p.name}>
+          }} aria-label={t('add_item') + ' ' + p.name}>
             {adding ? <span className="rw-spinner" /> : <Icon name="plus" size={18} />}
           </button>
           )}
         </div>
         {soldOut ? (
-          <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>Sold Out</div>
+          <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>{t('sold_out')}</div>
         ) : (
         <div className="rw-card-ship">
           {p.stock === 1 ? (
-            <><Icon name="bolt" size={13} /> Only 1 left — final sale</>
+            <><Icon name="bolt" size={13} /> {t('one_left_returns')}</>
           ) : (
-            <><Icon name="check" size={13} /> Final sale — no returns</>
+            <><Icon name="check" size={13} /> {t('returns_14day')}</>
           )}
         </div>
         )}
@@ -268,6 +270,7 @@ export function ProductGrid({ products, wishlist, onWishlist, sort, query, onCle
 
 /* ---------- QuickView ---------- */
 export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
+  const { t } = useLang();
   const [size, setSize] = useState(null);
   const [showQvMenu, setShowQvMenu] = useState(false);
   // Reset size selection when the product changes — prevents stale size
@@ -280,7 +283,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
   return (
     <div className="rw-modal-wrap" onClick={onClose}>
       <div className="rw-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="rw-modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
+        <button className="rw-modal-x" onClick={onClose} aria-label={t('close')}><Icon name="close" size={18} /></button>
         {!!localStorage.getItem('rw_admin_email') && (
         <div style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 20 }}>
           <button onClick={(e) => { e.stopPropagation(); setShowQvMenu(v => !v); }}
@@ -334,10 +337,10 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
             {showCompare && p.was && <span className="rw-price-was">{money(p.was)}</span>}
           </div>
           <p className="rw-modal-note">{p.note}</p>
-          {showStock && soldOut && <div className="rw-stockline"><Icon name="bolt" size={15} /> Sold out — check back soon</div>}
-          {showStock && low && !soldOut && <div className="rw-stockline"><Icon name="bolt" size={15} /> Only {p.stock} left</div>}
+          {showStock && soldOut && <div className="rw-stockline"><Icon name="bolt" size={15} /> {t('sold_out_check')}</div>}
+          {showStock && low && !soldOut && <div className="rw-stockline"><Icon name="bolt" size={15} /> {t('only_left', { n: p.stock })}</div>}
           <div className="rw-sizes">
-            <div className="rw-sizes-label">Size</div>
+            <div className="rw-sizes-label">{t('size')}</div>
             <div className="rw-sizes-row">
               {p.sizes.map((s) => (
                 <button key={s} className={"rw-size" + (size === s ? " is-on" : "")}
@@ -346,11 +349,11 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
             </div>
           </div>
           <button className="rw-btn rw-btn-pri rw-btn-full" disabled={!size || soldOut} onClick={() => onAdd(p, size)}>
-            {soldOut ? 'Sold out' : size ? 'Add to bag — ' + money(p.price) : 'Select a size'}
+            {soldOut ? t('sold_out') : size ? t('add_to_bag') + ' — ' + money(p.price) : t('select_size')}
           </button>
           <div className="rw-modal-perks">
-            <span><Icon name="truck" size={15} /> Ships in 24h</span>
-            <span><Icon name="check" size={15} /> Final sale — no returns</span>
+            <span><Icon name="truck" size={15} /> {t('marquee_ships')}</span>
+            <span><Icon name="check" size={15} /> {t('returns_14day')}</span>
           </div>
         </div>
       </div>
@@ -360,6 +363,7 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
 
 /* ---------- CartDrawer ---------- */
 export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, showToast, pendingRemove, onCancelRemove }) {
+  const { t } = useLang();
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
   const FREE_THRESHOLD = 150;
   const freeProgress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
@@ -370,23 +374,23 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
       <div className={"rw-scrim" + (open ? " is-on" : "")} onClick={onClose} />
       <div className={"rw-drawer" + (open ? " is-on" : "")}>
         <div className="rw-drawer-head">
-          <h3>Bag</h3>
-          <button onClick={onClose} aria-label="Close"><Icon name="close" size={20} /></button>
+          <h3>{t('bag')}</h3>
+          <button onClick={onClose} aria-label={t('close')}><Icon name="close" size={20} /></button>
         </div>
         {items.length > 0 && subtotal < FREE_THRESHOLD ? (
           <div className="rw-freebar">
-            <Icon name="truck" size={14} /> Add <b><Money value={freeLeft} fontSize={13.5} /></b> more for free shipping
+            <Icon name="truck" size={14} /> {(() => { const p = t('add_more_free').split('{n}'); return <>{p[0]}<b><Money value={freeLeft} fontSize={13.5} /></b>{p[1]}</>; })()}
             <div className="rw-freebar-track"><div style={{ width: freeProgress + '%' }} /></div>
           </div>
         ) : subtotal >= FREE_THRESHOLD && items.length > 0 && (
           <div className="rw-freebar" style={{ color: 'var(--ink)' }}>
-            <Icon name="check" size={14} /> <b>Free shipping unlocked!</b>
+            <Icon name="check" size={14} /> <b>{t('free_shipping_unlocked')}</b>
           </div>
         )}
         {items.length === 0 ? (
           <div className="rw-drawer-empty">
             <Icon name="bag" size={36} />
-            <p>Your bag is empty</p>
+            <p>{t('bag_empty')}</p>
           </div>
         ) : (
           <div className="rw-drawer-items">
@@ -398,16 +402,16 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
                 <div className="rw-line-info">
                   <div className="rw-line-top">
                     <h4>{it.name}</h4>
-                    <button className="rw-line-x" onClick={() => onRemove(it.key, it.name)} aria-label="Remove">
+                    <button className="rw-line-x" onClick={() => onRemove(it.key, it.name)} aria-label={t('remove')}>
                       <Icon name="close" size={15} />
                     </button>
                   </div>
                   <div className="rw-line-meta">{it.size}</div>
                   <div className="rw-line-bot">
                     <div className="rw-qty">
-                      <button onClick={() => onQty(it.key, -1)} aria-label="Decrease"><Icon name="minus" size={13} /></button>
+                      <button onClick={() => onQty(it.key, -1)} aria-label={t('decrease')}><Icon name="minus" size={13} /></button>
                       <span>{it.qty}</span>
-                      <button onClick={() => onQty(it.key, 1)} aria-label="Increase"><Icon name="plus" size={13} /></button>
+                      <button onClick={() => onQty(it.key, 1)} aria-label={t('increase')}><Icon name="plus" size={13} /></button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {it.was && (
@@ -426,14 +430,14 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
         {items.length > 0 && (
           <div className="rw-drawer-foot">
             <div className="rw-subtotal">
-              <span>Subtotal</span>
+              <span>{t('subtotal')}</span>
               <b><Money value={subtotal} /></b>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', margin: '0 0 10px' }}>
-              Arrives {arrivalRange()} · {SHIP_LABEL}
+              {t('arrives')} {arrivalRange()} · {SHIP_LABEL}
             </div>
             <button className="rw-btn rw-btn-pri rw-btn-full" onClick={onCheckout}>
-              Checkout <Icon name="arrow" size={16} />
+              {t('checkout')} <Icon name="arrow" size={16} />
             </button>
             <div className="rw-paystrip">
               {REWIND_PAYMENTS.map((pm) => (
@@ -445,10 +449,10 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
       </div>
       {pendingRemove && (
         <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 950, background: 'var(--bg)', borderRadius: '12px', padding: '24px', maxWidth: '340px', width: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 16px', color: 'var(--ink)' }}>Remove "{pendingRemove.name}" from your bag?</p>
+          <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 16px', color: 'var(--ink)' }}>{t('remove_prompt', { name: pendingRemove.name })}</p>
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button onClick={() => { onRemove(pendingRemove.key, pendingRemove.name); onCancelRemove(); }} style={{ padding: '10px 24px', borderRadius: '10px', border: 'none', background: 'var(--accent, #FF4D14)', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Remove</button>
-            <button onClick={onCancelRemove} style={{ padding: '10px 24px', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--muted)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+            <button onClick={() => { onRemove(pendingRemove.key, pendingRemove.name); onCancelRemove(); }} style={{ padding: '10px 24px', borderRadius: '10px', border: 'none', background: 'var(--accent, #FF4D14)', color: '#fff', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>{t('remove')}</button>
+            <button onClick={onCancelRemove} style={{ padding: '10px 24px', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--muted)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>{t('cancel')}</button>
           </div>
         </div>
       )}

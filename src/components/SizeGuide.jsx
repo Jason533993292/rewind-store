@@ -1,7 +1,25 @@
 import React, { useState } from 'react';
 import { Icon } from './Shell';
+import { useLang } from '../i18n';
 
 const CATEGORIES = ['Tops / Shirts', 'Jumpers', 'Shoes', 'Pants'];
+
+function catKey(c) {
+  return { 'Tops / Shirts': 'tops_shirts', Jumpers: 'jumpers', Shoes: 'shoes', Pants: 'pants' }[c] || c;
+}
+
+// Map an English measurement column label to its translation key
+function colKey(col) {
+  const map = {
+    'Chest (A)': 'chest', 'Length (B)': 'length', 'Sleeve (C)': 'sleeve',
+    'Waist (A)': 'waist', 'Hips (B)': 'hips', 'Inseam (C)': 'inseam',
+    'EU Size': 'eu_size', 'UK Size': 'uk_size', 'Foot Length (cm)': 'foot_length',
+  };
+  const base = map[col];
+  if (!base) return col;
+  const suffix = col.match(/\((A|B|C)\)/) ? ' (' + col.match(/\((A|B|C)\)/)[1] + ')' : (col.endsWith('(cm)') ? ' (cm)' : '');
+  return { base, suffix };
+}
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
 
@@ -53,24 +71,24 @@ const MEASUREMENTS = {
 };
 
 function SizeDiagram({ cat }) {
+  const { t } = useLang();
   const images = {
     'Tops / Shirts': '/images/size-shirt.png',
     Jumpers: '/images/size-jumper.png',
     Pants: '/images/size-pants.png',
     Shoes: '/images/size-shoe.png',
   };
-  const labels = {
-    'Tops / Shirts': ['A. Shoulder', 'B. Length', 'C. Sleeve'],
-    Jumpers: ['A. Shoulder', 'B. Length', 'C. Sleeve'],
-    Pants: ['A. Waist', 'B. Hips', 'C. Inseam'],
-    Shoes: ['A. Foot length', 'B. Width'],
-  };
+  const lbl = {
+    'Tops / Shirts': [`A. ${t('shoulder')}`, `B. ${t('length')}`, `C. ${t('sleeve')}`],
+    Jumpers: [`A. ${t('shoulder')}`, `B. ${t('length')}`, `C. ${t('sleeve')}`],
+    Pants: [`A. ${t('waist')}`, `B. ${t('hips')}`, `C. ${t('inseam')}`],
+    Shoes: [`A. ${t('foot_length')}`, `B. ${t('width')}`],
+  }[cat] || [];
   const img = images[cat];
-  const lbl = labels[cat] || [];
   if (!img) return null;
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: '240px' }}>
-      <img src={img} alt={`${cat} size guide`}
+      <img src={img} alt={`${t(catKey(cat))} ${t('size_guide')}`}
         style={{ width: '100%', borderRadius: '8px', display: 'block' }} />
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'none' }}>
         {lbl.map((l, i) => (
@@ -87,6 +105,7 @@ function SizeDiagram({ cat }) {
 }
 
 export default function SizeGuide({ onClose }) {
+  const { t } = useLang();
   const [cat, setCat] = useState('Tops / Shirts');
   const [size, setSize] = useState('M');
 
@@ -96,11 +115,11 @@ export default function SizeGuide({ onClose }) {
     <div className="rw-modal-wrap" onClick={onClose}>
       <div className="rw-modal size-guide-modal" onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '650px', padding: '32px', display: 'block' }}>
-        <button className="rw-modal-x" onClick={onClose} aria-label="Close">
+        <button className="rw-modal-x" onClick={onClose} aria-label={t('close')}>
           <Icon name="close" size={18} />
         </button>
 
-        <h2 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '20px' }}>Size Guide</h2>
+        <h2 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '20px' }}>{t('size_guide_title')}</h2>
 
         {/* Category tabs */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -115,7 +134,7 @@ export default function SizeGuide({ onClose }) {
               }}
               onMouseOver={e => { if (cat !== c) { e.target.style.background = 'var(--line-2)'; e.target.style.transform = 'translateY(-1px)'; } }}
               onMouseOut={e => { if (cat !== c) { e.target.style.background = 'var(--line)'; e.target.style.transform = ''; } }}>
-              {c}
+              {c && t(catKey(c))}
             </button>
           ))}
         </div>
@@ -144,7 +163,7 @@ export default function SizeGuide({ onClose }) {
           <div style={{ flex: '0 0 auto' }}>
             <SizeDiagram cat={cat} />
             <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px', textAlign: 'center' }}>
-              Size {size} — {cat}
+              Size {size} — {t(catKey(cat))}
             </p>
           </div>
 
@@ -152,10 +171,11 @@ export default function SizeGuide({ onClose }) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--ink)' }}>
-                  <th style={{ padding: '8px 12px', textAlign: 'left' }}>Size</th>
-                  {m.cols.map(col => (
-                    <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '13px', color: 'var(--muted)' }}>{col}</th>
-                  ))}
+                  <th style={{ padding: '8px 12px', textAlign: 'left' }}>{t('size')}</th>
+                  {m.cols.map(col => {
+                    const r = colKey(col);
+                    return <th key={col} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '13px', color: 'var(--muted)' }}>{typeof r === 'string' ? r : t(r.base) + r.suffix}</th>;
+                  })}
                 </tr>
               </thead>
               <tbody>

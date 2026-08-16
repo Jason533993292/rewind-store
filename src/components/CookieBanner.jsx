@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { nav } from '../lib/router';
+import { useLang } from '../i18n';
 
 export default function CookieBanner() {
+  const { t } = useLang();
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -26,10 +28,10 @@ export default function CookieBanner() {
       borderTop: '1px solid rgba(255,255,255,0.1)',
     }}>
       <span style={{ opacity: 0.85, textAlign: 'center' }}>
-        REWIND uses essential cookies for payments (Stripe), order emails (Resend), and store functions. No advertising or tracking cookies.
+        {t('cookie_msg')}
         <br />
         <a href="/#privacy" onClick={(e) => { e.preventDefault(); nav('/privacy'); setShow(false); }} style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}>
-          Read our Privacy Policy →
+          {t('read_privacy')} →
         </a>
       </span>
       <button onClick={dismiss}
@@ -41,7 +43,7 @@ export default function CookieBanner() {
         }}
         onMouseOver={e => { e.target.style.opacity = '0.85'; }}
         onMouseOut={e => { e.target.style.opacity = '1'; }}>
-        Got it
+        {t('got_it')}
       </button>
     </div>
   );

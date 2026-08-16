@@ -24,13 +24,14 @@ const PAGES = {
     ]
   },
   returns: {
-    title: 'Returns & Final Sale',
+    title: 'Returns & Withdrawal',
     sections: [
-      { heading: 'Return Policy', text: 'All sales are final. We do not accept returns or exchanges — every piece is one of a kind, so we cannot offer a replacement size or colour. Please read the product description and size guide carefully before purchasing.' },
-      { heading: 'Damaged or Defective Items', text: 'If your item arrives damaged or defective, email us at orders@rewind-stores.com within 14 days of delivery with photos of the issue. We will make it right — either a replacement where possible or a refund.' },
-      { heading: 'Refunds', text: 'If a refund is approved (for a defective item we cannot replace), it is issued to your original payment method within 5 business days of approval.' },
-      { heading: 'Exchanges', text: 'Because each piece is one of a kind, exchanges are not available. If an item is damaged, see the section above.' },
-      { heading: 'Vintage & Hygiene', text: 'Vintage items may show signs of wear — please read the product description carefully before purchasing. For hygiene reasons we cannot accept returns on underwear, swimwear, or face masks.' },
+      { heading: 'Right of Withdrawal', text: 'Under EU law you have 14 days from delivery to withdraw from your purchase and return an item. To withdraw, email orders@rewind-stores.com with your order number. The item must be returned in its original condition with all tags attached.' },
+      { heading: 'Return Shipping & Costs', text: 'Return shipping is paid by the buyer unless the item arrived damaged or incorrect. We may deduct from your refund any diminished value caused by handling beyond what is necessary to inspect the item. Because each piece is one of a kind, a returned vintage item may not be resellable — please check the product description and size guide carefully before purchasing.' },
+      { heading: 'Refunds', text: 'Refunds are issued to your original payment method within 14 days of us receiving the returned goods.' },
+      { heading: 'Final Sale Items', text: 'For hygiene reasons, sealed items such as underwear, swimwear, and face masks are final sale and cannot be returned once the seal is broken.' },
+      { heading: 'Damaged or Defective Items', text: 'If your item arrives damaged or defective, email us at orders@rewind-stores.com within 14 days of delivery with photos of the issue. We will make it right — with a replacement where possible or a refund.' },
+      { heading: 'Vintage', text: 'Vintage items may show signs of wear — please read the product description carefully before purchasing.' },
     ]
   },
   tracking: {

@@ -161,6 +161,31 @@ a { color: inherit; cursor: pointer; }
   background: var(--accent); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700;
   display: grid; place-items: center; border: 2px solid var(--bg);
 }
+/* ---- language selector ---- */
+.rw-lang { position: relative; }
+.rw-lang-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--line);
+  border-radius: 999px; padding: 8px 12px; height: 42px;
+  color: var(--muted); font-weight: 700; font-size: 12px; letter-spacing: .03em;
+  transition: transform .16s cubic-bezier(.3,1.4,.5,1), border-color .15s, box-shadow .15s, color .15s;
+}
+.rw-lang-btn:hover { transform: scale(1.05); border-color: var(--accent); color: var(--ink); box-shadow: 0 3px 10px rgba(255,77,20,.18); }
+.rw-lang-menu {
+  position: absolute; top: calc(100% + 8px); right: 0; z-index: 120;
+  min-width: 132px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 6px; box-shadow: var(--shadow);
+  animation: fadeIn .12s ease; transform-origin: top right;
+}
+.rw-lang-menu button {
+  display: flex; width: 100%; padding: 9px 12px; border-radius: 8px; border: none;
+  cursor: pointer; font-size: 13.5px; font-weight: 600; text-align: left;
+  background: transparent; color: var(--ink); transition: background .12s;
+}
+.rw-lang-menu button:hover { background: var(--line); }
+.rw-lang-menu button.is-on { background: color-mix(in oklab, var(--accent) 16%, transparent); color: var(--accent); }
+@media (max-width: 880px) { .rw-lang-btn { padding: 7px 10px; height: 40px; } }
+@media (max-width: 540px) { .rw-lang-btn svg { display: none; } .rw-lang-btn { padding: 7px 9px; } .rw-lang-menu { right: auto; left: -60px; } }
 @media (max-width: 880px) { .rw-nav { display: none; } .rw-search input { width: 80px; } .rw-search:focus-within input { width: 160px; } }
 @media (max-width: 540px) { .rw-header-row { padding: 0 12px; gap: 6px; } .rw-search input { width: 60px; font-size: 12px; } .rw-search:focus-within input { width: 110px; } .rw-logo { font-size: 18px; } }
 

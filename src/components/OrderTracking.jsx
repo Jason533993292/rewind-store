@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { nav } from '../lib/router';
+import { useLang } from '../i18n';
 
 export default function OrderTracking({ onClose }) {
+  const { t } = useLang();
   const [email, setEmail] = useState('');
   const [orderNum, setOrderNum] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,23 +53,23 @@ export default function OrderTracking({ onClose }) {
       <div className="rw-checkout-bar">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
           onClick={() => { nav('/'); if (onClose) onClose(); }}>REWIND<span>.</span></div>
-        <button className="rw-btn rw-btn-ghost" onClick={() => { nav('/'); if (onClose) onClose(); }}>Back</button>
+        <button className="rw-btn rw-btn-ghost" onClick={() => { nav('/'); if (onClose) onClose(); }}>{t('back')}</button>
       </div>
       <div style={{ maxWidth: '500px', margin: '40px auto', padding: '0 20px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>Track your order</h2>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '6px' }}>{t('track_order')}</h2>
         <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px' }}>
           Enter your email and order number to check the status.
         </p>
 
         {!result && (
           <form onSubmit={handleLookup}>
-            <input className="rw-input" type="email" placeholder="Email" name="email" value={email}
+            <input className="rw-input" type="email" placeholder={t('email_ph')} name="email" value={email}
               onChange={e => setEmail(e.target.value)} style={{ marginBottom: '10px' }} />
-            <input className="rw-input" type="text" placeholder="Order number (e.g. RW-12345678)" value={orderNum}
+            <input className="rw-input" type="text" placeholder={t('order_num_ph')} value={orderNum}
               onChange={e => setOrderNum(e.target.value)} style={{ marginBottom: '14px' }} />
             {error && <p style={{ color: 'var(--accent)', fontSize: '13px', marginBottom: '10px' }}>{error}</p>}
             <button className="rw-btn rw-btn-pri rw-btn-full" disabled={loading} type="submit">
-              {loading ? 'Looking up...' : 'Track order'}
+              {loading ? t('looking_up') : t('track_order')}
             </button>
           </form>
         )}
@@ -193,7 +195,7 @@ export default function OrderTracking({ onClose }) {
         )}
 
         <p style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', marginTop: '24px' }}>
-          Questions? Email <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)' }}>orders@rewind-stores.com</a>
+          {t('questions_email')} <a href="mailto:orders@rewind-stores.com" style={{ color: 'var(--accent)' }}>orders@rewind-stores.com</a>
         </p>
       </div>
     </div>

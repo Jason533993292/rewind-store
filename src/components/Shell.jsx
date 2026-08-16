@@ -9,6 +9,7 @@ function parseImgs(p) {
   return raw ? [raw] : [];
 }
 import { nav } from '../lib/router';
+import { useLang, LANGS, LANG_NAMES } from '../i18n';
 
 /* ---------- Icon ---------- */
 export function Icon({ name, size = 20 }) {
@@ -94,28 +95,69 @@ export function Photo({ id, hue, label, h = 320, img, eager }) {
 }
 
 /* ---------- Banner ---------- */
-const BANNER_MSGS = [
-  "Summer drop is live — curated vintage, restocked weekly",
-  "Summer sale ends Sunday 23:59 — shop now before it's gone",
-  "Free shipping on all EU orders over €150",
-];
-
 export function Banner({ showCountdown }) {
+  const { t } = useLang();
+  const msgs = [t('banner_1'), t('banner_2'), t('banner_3')];
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((v) => (v + 1) % BANNER_MSGS.length), 4200);
-    return () => clearInterval(t);
-  }, []);
+    const timer = setInterval(() => setI((v) => (v + 1) % msgs.length), 4200);
+    return () => clearInterval(timer);
+  }, [msgs.length]);
   const c = useCountdown();
   return (
     <div className="rw-banner">
       <div className="rw-banner-track" key={i}>
-        <Icon name="bolt" size={14} /> <span>{BANNER_MSGS[i]}</span>
+        <Icon name="bolt" size={14} /> <span>{msgs[i]}</span>
       </div>
       {showCountdown && (
-        <div className="rw-banner-count" title="Sale ends Sunday 23:59">
-          Sale ends in
+        <div className="rw-banner-count" title={t('banner_2')}>
+          {t('sale_ends_in')}
           <b>{c.d}d&nbsp;{pad(c.h)}h&nbsp;{pad(c.m)}m&nbsp;{pad(c.s)}s</b>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- LanguageSelector ---------- */
+export function LanguageSelector() {
+  const { lang, setLang } = useLang();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const onClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
+
+  return (
+    <div className="rw-lang" ref={ref}>
+      <button className="rw-lang-btn" onClick={() => setOpen(v => !v)}
+        aria-haspopup="listbox" aria-expanded={open} aria-label="Change language">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3.5 12h17M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </svg>
+        <span>{lang.toUpperCase()}</span>
+      </button>
+      {open && (
+        <div className="rw-lang-menu" role="listbox" aria-label="Language">
+          {LANGS.map((code) => (
+            <button key={code} role="option" aria-selected={code === lang}
+              className={code === lang ? 'is-on' : ''}
+              onClick={() => { setLang(code); setOpen(false); }}>
+              {LANG_NAMES[code]}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -124,6 +166,7 @@ export function Banner({ showCountdown }) {
 
 /* ---------- Header ---------- */
 export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishlistOpen, query, setQuery, cats, version, onVersionClick, onReferral, isAdmin, searchSuggestions, onSearchSelect }) {
+  const { t } = useLang();
   const [focusedIdx, setFocusedIdx] = useState(-1);
   const suggestRef = useRef(null);
 
@@ -175,19 +218,19 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
         <nav className="rw-nav">
           {cats.map((c) => (
             <button key={c} className={"rw-navlink" + (cat === c ? " is-on" : "")}
-              onClick={() => setCat(c)}>{c === "All" ? "New in" : c}</button>
+              onClick={() => setCat(c)}>{c === "All" ? t('new_in') : c}</button>
           ))}
         </nav>
         <div className="rw-header-actions">
           <div className="rw-search" ref={suggestRef} style={{position:'relative'}}>
             <Icon name="search" size={17} />
-            <input id="rw-search" name="q" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder="Search" aria-label="Search products"
+            <input id="rw-search" name="q" value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={handleKeyDown} placeholder={t('search')} aria-label={t('search_aria')}
               role="combobox" aria-expanded={!!hasSuggestions} aria-haspopup="listbox" aria-autocomplete="list"
               aria-controls="rw-search-listbox"
               aria-activedescendant={focusedIdx >= 0 ? `rw-sugg-${focusedIdx}` : undefined} />
             {query && (
             <button onClick={(e) => { setQuery(''); setFocusedIdx(-1); e.currentTarget.blur(); }}
-              aria-label="Clear search"
+              aria-label={t('clear_search')}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
                 padding: '2px', display: 'grid', placeItems: 'center',
@@ -223,11 +266,12 @@ export function Header({ cat, setCat, cartCount, onCart, wishlistCount, onWishli
               </div>
             )}
           </div>
-          <button className="rw-iconbtn" onClick={onWishlistOpen} aria-label={`Wishlist${wishlistCount > 0 ? ` (${wishlistCount})` : ''}`}>
+          <LanguageSelector />
+          <button className="rw-iconbtn" onClick={onWishlistOpen} aria-label={`${t('wishlist')}${wishlistCount > 0 ? ` (${wishlistCount})` : ''}`}>
             <Icon name="heart" size={17} />
             {wishlistCount > 0 && <span className="rw-badge">{wishlistCount}</span>}
           </button>
-          <button className="rw-iconbtn" onClick={onCart} aria-label={`Cart${cartCount > 0 ? ` (${cartCount})` : ''}`}>
+          <button className="rw-iconbtn" onClick={onCart} aria-label={`${t('cart')}${cartCount > 0 ? ` (${cartCount})` : ''}`}>
             <Icon name="bag" />
             {cartCount > 0 && <span className="rw-badge">{cartCount}</span>}
           </button>
@@ -264,28 +308,28 @@ export function TypingText({ texts, typingSpeed = 80, deleteSpeed = 40, pauseDur
 
 /* ---------- Hero ---------- */
 export function Hero({ onShop, onBundle, bundle }) {
+  const { t } = useLang();
   return (
     <section className="rw-hero">
       <div className="rw-hero-copy">
-        <div className="rw-hero-kicker"><Icon name="bolt" size={13} /> Summer '26 · Vol. 04</div>
-        <h1 className="rw-hero-title">Worn once.<br/>Loved again.</h1>
+        <div className="rw-hero-kicker"><Icon name="bolt" size={13} /> {t('hero_kicker')}</div>
+        <h1 className="rw-hero-title">{t('hero_title_1')}<br/>{t('hero_title_2')}</h1>
         <p className="rw-hero-sub">
-          Hand-picked vintage tracksuits, retro jerseys & summer sets. Authenticated,
-          cleaned, and dispatched within 24 hours — arriving in 10–25 days. One of each — when it's gone, it's gone.
+          {t('hero_sub')}
         </p>
         <div className="rw-hero-cta">
-          <button className="rw-btn rw-btn-pri" onClick={() => onShop()}>Shop the drop <Icon name="arrow" size={17} /></button>
-          <button className="rw-btn rw-btn-ghost" onClick={() => onShop('Jerseys')}>Browse jerseys</button>
+          <button className="rw-btn rw-btn-pri" onClick={() => onShop()}>{t('shop_drop')} <Icon name="arrow" size={17} /></button>
+          <button className="rw-btn rw-btn-ghost" onClick={() => onShop('Jerseys')}>{t('browse_jerseys')}</button>
         </div>
         <div className="rw-hero-stats">
-          <div><b>4.3</b><span>★ 23 reviews</span></div>
-          <div><b>24h</b><span>EU dispatch</span></div>
-          <div><b>1 of 1</b><span>one of each</span></div>
+          <div><b>4.3</b><span>★ {t('reviews')}</span></div>
+          <div><b>24h</b><span>{t('dispatch')}</span></div>
+          <div><b>1 of 1</b><span>{t('one_of_each')}</span></div>
         </div>
       </div>
       <div className="rw-hero-art">
         <button type="button" className="rw-hero-bundle" onClick={onBundle}
-          aria-label={bundle ? `View ${bundle.name} — €${bundle.price}` : 'View the Lacoste Jacket Bundle'}>
+          aria-label={bundle ? `View ${bundle.name} — €${bundle.price}` : t('view_bundle')}>
           <span className="rw-hero-loop">
             <Photo id="hero-b" hue={210} label="DETAIL" h={420} img="/products/hero-detail.jpg?v=2" eager />
           </span>
@@ -300,7 +344,8 @@ export function Hero({ onShop, onBundle, bundle }) {
 
 /* ---------- Marquee ---------- */
 export function Marquee() {
-  const items = ["Ships in 24h", "Final sale", "One of each", "Restocked weekly", "Authenticated", "Steam-cleaned"];
+  const { t } = useLang();
+  const items = [t('marquee_ships'), t('marquee_final'), t('marquee_one'), t('marquee_restocked'), t('marquee_auth'), t('marquee_clean')];
   // Triple-repeat ensures there's always visible content during the animation
   // loop, preventing any cutoff on narrow viewports.
   const row = [...items, ...items, ...items, ...items];
@@ -334,7 +379,8 @@ export function Toast({ toast, onDismiss }) {
 
 /* ---------- Progress Steps (dotted line) ---------- */
 export function ProgressSteps() {
-  const steps = ["Browse", "Add to cart", "Checkout", "Shipped", "Delivered"];
+  const { t } = useLang();
+  const steps = [t('step_browse'), t('step_add'), t('step_checkout'), t('step_shipped'), t('step_delivered')];
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -365,17 +411,17 @@ export function ProgressSteps() {
 
 /* ---------- Footer ---------- */
 export function Footer({ onSizes, onInfo, onSetCat, cats }) {
+  const { t } = useLang();
   // Use provided categories or fall back to the main ones that always exist
   const shopCats = cats ? cats.filter(c => c !== 'All') : [];
   return (
     <footer className="rw-footer">
       <div className="rw-footer-top">
         <div className="rw-logo rw-logo-lg">REWIND<span>.</span></div>
-        <p>Curated vintage & retro sportswear. Each piece is one of one — sourced and authenticated,
-          dispatched within a day, delivered in 10–25 days.</p>
+        <p>{t('footer_desc')}</p>
       </div>
       <div className="rw-footer-cols">
-        <div><h4>Shop</h4>
+        <div><h4>{t('footer_shop')}</h4>
           {shopCats.length > 0
             ? shopCats.map(c => (
                 <button key={c} onClick={() => onSetCat(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit', textAlign: 'left' }}>{c}</button>
@@ -383,11 +429,11 @@ export function Footer({ onSizes, onInfo, onSetCat, cats }) {
             : <><button onClick={() => onSetCat('Tracksuits')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Tracksuits</button><button onClick={() => onSetCat('Jerseys')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Jerseys</button><button onClick={() => onSetCat('Polos')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Polos</button><button onClick={() => onSetCat('Shoes')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Kicks</button></>
           }
         </div>
-        <div><h4>Help</h4><button onClick={onSizes} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit', textAlign: 'left' }}>Sizing</button><button onClick={() => onInfo('shipping')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Shipping</button><button onClick={() => onInfo('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Returns</button><button onClick={() => onInfo('tracking')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Track order</button><button onClick={() => onInfo('orders')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Orders</button></div>
-        <div><h4>Pay with</h4><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>PayPal</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Apple Pay</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Bancontact</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>iDEAL</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Klarna</button></div>
-        <div><h4>Legal</h4><button onClick={() => { nav('/privacy'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Privacy Policy</button><button onClick={() => { nav('/terms'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Terms of Service</button><button onClick={() => { nav('/returns'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Returns & Refunds</button><button onClick={() => { nav('/shipping'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>Shipping</button><a href="https://github.com/Jason533993292/rewind-store" target="_blank" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit', textDecoration: 'none', display: 'block' }}>GitHub</a></div>
+        <div><h4>{t('footer_help')}</h4><button onClick={onSizes} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit', textAlign: 'left' }}>{t('help_sizing')}</button><button onClick={() => onInfo('shipping')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('help_shipping')}</button><button onClick={() => onInfo('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('help_returns')}</button><button onClick={() => onInfo('tracking')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('help_track')}</button><button onClick={() => onInfo('orders')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('help_orders')}</button></div>
+        <div><h4>{t('footer_pay')}</h4><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('pay_paypal')}</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('pay_apple')}</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('pay_bancontact')}</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('pay_ideal')}</button><button onClick={() => onInfo('payments')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('pay_klarna')}</button></div>
+        <div><h4>{t('footer_legal')}</h4><button onClick={() => { nav('/privacy'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('legal_privacy')}</button><button onClick={() => { nav('/terms'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('legal_terms')}</button><button onClick={() => { nav('/returns'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('legal_returns')}</button><button onClick={() => { nav('/shipping'); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit' }}>{t('legal_shipping')}</button><a href="https://github.com/Jason533993292/rewind-store" target="_blank" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 'inherit', color: 'inherit', textDecoration: 'none', display: 'block' }}>GitHub</a></div>
       </div>
-      <div className="rw-footer-base">© 2026 REWIND. Vintage streetwear — curated, authenticated, shipped in 24h.</div>
+      <div className="rw-footer-base">© 2026 REWIND. {t('footer_base')}</div>
     </footer>
   );
 }

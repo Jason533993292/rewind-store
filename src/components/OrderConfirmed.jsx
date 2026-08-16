@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { nav } from '../lib/router';
+import { useLang } from '../i18n';
 
 const CONFETTI_COLORS = ['#FF4D14', '#22c55e', '#3b82f6', '#f59e0b', '#a855f7', '#ec4899', '#06b6d4'];
 
@@ -17,6 +18,7 @@ function createConfetti() {
 }
 
 export default function OrderConfirmed({ orderNum, onClose }) {
+  const { t } = useLang();
   const [confetti, setConfetti] = useState([]);
 
   useEffect(() => {
@@ -42,25 +44,24 @@ export default function OrderConfirmed({ orderNum, onClose }) {
         />
       ))}
 
-      <h1 style={{ fontSize: '24px', margin: '0 0 8px', color: 'var(--ink)' }}>Order confirmed!</h1>
+      <h1 style={{ fontSize: '24px', margin: '0 0 8px', color: 'var(--ink)' }}>{t('order_confirmed')}</h1>
       <p style={{ fontSize: '14px', color: 'var(--muted)', margin: '0 0 4px' }}>
-        Thank you for your purchase.
+        {t('thanks_purchase')}
       </p>
       {orderNum && (
         <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 24px' }}>
-          Order #: <strong style={{ color: 'var(--ink)' }}>{orderNum}</strong>
+          {t('order_num_label')} <strong style={{ color: 'var(--ink)' }}>{orderNum}</strong>
         </p>
       )}
       <p style={{ fontSize: '13px', color: 'var(--muted)', maxWidth: '400px', lineHeight: 1.6, marginBottom: '24px' }}>
-        We'll send you a confirmation email with tracking once your order ships.
-        You can also track your order anytime.
+        {t('confirm_email_note')}
       </p>
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
         <button className="rw-btn rw-btn-pri" onClick={() => nav('/')}>
-          Continue shopping
+          {t('continue_shopping')}
         </button>
         <button className="rw-btn" onClick={() => nav('/track')}>
-          Track your order
+          {t('track_your_order')}
         </button>
       </div>
     </div>

@@ -4,8 +4,10 @@ import { nav } from '../lib/router';
 import { deleteCustomProduct } from '../lib/supabase';
 import { arrivalRange } from '../lib/shipping';
 import { money } from '../hooks/useCountdown';
+import { useLang } from '../i18n';
 
 export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, showCompare = true, showStock = true, onSizeGuide }) {
+  const { t } = useLang();
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
   const productImgs = (() => { const imgs = p.imgs || p.img; if (Array.isArray(imgs)) return imgs; if (typeof imgs === 'string' && imgs.startsWith('[')) { try { return JSON.parse(imgs); } catch {} } return imgs ? [imgs] : []; })();
@@ -37,7 +39,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
     <div className="rw-product-page">
       <button className="rw-btn rw-btn-ghost" onClick={onBack}
         style={{ marginBottom: '20px', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-        ← Back to shop
+        ← {t('back_to_shop')}
       </button>
 
       {isRealAdmin && (
@@ -102,7 +104,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
               {images.filter(Boolean).map((img, i) => (
                 <button key={i} type="button" onClick={() => setSelectedImg(i)}
-                  aria-label={`View image ${i + 1}`}
+                  aria-label={t('view_image', { n: i + 1 })}
                   aria-pressed={selectedImg === i}
                   style={{
                     width: '72px', height: '72px', borderRadius: '8px', cursor: 'pointer',
@@ -129,7 +131,7 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
               )}
             </div>
             <button
-              aria-label={wishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+              aria-label={wishlisted ? t('remove_wishlist') : t('save_wishlist')}
               onClick={(e) => { e.stopPropagation(); onWishlist && onWishlist(p); }}
               className={wishlisted ? '' : 'rw-heart-btn'}
               style={{
@@ -150,17 +152,17 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
 
           {showStock && soldOut && (
             <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <Icon name="bolt" size={15} /> Sold out — check back soon
+              <Icon name="bolt" size={15} /> {t('sold_out_check')}
             </div>
           )}
           {showStock && low && !soldOut && (
             <div style={{ padding: '8px 14px', background: 'color-mix(in oklab, var(--accent) 10%, transparent)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <Icon name="bolt" size={15} /> Only {p.stock} left
+              <Icon name="bolt" size={15} /> {t('only_left', { n: p.stock })}
             </div>
           )}
 
           <p style={{ fontSize: '15px', lineHeight: '1.6', color: 'var(--muted)', marginBottom: '16px' }}>
-            {p.note || 'Hand-picked vintage piece. Authenticated, steam-cleaned, and ready to wear.'}
+            {p.note || t('product_note_fallback')}
           </p>
           {p.material && (
             <div style={{ display: 'inline-block', padding: '6px 14px', background: 'var(--line)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--ink)', marginBottom: '20px' }}>
@@ -171,11 +173,11 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
           {/* ── Size selector ── */}
           <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600 }}>Size</div>
+              <div style={{ fontSize: '13px', fontWeight: 600 }}>{t('size')}</div>
               {onSizeGuide && (
                 <button onClick={onSizeGuide} className="rw-size-guide-btn"
                   style={{ fontSize: '12px', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', textDecoration: 'underline', textUnderlineOffset: '3px', transition: 'color 0.15s' }}>
-                  Size guide →
+                  {t('size_guide')} →
                 </button>
               )}
             </div>
@@ -195,17 +197,17 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
 
           {/* ── Quantity ── */}
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>Quantity</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>{t('quantity')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button onClick={() => setQty(Math.max(1, qty - 1))}
-                aria-label="Decrease quantity"
+                aria-label={t('decrease_qty')}
                 disabled={qty <= 1}
                 onMouseOver={e => { if (!e.target.disabled) e.target.style.background = 'var(--line)'; }}
                 onMouseOut={e => { if (!e.target.disabled) e.target.style.background = 'var(--surface)'; }}
                 style={{ width: '36px', height: '36px', borderRadius: '50%', border: '1px solid var(--line-2)', background: 'var(--surface)', cursor: qty <= 1 ? 'not-allowed' : 'pointer', transition: 'background 0.15s, opacity 0.15s', opacity: qty <= 1 ? 0.35 : 1, display: 'grid', placeItems: 'center' }}><Icon name="minus" size={14} /></button>
               <span style={{ fontSize: '16px', fontWeight: 700, minWidth: '24px', textAlign: 'center' }}>{qty}</span>
               <button onClick={() => setQty(Math.min(p.stock || 99, qty + 1))}
-                aria-label="Increase quantity"
+                aria-label={t('increase_qty')}
                 disabled={qty >= (p.stock || 99)}
                 onMouseOver={e => { if (!e.target.disabled) e.target.style.background = 'var(--line)'; }}
                 onMouseOut={e => { if (!e.target.disabled) e.target.style.background = 'var(--surface)'; }}
@@ -218,23 +220,23 @@ export default function ProductPage({ p, onBack, onAdd, onWishlist, wishlisted, 
             className="rw-btn rw-btn-pri rw-btn-full"
             style={{ marginBottom: '12px' }}>
             {added ? (
-              <>✓ Added!</>
+              <>✓ {t('added')}</>
             ) : soldOut ? (
-              'Sold out'
+              t('sold_out')
             ) : size ? (
-              `Add ${qty > 1 ? qty + '× ' : ''}to bag — ${money(p.price * qty)}`
+              t('add_to_bag_qty', { qty: qty > 1 ? qty + '× ' : '', price: money(p.price * qty) })
             ) : (
-              'Select a size'
+              t('select_size')
             )}
           </button>
 
           {/* ── Details ── */}
           <div style={{ borderTop: '1px solid var(--line)', paddingTop: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
-              <span>Free shipping on orders over €150</span>
+              <span>{t('free_ship_150')}</span>
             </div>
             <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '8px' }}>
-              Arrives {arrivalRange()} · EU delivery
+              {t('arrives')} {arrivalRange()} · {t('eu_delivery')}
             </div>
           </div>
         </div>
