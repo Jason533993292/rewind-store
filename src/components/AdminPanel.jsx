@@ -126,9 +126,9 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     } else if (showToast) showToast(res.error || 'Delete failed');
   }, [promos, showToast]);
 
-  // Fetch promo codes whenever the Promo tab is shown (or refreshed)
+  // Fetch promo codes only after admin auth is confirmed (visitors never see/fetch promos)
   useEffect(() => {
-    if (adminTab !== 'promo') return;
+    if (!adminAuthed || adminTab !== 'promo') return;
     let alive = true;
     setPromosLoading(true);
     adminFetch('/api/admin/promos').then((res) => {
@@ -137,7 +137,7 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
       if (res.ok) setPromos(Array.isArray(res.data) ? res.data : []);
     }).catch(() => { if (alive) setPromosLoading(false); });
     return () => { alive = false; };
-  }, [adminTab, promosRefresh]);
+  }, [adminTab, promosRefresh, adminAuthed]);
 
   // ── Desktop notifications for new chat messages ──
   useEffect(() => {
