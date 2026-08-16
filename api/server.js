@@ -611,6 +611,25 @@ app.get('/api/admin/promos', requireAdmin, async (req, res) => {
   } catch (e) { console.error('List promos error:', e); res.status(500).json({ error: 'Failed to list promo codes' }); }
 });
 
+// Admin: delete one or more promo codes
+app.post('/api/admin/delete-promo', requireAdmin, async (req, res) => {
+  const { codes } = req.body || {};
+  const list = Array.isArray(codes) ? codes : (codes ? [codes] : []);
+  const clean = list.map((c) => String(c).trim().toUpperCase()).filter(Boolean);
+  if (clean.length === 0) return res.status(400).json({ error: 'No promo codes provided' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
+  try {
+    const encoded = clean.map((c) => encodeURIComponent(c)).join(',');
+    await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?code=in.(${encoded})`, {
+      method: 'DELETE',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    for (const c of clean) auditLog(getAdminEmailFromToken(req), 'delete_promo', c, req.ip);
+    res.json({ ok: true, deleted: clean.length });
+  } catch (e) { console.error('Delete promo error:', e); res.status(500).json({ error: 'Failed to delete promo codes' }); }
+});
+
 // Admin management — requires master token specifically, not just any admin session
 app.post('/api/manage-admins', strictLimiter, async (req, res) => {
   const ADMIN_TOKEN = process.env.ADMIN_SECRET_TOKEN;

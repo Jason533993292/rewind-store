@@ -92,6 +92,39 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [promos, setPromos] = useState([]);
   const [promosLoading, setPromosLoading] = useState(false);
   const [promosRefresh, setPromosRefresh] = useState(0);
+  const [selectedPromos, setSelectedPromos] = useState([]);
+  const [deletingPromos, setDeletingPromos] = useState(false);
+
+  const togglePromo = useCallback((code) => {
+    setSelectedPromos((prev) => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
+  }, []);
+
+  const deleteSelectedPromos = useCallback(async () => {
+    if (selectedPromos.length === 0) return;
+    if (!window.confirm(`Delete ${selectedPromos.length} selected promo code${selectedPromos.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+    setDeletingPromos(true);
+    const res = await adminFetch('/api/admin/delete-promo', { method: 'POST', body: JSON.stringify({ codes: selectedPromos }) });
+    setDeletingPromos(false);
+    if (res.ok) {
+      setPromosRefresh(v => v + 1);
+      setSelectedPromos([]);
+      if (showToast) showToast(`Deleted ${selectedPromos.length} promo${selectedPromos.length > 1 ? 's' : ''}`);
+    } else if (showToast) showToast(res.error || 'Delete failed');
+  }, [selectedPromos, showToast]);
+
+  const deleteAllPromos = useCallback(async () => {
+    const active = promos.filter(p => !(p.expires_at && new Date(p.expires_at).getTime() < Date.now()));
+    if (active.length === 0) return;
+    if (!window.confirm(`Delete ALL ${active.length} active promo code${active.length > 1 ? 's' : ''}? This cannot be undone.`)) return;
+    setDeletingPromos(true);
+    const res = await adminFetch('/api/admin/delete-promo', { method: 'POST', body: JSON.stringify({ codes: active.map(p => p.code) }) });
+    setDeletingPromos(false);
+    if (res.ok) {
+      setPromosRefresh(v => v + 1);
+      setSelectedPromos([]);
+      if (showToast) showToast(`Deleted all ${active.length} promos`);
+    } else if (showToast) showToast(res.error || 'Delete failed');
+  }, [promos, showToast]);
 
   // Fetch promo codes whenever the Promo tab is shown (or refreshed)
   useEffect(() => {
@@ -763,12 +796,27 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
           {/* ── Active Promos with live countdowns ── */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>⚡ Active Promos</h3>
-              <button onClick={() => setPromosRefresh(v => v + 1)}
-                style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', color: 'var(--muted)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
-                Refresh
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>
+                ⚡ Active Promos{' '}
+                <span style={{ color: 'var(--muted)', fontWeight: 500, fontSize: '12px' }}>
+                  ({promos.filter(p => !(p.expires_at && new Date(p.expires_at).getTime() < Date.now())).length})
+                </span>
+              </h3>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button onClick={deleteSelectedPromos} disabled={selectedPromos.length === 0 || deletingPromos}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--accent)', background: selectedPromos.length > 0 ? 'var(--accent)' : 'var(--surface)', color: selectedPromos.length > 0 ? '#fff' : 'var(--muted)', cursor: selectedPromos.length > 0 && !deletingPromos ? 'pointer' : 'not-allowed', fontSize: '12px', fontWeight: 600 }}>
+                  {deletingPromos ? 'Deleting…' : `Delete selected (${selectedPromos.length})`}
+                </button>
+                <button onClick={deleteAllPromos} disabled={deletingPromos}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--accent)', background: 'var(--surface)', color: 'var(--accent)', cursor: deletingPromos ? 'not-allowed' : 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                  Delete all
+                </button>
+                <button onClick={() => setPromosRefresh(v => v + 1)}
+                  style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', color: 'var(--muted)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                  Refresh
+                </button>
+              </div>
             </div>
             {promosLoading ? (
               <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Loading promos…</p>
@@ -783,13 +831,18 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
                       border: '1px solid var(--line)', borderRadius: '10px', padding: '12px 14px',
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
                       opacity: maxed ? 0.55 : 1,
+                      background: selectedPromos.includes(p.code) ? 'color-mix(in oklab, var(--accent) 8%, transparent)' : 'transparent',
                     }}>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: '14px' }}>{p.code}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                          {fmtPromoDiscount(p)} · {p.uses || 0}/{p.max_uses ?? '∞'} used{maxed ? ' · Maxed' : ''}
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', flex: '1 1 auto', minWidth: '160px' }}>
+                        <input type="checkbox" checked={selectedPromos.includes(p.code)} onChange={() => togglePromo(p.code)}
+                          style={{ width: '16px', height: '16px', accentColor: 'var(--accent)', cursor: 'pointer', flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '14px' }}>{p.code}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                            {fmtPromoDiscount(p)} · {p.uses || 0}/{p.max_uses ?? '∞'} used{maxed ? ' · Maxed' : ''}
+                          </div>
                         </div>
-                      </div>
+                      </label>
                       <div style={{ textAlign: 'right' }}>
                         {p.expires_at ? (
                           <>
