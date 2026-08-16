@@ -645,6 +645,16 @@ export default function App() {
   const goCheckout = useCallback(() => { setDrawer(false); setCheckout(true); setCheckoutCount(c => c + 1); setPromoOpen(false); setPromoClosing(false); setOrderNumber(''); }, []);
   const orderPlaced = useCallback((orderNum) => { setCart([]); setCheckout(false); setOrderNumber(''); setConfirmedOrderNum(orderNum || ''); setShowOrderConfirmed(true); }, []);
 
+  // Opening one overlay closes all the others, so wishlist/cart/checkout/etc.
+  // never stack on top of each other.
+  const closeAllOverlays = useCallback(() => {
+    setDrawer(false); setWishlistOpen(false); setCheckout(false); setQuick(null);
+    setShowSizes(false); setInfoPage(null); setPromoOpen(false); setShowReferral(false);
+    setShowSettings(false); setShowOrderConfirmed(false);
+  }, []);
+  const openCart = useCallback(() => { closeAllOverlays(); setDrawer(true); }, [closeAllOverlays]);
+  const openWishlist = useCallback(() => { closeAllOverlays(); setWishlistOpen(true); }, [closeAllOverlays]);
+
   const handleWishlist = useCallback((p) => {
     const pid = p.id || p.product_id;
     if (!pid) return;
@@ -671,7 +681,7 @@ export default function App() {
     } else {
       showToast(p.name + ' saved', {
         label: 'Show',
-        onClick: () => setWishlistOpen(true),
+        onClick: () => openWishlist(),
       });
     }
   }, [userEmail, showToast]);
@@ -688,7 +698,7 @@ export default function App() {
       setPendingWishlistId(null);
       showToast((pendingProduct?.name || 'Item') + ' saved', {
         label: 'Show',
-        onClick: () => setWishlistOpen(true),
+        onClick: () => openWishlist(),
       });
     }
   }, [pendingWishlistId, showToast, customProducts]);
@@ -1056,8 +1066,8 @@ export default function App() {
     )}
     <div className="rw-product-page" id="rw-product-page">
       <Header cat={cat} setCat={(c) => { setCat(c); setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); scrollPosRef.current = 0; scrollToGrid(); }} cartCount={cartCount}
-        onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
-        onWishlistOpen={() => setWishlistOpen(true)}
+        onCart={openCart} wishlistCount={wishlist.length}
+        onWishlistOpen={openWishlist}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
         onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
         isAdmin={isAdmin} searchSuggestions={searchSuggestions} onSearchSelect={handleSearchSelect} />
@@ -1073,7 +1083,7 @@ export default function App() {
       <main className="rw-shop">
       <ProductPage key={curPid} p={selectedProduct}
         onBack={() => { setSelectedProduct(null); window.history.replaceState({}, '', window.location.pathname); }}
-        onAdd={(p, size, qty) => { addToCart(p, size, qty); setDrawer(true); }}
+        onAdd={(p, size, qty) => { addToCart(p, size, qty); openCart(); }}
         onWishlist={handleWishlist}
         wishlisted={wishlist.includes(curPid)}
         showCompare={t.showCompare}
@@ -1099,8 +1109,8 @@ export default function App() {
     <div className="rw-app" key="shop">
       {t.showBanner && <Banner showCountdown={t.showCountdown} />}
       <Header cat={cat} setCat={(c) => { setCat(c); scrollToGrid(); }} cartCount={cartCount}
-        onCart={() => setDrawer(true)} wishlistCount={wishlist.length}
-        onWishlistOpen={() => setWishlistOpen(true)}
+        onCart={openCart} wishlistCount={wishlist.length}
+        onWishlistOpen={openWishlist}
         query={query} setQuery={handleQueryChange} cats={availableCats} version={VERSION}
         onVersionClick={() => setShowTweaks(v => !v)} onReferral={() => setShowReferral(true)}
         isAdmin={isAdmin} searchSuggestions={searchSuggestions} onSearchSelect={handleSearchSelect} />
@@ -1235,7 +1245,7 @@ export default function App() {
               onQuick={setQuick} onAdd={quickAdd}
               wishlist={wishlist} onWishlist={handleWishlist} onSelect={setSelectedProduct}
               activeCat={cat} activeBrand={brand}
-              onCart={() => setDrawer(true)}
+              onCart={openCart}
               cats={availableCats} onSetCat={(c) => { setCat(c); scrollToGrid(); }}
               onClearSearch={() => { setQuery(''); setCat('All'); setBrand(null); setSortBy(''); scrollToGrid(); }} />
           </div>
@@ -1308,7 +1318,7 @@ export default function App() {
         }}
         onAddToCart={(p, size) => { addToCart(p, size); }}
         onSelect={(p) => { setSelectedProduct(p); setWishlistOpen(false); }}
-        onCartOpen={() => { setWishlistOpen(false); setDrawer(true); }}
+        onCartOpen={openCart}
         showToast={showToast} />
 
       {showSurvey && selectedProduct === null && !signupOpen && quick === null && !drawer && !checkout && !showSizes && infoPage === null && !promoOpen && !wishlistOpen && (
