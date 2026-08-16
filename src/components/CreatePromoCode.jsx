@@ -5,7 +5,7 @@ const btnStyle = {
   cursor: 'pointer', fontSize: '11px', fontWeight: 600, color: 'var(--muted)', transition: 'all 0.15s',
 };
 
-export default function CreatePromoCode({ showToast }) {
+export default function CreatePromoCode({ showToast, onCreated }) {
   const [code, setCode] = useState('');
   const [discount, setDiscount] = useState(10);
   const [maxUses, setMaxUses] = useState(50);
@@ -37,6 +37,7 @@ export default function CreatePromoCode({ showToast }) {
         setMsg('✅ Promo code ' + d.code + ' created!');
         setCode('');
         if (showToast) showToast('Promo code created');
+        if (onCreated) onCreated();
       } else {
         setMsg(d.error || 'Failed to create');
       }

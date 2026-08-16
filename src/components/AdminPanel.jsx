@@ -19,6 +19,33 @@ import { adminFetch } from '../lib/adminApi';
 
 const VERSION = 'V11.3.0';
 
+// Live per-second countdown to a promo's expiry
+function PromoCountdown({ expiresAt }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const target = new Date(expiresAt).getTime();
+  const diff = target - now;
+  if (diff <= 0) return <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Expired</span>;
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  return (
+    <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--ink)', fontSize: '14px' }}>
+      {d > 0 ? `${d}d ` : ''}{pad(h)}h {pad(m)}m {pad(s)}s
+    </span>
+  );
+}
+
+function fmtPromoDiscount(p) {
+  if (p.discount_type === 'amount') return `€${p.discount}`;
+  return `${p.discount}% off`;
+}
+
 function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showToast }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +89,22 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [newOrderCount, setNewOrderCount] = useState(0);
   const seenOrderIdsRef = useRef(null);
   const [subscribers, setSubscribers] = useState([]);
+  const [promos, setPromos] = useState([]);
+  const [promosLoading, setPromosLoading] = useState(false);
+  const [promosRefresh, setPromosRefresh] = useState(0);
+
+  // Fetch promo codes whenever the Promo tab is shown (or refreshed)
+  useEffect(() => {
+    if (adminTab !== 'promo') return;
+    let alive = true;
+    setPromosLoading(true);
+    adminFetch('/api/admin/promos').then((res) => {
+      if (!alive) return;
+      setPromosLoading(false);
+      if (res.ok) setPromos(Array.isArray(res.data) ? res.data : []);
+    }).catch(() => { if (alive) setPromosLoading(false); });
+    return () => { alive = false; };
+  }, [adminTab, promosRefresh]);
 
   // ── Desktop notifications for new chat messages ──
   useEffect(() => {
@@ -712,10 +755,58 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
 
           {/* ── Promo Codes ── */}
           {adminTab === 'promo' && (
+          <>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>🎟️ Promo Codes</h3>
-            <CreatePromoCode showToast={showToast} />
+            <CreatePromoCode showToast={showToast} onCreated={() => setPromosRefresh(v => v + 1)} />
           </div>
+
+          {/* ── Active Promos with live countdowns ── */}
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 600 }}>⚡ Active Promos</h3>
+              <button onClick={() => setPromosRefresh(v => v + 1)}
+                style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid var(--line-2)', background: 'var(--surface)', color: 'var(--muted)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>
+                Refresh
+              </button>
+            </div>
+            {promosLoading ? (
+              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Loading promos…</p>
+            ) : promos.length === 0 ? (
+              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>No promo codes yet.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '10px' }}>
+                {promos.filter(p => !(p.expires_at && new Date(p.expires_at).getTime() < Date.now())).map(p => {
+                  const maxed = p.max_uses != null && (p.uses || 0) >= p.max_uses;
+                  return (
+                    <div key={p.code} style={{
+                      border: '1px solid var(--line)', borderRadius: '10px', padding: '12px 14px',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+                      opacity: maxed ? 0.55 : 1,
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px' }}>{p.code}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                          {fmtPromoDiscount(p)} · {p.uses || 0}/{p.max_uses ?? '∞'} used{maxed ? ' · Maxed' : ''}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        {p.expires_at ? (
+                          <>
+                            <div style={{ fontSize: '11px', color: 'var(--muted)' }}>Expires in</div>
+                            <PromoCountdown expiresAt={p.expires_at} />
+                          </>
+                        ) : (
+                          <span style={{ color: 'var(--muted)', fontSize: '13px' }}>No expiry</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          </>
           )}
 
           {/* ── Product stats ── */}

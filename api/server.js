@@ -598,6 +598,19 @@ app.post('/api/admin/create-promo', requireAdmin, async (req, res) => {
   } catch (e) { console.error('Create promo error:', e); res.status(500).json({ error: 'Failed to create promo code' }); }
 });
 
+// Admin: list all promo codes (for the Active Promos panel with live countdowns)
+app.get('/api/admin/promos', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/promo_codes?select=code,discount,discount_type,label,uses,max_uses,expires_at,created_by,created_at&order=created_at.desc&limit=200`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const data = await r.json();
+    res.json(Array.isArray(data) ? data : []);
+  } catch (e) { console.error('List promos error:', e); res.status(500).json({ error: 'Failed to list promo codes' }); }
+});
+
 // Admin management — requires master token specifically, not just any admin session
 app.post('/api/manage-admins', strictLimiter, async (req, res) => {
   const ADMIN_TOKEN = process.env.ADMIN_SECRET_TOKEN;
