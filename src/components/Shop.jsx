@@ -10,6 +10,7 @@ function parseImgs(p) {
 }
 import { Icon, Photo } from './Shell';
 import { useLang } from '../i18n';
+import { motion } from 'framer-motion';
 import { REWIND_PAYMENTS, REWIND_PRODUCTS } from '../data';
 import Counter from './ui/Counter';
 
@@ -94,7 +95,9 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   return (
-    <article className="rw-card" style={{ opacity: soldOut ? 0.5 : 1 }}>
+    <motion.article className="rw-card" style={{ opacity: soldOut ? 0.5 : 1 }}
+      initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}>
       <div className="rw-card-media" style={{ cursor: 'pointer' }} onClick={() => onSelect ? onSelect(p) : onQuick(p)}>
         <Photo id={p.id || p.product_id} hue={p.hue} label={p.name.toUpperCase()} h={340} img={parseImgs(p)[0] || p.img} />
         <div className="rw-card-tags">
@@ -153,7 +156,7 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
         </div>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
