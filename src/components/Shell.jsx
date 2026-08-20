@@ -10,6 +10,7 @@ function parseImgs(p) {
 }
 import { nav } from '../lib/router';
 import { useLang, LANGS, LANG_NAMES } from '../i18n';
+import { getVariant, logAb } from '../lib/ab';
 
 /* ---------- Icon ---------- */
 export function Icon({ name, size = 20 }) {
@@ -309,16 +310,19 @@ export function TypingText({ texts, typingSpeed = 80, deleteSpeed = 40, pauseDur
 /* ---------- Hero ---------- */
 export function Hero({ onShop, onBundle, bundle }) {
   const { t } = useLang();
+  // A/B test: hero_v1 (control = current copy, variant = "one of one" angle)
+  const abVariant = getVariant('hero_v1');
+  useEffect(() => { logAb('hero_v1', abVariant, 'impression'); }, [abVariant]);
   return (
     <section className="rw-hero">
       <div className="rw-hero-copy">
         <div className="rw-hero-kicker"><Icon name="bolt" size={13} /> {t('hero_kicker')}</div>
-        <h1 className="rw-hero-title">{t('hero_title_1')}<br/>{t('hero_title_2')}</h1>
+        <h1 className="rw-hero-title">{abVariant === 'variant' ? t('hero_v_title') : (<>{t('hero_title_1')}<br/>{t('hero_title_2')}</>)}</h1>
         <p className="rw-hero-sub">
-          {t('hero_sub')}
+          {abVariant === 'variant' ? t('hero_v_sub') : t('hero_sub')}
         </p>
         <div className="rw-hero-cta">
-          <button className="rw-btn rw-btn-pri" onClick={() => onShop()}>{t('shop_drop')} <Icon name="arrow" size={17} /></button>
+          <button className="rw-btn rw-btn-pri" onClick={() => { logAb('hero_v1', abVariant, 'conversion'); onShop(); }}>{t('shop_drop')} <Icon name="arrow" size={17} /></button>
           <button className="rw-btn rw-btn-ghost" onClick={() => onShop('Jerseys')}>{t('browse_jerseys')}</button>
         </div>
         <div className="rw-hero-stats">

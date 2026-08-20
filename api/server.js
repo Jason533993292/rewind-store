@@ -630,6 +630,44 @@ app.post('/api/admin/delete-promo', requireAdmin, async (req, res) => {
   } catch (e) { console.error('Delete promo error:', e); res.status(500).json({ error: 'Failed to delete promo codes' }); }
 });
 
+// A/B testing — record a visitor event (impression/conversion). Public (non-admin).
+app.post('/api/ab/event', async (req, res) => {
+  const { experiment, variant, event_type, session_id } = req.body || {};
+  if (!experiment || !variant || !event_type) return res.status(400).json({ error: 'Missing fields' });
+  if (!['impression', 'conversion'].includes(event_type)) return res.status(400).json({ error: 'Bad event_type' });
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/ab_events`, {
+      method: 'POST',
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ experiment, variant, event_type, session_id: session_id || null }),
+    });
+    res.json({ ok: true });
+  } catch (e) { console.error('AB event error:', e); res.status(500).json({ error: 'Failed to log event' }); }
+});
+
+// Admin: A/B testing report (aggregated impressions/conversions per variant)
+app.get('/api/admin/ab', requireAdmin, async (req, res) => {
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SERVICE_KEY) return res.status(500).json({ error: 'SUPABASE_SERVICE_ROLE_KEY not configured' });
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/ab_events?select=experiment,variant,event_type&limit=10000`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    });
+    const rows = await r.json();
+    if (!Array.isArray(rows)) return res.json([]);
+    const by = {};
+    for (const row of rows) {
+      const k = `${row.experiment}|${row.variant}`;
+      if (!by[k]) by[k] = { experiment: row.experiment, variant: row.variant, impressions: 0, conversions: 0 };
+      if (row.event_type === 'impression') by[k].impressions++;
+      else if (row.event_type === 'conversion') by[k].conversions++;
+    }
+    res.json(Object.values(by));
+  } catch (e) { console.error('AB report error:', e); res.status(500).json({ error: 'Failed to load A/B report' }); }
+});
+
 // Admin management — requires master token specifically, not just any admin session
 app.post('/api/manage-admins', strictLimiter, async (req, res) => {
   const ADMIN_TOKEN = process.env.ADMIN_SECRET_TOKEN;

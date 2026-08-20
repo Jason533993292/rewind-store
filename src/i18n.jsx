@@ -156,6 +156,8 @@ const dict = {
     size_guide_title: "Size Guide",
     returns_14day: "14-day returns",
     one_left_returns: "Only 1 left · 14-day returns",
+    hero_v_title: "One of one. Authenticated.",
+    hero_v_sub: "Every piece is a single, verified vintage original — steam-cleaned and shipped in 24h. No restocks, no copies. When it's gone, it's gone.",
   },
 
   nl: {
@@ -289,6 +291,8 @@ const dict = {
     size_guide_title: "Maatgids",
     returns_14day: "14 dagen retour",
     one_left_returns: "Nog 1 over · 14 dagen retour",
+    hero_v_title: "Uniek. Geauthenticeerd.",
+    hero_v_sub: "Elk stuk is een uniek, geverifieerd vintage origineel — stoomgereinigd en binnen 24u verzonden. Geen herbevoorrading, geen kopieën. Is het weg, dan is het weg.",
   },
 
   fr: {
@@ -422,6 +426,8 @@ const dict = {
     size_guide_title: "Guide des tailles",
     returns_14day: "Retour sous 14 jours",
     one_left_returns: "Plus qu'une · retour sous 14 jours",
+    hero_v_title: "Pièce unique. Authentifiée.",
+    hero_v_sub: "Chaque pièce est un original vintage unique et vérifié — nettoyé à la vapeur et expédié en 24 h. Pas de réassort, pas de copies. Quand c'est parti, c'est fini.",
   },
 
   de: {
@@ -555,6 +561,8 @@ const dict = {
     size_guide_title: "Größentabelle",
     returns_14day: "14 Tage Rückgaberecht",
     one_left_returns: "Nur noch 1 · 14 Tage Rückgaberecht",
+    hero_v_title: "Ein Unikat. Authentifiziert.",
+    hero_v_sub: "Jedes Stück ist ein einzigartiges, verifiziertes Vintage-Original — dampfgereinigt und in 24h versendet. Keine Nachschub, keine Kopien. Wenn es weg ist, ist es weg.",
   },
 
   es: {
@@ -688,6 +696,8 @@ const dict = {
     size_guide_title: "Guía de tallas",
     returns_14day: "Devolución en 14 días",
     one_left_returns: "Solo queda 1 · devolución en 14 días",
+    hero_v_title: "Pieza única. Autenticada.",
+    hero_v_sub: "Cada pieza es un original vintage único y verificado — limpiado a vapor y enviado en 24h. Sin reposiciones, sin copias. Cuando se va, se acabó.",
   },
 
   it: {
@@ -821,6 +831,8 @@ const dict = {
     size_guide_title: "Guida alle taglie",
     returns_14day: "Reso entro 14 giorni",
     one_left_returns: "Solo 1 rimasto · reso entro 14 giorni",
+    hero_v_title: "Pezzo unico. Autenticato.",
+    hero_v_sub: "Ogni capo è un originale vintage unico e verificato — pulito a vapore e spedito in 24h. Niente riassortimenti, niente copie. Quando è finito, è finito.",
   },
 };
 

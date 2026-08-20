@@ -9,6 +9,7 @@ import AuditLogPanel from './AuditLogPanel';
 import AdminChatPanel from './AdminChatPanel';
 import BlockedPanel from './BlockedPanel';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import ContentPrompts from './ContentPrompts';
 import ProductForm from './ProductForm';
 import EditProductPanel from './EditProductPanel';
 import AdminOrdersPanel from './AdminOrdersPanel';
@@ -94,6 +95,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
   const [promosRefresh, setPromosRefresh] = useState(0);
   const [selectedPromos, setSelectedPromos] = useState([]);
   const [deletingPromos, setDeletingPromos] = useState(false);
+  const [abData, setAbData] = useState([]);
+  const [abLoading, setAbLoading] = useState(false);
 
   const togglePromo = useCallback((code) => {
     setSelectedPromos((prev) => prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]);
@@ -138,6 +141,19 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
     }).catch(() => { if (alive) setPromosLoading(false); });
     return () => { alive = false; };
   }, [adminTab, promosRefresh, adminAuthed]);
+
+  // Fetch A/B report when the A/B tab is open
+  useEffect(() => {
+    if (!adminAuthed || adminTab !== 'ab') return;
+    let alive = true;
+    setAbLoading(true);
+    adminFetch('/api/admin/ab').then((res) => {
+      if (!alive) return;
+      setAbLoading(false);
+      if (res.ok) setAbData(Array.isArray(res.data) ? res.data : []);
+    }).catch(() => { if (alive) setAbLoading(false); });
+    return () => { alive = false; };
+  }, [adminTab, adminAuthed]);
 
   // ── Desktop notifications for new chat messages ──
   useEffect(() => {
@@ -433,6 +449,8 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           { id: 'products', label: '🛍️ Products' },
           { id: 'audit', label: '📜 Audit Log' },
           { id: 'analytics', label: '📈 Analytics' },
+          { id: 'ab', label: '🧪 A/B Tests' },
+          { id: 'prompts', label: '📝 Prompts' },
         ].filter(t => t.label).map((t) => (
           <button key={t.id} onClick={() => { setAdminTab(t.id); if (t.id === 'orders') setNewOrderCount(0); localStorage.setItem('rw_admin_tab', t.id); }}
             style={{
@@ -861,6 +879,42 @@ function AdminPanel({ onExit, onSelect, customProducts, setCustomProducts, showT
           </div>
           </>
           )}
+
+          {/* ── A/B Testing ── */}
+          {adminTab === 'ab' && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '12px', padding: '20px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }}>🧪 A/B Tests</h3>
+            {abLoading ? (
+              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Loading…</p>
+            ) : abData.length === 0 ? (
+              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
+                No A/B data yet. The hero test (<code>hero_v1</code>) logs an <b>impression</b> whenever a visitor loads the
+                homepage and a <b>conversion</b> when they click "Shop the drop". Give it some traffic, then refresh.
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {abData.map((r) => {
+                  const rate = r.impressions > 0 ? (100 * r.conversions / r.impressions).toFixed(1) : '0.0';
+                  return (
+                    <div key={r.experiment + '|' + r.variant} style={{ border: '1px solid var(--line)', borderRadius: '10px', padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '14px' }}>
+                          {r.experiment} <span style={{ color: 'var(--muted)', fontWeight: 500 }}>· {r.variant}</span>
+                        </div>
+                        <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
+                          {r.impressions} views · {r.conversions} conversions · <b style={{ color: 'var(--ink)' }}>{rate}%</b>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* ── Content Prompts ── */}
+          {adminTab === 'prompts' && <ContentPrompts products={customProducts} showToast={showToast} />}
 
           {/* ── Product stats ── */}
           {adminTab === 'products' && (
