@@ -144,16 +144,8 @@ export function ProductCard({ p, showCompare, showStock, onQuick, onAdd, wishlis
           </button>
           )}
         </div>
-        {soldOut ? (
+        {soldOut && (
           <div className="rw-card-ship" style={{color:'var(--muted)',fontSize:'12px',textAlign:'center',padding:'8px 0'}}>{t('sold_out')}</div>
-        ) : (
-        <div className="rw-card-ship">
-          {p.stock === 1 ? (
-            <><Icon name="bolt" size={13} /> {t('one_left_returns')}</>
-          ) : (
-            <><Icon name="check" size={13} /> {t('returns_14day')}</>
-          )}
-        </div>
         )}
       </div>
     </motion.article>
@@ -356,7 +348,6 @@ export function QuickView({ p, showCompare, showStock, onClose, onAdd }) {
           </button>
           <div className="rw-modal-perks">
             <span><Icon name="truck" size={15} /> {t('marquee_ships')}</span>
-            <span><Icon name="check" size={15} /> {t('returns_14day')}</span>
           </div>
         </div>
       </div>
