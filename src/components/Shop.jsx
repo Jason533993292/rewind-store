@@ -456,6 +456,7 @@ export function CartDrawer({ open, items, onClose, onQty, onRemove, onCheckout, 
 
 /* ---------- Checkout ---------- */
 export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast, orderNumber: orderNumberProp, onInfo }) {
+  const { t } = useLang();
   const [payment, setPayment] = useState('card');
   const [placed, setPlaced] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -653,19 +654,19 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
     const safetyTimer = setTimeout(() => { setProcessing(false); }, 30000);
     // Client-side field validation before hitting the API
     const missing = [];
-    if (!formFields.email?.trim()) missing.push('Email');
+    if (!formFields.email?.trim()) missing.push(t('email_ph'));
     else if (!/^\S+@\S+\.\S+$/.test(formFields.email.trim())) {
-      setPayError('Please enter a valid email address');
+      setPayError(t('invalid_email'));
       setProcessing(false);
       return;
     }
-    if (!formFields.name?.trim()) missing.push('Full name');
-    if (!formFields.address?.trim()) missing.push('Address');
-    if (!formFields.postal?.trim()) missing.push('Postal code');
-    if (!formFields.city?.trim()) missing.push('City');
-    if (!formFields.country?.trim()) missing.push('Country');
+    if (!formFields.name?.trim()) missing.push(t('full_name_ph'));
+    if (!formFields.address?.trim()) missing.push(t('address_ph'));
+    if (!formFields.postal?.trim()) missing.push(t('postal_ph'));
+    if (!formFields.city?.trim()) missing.push(t('city_ph'));
+    if (!formFields.country?.trim()) missing.push(t('country'));
     if (missing.length > 0) {
-      setPayError('Please fill in: ' + missing.join(', '));
+      setPayError(t('please_fill', { fields: missing.join(', ') }));
       setProcessing(false);
       return;
     }
@@ -826,22 +827,22 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
       <div className="rw-checkout-bar">
         <div className="rw-logo" style={{ cursor: 'pointer' }}
           onClick={() => { nav('/'); window.dispatchEvent(new CustomEvent('reset-store')); onClose(); }}>REWIND<span>.</span></div>
-        <button className="rw-btn rw-btn-ghost" onClick={onClose}>Back</button>
+        <button className="rw-btn rw-btn-ghost" onClick={onClose}>{t('back')}</button>
       </div>
       <div className="rw-checkout-grid">
         <div className="rw-checkout-main">
           <div className="rw-co-sec">
-            <h3>Contact</h3>
-            <input className="rw-input" type="email" placeholder="Email" name="email" value={formFields.email} onChange={setField('email')} autoComplete="email" />
+            <h3>{t('contact')}</h3>
+            <input className="rw-input" type="email" placeholder={t('email_ph')} name="email" value={formFields.email} onChange={setField('email')} autoComplete="email" />
           </div>
           <div className="rw-co-sec">
-            <h3>Promo code</h3>
+            <h3>{t('promo_code')}</h3>
             <div style={{ position: 'relative' }}>
-              <input className="rw-input" placeholder="Enter code" value={promo} onChange={e => setPromo(e.target.value)}
+              <input className="rw-input" placeholder={t('enter_code')} value={promo} onChange={e => setPromo(e.target.value)}
                 style={{ paddingRight: promo ? '32px' : undefined }} />
               {promo && (
                 <button onClick={() => setPromo('')}
-                  aria-label="Clear promo code"
+                  aria-label={t('clear_promo')}
                   style={{
                     position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
                     background: 'none', border: 'none', cursor: 'pointer',
@@ -857,17 +858,17 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             </div>
             {promoValidating && (
               <span style={{color: 'var(--muted)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 500}}>
-                ⏳ Validating...
+                ⏳ {t('validating')}
               </span>
             )}
             {promoData?.valid && (
               <span style={{color: 'var(--ink)', fontSize: '13px', marginTop: '6px', display: 'block', fontWeight: 600}}>
-                ✓ {promoData.type === 'percent' ? `${promoData.value}% off applied!` : 'Free shipping applied!'}
+                ✓ {promoData.type === 'percent' ? t('pct_off_applied', { value: promoData.value }) : t('free_ship_applied')}
               </span>
             )}
             {promoData && !promoData.valid && promo.trim() && !promoValidating && (
               <span style={{color: 'var(--accent)', fontSize: '13px', marginTop: '6px', display: 'block'}}>
-                Invalid promo code
+                {t('invalid_promo')}
               </span>
             )}
           </div>
@@ -878,15 +879,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             referralLoading={referralLoading}
             referralError={referralError} />
           <div className="rw-co-sec">
-            <h3>Delivery</h3>
-            <input className="rw-input" type="text" placeholder="Full name" value={formFields.name} onChange={setField('name')} autoComplete="name" />
-            <input className="rw-input" type="text" placeholder="Address" value={formFields.address} onChange={setField('address')} autoComplete="street-address" />
+            <h3>{t('delivery')}</h3>
+            <input className="rw-input" type="text" placeholder={t('full_name_ph')} value={formFields.name} onChange={setField('name')} autoComplete="name" />
+            <input className="rw-input" type="text" placeholder={t('address_ph')} value={formFields.address} onChange={setField('address')} autoComplete="street-address" />
             <div className="rw-input-row">
-              <input className="rw-input" type="text" placeholder="Postal code" value={formFields.postal} onChange={setField('postal')} autoComplete="postal-code" />
-              <input className="rw-input" type="text" placeholder="City" value={formFields.city} onChange={setField('city')} autoComplete="address-level2" />
+              <input className="rw-input" type="text" placeholder={t('postal_ph')} value={formFields.postal} onChange={setField('postal')} autoComplete="postal-code" />
+              <input className="rw-input" type="text" placeholder={t('city_ph')} value={formFields.city} onChange={setField('city')} autoComplete="address-level2" />
             </div>
             <select className="rw-input" value={formFields.country} onChange={setField('country')} autoComplete="country-name" style={{color: formFields.country ? 'var(--ink)' : 'var(--muted)'}}>
-              <option value="" disabled style={{color:'var(--muted)'}}>Country</option>
+              <option value="" disabled style={{color:'var(--muted)'}}>{t('country')}</option>
               <option value="CN">China</option>
               <option value="JP">Japan</option>
               <option value="KR">South Korea</option>
@@ -958,7 +959,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           </div>
         </div>
         <div className="rw-checkout-summary">
-          <h3>Order summary</h3>
+          <h3>{t('order_summary')}</h3>
           <div className="rw-sum-items">
             {items.map((it) => (
               <div key={it.key} className="rw-sum-line">
@@ -975,7 +976,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
             ))}
           </div>
           <div className="rw-sum-rows">
-            <div><span>Subtotal</span><span><Money value={subtotal} /></span></div>
+            <div><span>{t('subtotal')}</span><span><Money value={subtotal} /></span></div>
             {promoData?.valid && promoData.type === 'percent' && (
               <div style={{color: 'var(--ink)', fontSize: '13px', fontWeight: 600}}>
                 <span>{discountLabel}</span><span>-{money(subtotal - discountPrice)}</span>
@@ -986,7 +987,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
                 <span>{referralDiscountLabel}</span><span>-{money(referralDiscountAmount)}</span>
               </div>
             )}
-            <div><span>Shipping</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? 'Free' : 'Free') : money(discountShipping)}</span></div>
+            <div><span>{t('shipping')}</span><span>{discountShipping === 0 ? (promoData?.valid && promoData.type === 'free_shipping' ? t('free') : t('free')) : money(discountShipping)}</span></div>
             {formFields.country && (() => {
               const c = (formFields.country || '').toUpperCase().trim().substring(0, 2);
               const est = { CN: '3-7d', JP: '3-7d', KR: '3-7d', SG: '5-10d', TH: '5-10d', VN: '5-10d', IN: '7-14d', PK: '7-14d',
@@ -994,11 +995,11 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
                 US: '7-14d', CA: '7-14d', MX: '10-18d', AU: '10-16d', NZ: '10-16d',
                 AE: '10-18d', SA: '10-18d', IL: '10-18d', TR: '10-18d',
                 BR: '14-21d', AR: '14-21d', ZA: '14-21d', NG: '14-21d', EG: '14-21d' }[c] || '10-18d';
-              return <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>Est. delivery: {est}</div>;
+              return <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>{t('est_delivery', { est })}</div>;
             })()}
           </div>
           <div className="rw-sum-total">
-            <div><span>Total</span><b><Money value={finalTotal} /></b></div>
+            <div><span>{t('total')}</span><b><Money value={finalTotal} /></b></div>
           </div>
           {payError && (
             <div className="rw-cc-error" style={{ marginBottom: '8px', textAlign: 'center' }}>
@@ -1008,15 +1009,15 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
           <button className="rw-btn rw-btn-pri rw-btn-full"
             disabled={processing}
             onClick={handlePay}>
-            {processing ? <><i className="rw-spinner" /> Processing…</> : <>Pay <Money value={finalTotal} fontSize={14} /></>}
+            {processing ? <><i className="rw-spinner" /> {t('processing')}</> : <>{t('pay')} <Money value={finalTotal} fontSize={14} /></>}
           </button>
           <div className="rw-co-trust">
-            <Icon name="check" size={13} /> Secured with 256-bit SSL
+            <Icon name="check" size={13} /> {t('secured_ssl')}
           </div>
         </div>
       </div>
       <div className="rw-checkout-payment">
-        <h3 style={{ fontSize: '19px', fontWeight: 700, marginBottom: '14px' }}>Payment</h3>
+        <h3 style={{ fontSize: '19px', fontWeight: 700, marginBottom: '14px' }}>{t('payment')}</h3>
         <div className="rw-pay-grid">
           {REWIND_PAYMENTS.map((pm) => {
             const isApplePayDisabled = pm.id === 'applepay' && !isMobile;
@@ -1028,7 +1029,7 @@ export function Checkout({ open, items, onClose, onPlaced, userEmail, showToast,
               <div className="rw-pay-radio">{payment === pm.id && <Icon name="check" size={13} />}</div>
               <div className="rw-pay-label">
                 {pm.label}
-                <small>{isApplePayDisabled ? 'Mobile only' : pm.sub}</small>
+                <small>{isApplePayDisabled ? t('mobile_only') : pm.sub}</small>
               </div>
             </button>
             );

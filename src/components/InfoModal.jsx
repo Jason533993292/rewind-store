@@ -17,8 +17,8 @@ const PAGES = {
   shipping: {
     title: 'Shipping',
     sections: [
-      { heading: 'Delivery Time', text: 'All orders are processed within 24 hours. Standard EU delivery takes 2–4 business days. Express delivery is available at checkout for 1–2 business days.' },
-      { heading: 'Shipping Costs', text: 'Standard shipping within Belgium: €5. Standard shipping within the EU: €10. Express shipping: €15. Free standard shipping on all orders over €150.' },
+      { heading: 'Delivery Time', text: 'All orders are processed and dispatched within 24 hours. Orders are fulfilled from our supplier partners in China, so delivery times reflect international shipping — typically 7–14 business days for Europe, and up to 21–25 days for more remote regions. You will receive full tracking once your order ships.' },
+      { heading: 'Shipping Costs', text: 'Free standard shipping on all orders over €150, applied automatically at checkout. For orders under €150, shipping is calculated at checkout based on your destination. Because we ship internationally from China, next-day or express delivery is not available.' },
       { heading: 'International', text: 'We currently ship to all EU countries. International shipping outside the European Union is not yet available.' },
       { heading: 'Order Tracking', text: 'Once your order ships, you will receive an email with a tracking number. You can also check your order status on our Track Order page.' },
     ]

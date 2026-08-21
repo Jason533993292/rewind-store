@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Icon } from './Shell';
+import { useLang } from '../i18n';
 
 /*
  * ── REWIND Referral System ──
@@ -117,9 +118,10 @@ export function ReferralDialog({ open, onClose, userEmail, showToast }) {
 
 /* ── Inline referral input (for checkout) — WIP, disabled ── */
 export function ReferralInput({ onApply, appliedReferral, referralDiscount, referralLoading, referralError }) {
+  const { t } = useLang();
   return (
     <div className="rw-co-sec">
-      <h3>Referral code</h3>
+      <h3>{t('referral_code')}</h3>
       <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '6px 0', lineHeight: '1.4' }}>
         The referral system is currently under construction. Check back soon!
       </p>

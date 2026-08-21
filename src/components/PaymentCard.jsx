@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, forwardRef, useImperativeHandle, useCallback, useRef } from 'react';
 import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, PaymentRequestButtonElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { useLang } from '../i18n';
 
 /* ---------- card brand detection & formatting ---------- */
 const CARD_BRANDS = {
@@ -47,6 +48,7 @@ const ELEMENT_OPTIONS = {
 
 /* ---------- CardFormInner — lives inside <Elements>, handles Stripe hooks ---------- */
 function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayReady, onFocusChange, onPaymentSuccess, walletOnly, paymentMethod }) {
+  const { t } = useLang();
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState('');
@@ -204,7 +206,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
       )}
       {!walletOnly && (<>
       <div className="rw-cc-group">
-        <label>Card Number</label>
+        <label>{t('card_number')}</label>
         <div className="rw-stripe-input">
           <CardNumberElement
             options={{ ...ELEMENT_OPTIONS, showIcon: true }}
@@ -217,7 +219,7 @@ function CardFormInner({ clientSecret, amount, onValidChange, onError, onPayRead
       </div>
       <div className="rw-input-row">
         <div className="rw-cc-group">
-          <label>Expiry Date</label>
+          <label>{t('expiry')}</label>
           <div className="rw-stripe-input">
             <CardExpiryElement
               options={ELEMENT_OPTIONS}
